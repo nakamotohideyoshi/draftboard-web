@@ -44,11 +44,11 @@ export const SPORT_CONST = {
     pregameStatuses: ['scheduled'],
     liveStats: {
       qb: {
-        types: ['avg_pass_yds', 'avg_pass_td', 'avg_rush_yds', 'avg_rush_td', 'avg_ints', 'avg_off_fum_lost'],
+        types: ['pass_yds', 'pass_td', 'rush_yds', 'rush_td', 'ints', 'off_fum_lost'],
         names: ['YPAS', 'PTD', 'YRSH', 'RTD', 'INT', 'FUM'],
       },
       nonQb: {
-        types: ['avg_rush_yds', 'avg_rec_rec', 'avg_rec_yds', 'avg_rush_td', 'avg_off_fum_lost'],
+        types: ['rush_yds', 'rec_rec', 'rec_yds', 'rush_td', 'off_fum_lost'],
         names: ['YRSH', 'REC', 'YREC', 'TD', 'FUM'],
       },
     },

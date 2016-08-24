@@ -201,6 +201,7 @@ $nav-scoreboard-foreground-color: #25A758;
 
     .cmp-nav-scoreboard--separator {
       border-left: solid 1px #242736;
+      vertical-align: middle;
     }
 
     .slider-content {
@@ -231,6 +232,7 @@ $nav-scoreboard-foreground-color: #25A758;
       cursor: pointer;
       position: relative;
       display: inline-block;
+      vertical-align: top;
       z-index: 2;
 
       &:hover .icon line {
@@ -278,13 +280,14 @@ $nav-scoreboard-foreground-color: #25A758;
       display: inline-block;
       font-size: 12px;
       font-weight: bold;
-      padding: 12px 5px;
-      height: $nav-scoreboard-height;
+      padding: 11px 5px;
       overflow: hidden;
+      vertical-align: top;
 
       .left {
         display: inline-block;
         margin-right: 30px;
+        vertical-align: top;
       }
       &--is-live {
         .left {
@@ -295,6 +298,7 @@ $nav-scoreboard-foreground-color: #25A758;
       .scores {
         display: inline-block;
         margin-right: 10px;
+        vertical-align: top;
       }
     }
   }

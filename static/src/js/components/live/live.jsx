@@ -245,6 +245,8 @@ export const Live = React.createClass({
     let liveStandingsPane;
     let opponentLineupComponent;
     let contestsPaneOpen = true;
+    let venuesPosition = 'right-panes-open';
+    const modifiers = [`sport-${watching.sport}`];
 
     // if viewing a contest
     if (watching.contestId !== null && !contest.isLoading) {
@@ -254,6 +256,7 @@ export const Live = React.createClass({
       // if viewing an opponent, add in lineup and update moneyline
       if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
         standingsPaneOpen = false;
+        venuesPosition = 'showing-opponent-lineup';
 
         opponentLineupComponent = (
           <LiveLineup
@@ -276,7 +279,8 @@ export const Live = React.createClass({
       );
     }
 
-    const classNames = generateBlockNameWithModifiers(block, [`sport-${watching.sport}`]);
+    modifiers.push(venuesPosition);
+    const classNames = generateBlockNameWithModifiers(block, modifiers);
 
     return (
       <div className={classNames}>

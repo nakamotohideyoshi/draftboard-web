@@ -1,8 +1,9 @@
-import ordinal from '../../lib/ordinal.js';
-import React from 'react';
 import LiveOverallStatsBg from './live-overall-stats-bg';
 import Odometer from '../site/odometer';
+import ordinal from '../../lib/ordinal.js';
+import React from 'react';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
+import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { humanizeCurrency } from '../../lib/utils/currency';
 import { percentageHexColor } from '../../lib/utils/colors';
 
@@ -21,6 +22,7 @@ const LiveOverallStats = React.createClass({
   propTypes: {
     fp: React.PropTypes.number.isRequired,
     id: React.PropTypes.number.isRequired,
+    modifiers: React.PropTypes.array.isRequired,
     name: React.PropTypes.string.isRequired,
     potentialWinnings: React.PropTypes.number.isRequired,
     rank: React.PropTypes.number,
@@ -195,10 +197,10 @@ const LiveOverallStats = React.createClass({
   },
 
   render() {
-    const { fp, name, timeRemaining } = this.props;
+    const { fp, modifiers, name, timeRemaining } = this.props;
 
     return (
-      <section className={BLOCK}>
+      <section className={generateBlockNameWithModifiers(BLOCK, modifiers)}>
         <h1 className={`${BLOCK}__name`}>
           {name}
         </h1>

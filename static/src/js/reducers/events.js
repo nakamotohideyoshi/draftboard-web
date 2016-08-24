@@ -10,11 +10,20 @@ const initialState = {
   playerEventDescriptions: {},
   playerHistories: {},
   playersPlaying: [],
+  showEventResult: false,
 };
 
 // Reducer for the pusher events coming through
 module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
+    case ActionTypes.EVENT__SHOW_CURRENT_RESULT: {
+      // don't bother if there is no event to show
+      if (state.animationEvent === null) return state;
+
+      return merge({}, state, {
+        showEventResult: true,
+      });
+    }
 
     case ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION:
       return update(state, {
@@ -44,6 +53,7 @@ module.exports = (state = initialState, action = {}) => {
 
       return merge({}, state, {
         animationEvent: null,
+        showEventResult: false,
       });
 
     case ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION: {

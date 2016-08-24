@@ -84,11 +84,11 @@ const LiveLineupPlayer = React.createClass({
       case 'nfl': {
         const { position } = this.props.player;
         const statsType = (position === 'QB') ? 'qb' : 'nonQb';
-        whichStats = SPORT_CONST[this.props.sport].seasonStats[statsType];
+        whichStats = SPORT_CONST[this.props.sport].liveStats[statsType];
         break;
       }
       default:
-        whichStats = SPORT_CONST[this.props.sport].seasonStats;
+        whichStats = SPORT_CONST[this.props.sport].liveStats;
     }
 
     const { types, names } = whichStats;

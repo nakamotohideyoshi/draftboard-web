@@ -49,6 +49,6 @@ class PlayerStatsAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.Mo
         print('relation "django_content_type" does not exist - this should only happen on the first migrate!')
 
 class GameAdmin(admin.ModelAdmin):
-
+    list_display    = ['id']
     list_filter     = ['status','start','home','away']
     search_fields   = ['status','start','srid']

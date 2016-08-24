@@ -3,6 +3,7 @@
 
 from dj_database_url import config as heroku_db_config
 from urllib.parse import urlparse
+from urllib import parse
 
 from .base import *
 
@@ -20,8 +21,15 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
 
-# Redis caching
-redis_url = urlparse(environ.get('REDISCLOUD_URL'))
+# Heroku Redis - for api views/pages
+HEROKU_REDIS_URL = environ.get('REDIS_URL')
+heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
+# since we should have a heroku redis instance for production, override the default api cache name
+API_CACHE_NAME = 'api'
+
+# RedisCloud redis - used primarily for live stats
+REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
+redis_url = parse.urlparse(REDISCLOUD_URL)
 
 CACHES = {
     'default': {
@@ -42,6 +50,26 @@ CACHES = {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
+
+    # separate for template caching so we can clear when we want
+    'django_templates': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    },
+
+    # api view cache
+    API_CACHE_NAME: {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/0' % (heroku_redis_url.password,
+                                             heroku_redis_url.hostname,
+                                             heroku_redis_url.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
 }
 
 # Static assets, served via django-whitenoise
@@ -78,17 +106,8 @@ PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
 ##########################################################################
 VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 
-#
-# dataden mongo database connection
-MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
-MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
-MONGO_USER              = environ.get('MONGO_USER')             # 'admin'
-MONGO_PASSWORD          = environ.get('MONGO_PASSWORD')         # 'dataden1'
-MONGO_PORT              = int(environ.get('MONGO_PORT'))         # 27017     cast MONGO_PORT to integer!
-MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
-                                            MONGO_PASSWORD,
-                                            MONGO_SERVER_ADDRESS,
-                                            MONGO_PORT,
-                                            MONGO_AUTH_DB )
-
 DATETIME_DELTA_ENABLE = True   # time travel
+
+# dont allow updates to be saved.
+# they are only being sent if they already exist!
+DISABLE_REPLAYER_UPDATE_RECORDING = True
