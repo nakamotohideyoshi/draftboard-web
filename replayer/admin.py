@@ -211,9 +211,6 @@ class TimeMachineAdmin(admin.ModelAdmin):
         :return:
         """
         #
-        enable_contest_pool_contest_spawner()
-
-        #
         print('ensure default TicketAmount(s) and headsup PrizeStructures exist...')
         rp = replayer.classes.ReplayManager()
         rp.build_world()   # put initialization like making default tickets, and prize structures in this method!
