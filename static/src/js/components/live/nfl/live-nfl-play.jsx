@@ -54,12 +54,16 @@ export default React.createClass({
     curAnimation.play(new NFLPlayRecapVO(event), this.field).then(() => {
       // show the results, remove the animation
       store.dispatch(showAnimationEventResults(event));
-      store.dispatch(removeCurrentEvent());
 
-      // enter the next item in the queue once everything is done
+      // remove the event
+      setTimeout(() => {
+        store.dispatch(removeCurrentEvent());
+      }, 4000);
+
+      // // enter the next item in the queue once everything is done
       setTimeout(() => {
         store.dispatch(shiftOldestEvent());
-      }, 3000);
+      }, 6000);
     }).catch(error => {
       logComponent.error('LiveNFLField.curAnimation error', error);
     });
