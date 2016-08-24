@@ -27,8 +27,9 @@ heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
 # since we should have a heroku redis instance for production, override the default api cache name
 API_CACHE_NAME = 'api'
 
-# Redis caching
-redis_url = urlparse(environ.get('REDISCLOUD_URL'))
+# RedisCloud redis - used primarily for live stats
+REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
+redis_url = parse.urlparse(REDISCLOUD_URL)
 
 CACHES = {
     'default': {
@@ -104,19 +105,6 @@ PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
 # paypal vzero minimal deposit server access_token
 ##########################################################################
 VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
-
-#
-# dataden mongo database connection
-MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
-MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
-MONGO_USER              = environ.get('MONGO_USER')             # 'admin'
-MONGO_PASSWORD          = environ.get('MONGO_PASSWORD')         # 'dataden1'
-MONGO_PORT              = int(environ.get('MONGO_PORT'))         # 27017     cast MONGO_PORT to integer!
-MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
-                                            MONGO_PASSWORD,
-                                            MONGO_SERVER_ADDRESS,
-                                            MONGO_PORT,
-                                            MONGO_AUTH_DB )
 
 DATETIME_DELTA_ENABLE = True   # time travel
 
