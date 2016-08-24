@@ -1,11 +1,8 @@
 import * as ActionTypes from '../action-types';
 import forEach from 'lodash/forEach';
-import map from 'lodash/map';
 import merge from 'lodash/merge';
-import zipObject from 'lodash/zipObject';
 import { CALL_API } from '../middleware/api';
 import { dateNow, hasExpired } from '../lib/utils';
-import { SPORT_CONST } from './sports';
 
 // custom API domain for local dev testing
 const { API_DOMAIN = '' } = process.env;
@@ -34,13 +31,6 @@ const receivePlayersStats = (lineupId, response) => {
 
     const playerFields = player.data[0].fields;
     const sport = player.data[0].model.split('.')[0];
-    const seasonStatTypes = SPORT_CONST[sport].seasonStats.types;
-
-    // combine id with the season stats we need and that's it
-    const onlyNeededFields = zipObject(
-      seasonStatTypes,
-      map(seasonStatTypes, (type) => playerFields[type])
-    );
 
     players[playerFields.srid_player] = merge(
       {
@@ -48,7 +38,7 @@ const receivePlayersStats = (lineupId, response) => {
         sport,
         id: playerFields.player_id,
       },
-      onlyNeededFields
+      playerFields
     );
   });
 
