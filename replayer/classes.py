@@ -185,6 +185,14 @@ class ReplayManager(object):
         print('resetting the current system time to the actual time...')
         self.reset_system_time()
 
+    def set_time_before_replay_start(self):
+        updates = replayer.models.Update.objects.filter().order_by('ts')
+        if updates.count() > 0:
+            update = updates[0]
+            self.set_system_time(update.ts - timedelta(hours=3))
+        else:
+            print('warning: time not changed - there are no realtime objects in the db')
+
     def play(self, replay_name='', start_from=None, fast_forward=1.0,
              no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=True,
              load_db=True, play_until=None):
