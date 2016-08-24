@@ -4,6 +4,10 @@
 
 ## Client-Side Development
 
+Web Client Test Coverage:
+
+[![Coverage Status](https://coveralls.io/repos/github/runitoncedevs/dfs/badge.svg?t=gwVcNu)](https://coveralls.io/github/runitoncedevs/dfs)
+
 ### Requirements
 
 To build the front-end project you'll need to install the following.
