@@ -330,6 +330,11 @@ class PlayerStats(DataDenPlayerStats):
 class GameBoxscoreReducer(Reducer):
     remove_fields = [
         '_id',
+        'summary__list',
+        'attendance',
+        'status',
+        'weather',
+        'scheduled',
         'scoring_drives__list',
         'entry_mode',
         'situation__list',
@@ -344,7 +349,7 @@ class GameBoxscoreReducer(Reducer):
 
 class GameBoxscoreShrinker(Shrinker):
     fields = {
-        'summary__list' : 'summary',
+        #'summary__list' : 'summary',
         'dd_updated__id' : 'ts',
         'id' : 'srid_game'
     }
@@ -355,6 +360,7 @@ class GameBoxscoreManager(Manager):
 
 class GameBoxscoreParser(AbstractDataDenParseable):
     """
+
     example data for a GameBoxscore:
         {
             'attendance': 76512.0,
@@ -400,6 +406,8 @@ class GameBoxscoreParser(AbstractDataDenParseable):
     channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
     event = 'game'
 
+    field_srid_game = 'id'
+
     def __init__(self):
         super().__init__()
 
@@ -417,7 +425,7 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
         summary_list = o.get('summary__list', {})
 
-        srid_game   = o.get('id', None)
+        srid_game   = o.get(self.field_srid_game, None)
         srid_home   = summary_list.get('home', None)
         srid_away   = summary_list.get('away', None)
 
@@ -454,8 +462,14 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
         self.boxscore.save()
 
+    def update_boxscore_data_in_game(self, boxscore_data):
+        game = sports.nfl.models.Game.objects.get(srid=self.o.get(self.field_srid_game))
+        game.boxscore_data = boxscore_data
+        game.save()
+
     def send(self, *args, **kwargs):
         data = self.get_send_data()
+        self.update_boxscore_data_in_game(data)
 
         # pusher it
         push.classes.DataDenPush(self.channel, self.event).send(data)
