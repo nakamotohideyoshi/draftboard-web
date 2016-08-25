@@ -284,6 +284,18 @@ PAYPAL_SECRET = 'EOKSd-HCNfWE17mu8e7uyjs2egSla2yXs7joweXCLdimCY8yv-FcCx7LeP1do0g
 # Expiry Date:      01 Aug 2026
 VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437affed2f726cd6fa'
 
+# stats.com credentials for api usage
+STATSCOM_URL_BASE = 'http://api.stats.com/v1'
+STATSCOM_KEYS = {
+    'nfl' : {
+        'api_key' : 'ayecer82rvxzeu5pcea2a89p',
+        'secret'  : 'zj9pqF2882',
+    },
+    'mlb' : {
+        'api_key' : 'vqcfvb8vz9m732hqm5saxv3g',
+        'secret'  : 'kywJJpqs6a',
+    }
+}
 
 # Third party settings
 # ----------------------------------------------------------
