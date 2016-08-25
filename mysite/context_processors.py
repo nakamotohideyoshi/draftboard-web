@@ -28,7 +28,7 @@ def pusher_channel_prefix(request):
 # allows delta_now() method to be in the template
 # this way we can pass through the replayer time for testing purposes into javascript
 def delta_now_prefix(request):
-    if settings.DEBUG is True:
+    if settings.DATETIME_DELTA_ENABLE is True:
         return {'DELTA_NOW': get_delta()}
     else:
         return {'DELTA_NOW': 0}
