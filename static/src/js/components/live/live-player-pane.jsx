@@ -182,13 +182,17 @@ const LivePlayerPane = React.createClass({
     const eventHistory = this.props.eventHistory;
 
     const activitiesHTML = eventHistory.map((activity, index) => {
-      const { points, info, when } = activity;
+      const { points, description, when } = activity;
+      let whenStr = when;
+      if (typeof when === 'object' && 'clock' in when) {
+        whenStr = when.clock;
+      }
       return (
         <li className="activity" key={index}>
           <div className="points-gained">{points}</div>
           <div className="activity-info">
-            {info}
-            <p className="time">{when}</p>
+            {description}
+            <p className="time">{whenStr}</p>
           </div>
         </li>
       );
