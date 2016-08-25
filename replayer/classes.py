@@ -281,6 +281,7 @@ class ReplayManager(object):
             # (Resume) ie: remove that value from the cache      /api/replayer/pause/0/
             if self.is_paused():
                 self.set_system_time(last) # keep
+                print('[%s] REPLAY IS PAUSED' % (str(timezone.now())))
                 continue
 
             now = timezone.now()
