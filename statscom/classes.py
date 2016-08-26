@@ -42,6 +42,7 @@ class Stats(object):
         # set up a session object to do the actual http calls
         self.session = requests.Session()
         self.r = None # we will always save the last response here
+        self.data = None
 
     def get_url_auth_params(self):
         """
@@ -87,9 +88,36 @@ class Stats(object):
         url = self.get_url(endpoint)
         self.r = self.session.get(url)
         print('http %s %s' % (str(self.r.status_code), url))
-        return json.loads(self.r.text)
+        self.data = json.loads(self.r.text)
+        return self.data
 
-# TODO it looks like most of the response data's outter wrapper is boiler plate
+# class ApiData(object):
+#     """
+#     most of the response data's outter wrapper is boiler plate.
+#
+#     this extracts the data we want
+#     """
+#
+#     def __init__(self, data):
+#         self.data = data
+#         self.results = self.data.get('apiResults')
+#         # results typically has 1 element
+#         self.result = self.results[0]
+#         self.league = self.result.get('league')
+#         print('league.keys():', str(self.league.keys()))
+#         # self.season = self.league.get('season')
+#         # print('season.keys():', str(self.season.keys()))
+#         # self.event_type_list = self.season.get('eventType')
+#         # # event_type_list typically has 1 element
+#         # self.event_type = self.event_type_list[0]
+#         # print('event_type.keys():', str(self.event_type.keys()))
+#         # self.events = self.event_type.get('events')
+#         # # self.events should be the list of what we want now!
+#         # print('len(events) == %s' % len(self.events))
+#
+#     def get_objects(self):
+#         """ returns the data objects after stripping off the boiler plate wrapper common to stats.com apis """
+#         return self.events
 
 class DailyGamesMLB(Stats):
 
@@ -149,6 +177,26 @@ class DailyGamesMLB(Stats):
             # Out[22]: dict_keys(
             #     ['coverageLevel', 'isDataConfirmed', 'startDate', 'seriesId', 'isTba', 'teams', 'tvStations', 'eventId',
             #      'eventConference', 'isDoubleheader', 'venue', 'eventStatus'])
+
+class PlayersMLB(Stats):
+
+    endpoint = '/stats/baseball/mlb/participants/'
+
+    def __init__(self):
+        super().__init__('mlb')
+
+    def get_players(self):
+        # calling the api will set the entire response of JSON data to the internal self.data
+        self.api(self.endpoint)
+
+    def extract_players(self, data):
+        results = self.data.get('apiResults')
+        # results typically has 1 element
+        result = results[0]
+        league = result.get('league')
+        print('league.keys():', str(league.keys()))
+        players = league.get('players')
+        return players
 
 class FantasyProjectionData(object): # particularly for NFL i might add...
 
@@ -368,7 +416,7 @@ class FantasyProjectionsMLB(FantasyProjections):
     #  'walks': '1.51576',
     #  'wins': '0.37096'}
 
-    class FantasyProjectionsNFL(FantasyProjections):
+class FantasyProjectionsNFL(FantasyProjections):
 
     endpoint_current_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
     endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/' # append week number
@@ -387,3 +435,4 @@ class FantasyProjectionsMLB(FantasyProjections):
             endpoint += str(week)
         # return the response data
         return self.api(endpoint)
+
