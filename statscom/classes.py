@@ -5,7 +5,59 @@ import time
 import hashlib
 import json
 import requests
+import csv
 from django.conf import settings
+
+# # generate nfl projections csv:
+# from statscom.classes import PlayersMLB, FantasyProjectionsMLB, DailyGamesMLB, FantasyProjectionsNFL, NFLPlayerProjectionCsv
+# api = FantasyProjectionsNFL()
+# projections = api.get_projections(week=1) # call with no args to get current week data
+# csv = NFLPlayerProjectionCsv(projections)
+# csv.generate() # generates file is base project directory called 'nfl-projections.csv'
+
+class ResponseDataParser(object):
+    """
+    most of the response data's outter wrapper is boiler plate.
+
+    this extracts the data we want
+    """
+
+    class UnexpectedApiResults(Exception): pass
+
+    # boilerplate fields of stats.com api responses
+    field_api_results = 'apiResults'
+    field_league = 'league'
+
+    # most api calls, result in there being this many items in the "apiResults" list.
+    # if we parse an api that has a different number of results, an exception is raised
+    default_api_results = 1
+    # by default, we will try to get the first item in the "apiResults" list
+    default_api_result_index = default_api_results - 1
+
+    # default size of the "eventType" list
+    default_event_types = 1
+    # by default, try to get the item at this index from "eventType" list
+    default_event_type_index = default_event_types - 1
+
+    def __init__(self, data):
+        self.data = data
+
+    def get_data(self):
+        """
+        returns the data objects after stripping off the boiler plate wrapper common to stats.com apis.
+
+        note: this method returns inner data from the data, not the data passed in.
+        """
+        # return self.data
+        api_results = self.data.get(self.field_api_results)
+        num_results = len(api_results)
+        if num_results != self.default_api_results:
+            err_msg = 'got %s %s, expected %s' % (str(num_results), self.field_api_results, self.default_api_results)
+            raise self.UnexpectedApiResults(err_msg)
+        result = api_results[self.default_api_result_index]
+        league = result.get(self.field_league)
+        print('league.keys()', str(league.keys()))
+        return league
 
 class Stats(object):
     """
@@ -26,6 +78,11 @@ class Stats(object):
     # field name for credentials in the sport's key data
     field_api_key = 'api_key'
     field_secret = 'secret'
+
+    # response parser class. if this is set, its get_data() method
+    # will be used to return the api data.
+    # by default, the raw, unmodified JSON is returned.
+    parser_class = ResponseDataParser
 
     def __init__(self, sport):
         self.sport = sport
@@ -89,35 +146,15 @@ class Stats(object):
         self.r = self.session.get(url)
         print('http %s %s' % (str(self.r.status_code), url))
         self.data = json.loads(self.r.text)
-        return self.data
 
-# class ApiData(object):
-#     """
-#     most of the response data's outter wrapper is boiler plate.
-#
-#     this extracts the data we want
-#     """
-#
-#     def __init__(self, data):
-#         self.data = data
-#         self.results = self.data.get('apiResults')
-#         # results typically has 1 element
-#         self.result = self.results[0]
-#         self.league = self.result.get('league')
-#         print('league.keys():', str(self.league.keys()))
-#         # self.season = self.league.get('season')
-#         # print('season.keys():', str(self.season.keys()))
-#         # self.event_type_list = self.season.get('eventType')
-#         # # event_type_list typically has 1 element
-#         # self.event_type = self.event_type_list[0]
-#         # print('event_type.keys():', str(self.event_type.keys()))
-#         # self.events = self.event_type.get('events')
-#         # # self.events should be the list of what we want now!
-#         # print('len(events) == %s' % len(self.events))
-#
-#     def get_objects(self):
-#         """ returns the data objects after stripping off the boiler plate wrapper common to stats.com apis """
-#         return self.events
+        # if no self.parser_class is set, return the entire json response
+        if self.parser_class is None:
+            print('parser_class was None. returning raw response json')
+            return self.data
+
+        # use the self.parser_class
+        parser = self.parser_class(self.data)
+        return parser.get_data()
 
 class DailyGamesMLB(Stats):
 
@@ -178,8 +215,19 @@ class DailyGamesMLB(Stats):
             #     ['coverageLevel', 'isDataConfirmed', 'startDate', 'seriesId', 'isTba', 'teams', 'tvStations', 'eventId',
             #      'eventConference', 'isDoubleheader', 'venue', 'eventStatus'])
 
+class PlayersParser(ResponseDataParser):
+
+    field_players = 'players'
+
+    def get_data(self):
+        data = super().get_data()
+        players = data.get(self.field_players, [])
+        print('%s players' % (str(len(players)))) # TODO remove debug
+        return players
+
 class PlayersMLB(Stats):
 
+    parser_class = PlayersParser
     endpoint = '/stats/baseball/mlb/participants/'
 
     def __init__(self):
@@ -187,89 +235,35 @@ class PlayersMLB(Stats):
 
     def get_players(self):
         # calling the api will set the entire response of JSON data to the internal self.data
-        self.api(self.endpoint)
+        return self.api(self.endpoint)
 
-    def extract_players(self, data):
-        results = self.data.get('apiResults')
-        # results typically has 1 element
-        result = results[0]
-        league = result.get('league')
-        print('league.keys():', str(league.keys()))
-        players = league.get('players')
-        return players
+class ProjectionsParser(ResponseDataParser):
 
-class FantasyProjectionData(object): # particularly for NFL i might add...
+    class ProjectionsNotFound(Exception): pass
 
-    def __init__(self, data):
-        self.data = data
+    field_season = 'season'
+    field_event_type = 'eventType'
+    field_fantasy_projections = 'fantasyProjections'
+    field_teams = 'teams'
 
-    def to_csv(self):
-        #In[5]: data.keys()
-        #Out[5]: dict_keys(['timeTaken', 'endTimestamp', 'apiResults', 'status', 'recordCount', 'startTimestamp'])
-
-        api_results = self.data.get('apiResults')
-        # len(api_results)   # 1 thing
-
-        result = api_results[0]
-
-        # In[10]: result.keys()
-        # Out[10]: dict_keys(['sportId', 'name', 'league'])
-
-        league = result.get('league')
-        # In[13]: league.keys()
-        # Out[13]: dict_keys(['season', 'displayName', 'abbreviation', 'leagueId', 'name'])
-
-        season = league.get('season')
-        # In[15]: season.keys()
-        # Out[15]: dict_keys(['season', 'isActive', 'name', 'eventType'])
-
-        season_year = season.get('season')
-        is_active = season.get('isActive')
-        event_type_list = season.get('eventType')
-        print('%s items in event_type_list' % str(len(event_type_list)))
-
-        event = event_type_list[0]
-        # In[23]: event.keys()
-        # Out[23]: dict_keys(['fantasyProjections', 'name', 'eventTypeId'])
-
-        fantasy_projections = event.get('fantasyProjections')
-        # In[25]: fantasy_projections.keys()
-        # Out[25]: dict_keys(['defensiveProjections', 'week', 'offensiveProjections'])
-
-        offensive_projections = fantasy_projections.get('offensiveProjections')
-        for proj in offensive_projections:
-            # print(str(proj))
-
-            # In[29]: proj.keys()
-            # Out[29]: dict_keys(
-            #     ['opponent', 'twoPointConversions', 'chance300PassYards', 'completions', 'rushYards', 'team',
-            #      'chance100RushYards', 'interceptions', 'gameDate', 'attempts', 'passYards', 'passTouchdowns', 'player',
-            #      'fantasyProjections', 'rushTouchdowns', 'position', 'fumblesLost', 'rushes', 'eventId'])
-
-            player = proj.get('player')
-            # {'firstName': 'Andrew', 'lastName': 'Luck', 'playerId': 461175}
-            fn = player.get('firstName')
-            ln = player.get('lastName')
-            pid = player.get('playerId')
-
-            site_projections = proj.get('fantasyProjections')
-            for site_proj in site_projections:
-                # site_proj has keys we care about 'name', 'points'  which are the site name and projection
-                name = site_proj.get('name')
-                fantasy_points = site_proj.get('points')
-
-                #
-                # format the csv row
-                print(ln, fn, pid, name, fantasy_points, sep=',')
-
-### snippet will output (in a csv format) the contents for week 1 (change it if you want)
-# from statscom.classes import FantasyProjectionsNFL, FantasyProjectionData
-# fp = FantasyProjectionsNFL()
-# data = fp.get_projections(week=1)
-# fpdata = FantasyProjectionData(data)
-# fpdata.to_csv()
+    def get_data(self):
+        data = super().get_data()
+        season = data.get(self.field_season, {})
+        event_type = season.get(self.field_event_type, [])
+        num_event_types = len(event_type)
+        if num_event_types != self.default_event_types:
+            err_msg = 'found %s items in "%s" list. expected %s' % (str(num_event_types),
+                                                                    self.field_event_type,
+                                                                    str(self.default_event_types))
+            raise self.ProjectionsNotFound(err_msg)
+        event_type_item = event_type[self.default_event_type_index]
+        fantasy_projections = event_type_item.get(self.field_fantasy_projections, {})
+        # teams = fantasy_projections.get(self.field_teams) # mlb only !
+        return fantasy_projections
 
 class FantasyProjections(Stats):
+
+    parser_class = ProjectionsParser
 
     def __init__(self, sport):
         super().__init__(sport)
@@ -284,6 +278,12 @@ class FantasyProjectionsMLB(FantasyProjections):
 
     def get_projections(self, eventid):
         """
+        returns a list of 2 elements. each element is one of the teams in the game, and has these keys:
+
+            dict_keys(['teamId', 'pitchers', 'batters'])
+
+        caveat: stats.com only gives a projection for the Probable Pitcher (and starting lineup)
+        and it might not be nearly enough coverage for us to generate salaries based on this data.
 
         :param eventid: the game's id. ex: 1600732
         :return:
@@ -291,130 +291,115 @@ class FantasyProjectionsMLB(FantasyProjections):
         endpoint = self.endpoint_fantasy_projections + str(eventid)
         return self.api(endpoint)
 
-    def test(self):
-        pass
+        #         #
+        #         # In[23]: len(pitchers)
+        #         # Out[23]: 1
+        #         #
+        #         # In[27]: len(batters)
+        #         # Out[27]: 8
+        #
+        #         # In[2]: batter.keys()
+        #         # Out[2]: dict_keys(['battingSlot', 'walks', 'runs', 'playerId', 'doubles', 'atBats', 'stolenBases', 'triples',
+        #         #                    'caughtStealing', 'homeRuns', 'runsBattedIn', 'singles', 'outs', 'hitByPitch',
+        #         #                    'fantasyProjections'])
+        #
+        #         # In[4]: pitcher.keys()
+        #         # Out[4]: dict_keys(
+        #         #     ['playerId', 'wins', 'hitBatsmen', 'shutouts', 'fantasyProjections', 'inningsPitched', 'completeGames',
+        #         #      'strikeouts', 'noHitters', 'walks', 'earnedRuns', 'hits'])
+        #
+        # # In[5]: batter
+        # # Out[5]:
+        # # {'atBats': '4.21127',
+        # #  'battingSlot': 1,
+        # #  'caughtStealing': '0.00213',
+        # #  'doubles': '0.22281',
+        # #  'fantasyProjections': [{'name': 'DraftKings (draftkings.com)',
+        # #                          'points': '8.28939',
+        # #                          'position': '1B',
+        # #                          'salary': '4600',
+        # #                          'siteId': 1},
+        # #                         {'name': 'FanDuel (fanduel.com)',
+        # #                          'points': '10.79381',
+        # #                          'position': '1B',
+        # #                          'salary': '3100',
+        # #                          'siteId': 2}],
+        # #  'hitByPitch': '0.03242',
+        # #  'homeRuns': '0.18517',
+        # #  'outs': '3.07268',
+        # #  'playerId': 184104,
+        # #  'runs': '0.68209',
+        # #  'runsBattedIn': '0.42543',
+        # #  'singles': '0.73062',
+        # #  'stolenBases': '0.0025',
+        # #  'triples': '0.0',
+        # #  'walks': '0.4197'}
+        # #
+        # # In[6]: pitcher
+        # # Out[6]:
+        # # {'completeGames': '0.00482',
+        # #  'earnedRuns': '2.46612',
+        # #  'fantasyProjections': [{'name': 'DraftKings (draftkings.com)',
+        # #                          'points': '13.2881',
+        # #                          'position': 'SP',
+        # #                          'salary': '5300',
+        # #                          'siteId': 1},
+        # #                         {'name': 'FanDuel (fanduel.com)',
+        # #                          'points': '26.89173',
+        # #                          'position': 'P',
+        # #                          'salary': '7100',
+        # #                          'siteId': 2}],
+        # #  'hitBatsmen': '0.1566',
+        # #  'hits': '5.99135',
+        # #  'inningsPitched': '5.2',
+        # #  'noHitters': '0.0',
+        # #  'playerId': 598259,
+        # #  'shutouts': '0.00212',
+        # #  'strikeouts': '4.24619',
+        # #  'walks': '1.51576',
+        # #  'wins': '0.37096'}
 
-        # In[1]: from statscom.classes import FantasyProjectionsMLB
-        #
-        # In[2]: api = FantasyProjectionsMLB()
-        #
-        # In[3]: data = api.get_projections(1600732)
-        # http
-        # 200
-        # http: // api.stats.com / v1 / stats / baseball / mlb / fantasyProjections / 1600732?api_key = vqcfvb8vz9m732hqm5saxv3g & sig = b8871fd729b27cb00c7346d70878d94e34cdbfbcd949f6526458b4e700f860d4 & accept = json
-        #
-        # In[4]: data.keys()
-        # Out[4]: dict_keys(['timeTaken', 'apiResults', 'startTimestamp', 'status', 'endTimestamp', 'recordCount'])
-        #
-        # In[5]: api_results = data.get('apiResults')
-        #
-        # In[6]: result = api_results[0]
-        #
-        # In[7]: result.keys()
-        # Out[7]: dict_keys(['league', 'name', 'sportId'])
-        #
-        # In[8]: league = result.get('league')
-        #
-        # In[9]: season = league.get('season')
-        #
-        # In[10]: season.keys()
-        # Out[10]: dict_keys(['name', 'eventType', 'season', 'isActive'])
-        #
-        # In[11]: event_type_list = season.get('eventType')
-        #
-        # In[12]: events = event_type_list[0]
-        #
-        # In[13]: len(event_type_list)
-        # Out[13]: 1
-        #
-        # In[14]: events.keys()
-        # Out[14]: dict_keys(['eventTypeId', 'fantasyProjections', 'name'])
-        #
-        # In[15]: fantasy_projections = events.get('fantasyProjections')
-        #
-        # In[16]: fantasy_projections.keys()
-        # Out[16]: dict_keys(['teams', 'eventId'])
+class PlayerProjectionNFL(object):
+    """ data parser/wrapper class for offensive nfl player projections """
 
-        # In[17]: teams = fantasy_projections.get('teams')
-        #
-        # In[19]: len(teams)
-        # Out[19]: 2
-        #
-        # In[20]: for team in teams:
-        #     ....:     print(team.keys())
-        #     ....:
-        #     dict_keys(['teamId', 'batters', 'pitchers'])
-        #     dict_keys(['teamId', 'batters', 'pitchers'])
+    # misc fields for this object including player and game information,
+    # as well as a list of site specific projected fantasy point totals
+    fields_misc = [
+        'team',
+        'player',
+        'position',
+        'opponent',
+        'eventId',
+        'gameDate',
 
-            # In[21]: pitchers = team.get('pitchers')
-            # In[22]: batters = team.get('batters')
-            #
-            # In[23]: len(pitchers)
-            # Out[23]: 1
-            #
-            # In[27]: len(batters)
-            # Out[27]: 8
+        # list of site specific projections, ie: DK, FD, etc...
+        'fantasyProjections',
+    ]
 
-            # In[2]: batter.keys()
-            # Out[2]: dict_keys(['battingSlot', 'walks', 'runs', 'playerId', 'doubles', 'atBats', 'stolenBases', 'triples',
-            #                    'caughtStealing', 'homeRuns', 'runsBattedIn', 'singles', 'outs', 'hitByPitch',
-            #                    'fantasyProjections'])
+    # fantasy scoring categories which that are projected
+    # fields_categories = [
+    #     'rushYards',
+    #     'passYards',
+    #     'completions',
+    #     'attempts',
+    #     'chance100RushYards',
+    #     'fumblesLost',
+    #     'rushTouchdowns',
+    #     'twoPointConversions',
+    #     'chance300PassYards',
+    #     'rushes',
+    #     'passTouchdowns',
+    #     'interceptions',
+    # ]
+    fields_categories = ['completions', 'fieldGoalsMade', 'passTouchdowns', 'extraPointsAttempted',
+                         'receptionTouchdowns', 'passYards', 'receptions', 'fieldGoalsMade29', 'fieldGoalsMade49',
+                         'chance100RushYards', 'fieldGoalsMade19', 'fumblesLost', 'twoPointConversions',
+                         'fieldGoalsMade39', 'interceptions', 'chance100ReceptionYards', 'chance300PassYards',
+                         'extraPointsMade', 'fieldGoalsAttempted', 'fieldGoalsMade50', 'receptionYards', 'rushes',
+                         'rushYards', 'rushTouchdowns', 'attempts']
 
-            # In[4]: pitcher.keys()
-            # Out[4]: dict_keys(
-            #     ['playerId', 'wins', 'hitBatsmen', 'shutouts', 'fantasyProjections', 'inningsPitched', 'completeGames',
-            #      'strikeouts', 'noHitters', 'walks', 'earnedRuns', 'hits'])
-
-    # In[5]: batter
-    # Out[5]:
-    # {'atBats': '4.21127',
-    #  'battingSlot': 1,
-    #  'caughtStealing': '0.00213',
-    #  'doubles': '0.22281',
-    #  'fantasyProjections': [{'name': 'DraftKings (draftkings.com)',
-    #                          'points': '8.28939',
-    #                          'position': '1B',
-    #                          'salary': '4600',
-    #                          'siteId': 1},
-    #                         {'name': 'FanDuel (fanduel.com)',
-    #                          'points': '10.79381',
-    #                          'position': '1B',
-    #                          'salary': '3100',
-    #                          'siteId': 2}],
-    #  'hitByPitch': '0.03242',
-    #  'homeRuns': '0.18517',
-    #  'outs': '3.07268',
-    #  'playerId': 184104,
-    #  'runs': '0.68209',
-    #  'runsBattedIn': '0.42543',
-    #  'singles': '0.73062',
-    #  'stolenBases': '0.0025',
-    #  'triples': '0.0',
-    #  'walks': '0.4197'}
-    #
-    # In[6]: pitcher
-    # Out[6]:
-    # {'completeGames': '0.00482',
-    #  'earnedRuns': '2.46612',
-    #  'fantasyProjections': [{'name': 'DraftKings (draftkings.com)',
-    #                          'points': '13.2881',
-    #                          'position': 'SP',
-    #                          'salary': '5300',
-    #                          'siteId': 1},
-    #                         {'name': 'FanDuel (fanduel.com)',
-    #                          'points': '26.89173',
-    #                          'position': 'P',
-    #                          'salary': '7100',
-    #                          'siteId': 2}],
-    #  'hitBatsmen': '0.1566',
-    #  'hits': '5.99135',
-    #  'inningsPitched': '5.2',
-    #  'noHitters': '0.0',
-    #  'playerId': 598259,
-    #  'shutouts': '0.00212',
-    #  'strikeouts': '4.24619',
-    #  'walks': '1.51576',
-    #  'wins': '0.37096'}
+    def __init__(self, data):
+        self.data = data
 
 class FantasyProjectionsNFL(FantasyProjections):
 
@@ -428,6 +413,10 @@ class FantasyProjectionsNFL(FantasyProjections):
         """
         get the projections for the current week.
 
+        returns a dict with fields in:
+
+            ['offensiveProjections', 'week', 'defensiveProjections']
+
         if a week number is specified, this will return the projections for that week (for current season)
         """
         endpoint = self.endpoint_weekly_projections
@@ -436,3 +425,104 @@ class FantasyProjectionsNFL(FantasyProjections):
         # return the response data
         return self.api(endpoint)
 
+class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i might add...
+    """ temp helper class to dump out projections and match up with our own players """
+
+    field_fantasy_projections = 'fantasyProjections'
+    field_offensive_projections = 'offensiveProjections'
+
+    field_player = 'player'
+    field_player_id = 'playerId'
+    field_fullname = 'fullname'             # i made this one. it combines the first+last name
+    field_first_name = 'firstName'
+    field_last_name = 'lastName'
+    field_position = 'position'
+
+    columns_player = [
+        field_player_id,
+        field_fullname,
+        field_first_name,
+        field_last_name,
+        field_position,
+    ]
+
+    field_name = 'name'  # its the name of the site the projection is for
+    field_points = 'points'  # the projected fantasy point total
+
+    columns_site = [
+        field_name,
+        field_points,
+    ]
+
+    columns_categories = PlayerProjectionNFL.fields_categories
+
+    # all columns for csv header row
+    columns = columns_player + columns_categories + columns_site
+
+    def __init__(self, data):
+        self.data = data
+        self.all_fields = {}
+
+    def generate(self):
+        """
+        generate the csv file
+        :return:
+        """
+        filename = 'nfl-projections.csv'
+        f = open(filename, 'w', newline='')
+        writer = csv.writer(f)
+
+        # write the headers on the first line of csv
+        writer.writerow(self.columns)
+
+        # write the rows of data into the csv
+        offensive_projections = self.data.get(self.field_offensive_projections)
+        for proj in offensive_projections:
+            self.writerow(writer, proj)
+
+        # TODO debug
+        print('all possible categories seen:', str(self.all_fields.keys()))
+
+        if f is not None:
+            # close the file if we used an actual file
+            f.close()
+
+    def add_seen_category(self, cat):
+        if cat not in self.fields_misc:
+            self.all_fields[cat] = ''
+
+    def writerow(self, writer, proj):
+        # proj.keys():
+        #     ['opponent', 'twoPointConversions', 'chance300PassYards', 'completions', 'rushYards', 'team',
+        #      'chance100RushYards', 'interceptions', 'gameDate', 'attempts', 'passYards', 'passTouchdowns', 'player',
+        #      'fantasyProjections', 'rushTouchdowns', 'position', 'fumblesLost', 'rushes', 'eventId'])
+        player = proj.get(self.field_player)
+        position = proj.get(self.field_position)
+        pid = player.get(self.field_player_id)
+        # {'firstName': 'Andrew', 'lastName': 'Luck', 'playerId': 461175}
+        fn = player.get(self.field_first_name)
+        ln = player.get(self.field_last_name)
+        fullname = fn + ' ' + ln
+
+        # add the columns_site values
+        site_projections = proj.get(self.field_fantasy_projections)
+        for site_proj in site_projections:
+            # manually add the columns_player values
+            # TODO warning: if you change the order of self.columns_player
+            #    you ALSO have to change the order of the next line of code!!!
+            values = [pid, fullname, fn, ln, position]
+
+            #### debug, i want to see all possible projected category names
+            for cat in proj.keys():
+                self.add_seen_category(cat)
+
+            # add the columns_categories values
+            for field in self.columns_categories:
+                values.append(proj.get(field))
+
+            # add the columns_site values
+            for field in self.columns_site:
+                values.append(site_proj.get(field))
+
+            # write this row into the csv
+            writer.writerow(values)
