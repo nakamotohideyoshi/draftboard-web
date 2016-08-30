@@ -346,7 +346,7 @@ const getNBAData = (message, gameId) => {
  * @param  {string} gameId   Game SRID
  */
 const getNFLData = (message, gameId, game) => {
-  logAction.debug('actions.getNFLData');
+  logAction.debug('actions.getNFLData', message);
 
   // faster to not camelize the object
   /* eslint-disable camelcase */
@@ -383,6 +383,7 @@ const getNFLData = (message, gameId, game) => {
     fumbles,
     gameId,
     id: dateNow(),  // since we don't pass through an ID, use timestamp
+    playersStats: message.stats,
     sport: 'nfl',
     side: 'middle',  // hardcoding start position, vertically, to the middle
     touchdown,

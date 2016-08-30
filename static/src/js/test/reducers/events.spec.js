@@ -14,6 +14,7 @@ describe('reducers.events', () => {
       playerEventDescriptions: {},
       playerHistories: {},
       playersPlaying: [],
+      showEventResult: false,
     });
   });
 
@@ -62,6 +63,7 @@ describe('reducers.events', () => {
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
+        showEventResult: false,
       }, {
         type: types.EVENT_GAME_QUEUE_PUSH,
         gameId: '123',
@@ -73,6 +75,7 @@ describe('reducers.events', () => {
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
+        showEventResult: false,
       }
     );
   });

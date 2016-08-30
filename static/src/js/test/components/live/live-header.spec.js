@@ -2,7 +2,7 @@ import React from 'react';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 
-import LiveHeader from '../../../components/live/live-header.jsx';
+import { LiveHeader } from '../../../components/live/live-header.jsx';
 import LiveOverallStats from '../../../components/live/live-overall-stats.jsx';
 
 

@@ -13,6 +13,8 @@ const logAction = log.getLogger('action');
  * @return {mixed}          Sport || false
  */
 const calcSportByGame = (games = {}, gameId) => {
+  logAction.debug('actions.calcSportByGame', gameId);
+
   if (!(gameId in games)) return false;
   return games[gameId].sport || false;
 };
@@ -66,7 +68,7 @@ const isMessageUsed = (message, sport) => {
 export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
   logAction.debug('actions.onBoxscoreGameReceived', message);
 
-  const gameId = message.id;
+  const gameId = message.srid_game;
   const state = getState();
 
   const sport = calcSportByGame(state.sports.games, gameId);
