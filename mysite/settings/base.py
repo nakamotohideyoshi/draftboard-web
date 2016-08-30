@@ -129,6 +129,7 @@ INSTALLED_APPS = (
     'replayer',
     'pp',  # our implementation of a few required paypal apis
     'lobby',
+    'statscom',    # STATS.com api parsers, models, projections, etc...
     'rest_framework_swagger',
 )
 
