@@ -7,6 +7,8 @@ import json
 import requests
 import csv
 from django.conf import settings
+from salary.classes import PlayerProjection
+from sports.classes import SiteSportManager
 
 # # generate nfl projections csv:
 # from statscom.classes import PlayersMLB, FantasyProjectionsMLB, DailyGamesMLB, FantasyProjectionsNFL, NFLPlayerProjectionCsv
@@ -84,8 +86,13 @@ class Stats(object):
     # by default, the raw, unmodified JSON is returned.
     parser_class = ResponseDataParser
 
+    # this field of an api response's data can indicate if there is an error
+    field_message = 'message'
+
     def __init__(self, sport):
         self.sport = sport
+        self.player_model_class = None
+        self.sport_players = None # set on the first call to self.get_player_model_class()
 
         # get and validate the api_key and secret token exist for this sport
         self.keys = self.stats_keys.get(self.sport)
@@ -147,6 +154,10 @@ class Stats(object):
         print('http %s %s' % (str(self.r.status_code), url))
         self.data = json.loads(self.r.text)
 
+        # check if there is an error
+        msg = self.data.get(self.field_message)
+        print('self.data "%s" -> %s' % (self.field_message, str(msg)))
+
         # if no self.parser_class is set, return the entire json response
         if self.parser_class is None:
             print('parser_class was None. returning raw response json')
@@ -155,6 +166,29 @@ class Stats(object):
         # use the self.parser_class
         parser = self.parser_class(self.data)
         return parser.get_data()
+
+    def get_player_model_class(self):
+        if self.player_model_class is None:
+            ssm = SiteSportManager()
+            site_sport = ssm.get_site_sport(self.sport)
+            self.player_model_class = ssm.get_player_class(site_sport)
+        return self.player_model_class
+
+    def get_sport_players(self):
+        if self.sport_players is None:
+            self.sport_players = self.get_player_model_class().objects.filter()
+        return self.sport_players
+
+    def find_player(self, first_name, last_name):
+        model_class = self.get_player_model_class()
+        try:
+            return self.get_sport_players().get(first_name=first_name, last_name=last_name)
+        except model_class.MultipleObjectsReturned:
+            # we matched more than 1 player!
+            return None
+        except model_class.DoesNotExist:
+            # we didnt match any players!
+            return None
 
 class DailyGamesMLB(Stats):
 
@@ -263,10 +297,15 @@ class ProjectionsParser(ResponseDataParser):
 
 class FantasyProjections(Stats):
 
+    player_projection_class = PlayerProjection
+
     parser_class = ProjectionsParser
 
     def __init__(self, sport):
         super().__init__(sport)
+
+    def build_player_projection(self, player, fantasy_points):
+        return self.player_projection_class(player, fantasy_points)
 
 class FantasyProjectionsMLB(FantasyProjections):
 
@@ -406,6 +445,23 @@ class FantasyProjectionsNFL(FantasyProjections):
     endpoint_current_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
     endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/' # append week number
 
+    field_offensive_projections = 'offensiveProjections'
+    field_defensive_projections = 'defensiveProjections'
+    field_week = 'week'
+    field_fantasy_projections = 'fantasyProjections'
+    field_position = 'position'
+
+    field_points = 'points'
+
+    field_player = 'player'
+    field_first_name = 'firstName'
+    field_last_name = 'lastName'
+    field_player_id = 'playerId'
+
+    field_name = 'name'
+
+    default_site = 'draftkings'
+
     def __init__(self):
         super().__init__('nfl')
 
@@ -424,6 +480,45 @@ class FantasyProjectionsNFL(FantasyProjections):
             endpoint += str(week)
         # return the response data
         return self.api(endpoint)
+
+    def get_player_projections(self, week=None):
+        """
+        return a list of salary.classes.PlayerProjection object
+        for all the offensive players found (skip defensive players)
+        """
+
+        data = self.get_projections(week=week)
+        offensive_projections = data.get(self.field_offensive_projections)
+        player_projections = []
+        for proj in offensive_projections:
+            # get the players position
+            position = proj.get(self.field_position)
+
+            # lookup the player in our database by matching the full name
+            player_data = proj.get(self.field_player)
+            first_name = player_data.get(self.field_first_name)
+            last_name = player_data.get(self.field_last_name)
+
+            # look up this third party api player in our own db
+            player = self.find_player(first_name, last_name)
+            if player is None:
+                print("YUH OH WE DIDNT FIND -> %s" % (str(first_name + ' ' + last_name)))
+                continue
+
+            #
+            fantasy_projections = proj.get(self.field_fantasy_projections, [])
+            if len(fantasy_projections) == 0:
+                raise Exception('field not found: %s' % self.field_fantasy_projections)
+
+            # iterate the list of sites which we have projections for until we find the one we want
+            for site in fantasy_projections:
+                if self.default_site in site.get(self.field_name).lower():
+                    # append a new a salary.classes.PlayerProjection to our return list and break
+                    fantasy_points = site.get(self.field_points)
+                    player_projections.append(self.build_player_projection(player, fantasy_points))
+                    break
+        #
+        return player_projections
 
 class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i might add...
     """ temp helper class to dump out projections and match up with our own players """
