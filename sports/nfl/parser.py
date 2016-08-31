@@ -33,6 +33,7 @@ from sports.sport.base_parser import (
 )
 import json
 from dataden.classes import DataDen
+import dataden.models
 import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
@@ -330,6 +331,11 @@ class PlayerStats(DataDenPlayerStats):
 class GameBoxscoreReducer(Reducer):
     remove_fields = [
         '_id',
+        'summary__list',
+        'attendance',
+        'status',
+        'weather',
+        'scheduled',
         'scoring_drives__list',
         'entry_mode',
         'situation__list',
@@ -344,7 +350,7 @@ class GameBoxscoreReducer(Reducer):
 
 class GameBoxscoreShrinker(Shrinker):
     fields = {
-        'summary__list' : 'summary',
+        #'summary__list' : 'summary',
         'dd_updated__id' : 'ts',
         'id' : 'srid_game'
     }
@@ -355,6 +361,7 @@ class GameBoxscoreManager(Manager):
 
 class GameBoxscoreParser(AbstractDataDenParseable):
     """
+
     example data for a GameBoxscore:
         {
             'attendance': 76512.0,
@@ -400,6 +407,8 @@ class GameBoxscoreParser(AbstractDataDenParseable):
     channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
     event = 'game'
 
+    field_srid_game = 'id'
+
     def __init__(self):
         super().__init__()
 
@@ -417,7 +426,7 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
         summary_list = o.get('summary__list', {})
 
-        srid_game   = o.get('id', None)
+        srid_game   = o.get(self.field_srid_game, None)
         srid_home   = summary_list.get('home', None)
         srid_away   = summary_list.get('away', None)
 
@@ -454,8 +463,14 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
         self.boxscore.save()
 
+    def update_boxscore_data_in_game(self, boxscore_data):
+        game = sports.nfl.models.Game.objects.get(srid=self.o.get(self.field_srid_game))
+        game.boxscore_data = boxscore_data
+        game.save()
+
     def send(self, *args, **kwargs):
         data = self.get_send_data()
+        self.update_boxscore_data_in_game(data)
 
         # pusher it
         push.classes.DataDenPush(self.channel, self.event).send(data)
@@ -481,22 +496,68 @@ class TeamBoxscoreManager(Manager):
 
 class TeamBoxscoreParser(AbstractDataDenParseable):
     """
-    example data for a TeamBoxscore:
-        {
-            "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDFjYTlhMGMxLWQxNDUtNGFjYi1hY2EyLWNiMmI1ZmU1MjliOXBhcmVudF9saXN0X19pZHN1bW1hcnlfX2xpc3RpZDQyNTRkMzE5LTFiYzctNGY4MS1iNGFiLWI1ZTZmMzQwMmI2OQ==",
-            "alias": "TB",
-            "id": "4254d319-1bc7-4f81-b4ab-b5e6f3402b69",
-            "market": "Tampa Bay",
-            "name": "Buccaneers",
-            "points": 14,
-            "reference": 4970,
-            "remaining_timeouts": 2,
-            "used_timeouts": 1,
-            "parent_api__id": "boxscores",
-            "dd_updated__id": 1464834061361,
-            "game__id": "1ca9a0c1-d145-4acb-aca2-cb2b5fe529b9",
-            "parent_list__id": "summary__list"
-        }
+    parses "home" and "away" objects from the boxscores feed.
+
+    example 'nflo.home' from parent_api 'boxscores' mongo object for TeamBoxscore:
+        In [13]: dd.client.nflo.home.find_one({'parent_api__id':'boxscores'})
+        Out[13]:
+        {'_id': 'cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXBhcmVudF9saXN0X19pZHN1bW1hcnlfX2xpc3RpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+         'alias': 'WAS',
+         'dd_updated__id': 1464834044370,
+         'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+         'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+         'market': 'Washington',
+         'name': 'Redskins',
+         'parent_api__id': 'boxscores',
+         'parent_list__id': 'summary__list',
+         'points': 10.0,
+         'reference': 4971.0,
+         'remaining_timeouts': 0.0,
+         'used_timeouts': 3.0}
+
+    example 'nflo.away' from parent_api 'boxscores' mongo object for TeamBoxscore:
+        In [15]: dd.client.nflo.away.find_one({'parent_api__id':'boxscores'})
+        Out[15]:
+        {'_id': 'cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXBhcmVudF9saXN0X19pZHN1bW1hcnlfX2xpc3RpZDQ4MDllY2IwLWFiZDMtNDUxZC05YzRhLTkyYTkwYjgzY2EwNg==',
+         'alias': 'MIA',
+         'dd_updated__id': 1464834044370,
+         'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+         'id': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+         'market': 'Miami',
+         'name': 'Dolphins',
+         'parent_api__id': 'boxscores',
+         'parent_list__id': 'summary__list',
+         'points': 17.0,
+         'reference': 4958.0,
+         'remaining_timeouts': 2.0,
+         'used_timeouts': 1.0}
+
+    use objects from 'nflo.play' of parent_api__id 'pbp'
+    to update a Game's home and away team scores in realtime.
+
+    example 'nflo.play' object:
+
+        {'alt_description': 'blah blah blah',
+        'away_points': 0.0,
+        'clock': '10:30', 'wall_clock': '2016-08-20T02:50:03+00:00', 'sequence': 2249.0,
+        'dd_updated__id': 1471661434687,
+        'description': 'blah blah blah',
+        'score__list': {'sequence': 5.0, 'points': 3.0, 'away_points': 0.0, 'home_points': 19.0, 'clock': '10:25'},
+        'scoring_play': 'true', 'parent_list__id': 'play_by_play__list',
+        'quarter__id': '99422601-3a93-415a-9449-e91cf57d6296', 'reference': 2249.0,
+        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'drive__id': '1562272a-5ca5-44f9-9de6-f85a40a32ac8',
+        'statistics__list': {'field_goal__list': {'yards': 50.0, 'missed': 0.0, 'att_yards': 50.0,
+                                                  'team': '9dbb9060-ba0f-4920-829e-16d4d9246b5d',
+                                                  'player': '69bdf41e-3c32-46c1-93b8-e952edf5c61d',
+                                                  'attempt': 1.0}}, 'id': '19808648-7f06-45a3-a8a8-d8a35d182b6e',
+        'parent_api__id': 'pbp',
+        'start_situation__list': {'down': 4.0, 'location': 'de760528-1dc0-416a-a978-b510d20692ff', 'yfd': 12.0,
+                                  'possession': '9dbb9060-ba0f-4920-829e-16d4d9246b5d', 'clock': '10:30'},
+        'type': 'field_goal', 'play_clock': 7.0,
+        'end_situation__list': {'down': 1.0, 'location': '9dbb9060-ba0f-4920-829e-16d4d9246b5d', 'yfd': 10.0,
+                                'possession': '9dbb9060-ba0f-4920-829e-16d4d9246b5d', 'clock': '10:25'},
+        'home_points': 19.0}
+
     """
 
     gameboxscore_model  = GameBoxscore
@@ -506,6 +567,18 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
 
     channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
     event = 'team'
+
+    # fallback object type (the name of the collection the object comes from)
+    fallback_obj_type = 'play'
+
+    # field for the SRID of the team
+    field_srid_team = 'id'
+
+    # field name of the SRID for the Game (which is also the srid of the boxscore)
+    field_srid_game = 'game__id'
+
+    # field for the team's in-game points
+    field_points = 'points'
 
     def __init__(self):
         super().__init__()
@@ -520,46 +593,51 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         # to the current object (with wrapper)
         # and set the self.o (to the unwrapped object)
         self.parse_triggered_object(obj)
-        # o = self.o # everything uses 'o already
-        #
-        # summary_list = o.get('summary__list', {})
-        #
-        # srid_game   = o.get('id', None)
-        # srid_home   = summary_list.get('home', None)
-        # srid_away   = summary_list.get('away', None)
-        #
-        # try:
-        #     h = self.team_model.objects.get( srid=srid_home )
-        # except self.team_model.DoesNotExist:
-        #     #print( str(o) )
-        #     #print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
-        #     return
-        #
-        # try:
-        #     a = self.team_model.objects.get( srid=srid_away )
-        # except self.team_model.DoesNotExist:
-        #     #print( str(o) )
-        #     #print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
-        #     return
 
-        # try:
-        #     self.boxscore = self.gameboxscore_model.objects.get(srid_game=srid_game)
-        # except self.gameboxscore_model.DoesNotExist:
-        #     self.boxscore = self.gameboxscore_model()
-        #     self.boxscore.srid_game = srid_game
+        # get the boxscore object. we will update the team scores in it using the 'obj' argument
+        srid_game = self.o.get(self.field_srid_game)
+        try:
+            self.boxscore = self.gameboxscore_model.objects.get(srid_game=srid_game)
+        except self.gameboxscore_model.DoesNotExist:
+            return # if it doesnt exist yet, we cant update the points in it.
 
-        # self.boxscore.srid_home     = srid_home
-        # self.boxscore.home          = h
-        # self.boxscore.away          = a
-        # self.boxscore.srid_away     = srid_away
-        #
-        # self.boxscore.quarter       = o.get('quarter', 0)
-        # self.boxscore.clock         = o.get('clock', '' )
-        # self.boxscore.coverage      = o.get('coverage', '')    # deprecated, but it will default to empty string
-        # self.boxscore.status        = o.get('status', '')
-        # self.boxscore.title         = o.get('title', '')
+        # using the points from self.o, update the boxscore appropriately.
+        self.update_boxscore(self.boxscore, self.o, target)
 
-        # self.boxscore.save()
+    def update_boxscore(self, boxscore, o, target):
+        """
+
+        :param boxscore:
+        :param o:
+        :param target:
+        :return:
+        """
+
+        # if its an 'home' or 'away' object, update that teams score appropriately.
+        # to ensure this parser class is backwards compatible with the replayer,
+        # fall back on using both team scores (if the object is a 'play' object
+        # AND there are no 'home','away' object triggers)
+        ns, parent_api = target
+        db, obj_type = ns.split('.') # split into 'nflo' and 'home'/'away'
+        if obj_type == self.fallback_obj_type and dataden.models.Trigger.objects.filter(db=db,
+                                                    collection__in=['home','away'], parent_api='pbp').count() == 0:
+            # if we enter here, we are likely running a replay, and we should use the 'play'
+            # from parent api 'pbp' to update team scores. it has 'home_points' and 'away_points'
+            boxscore.home_score = o.get('home_points', 0.0)
+            boxscore.away_score = o.get('away_points', 0.0)
+
+        else:
+            srid_team = o.get(self.field_srid_team)
+            points = o.get(self.field_points)
+            if srid_team == boxscore.srid_home:
+                # update the home team points
+                boxscore.home_score = points
+            else:
+                # update the away team points
+                boxscore.away_score = points
+
+        boxscore.save()
+        #boxscore.refresh_from_db()
 
     def send(self, *args, **kwargs):
         data = self.get_send_data()
@@ -1120,13 +1198,21 @@ class DataDenNfl(AbstractDataDenParser):
 
     mongo_db_for_sport = 'nflo'
 
+    # for team points
+    target_home_boxscores = (mongo_db_for_sport, 'home', 'boxscores')
+    target_away_boxscores = (mongo_db_for_sport, 'away', 'boxscores')
+
     triggers = [
         (mongo_db_for_sport, 'team', 'hierarchy'),
         (mongo_db_for_sport, 'season', 'schedule'),
         (mongo_db_for_sport, 'game', 'schedule'),
-        (mongo_db_for_sport, 'player', 'rosters'),      # check this, didnt see any in Update table, dev server
+        (mongo_db_for_sport, 'player', 'rosters'),
         (mongo_db_for_sport, 'game', 'boxscores'),
-        (mongo_db_for_sport, 'team', 'boxscores'),      # check this, didnt see any in Update table, dev server
+        (mongo_db_for_sport, 'team', 'boxscores'),
+
+        target_home_boxscores,
+        target_away_boxscores,
+
         (mongo_db_for_sport, 'player', 'stats'),
 
         # play by play
@@ -1152,22 +1238,19 @@ class DataDenNfl(AbstractDataDenParser):
         # the Namespace-ParentApi combination
 
         #
-        #
         if self.target == (self.mongo_db_for_sport+'.season','schedule'):
             SeasonSchedule().parse(obj, self.target)
 
         #
-        #
         elif self.target == (self.mongo_db_for_sport+'.game','schedule'):
             GameSchedule().parse(obj, self.target)
 
-        #
         # parse a game obj from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
             game_boxscore_parser = GameBoxscoreParser()
             game_boxscore_parser.parse(obj, self.target)
             game_boxscore_parser.send()
-        #
+
         # parse a team object from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.team','boxscores'):
             # dont send it unless its from the parent__list: 'summary__list'
@@ -1175,13 +1258,18 @@ class DataDenNfl(AbstractDataDenParser):
             team_boxscore_parser.parse(obj, self.target)
             team_boxscore_parser.send()
 
-        #
+        # update home or away team scores
+        elif self.target in [self.target_home_boxscores,
+                             self.target_away_boxscores]:
+            team_boxscore_parser = TeamBoxscoreParser()
+            team_boxscore_parser.parse(obj, self.target)
+            team_boxscore_parser.send()
+
         # parse a team object from the hierarchy feed
         elif self.target == (self.mongo_db_for_sport+'.team','hierarchy'):
             team_hierarchy = TeamHierarchy()
             team_hierarchy.parse(obj, self.target)
 
-        #
         # parse a player from the rosters feed
         elif self.target == (self.mongo_db_for_sport+'.player','rosters'):
             try:
@@ -1189,12 +1277,10 @@ class DataDenNfl(AbstractDataDenParser):
             except PlayerRosters.PositionDoesNotExist as e:
                 print(e)
 
-        #
         # parse a players stats (from a game) from the stats feed
         elif self.target == (self.mongo_db_for_sport+'.player','stats'):
             PlayerStats().parse( obj )
 
-        #
         # pbp -> its a 'play' and corresponding 'location' and 'possession' objects
         elif self.target == (self.mongo_db_for_sport + '.play', 'pbp') \
             or self.target == (self.mongo_db_for_sport + '.location', 'pbp') \
@@ -1202,9 +1288,10 @@ class DataDenNfl(AbstractDataDenParser):
 
             parser = PlayParser()
             parser.parse(obj, self.target) # will call send() if it can
+
         #
-        #
-        else: self.unimplemented( self.target[0], self.target[1] )
+        else:
+            self.unimplemented( self.target[0], self.target[1] )
 
     @atomic
     def cleanup_rosters(self):

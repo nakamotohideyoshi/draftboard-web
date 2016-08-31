@@ -288,13 +288,14 @@ export const updatePlayerStats = (message, draftGroupId) => (dispatch, getState)
   logAction.debug('actions.updatePlayerStats');
 
   const playerId = message.fields.player_id;
+  const playerSrid = message.fields.srid_player;
 
   // if this is a relevant player, update their stats
-  if (getState().livePlayers.relevantPlayers.hasOwnProperty(playerId)) {
+  if (getState().livePlayers.relevantPlayers.hasOwnProperty(playerSrid)) {
     log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', message);
 
     dispatch(updateLivePlayersStats(
-      playerId,
+      playerSrid,
       message.fields
     ));
   }

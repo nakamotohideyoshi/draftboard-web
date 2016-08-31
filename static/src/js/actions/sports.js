@@ -217,6 +217,10 @@ export const SPORT_CONST = {
       HBB: 'Hit by Batted Ball',
     },
     pregameStatuses: ['scheduled'],
+    liveStats: {
+      types: [],
+      names: [],
+    },
     seasonStats: {
       types: [],
       names: [],
