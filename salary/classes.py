@@ -236,7 +236,8 @@ class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
         self.last_name = self.player.last_name
 
         self.game_id = None # player_stats_object.game_id
-        self.start = None # player_stats_object.game.start
+        #self.start = None # player_stats_object.game.start
+        self.start = timezone.now()
         self.fantasy_points = float(fantasy_points)
         self.position = self.player.position
         self.player_id = self.player.pk
