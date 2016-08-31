@@ -279,8 +279,11 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
 @admin.register(contest.schedule.models.DefaultPrizeStructure)
 class DefaultPrizeStructureAdmin(admin.ModelAdmin):
 
-    list_display = ['site_sport','prize_structure']
-    list_filter = ['site_sport',]
+    list_display = ['site_sport','prize_structure','total_buyin']
+    list_filter = ['site_sport']
+
+    def total_buyin(self, obj):
+        return obj.prize_structure.generator.buyin
 
 # @admin.register(contest.schedule.models.BlockPrizeStructure)
 # class BlockPrizeStructureAdmin(admin.ModelAdmin):
