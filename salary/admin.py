@@ -129,9 +129,46 @@ class PoolAdmin(admin.ModelAdmin):
                 opa = OwnershipPercentageAdjuster(pool)
                 opa.reset()
 
+    def generate_salaries_using_statscom(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
+        else:
+            for pool in queryset:
+
+                sport = pool.site_sport.name
+                if sport != 'nfl':
+                    self.message_user(request, 'NFL is currently the only enabled sport for generating salaries this way.')
+                    return
+
+                # get stats.com nfl player projections
+                from statscom.classes import FantasyProjectionsNFL
+                api = FantasyProjectionsNFL()
+                # projections = api.get_projections(week=1)
+                player_projections = api.get_player_projections(week=1)
+
+                # try to feed a spoofed PlayerStats class into SalaryGenerator
+                from random import Random
+                from sports.nfl.models import Player
+                from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
+                from salary.models import SalaryConfig, Pool
+                Pool.objects.all().count()
+                pool = Pool.objects.get(site_sport__name='nfl')
+                r = Random()
+                # player_projections = []
+                # positions = ['QB','RB','FB','WR','TE']
+                # all_players = Player.objects.filter(position__name__in=positions)
+                # print('%s players in %s for positions %s' % (str(all_players.count()), str(type(Player)), str(positions)))
+                # for p in all_players:
+                #    player_projections.append(PlayerProjection(p, r.randint(0,50)))
+                #
+                salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
+                                                                  slack_updates=False)
+                salary_generator.generate_salaries()
+
     #
     # admin actions in dropdown
     actions = [
+        generate_salaries_using_statscom,
         generate_salaries,
         apply_ownership_adjustment,
         reset_ownership_adjustment,

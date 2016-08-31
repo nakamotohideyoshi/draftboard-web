@@ -314,8 +314,8 @@ class Player(models.Model):
         return False
 
     def __str__(self):
-        return 'srid: %s | name: %s %s | position: %s | on_active_roster: %s' % (self.srid,
-            self.first_name, self.last_name, str(self.position), str(self.on_active_roster))
+        return '%s %s | position: %s | on_active_roster: %s' % (self.first_name,
+                        self.last_name, str(self.position), str(self.on_active_roster))
 
     class Meta:
         abstract = True

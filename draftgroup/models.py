@@ -217,6 +217,28 @@ class AbstractPlayerLookup(models.Model):
     class Meta:
         abstract = True
 
+class AbstractNflPlayerLookup(models.Model):
+    """
+    abstract model for other apps to use to create a table that
+    links a Player to a third-party 'pid' (a player id)
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    # the player in our database - null until the admin hooks them up
+    player = models.ForeignKey('nfl.Player', null=True, blank=True)
+
+    # the third-party service's id for this player
+    pid = models.CharField(max_length=255, null=False, blank=True)
+
+    # first and last name can be used to know who the player is
+    first_name = models.CharField(max_length=255, null=False, blank=True)
+    last_name = models.CharField(max_length=255, null=False, blank=True)
+
+    class Meta:
+        abstract = True
+
 class AbstractUpdate(models.Model):
     """
     abstract parent model for PlayerUpdate, GameUpdate
