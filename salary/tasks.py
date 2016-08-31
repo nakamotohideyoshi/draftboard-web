@@ -8,6 +8,21 @@ from django.conf import settings
 from celery import task
 from django.core.cache import cache
 from hashlib import md5
+from statscom.classes import FantasyProjectionsNFL
+from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
+from salary.models import SalaryConfig, Pool
+
+@app.task(bind=True)
+def generate_salaries_from_statscom_projections_nfl(self):
+    #from statscom.classes import FantasyProjectionsNFL
+    api = FantasyProjectionsNFL()
+    # projections = api.get_projections(week=1)
+    player_projections = api.get_player_projections(week=1)
+
+    Pool.objects.all().count()
+    pool = Pool.objects.get(site_sport__name='nfl')
+    salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool, slack_updates=True)
+    salary_generator.generate_salaries()
 
 LOCK_EXPIRE = 60 * 10 # Lock expires in 10 minutes
 
