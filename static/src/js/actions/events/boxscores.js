@@ -1,6 +1,6 @@
 import log from '../../lib/logging';
 import { addEventAndStartQueue } from '../events';
-import { hasGameStarted, isGameReady } from '../sports';
+import { isGameReady } from '../sports';
 import { trackUnexpected } from '../track-exceptions';
 
 // get custom logger for actions
@@ -75,7 +75,6 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
   if (!sport) return false;
 
   if (!isGameReady(state, dispatch, sport, gameId)) return false;
-  if (!hasGameStarted(sport, message.status)) return false;
   if (!isMessageUsed(message, sport)) return false;
 
   const status = message.status;
@@ -109,19 +108,9 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
       }
       break;
     }
-    case 'nba': {
-      updatedFields.boxscore = {
-        clock: message.boxscore.clock,
-        quarter: message.boxscore.quarter,
-      };
-      break;
-    }
+    case 'nba':
     case 'nfl': {
-      const { clock, quarter } = message;
-      updatedFields.boxscore = {
-        clock,
-        quarter,
-      };
+      updatedFields.boxscore = message;
       break;
     }
     default:

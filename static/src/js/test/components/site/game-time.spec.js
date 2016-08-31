@@ -14,8 +14,10 @@ describe('<GameTime /> Component', () => {
 
   it('should render a div', () => {
     const props = {
-      sport: 'mlb',
-      start: 1783403004,  // 2026-7-7 05:43
+      game: {
+        sport: 'mlb',
+        start: 1783403004,  // 2026-7-7 05:43
+      },
     };
 
     const wrapper = renderComponent(props);
@@ -25,8 +27,10 @@ describe('<GameTime /> Component', () => {
 
   it('should render only start if game is scheduled', () => {
     const props = {
-      sport: 'mlb',
-      start: 1783403004,  // 2026-7-7 05:43, FUTURE
+      game: {
+        sport: 'mlb',
+        start: 1783403004,  // 2026-7-7 05:43, FUTURE
+      },
     };
 
     const wrapper = renderComponent(props);
@@ -36,9 +40,11 @@ describe('<GameTime /> Component', () => {
 
   it('should render the word "Final" if game is complete', () => {
     const props = {
-      status: 'complete',
-      start: 1436247804,  // 2015-7-7 05:43, PAST
-      sport: 'mlb',
+      game: {
+        status: 'complete',
+        start: 1436247804,  // 2015-7-7 05:43, PAST
+        sport: 'mlb',
+      },
     };
 
     const wrapper = renderComponent(props);
@@ -48,9 +54,11 @@ describe('<GameTime /> Component', () => {
 
   it('should default to unstarted if there is no inning or inning half', () => {
     const props = {
-      status: 'inprogress',
-      start: 1436247804,  // 2015-7-7 05:43, PAST
-      sport: 'mlb',
+      game: {
+        status: 'inprogress',
+        start: 1436247804,  // 2015-7-7 05:43, PAST
+        sport: 'mlb',
+      },
     };
 
     const wrapper = renderComponent(props);
@@ -60,13 +68,15 @@ describe('<GameTime /> Component', () => {
 
   it('should render innings if MLB game is in progress', () => {
     const props = {
-      boxscore: {
-        inning: 7,
-        inning_half: 'B',
+      game: {
+        boxscore: {
+          inning: 7,
+          inning_half: 'B',
+        },
+        status: 'inprogress',
+        start: 1436247804,  // 2015-7-7 05:43, PAST
+        sport: 'mlb',
       },
-      status: 'inprogress',
-      start: 1436247804,  // 2015-7-7 05:43, PAST
-      sport: 'mlb',
     };
 
     const wrapper = renderComponent(props);
@@ -78,9 +88,11 @@ describe('<GameTime /> Component', () => {
 
   it('should default to unstarted if there is no clock or periodDisplay', () => {
     const props = {
-      status: 'inprogress',
-      start: 1436247804,  // 2015-7-7 05:43, PAST
-      sport: 'nba',
+      game: {
+        status: 'inprogress',
+        start: 1436247804,  // 2015-7-7 05:43, PAST
+        sport: 'nba',
+      },
     };
 
     const wrapper = renderComponent(props);
@@ -90,13 +102,15 @@ describe('<GameTime /> Component', () => {
 
   it('should render innings if NBA game is in progress', () => {
     const props = {
-      boxscore: {
-        clock: '5:43',
-        periodDisplay: '4th',
+      game: {
+        boxscore: {
+          clock: '5:43',
+          periodDisplay: '4th',
+        },
+        status: 'inprogress',
+        start: 1436247804,  // 2015-7-7 05:43, PAST
+        sport: 'nba',
       },
-      status: 'inprogress',
-      start: 1436247804,  // 2015-7-7 05:43, PAST
-      sport: 'nba',
     };
 
     const wrapper = renderComponent(props);

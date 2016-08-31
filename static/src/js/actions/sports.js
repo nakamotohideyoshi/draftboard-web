@@ -5,6 +5,7 @@ import log from '../lib/logging';
 import map from 'lodash/map';
 import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
+import zipObject from 'lodash/zipObject';
 import { addMessage } from './message-actions';
 import { CALL_API } from '../middleware/api';
 import { dateNow, hasExpired } from '../lib/utils';
@@ -242,10 +243,29 @@ export const SPORT_CONST = {
 const receiveGames = (sport, games) => {
   const doneStatuses = ['closed', 'complete'];
 
+  const mappedBoxscore = zipObject(
+    Object.keys(games),
+    map(games, (game) => {
+      const newGame = merge({}, game);
+
+      // TEMP replace boxscore2 with boxscore
+      if ('boxscore2' in game && newGame.boxscore2 instanceof Object) {
+        newGame.boxscore = game.boxscore2;
+        delete(newGame.boxscore2);
+
+      // remove null boxscores
+      } else if ('boxscore' in newGame && !(newGame.boxscore instanceof Object)) {
+        delete(newGame.boxscore);
+      }
+
+      return newGame;
+    })
+  );
+
   const gamesCompleted = map(
     sortBy(
       filter(
-        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.status) !== -1
+        mappedBoxscore, (game) => doneStatuses.indexOf(game.status) !== -1
       ),
       (filteredGame) => filteredGame.start
     ),
@@ -255,7 +275,7 @@ const receiveGames = (sport, games) => {
   const gamesNotCompleted = map(
     sortBy(
       filter(
-        games, (game) => gamesCompleted.indexOf(game.srid) === -1
+        mappedBoxscore, (game) => gamesCompleted.indexOf(game.srid) === -1
       ),
       (filteredGame) => filteredGame.start
     ),
@@ -266,7 +286,7 @@ const receiveGames = (sport, games) => {
 
   return {
     sport,
-    games,
+    games: mappedBoxscore,
     gameIds,
   };
 };
@@ -562,12 +582,19 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
 /**
  * TODO move to lib.utils
  *
- * Check whether a game has started, based on its status
+ * Check whether a game has started
+ * 1. If boxscore exists, we know it has started
+ *
  * @param  {string} sport  Sport to base statuses on
- * @param  {string} status Status given in socket message
+ * @param  {object} message Current game
  * @return {boolean}       True if game has started, false if not
  */
-export const hasGameStarted = (sport, status) => SPORT_CONST[sport].pregameStatuses.indexOf(status) === -1;
+export const hasGameStarted = (sport, message) => {
+  if (['closed', 'complete'].indexOf(message.status) !== -1) {
+    return true;
+  }
+  return 'boxscore' in message && message.boxscore instanceof Object;
+};
 
 /**
  * Helper method to check whether a game is ready to receive data
@@ -617,7 +644,7 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
 
   const boxscore = game.boxscore;
 
-  if (!boxscore || !hasGameStarted(game.sport, game.status)) {
+  if (!boxscore || !hasGameStarted(game.sport, game)) {
     return dispatch(fetchGames(game.sport));
   }
 

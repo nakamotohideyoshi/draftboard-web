@@ -68,16 +68,12 @@ const LiveLineupPlayer = React.createClass({
   renderGameStats() {
     const values = this.props.gameStats;
     const { game, player } = this.props;
-    const { boxscore = {}, sport, start } = game;
-    const { status } = boxscore;
+    const { sport } = game;
     let whichStats = {};
 
     const gameTimeProps = {
-      boxscore,
+      game,
       modifiers: ['live-lineup-player'],
-      sport,
-      start,
-      status,
     };
 
     switch (sport) {

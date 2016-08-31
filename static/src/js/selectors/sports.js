@@ -3,6 +3,7 @@ import merge from 'lodash/merge';
 import mapValues from 'lodash/mapValues';
 import round from 'lodash/round';
 import { createSelector } from 'reselect';
+import ordinal from '../lib/ordinal';
 import { SPORT_CONST } from '../actions/sports';
 
 
@@ -32,7 +33,7 @@ export const sportsSelector = createSelector(
       newGame.awayTeamInfo = teams[game.srid_away] || {};
 
       // update quarter to display properly
-      if (newGame.hasOwnProperty('boxscore')) {
+      if ('boxscore' in newGame) {
         let period = 1;
 
         switch (sport) {
@@ -52,7 +53,7 @@ export const sportsSelector = createSelector(
             period = round(newGame.boxscore.quarter, 0);
         }
 
-        newGame.boxscore.periodDisplay = period;
+        newGame.boxscore.periodDisplay = ordinal(period);
         newGame.start = new Date(game.start).getTime();
       }
     });
