@@ -17,6 +17,8 @@ from .models import (
     TsxPlayer,      # references TsxItem children
     TsxTeam,        # references TsxItem children
 )
+import json
+from ast import literal_eval
 
 class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
 
@@ -30,12 +32,20 @@ class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
 
 class GameSerializer(sports.serializers.GameSerializer):
 
+    boxscore2 = serializers.SerializerMethodField()
+    def get_boxscore2(self, game):
+        boxscore_data = game.boxscore_data
+        if boxscore_data is not None:
+            ast_j = literal_eval(boxscore_data)
+            boxscore_data = json.loads(json.dumps(ast_j))
+        return boxscore_data
+
     class Meta:
 
         model = Game
 
         fields = sports.serializers.GameSerializer.PARENT_FIELDS + \
-                 ('srid_home','srid_away','title', 'weather_json')
+                 ('srid_home','srid_away','title', 'weather_json','boxscore2')
 
 class InjurySerializer(sports.serializers.InjurySerializer):
 
