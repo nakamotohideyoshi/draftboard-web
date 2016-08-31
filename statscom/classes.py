@@ -195,12 +195,26 @@ class Stats(object):
         model_class = self.get_player_model_class()
         try:
             return self.get_sport_players().get(first_name=first_name, last_name=last_name)
-        except model_class.MultipleObjectsReturned:
-            # we matched more than 1 player!
-            return None
-        except model_class.DoesNotExist:
-            # we didnt match any players!
-            return None
+        except (model_class.MultipleObjectsReturned, model_class.DoesNotExist) as e:
+            # we matched more than 1 player or we didnt match any players
+
+            # check the lookup table
+            return self.find_player_in_lookup_table(first_name, last_name)
+
+        # except model_class.DoesNotExist:
+        #     # we didnt match any players!
+        #     return None
+
+    def find_player_in_lookup_table(self, first_name, last_name):
+        """ uses the PlayerLookup table to find the named player -- creates an instance if they dont exist """
+        try:
+            player_lookup = PlayerLookup.objects.get(first_name=first_name, last_name=last_name)
+            return player_lookup.player # may return None if admin has not set it yet
+        except PlayerLookup.DoesNotExist:
+            # create their entry
+            player_lookup = PlayerLookup.objects.create(first_name=first_name, last_name=last_name)
+
+        return None
 
 class DailyGamesMLB(Stats):
 
