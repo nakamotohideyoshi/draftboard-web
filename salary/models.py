@@ -159,7 +159,7 @@ class Salary(models.Model):
 
     def __str__(self):
         return 'Salary'
-    
+
     class Meta:
         ordering = ('primary_roster', '-amount')
         verbose_name = 'Player'

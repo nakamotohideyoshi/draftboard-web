@@ -11,7 +11,10 @@ import sports.classes
 from sports.models import Player
 import mysite.mixins.generic_search
 import django.db.utils
-from .tasks import generate_salaries_for_sport # generate_salary
+from .tasks import (
+    generate_salaries_for_sport,
+    generate_salaries_from_statscom_projections_nfl,
+)
 import celery.states
 from django.utils.html import format_html
 from salary.classes import (
@@ -156,29 +159,33 @@ class PoolAdmin(admin.ModelAdmin):
                     return
 
                 # get stats.com nfl player projections
-                from statscom.classes import FantasyProjectionsNFL
-                api = FantasyProjectionsNFL()
-                # projections = api.get_projections(week=1)
-                player_projections = api.get_player_projections(week=1)
-
-                # try to feed a spoofed PlayerStats class into SalaryGenerator
-                from random import Random
-                from sports.nfl.models import Player
-                from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
-                from salary.models import SalaryConfig, Pool
-                Pool.objects.all().count()
-                pool = Pool.objects.get(site_sport__name='nfl')
-                r = Random()
-                # player_projections = []
-                # positions = ['QB','RB','FB','WR','TE']
-                # all_players = Player.objects.filter(position__name__in=positions)
-                # print('%s players in %s for positions %s' % (str(all_players.count()), str(type(Player)), str(positions)))
-                # for p in all_players:
-                #    player_projections.append(PlayerProjection(p, r.randint(0,50)))
+                # from statscom.classes import FantasyProjectionsNFL
+                # api = FantasyProjectionsNFL()
+                # # projections = api.get_projections(week=1)
+                # player_projections = api.get_player_projections(week=1)
                 #
-                salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
-                                                                  slack_updates=True)
-                salary_generator.generate_salaries()
+                # # try to feed a spoofed PlayerStats class into SalaryGenerator
+                # from random import Random
+                # from sports.nfl.models import Player
+                # from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
+                # from salary.models import SalaryConfig, Pool
+                # Pool.objects.all().count()
+                # pool = Pool.objects.get(site_sport__name='nfl')
+                # r = Random()
+                # # player_projections = []
+                # # positions = ['QB','RB','FB','WR','TE']
+                # # all_players = Player.objects.filter(position__name__in=positions)
+                # # print('%s players in %s for positions %s' % (str(all_players.count()), str(type(Player)), str(positions)))
+                # # for p in all_players:
+                # #    player_projections.append(PlayerProjection(p, r.randint(0,50)))
+                # #
+                # salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
+                #                                                   slack_updates=True)
+                # salary_generator.generate_salaries()
+
+                task_result = generate_salaries_from_statscom_projections_nfl.delay()
+                # get() blocks the view from returning until the task finishes
+                task_result.get()
 
                 messages.success(request, 'updated salaries')
 
