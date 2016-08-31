@@ -39,9 +39,24 @@ class SalaryInline(admin.TabularInline):
     model = Salary
     can_delete = False
     extra = 0
-    readonly_fields = ('player', 'primary_roster', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included')
-                    # + ('flagged','amount','amount_unadjusted','ownership_percentage')
+    readonly_fields = (
+        'player',
+        'primary_roster',
+        'fppg_pos_weighted',
+        'fppg',
+        'avg_fppg_for_position',
+        'num_games_included',
+        'amount_unadjusted',
+        'ownership_percentage',
+
+
+    )
+    # + ('flagged','amount','amount_unadjusted','ownership_percentage')
+
     exclude = ('player_id', 'player_type')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster') # select_related('priced_product__product')
 
     def player(self, obj):
         return obj.player
