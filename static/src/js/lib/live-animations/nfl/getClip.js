@@ -7,17 +7,15 @@ const data = require('../../../../img/blocks/live/nfl/sequences/clips.json');
  * @param {string} side         The side of the field (left, middle, right).
  * @return {string|null}        The MP4 URI of the requested animation or null.
  */
-export default function getClip (play) {
-    let file = data.plays[play];
-    let clip = data.clips.filter((clip) => {
-        return clip.file == file;
-    });
+export default function getClip(play) {
+  const file = data.plays[play];
+  const clip = data.clips.filter(dataClip => dataClip.file === file);
 
-    if (!clip.length) {
-        throw new Error(`Unknown clip "${play}"`);
-    } else {
-        return clip[0]
-    }
+  if (!clip.length) {
+    throw new Error(`Unknown clip "${play}"`);
+  } else {
+    return clip[0];
+  }
 }
 
 /**
@@ -27,12 +25,12 @@ export default function getClip (play) {
  * @param {string} side         The side of the field (left, middle, right).
  * @return {string|null}        The MP4 URI of the requested animation or null.
  */
-export function getQBClip (formation, action, side) {
-    try {
-        return getClip(`qb_${formation}_${action}_${side}`);
-    } catch (error) {
-        throw new Error(`Unknown QB animation "${formation}", "${action}", "${side}".`);
-    }
+export function getQBClip(formation, action, side) {
+  try {
+    return getClip(`qb_${formation}_${action}_${side}`);
+  } catch (error) {
+    throw new Error(`Unknown QB animation "${formation}", "${action}", "${side}".`);
+  }
 }
 
 /**
@@ -41,10 +39,10 @@ export function getQBClip (formation, action, side) {
  * @param {string} side         The side of the field (left, middle, right).
  * @return {string|null}        The MP4 URI of the requested animation or null.
  */
-export function getReceptionClip (passType, side, isIntercepted = false) {
-    try {
-        return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
-    } catch (error) {
-        throw new Error(`Unknown reception animation "${passType}", "${side}", "${isIntercepted}".`);
-    }
+export function getReceptionClip(passType, side, isIntercepted = false) {
+  try {
+    return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
+  } catch (error) {
+    throw new Error(`Unknown reception animation "${passType}", "${side}", "${isIntercepted}".`);
+  }
 }

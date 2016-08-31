@@ -158,6 +158,10 @@ class Player( models.Model ):
     game_team = models.ForeignKey(GameTeam, null=False)
 
     @property
+    def srid(self):
+        return self.salary_player.player.srid
+
+    @property
     def player(self):
         return self.salary_player.player
 
@@ -193,7 +197,55 @@ class Player( models.Model ):
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
 
-class PlayerUpdate(models.Model):
+class AbstractPlayerLookup(models.Model):
+    """
+    abstract model for other apps to use to create a table that
+    links a Player to a third-party 'pid' (a player id)
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    # the GFK to the sports.<SPORT>.Player instance
+    player_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_player_lookup')
+    player_id = models.PositiveIntegerField()
+    player = GenericForeignKey('player_type', 'player_id')
+
+    # the third-party service's id for this player
+    pid = models.CharField(max_length=255, null=False)
+
+    class Meta:
+        abstract = True
+
+class AbstractUpdate(models.Model):
+    """
+    abstract parent model for PlayerUpdate, GameUpdate
+    which includes some common fields of updates
+    that come from rotowire/espn/twitter/etc...
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    update_id = models.CharField(max_length=128, null=True)
+
+    # this should be set to the time the source info claims it was posted/published
+    updated_at = models.DateTimeField(null=False)
+
+    type = models.CharField(max_length=128, null=False, default='')
+    value = models.CharField(max_length=1024 * 8, null=False, default='')
+
+    # swish status
+    status = models.CharField(max_length=128, null=False, default='na')
+
+    # a name, typically, for twitter this will be @their_twitter_name
+    source_origin = models.CharField(max_length=255, null=True)
+    # a url, of the original post, ie: for twitter, link straight to the tweet
+    url_origin = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        abstract = True
+
+class PlayerUpdate(AbstractUpdate):
     NEWS    = 'news'
     INJURY  = 'injury'
     LINEUP  = 'lineup'
@@ -206,9 +258,9 @@ class PlayerUpdate(models.Model):
         (START, 'Start'),
     ]
 
-    created = models.DateTimeField(auto_now_add=True)
+    #created = models.DateTimeField(auto_now_add=True)
 
-    update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
+    #update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
 
     draft_groups = models.ManyToManyField(DraftGroup)
 
@@ -218,10 +270,16 @@ class PlayerUpdate(models.Model):
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
-    type = models.CharField(max_length=128, null=False, default='')
-    value = models.CharField(max_length=1024*8, null=False, default='')
+    #type = models.CharField(max_length=128, null=False, default='')
+    #value = models.CharField(max_length=1024*8, null=False, default='')
 
-class GameUpdate(models.Model):
+    class Meta:
+        abstract = False
+
+    def __str__(self):
+        return 'pk:%s | %s | %s' % (str(self.pk), self.player_srid, self.category)
+
+class GameUpdate(AbstractUpdate):
     NEWS    = 'news'
     LINEUP  = 'lineup'
 
@@ -230,9 +288,9 @@ class GameUpdate(models.Model):
         (LINEUP, 'Lineup'),
     ]
 
-    created = models.DateTimeField(auto_now_add=True)
+    #created = models.DateTimeField(auto_now_add=True)
 
-    update_id = models.CharField(max_length=128, null=True)
+    #update_id = models.CharField(max_length=128, null=True)
 
     draft_groups = models.ManyToManyField(DraftGroup)
 
@@ -241,8 +299,9 @@ class GameUpdate(models.Model):
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
-    type = models.CharField(max_length=128, null=False, default='')
-    value = models.CharField(max_length=1024*8, null=False, default='')
+    #type = models.CharField(max_length=128, null=False, default='')
+    #value = models.CharField(max_length=1024*8, null=False, default='')
 
-
+    class Meta:
+        abstract = False
 

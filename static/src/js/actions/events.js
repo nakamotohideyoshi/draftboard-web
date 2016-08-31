@@ -77,7 +77,7 @@ const unshiftPlayerHistory = (key, value) => ({
 });
 
 export const updatePBPPlayersStats = (playersStats) => (dispatch, getState) => {
-  logAction.debug('actions.updatePBPPlayersStats');
+  logAction.debug('actions.updatePBPPlayersStats', playersStats);
 
   const state = getState();
   const myLineup = watchingMyLineupSelector(state);
@@ -125,7 +125,7 @@ const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGam
 // };
 
 export const showAnimationEventResults = (animationEvent) => (dispatch) => {
-  logAction.debug('actions.showAnimationEventResults');
+  logAction.debug('actions.showAnimationEventResults', animationEvent);
 
   const { description, id, relevantPlayersInEvent, when } = animationEvent;
 
@@ -189,7 +189,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
  * @param  {object} message The event call to parse for information
  */
 export const showGameEvent = (message) => (dispatch, getState) => {
-  logAction.debug('actions.showGameEvent');
+  logAction.debug('actions.showGameEvent', message);
 
   // selectors
   const state = getState();

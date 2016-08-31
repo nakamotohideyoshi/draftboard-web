@@ -1,35 +1,89 @@
 #
 # draftgroup/tests.py
 
-from dataden.util.timestamp import DfsDateTimeUtil
-from datetime import datetime, time
-from test.models import GameChild
-from mysite.exceptions import InvalidSiteSportTypeException, \
-                                InvalidStartTypeException, InvalidEndTypeException, \
-                                SalaryPoolException, NoGamesInRangeException
-
-from draftgroup.models import GameTeam
+import json
+from datetime import datetime
+from mysite.exceptions import (
+    InvalidSiteSportTypeException,
+    InvalidStartTypeException,
+    InvalidEndTypeException,
+    SalaryPoolException,
+    NoGamesInRangeException,
+)
+from draftgroup.classes import (
+    DraftGroupManager,
+    PlayerUpdateManager,
+)
 from sports.models import SiteSport
-from salary.dummy import Dummy as SalaryDummy
-
-from test.classes import AbstractTest
-from salary.dummy import Dummy
-from prize.classes import CashPrizeStructureCreator
+from test.classes import (
+    AbstractTest,
+    BuildWorldMixin,
+)
+import test.models
 from django.utils import timezone
 from datetime import timedelta
-from cash.classes import CashTransaction
-from draftgroup.classes import DraftGroupManager
-from django.test.utils import override_settings
-from contest.models import Contest
-from contest.classes import ContestCreator
-from draftgroup.tasks import on_game_closed
-from sports.classes import SiteSportManager
+from swish.classes import UpdateData
 
-# class DraftGroupSimpleTest(AbstractTest):
-#
-#     def setUp(self):
-#         pass # this is a stub for a new test
-#
+class PlayerUpdateManagerNoDraftGroups(PlayerUpdateManager):
+    """
+    sub-class so we dont need valid SRIDs.
+    tests everything else to do with PlayerUpdateManager.
+    """
+
+    def get_draft_groups(self):
+        return []
+
+class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
+
+    def setUp(self):
+        self.sport = 'test'
+
+        # use the custom test-only subclass
+        self.manager_class = PlayerUpdateManagerNoDraftGroups
+
+        # build_world() would default to create a sport called 'test'
+        self.build_world()
+        self.draft_group = self.world.draftgroup
+        # print(str(self.draft_group))
+        self.srid = 'the-gronker' # we will manually set this in a player later
+
+        # get all players build_world() created
+        self.players = test.models.PlayerChild.objects.all()
+
+        if self.players.count() == 0:
+            raise Exception('there must be players at this point, for this test to work')
+
+        self.player = self.players[ self.players.count() - 1 ] # get the last one in the list
+
+        self.player.srid = self.srid
+        self.player.first_name = 'Rob'
+        self.player.last_name = 'Gronkowski'
+        self.player.save() # change the player to gronk
+        self.player.refresh_from_db()
+
+    def test_1(self):
+        """ make up a PlayerUpdate and add it with the draftgroup PlayerUpdateManager """
+
+        # get the fields required to create a draftgroup.models.PlayerUpdate
+        update_id = '12345'
+        updated_at = None # will cause it to use the current time
+        category = 'injury'
+        update_type = 'rotowire' # create a source
+        value = 'Hes really good. We saw him in a game today, and he caught 13 TDs.'
+
+        # have the PlayerUpdateManager return a PlayerUpdate model
+        player_update_manager = self.manager_class(self.sport)
+        update_model = player_update_manager.add(
+            self.player.srid,
+            update_id,
+            category,
+            update_type,
+            value,
+            published_at=updated_at
+        )
+        self.assertIsNotNone(update_model)
+        print('test_1 update_model: ', update_model)
+
 # class DraftGroupOnGameClosedRaceCondition(AbstractTest):
 #
 #     def setUp(self):

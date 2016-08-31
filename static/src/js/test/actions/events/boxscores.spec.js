@@ -12,7 +12,7 @@ describe('actions.events.boxscores.onBoxscoreGameReceived', () => {
   let state;
 
   // mock responses, answers to make sure it ran correctly
-  const properMessage = { id: 'foo', outcome__list: {}, status: 'inprogress' };
+  const properMessage = { srid_game: 'foo', outcome__list: {}, status: 'inprogress' };
 
   // use proxyquire to mock in responses
   const actions = proxyquire('../../../actions/events/boxscores', {
@@ -39,7 +39,7 @@ describe('actions.events.boxscores.onBoxscoreGameReceived', () => {
     };
     const store = mockStore(newState);
 
-    const message = { id: 'foo', status: 'inprogress' };
+    const message = { srid_game: 'foo', status: 'inprogress' };
     assert.equal(
       store.dispatch(actions.onBoxscoreGameReceived(message)),
       false
@@ -63,15 +63,15 @@ describe('actions.events.boxscores.onBoxscoreGameReceived', () => {
     };
 
     let store = mockStore(newState);
-    let message = { id: 'foo', outcome__list: {}, status: 'closed' };
+    let message = { srid_game: 'foo', outcome__list: {}, status: 'closed' };
     assert.equal(store.dispatch(actions.onBoxscoreGameReceived(message)), false);
 
     store = mockStore(newState);
-    message = { id: 'foo', status: 'scheduled' };
+    message = { srid_game: 'foo', status: 'scheduled' };
     assert.equal(store.dispatch(actions.onBoxscoreGameReceived(message)), false);
 
     store = mockStore(newState);
-    message = { id: 'foo', final__list: {}, status: 'inprogress' };
+    message = { srid_game: 'foo', final__list: {}, status: 'inprogress' };
     assert.equal(store.dispatch(actions.onBoxscoreGameReceived(message)), false);
   });
 

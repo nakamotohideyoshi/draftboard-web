@@ -152,6 +152,8 @@ class Game( DirtyFieldsMixin, models.Model ):
     status      = models.CharField(max_length=32, null=False)
     prev_status = models.CharField(max_length=32, null=False, default='')
 
+    boxscore_data = models.CharField(max_length=1024*8, null=True)
+
     def get_home_at_away_str(self):
         return '%s @ %s' % (str(self.away), str(self.home))
 
@@ -312,7 +314,8 @@ class Player(models.Model):
         return False
 
     def __str__(self):
-        return '%s %s' % (self.first_name, self.last_name)
+        return 'srid: %s | name: %s %s | position: %s | on_active_roster: %s' % (self.srid,
+            self.first_name, self.last_name, str(self.position), str(self.on_active_roster))
 
     class Meta:
         abstract = True
