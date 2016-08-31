@@ -128,29 +128,38 @@ $nav-scoreboard-foreground-color: #25A758;
     }
 
     .balance {
-      font-family: $font-oswald;
-      font-size: 12px;
+      cursor: pointer;
       display: inline-block;
-      text-align: center;
-      line-height: 15px;
+      font-family: $font-oswald;
       position: relative;
-      top: 2px;
+      text-align: center;
+      text-decoration: none;
+      top: 16px;
+      transition: all 0.2s ease-in-out;
+      color: white;
+      font-size: 12px;
+      line-height: 15px;
+
+      &-amount {
+      }
 
       .add-funds {
-        display: none;
-        cursor: pointer;
-        text-decoration: none;
         color: $nav-scoreboard-foreground-color;
+        display: block;
         font-size: 10px;
-        text-transform: uppercase;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.2s ease-in-out;
       }
 
       &:hover {
         position: relative;
-        top: 8px;
+        top: 10px;
+        transition: all 0.2s ease-in-out;
 
         .add-funds {
-          display: block;
+          transform: translateY(2px);
+          opacity: 1;
         }
       }
     }
