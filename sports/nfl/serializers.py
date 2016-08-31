@@ -32,8 +32,8 @@ class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
 
 class GameSerializer(sports.serializers.GameSerializer):
 
-    boxscore2 = serializers.SerializerMethodField()
-    def get_boxscore2(self, game):
+    boxscore = serializers.SerializerMethodField()
+    def get_boxscore(self, game):
         boxscore_data = game.boxscore_data
         if boxscore_data is not None:
             ast_j = literal_eval(boxscore_data)
@@ -45,7 +45,7 @@ class GameSerializer(sports.serializers.GameSerializer):
         model = Game
 
         fields = sports.serializers.GameSerializer.PARENT_FIELDS + \
-                 ('srid_home','srid_away','title', 'weather_json','boxscore2')
+                 ('srid_home','srid_away','title', 'weather_json','boxscore')
 
 class InjurySerializer(sports.serializers.InjurySerializer):
 

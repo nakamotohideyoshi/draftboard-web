@@ -384,12 +384,12 @@ class SiteSportManager(object):
         #boxscore_exclude_fields = ['status']
 
         site_sport = self.__get_site_sport_from_str(sport)
-        boxscore_class = self.get_game_boxscore_class(site_sport)
-        boxscore_serializer_class = self.get_boxscore_serializer_class(sport)
+        #boxscore_class = self.get_game_boxscore_class(site_sport)
+        #boxscore_serializer_class = self.get_boxscore_serializer_class(sport)
         game_serializer_class = self.get_game_serializer_class(sport)
         games = self.get_scoreboard_games(sport)
         game_srids = [ g.srid for g in games ]
-        boxscores = boxscore_class.objects.filter(srid_game__in=game_srids)
+        #boxscores = boxscore_class.objects.filter(srid_game__in=game_srids)
 
         data = {}
         for game in games:
@@ -400,19 +400,19 @@ class SiteSportManager(object):
             g = game_serializer_class( game ).data
             self.__add_to_dict( inner_data, g )
 
-            # add the boxscore data
-            boxscore = None
-            try:
-                boxscore = boxscores.get(srid_game=game.srid) # may not exist
-            except:
-                pass
-            b = {}
-            if boxscore is not None:
-                b = {
-                    'boxscore' : boxscore_serializer_class( boxscore ).data
-                }
-            # add these fields, except for the 'status' because we'll use the schedule game status
-            self.__add_to_dict( inner_data, b )
+            # # add the boxscore data
+            # boxscore = None
+            # try:
+            #     boxscore = boxscores.get(srid_game=game.srid) # may not exist
+            # except:
+            #     pass
+            # b = {}
+            # if boxscore is not None:
+            #     b = {
+            #         'boxscore2' : boxscore_serializer_class( boxscore ).data
+            #     }
+            # # add these fields, except for the 'status' because we'll use the schedule game status
+            # self.__add_to_dict( inner_data, b )
 
             # finish it by adding the game data to the return data dict
             data[ game.srid ] = inner_data
