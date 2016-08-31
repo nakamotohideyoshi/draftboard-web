@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from django.contrib.contenttypes.models import ContentType
 import json
+from ast import literal_eval
 from itertools import chain
 from rest_framework import serializers
 import sports.serializers
@@ -34,6 +35,15 @@ class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
 
 
 class GameSerializer(sports.serializers.GameSerializer):
+
+    boxscore = serializers.SerializerMethodField()
+    def get_boxscore(self, game):
+        boxscore_data = game.boxscore_data
+        if boxscore_data is not None:
+            ast_j = literal_eval(boxscore_data)
+            boxscore_data = json.loads(json.dumps(ast_j))
+        return boxscore_data
+
 
     class Meta:
 
