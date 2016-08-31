@@ -153,10 +153,13 @@ class Salary(models.Model):
     # be used in postprocessing to adjust salary
     ownership_percentage = models.FloatField(null=True, default=10.0)
 
-    def __str__(self):
-        return '%s | %s | %s | %s' % (self.__class__.__name__, str(self.amount),
-                                      str(self.player), str(self.primary_roster))
+    # def __str__(self):
+    #     return '%s | %s | %s | %s' % (self.__class__.__name__, str(self.amount),
+    #                                   str(self.player), str(self.primary_roster))
 
+    def __str__(self):
+        return 'Salary'
+    
     class Meta:
         ordering = ('primary_roster', '-amount')
         verbose_name = 'Player'

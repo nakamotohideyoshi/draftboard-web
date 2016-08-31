@@ -53,7 +53,7 @@ class SalaryInline(admin.TabularInline):
     )
     # + ('flagged','amount','amount_unadjusted','ownership_percentage')
 
-    exclude = ('player_id', 'player_type')
+    exclude = ('player_id', 'player_type', 'player')
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster') # select_related('priced_product__product')
@@ -177,8 +177,10 @@ class PoolAdmin(admin.ModelAdmin):
                 #    player_projections.append(PlayerProjection(p, r.randint(0,50)))
                 #
                 salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
-                                                                  slack_updates=False)
+                                                                  slack_updates=True)
                 salary_generator.generate_salaries()
+
+                messages.success(request, 'updated salaries')
 
     #
     # admin actions in dropdown
