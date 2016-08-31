@@ -129,8 +129,9 @@ INSTALLED_APPS = (
     'replayer',
     'pp',                       # our implementation of a few required paypal apis
     'lobby',
+    'statscom',                 # STATS.com api parsers, models, projections, etc...
     'swish',                    # Swish Analytics
-    'statscom',                 # STATS.com
+
     'rest_framework_swagger',
 )
 
@@ -285,6 +286,19 @@ PAYPAL_SECRET = 'EOKSd-HCNfWE17mu8e7uyjs2egSla2yXs7joweXCLdimCY8yv-FcCx7LeP1do0g
 # Access Token:     access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437affed2f726cd6fa
 # Expiry Date:      01 Aug 2026
 VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437affed2f726cd6fa'
+
+# stats.com credentials for api usage
+STATSCOM_URL_BASE = 'http://api.stats.com/v1'
+STATSCOM_KEYS = {
+    'nfl' : {
+        'api_key' : 'ayecer82rvxzeu5pcea2a89p',
+        'secret'  : 'zj9pqF2882',
+    },
+    'mlb' : {
+        'api_key' : 'vqcfvb8vz9m732hqm5saxv3g',
+        'secret'  : 'kywJJpqs6a',
+    }
+}
 
 # Swish analytics
 SWISH_API_KEY = 'e7ec4ca5fca54a01ac0038205b8235e9'

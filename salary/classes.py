@@ -2,7 +2,10 @@
 # salary/classes.py
 
 import csv
-from collections import OrderedDict, Counter
+from collections import (
+    OrderedDict,
+    Counter,
+)
 from statistics import mean
 from django.db.models import Q
 from .exceptions import (
@@ -133,11 +136,31 @@ class OwnershipPercentageAdjuster(object):
             salary.amount = salary.amount_unadjusted
             salary.save()
 
+class PlayerProjection(object):
+    """
+    data class for a sports.<sport>.models.Player and a fantasy_points value.
+
+    use this class to create base data if you want to
+    run projections thru the SalaryGeneratorFromProjections.
+    """
+
+    def __init__(self, player, fantasy_points=0.0):
+        self.player = player
+        self.fantasy_points = fantasy_points
+
+    def get_player(self):
+        return self.player
+
+    def get_fantasy_points(self):
+        return self.fantasy_points
+
 class SalaryPlayerStatsObject(object):
     """
     Object that wraps the PlayerStatsObject's important information for
     salary generation.
     """
+
+    type_checking_enabled = True
 
     def __init__(self, player_stats_object):
         """
@@ -154,8 +177,9 @@ class SalaryPlayerStatsObject(object):
         #
         # Makes sure the player_stats_object is an instance
         # of the subclass PlayerStats
-        if(not isinstance(player_stats_object, PlayerStats)):
-            raise IncorrectVariableTypeException(type(self).__name__, "player_stats_object")
+        if self.type_checking_enabled:
+            if(not isinstance(player_stats_object, PlayerStats)):
+                raise IncorrectVariableTypeException(type(self).__name__, "player_stats_object")
 
         #
         # Sets the variables of teh PlayerStatsObject to wrap
@@ -193,6 +217,29 @@ class SalaryPlayerStatsObject(object):
 
     def __str__(self):
         return str(self.game_id)+"--" +str(self.fantasy_points)+"pts\t "+str(self.start)
+
+class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
+    """
+    this class explicitly does not type checking.
+    this is especially useful for SalaryGeneratorFromProjections.
+    """
+
+    def __init__(self, player, fantasy_points):
+        """
+        'projection' needs to allow us to look up the sports.<sport>.models.Player
+        as well as get a fantasy_points value.
+        """
+        self.player_stats_instance = None  # previously set in parent
+        self.player = player
+
+        self.first_name = self.player.first_name
+        self.last_name = self.player.last_name
+
+        self.game_id = None # player_stats_object.game_id
+        self.start = None # player_stats_object.game.start
+        self.fantasy_points = fantasy_points
+        self.position = self.player.position
+        self.player_id = self.player.pk
 
 class SalaryPlayerObject(object):
     """
@@ -262,14 +309,17 @@ class SalaryRosterSpotObject(object):
 
 class FppgGenerator(object):
 
+    type_checking_enabled = True
+
     def __init__(self, player_stats_classes):
         #
         # Makes sure the player_stats_object is an instance
         # of the subclass PlayerStats
-        for player_stats_class in player_stats_classes:
-            if not issubclass(player_stats_class, PlayerStats):
-                raise IncorrectVariableTypeException(type(self).__name__,
-                                                     type(player_stats_class).__name__)
+        if self.type_checking_enabled:
+            for player_stats_class in player_stats_classes:
+                if not issubclass(player_stats_class, PlayerStats):
+                    raise IncorrectVariableTypeException(type(self).__name__,
+                                                         type(player_stats_class).__name__)
 
         self.player_stats_classes = player_stats_classes
 
@@ -394,7 +444,7 @@ class SalaryGenerator(FppgGenerator):
         self.salary_conf = pool.salary_config
         self.site_sport = pool.site_sport
         self.site_sport_manager = SiteSportManager()
-        self.season_types           = season_types
+        self.season_types = season_types
         if self.season_types is None:
             self.season_types = SalaryGenerator.DEFAULT_SEASON_TYPES
         self.regular_season_games   = None
@@ -830,6 +880,379 @@ class SalaryGenerator(FppgGenerator):
         #return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) * SalaryGenerator.ROUND_TO_NEAREST)
         return self.rounder.round(val)
 
+class SalaryGeneratorFromProjections(SalaryGenerator):
+    """
+    if you have existing projections, and would like to salary players
+    using the same general process, use this class.
+    """
+
+    # disable the type checking done against the type() of player_stats_projections
+    type_checking_enabled = False
+
+    def __init__(self, player_projections, *args, **kwargs):
+        """
+
+        :param player_projections: a list of objects which must have the properties: .player and .fantasy_points
+        :param args:
+        :param kwargs:
+        """
+        super().__init__(*args, **kwargs)
+
+        # list of "spoofed" PlayerStats objects, where fantasy_points property is the projection!
+        self.player_projections = player_projections
+
+        # set along the way in generate_salaries()
+        self.players = None
+        self.position_average_list = None
+        self.sum_average_points = None
+
+    def generate_salaries(self):
+        """
+        Generates the salaries for the player_stats_players
+        :return:
+        """
+
+        start = timezone.now()
+        self.update_progress('started')
+
+        # call overridden method instead of helper_get_player_stats() (it uses PlayerStats history)
+        self.players = self.helper_get_player_stats()
+
+        # Get the average score per position so we know
+        # which positions should have more value
+        self.update_progress('calculating positional averages')
+        self.position_average_data = self.helper_get_average_score_per_position(self.players)
+
+        # # we dont need to trim, because we know we have 1 projected fantasy_points per player
+        # self.helper_trim_players_stats(self.players)
+
+        # apply weights to each score to come up with the
+        # average weighted score for each player
+        self.helper_apply_weight_and_flag(self.players)
+
+        self.sum_average_points = self.helper_sum_average_points_per_roster_spot(self.position_average_data)
+
+        # Calculate the salaries for each player based on
+        # the mean of weighted score of their position
+        self.update_progress('updating (%s) players' % len(self.players))
+        self.helper_update_salaries(self.players, self.position_average_data, self.sum_average_points)
+
+        # Save this original salary into the 'amount_unadjusted' field to be able to reset
+        self.update_unadjusted_salaries(self.pool)
+
+        self.update_progress('finished. (%s seconds)' % str((timezone.now() - start).total_seconds()))
+
+    def helper_get_player_stats(self):
+        """
+        override method in order to return a custom list,
+        where we use the projection instead of the calculated fppg
+        but we still return a list of SalaryPlayerObject(s)
+
+        returns a list of SalaryPlayerObject objects
+
+        note: each SalaryPlayerObject has .player_stats_list which is a list of SalaryPlayerStatsObject,
+              which is basically a wrapper for a sports.<sport>.models.PlayerStats model!
+        """
+        salary_player_stats = []
+        for player_projection in self.player_projections:
+            # get the sports.<sport>.models.Player model instance, and the fantasy_points (float)
+            player = player_projection.get_player()
+            fantasy_points = player_projection.get_fantasy_points()
+
+            # create SalaryPlayerStatsProjectionObject
+            player_stats_object = SalaryPlayerStatsProjectionObject(player, fantasy_points)
+
+            # create a SalaryPlayerObject for each player
+            player = SalaryPlayerObject(max_games=1)  # 1 because we are going to set the projection
+            player.player_id = player_stats_object.player_id
+            player.player = player_stats_object.player
+            player.player_stats_list.append(player_stats_object)
+
+            # add it to the return list
+            salary_player_stats.append(player)
+
+        # return the list weve built
+        return salary_player_stats
+
+    def update_unadjusted_salaries(self, pool):
+        """
+        set the Salary objects 'amount' into the amount_unadjusted field
+        for all players passed in via 'players' param
+
+        :param players:
+        :return:
+        """
+        for sal_obj in Salary.objects.filter(pool=pool):
+            sal_obj.amount_unadjusted = sal_obj.amount
+            sal_obj.save()
+
+    def helper_get_average_score_per_position(self, players):
+
+        position_average_list = {}
+        #
+        # Iterate through all of the player stats and store the total
+        # fantasy points per position
+        for player in players:
+            #
+            # Make sure the player has an acceptable average FPPG to be included
+            # in getting the average points per position
+            player_avg = player.get_fantasy_average()
+            if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
+                for player_stats in player.player_stats_list:
+
+                    #
+                    # Creates a new SalaryPositionPointsAverageObject if the
+                    # object is not created for the given position
+                    position_points_obj = None
+                    if player_stats.position not in position_average_list:
+                        position_points_obj = SalaryPositionPointsAverageObject(
+                            player_stats.position
+                        )
+
+                        position_average_list.update(
+                            {player_stats.position: position_points_obj}
+                        )
+                    else:
+                        position_points_obj = position_average_list[player_stats.position]
+
+                    #
+                    # adds the points the SalaryPositionPointsAverageObject for
+                    # the given position and updates the count to create the
+                    # average later
+                    position_points_obj.total_points += player_stats.fantasy_points
+                    position_points_obj.count += 1
+
+        for key in position_average_list:
+            position_average_list[key].update_average()
+            # print("\n"+str(position_average_list[key]))
+        return position_average_list
+
+    def helper_apply_weight_and_flag(self, players):
+        """
+        Updates the flags for the players if they do not meet the requirements for
+        salary generation. This method also generates each players weighted salary.
+        :param players:
+        """
+        trailing_game_weights = TrailingGameWeight.objects.filter(salary=self.salary_conf)
+        trailing_game_weights.order_by("-through")
+        #
+        # Iterate through the player objects and weigh their stats and update
+        # their flags if applies
+        for player in players:
+            number_of_games = len(player.player_stats_list)
+            player.fantasy_weighted_average = 0
+
+            # if not a lot of games played
+            if number_of_games < self.salary_conf.min_games_flag:
+                # print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
+                # if player has played in 0 thru the min_games_flag,
+                # dont use weights, and just average the points they do have and flag them.
+                if number_of_games > 0:
+                    fp_list = [stat.fantasy_points for stat in player.player_stats_list]
+                    player.fantasy_weighted_average = mean(fp_list)
+                # flag them regardless
+                player.flagged = True
+
+            # else: if more than the min-required-games-played have been played
+            else:
+                # print('MET required games: %s for %s' % (str(number_of_games), str(player)))
+                # check to makes sure the most recent game played has been less than
+                # days_since_last_game_flag days ago
+                delta = timezone.now() - player.player_stats_list[0].start
+                if delta.days > self.salary_conf.days_since_last_game_flag:
+                    # print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
+                    player.flagged = True
+
+                #
+                # Iterates through the weights and applies them to the fantasy points
+                i = 0
+                for tgw in trailing_game_weights:
+                    for j in range(i, tgw.through):
+                        if i < self.salary_conf.trailing_games:
+                            if j < number_of_games:
+                                player.fantasy_weighted_average += \
+                                    player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
+                    #
+                    i = tgw.through
+
+                #
+                # If the configuration does not account trailing games use a 1x multiplier
+                # on the remainder
+                while i < self.salary_conf.trailing_games:
+                    if i < number_of_games:
+                        player.fantasy_weighted_average += \
+                            player.player_stats_list[i].fantasy_points * (float)(tgw.weight)
+                    i += 1
+
+                #
+                # takes the sum and divides by the total allowed games
+                player.fantasy_weighted_average /= (float)(self.salary_conf.trailing_games)
+
+    def helper_sum_average_points_per_roster_spot(self, position_average_list):
+        """
+        Sums up the fppg for each roster spot so we can use it for calculating the
+        the salaries
+        :param position_average_list:
+        :return:
+        """
+
+        # get all the roster spots for the sport and sum up the average
+        # fantasy points for each spot * spot.amount
+        roster_spots = RosterSpot.objects.filter(site_sport=self.site_sport)
+        sum_average_points = 0.0
+        for roster_spot in roster_spots:
+            #
+            # find the positions that map to the specified roster spot and average the
+            # average fantasy points for the position from the position_average_list
+            roster_maps = RosterSpotPosition.objects.filter(roster_spot=roster_spot)
+            count = 0
+            sum = 0.0
+            msg = 'roster_maps:%s for %s' % (str(len(roster_maps)), str(roster_spot))
+            for roster_map in roster_maps:
+                position = roster_map.position
+                if position in position_average_list:
+                    sum += position_average_list[position].average
+                    count += 1
+            try:
+                sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
+            except ZeroDivisionError:
+                print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
+                      'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
+                raise NoPlayersAtRosterSpotException(msg)
+
+        return sum_average_points
+
+    @atomic
+    def helper_update_salaries(self, players, position_average_list, sum_average_points):
+        """
+        Helper method in charge of creating salary entries for players for the pool
+        passed to this class. This method will update existing entries for players
+        that already exist. THis method should *not* be called outside of this
+        class.
+        :param players:
+        :param position_average_list:
+        :param sum_average_points:
+        :return:
+        """
+
+        # initialize the salaries by setting everyone to the minimum
+        min_salary = self.salary_conf.min_player_salary
+        # Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
+        # count = 0
+        for sal_obj in Salary.objects.filter(pool=self.pool):
+            old_sal = sal_obj.amount
+            sal_obj.amount = min_salary
+            sal_obj.save()
+            sal_obj.refresh_from_db()
+            # print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
+
+        printed_players = []
+        roster_spots = RosterSpot.objects.filter(site_sport=self.site_sport)
+        for roster_spot in roster_spots:
+            #
+            # creates a list of the primary positions for the roster spot
+            roster_maps = RosterSpotPosition.objects.filter(roster_spot=roster_spot,
+                                                            is_primary=True)
+            #
+            # If the query returns any roster maps it means that the roster spot
+            # is a primary spot for one or more positions.
+            if len(roster_maps) > 0:
+
+                #
+                # create the average salary for the roster spot based off the
+                # the average points percentage of total points for each roster
+                # spot multiplied by the max_team_salary
+                pos_arr = []
+                count = 0
+                sum = 0.0
+                for roster_map in roster_maps:
+                    pos_arr.append(roster_map.position)
+                    if roster_map.position in position_average_list:
+                        sum += position_average_list[roster_map.position].average
+                        count += 1
+
+                average_salary = (((sum / ((float)(count))) / sum_average_points)
+                                  * ((float)(self.salary_conf.max_team_salary)))
+                average_salary = self.__round_salary(average_salary)
+                # print( roster_spot.name+" average salary "+ str(average_salary))
+
+                #
+                # Get the average weighted fantasy points for the specific positions
+                # in the pos_arr
+                count = 0
+                sum = 0.0
+                average_weighted_fantasy_points_for_pos = 0.0
+                for player in players:
+                    if (player.player_stats_list[0].position in pos_arr):
+                        if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
+                            sum += player.fantasy_weighted_average
+                            count += 1
+                if count > 0:
+                    average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
+                    # print(average_weighted_fantasy_points_for_pos)
+
+                #
+                # creates the salary for each player in the specified roster spot
+                for player in players:
+
+                    # debug print this player once if their srid is specified by 'debug_srid'
+                    if player.player.srid == self.debug_srid and player.player.srid not in printed_players:
+                        msg = str(player.player) + '\n'
+                        msg += str(player)
+                        # print(msg)
+                        self.update_progress(msg)  # send webhook with the same info
+                        printed_players.append(player.player.srid)  # keep track so we dont double-send
+
+                    if player.player_stats_list[0].position in pos_arr:
+                        salary = self.get_salary_for_player(player.player)
+                        if average_weighted_fantasy_points_for_pos == 0.0:
+                            salary.amount = self.salary_conf.min_player_salary
+                        else:
+                            salary.amount = ((player.fantasy_weighted_average /
+                                              average_weighted_fantasy_points_for_pos) * average_salary)
+
+                        salary.amount = self.__round_salary(salary.amount)
+                        if (salary.amount < self.salary_conf.min_player_salary):
+                            salary.amount = self.salary_conf.min_player_salary
+                        salary.flagged = player.flagged
+                        salary.pool = self.pool
+                        salary.player = player.player
+                        salary.primary_roster = roster_spot
+
+                        salary.fppg = player.get_fantasy_average()
+
+                        salary.fppg_pos_weighted = player.fantasy_weighted_average
+                        if salary.fppg_pos_weighted is None:
+                            salary.fppg_pos_weighted = 0.0
+
+                        salary.avg_fppg_for_position = average_weighted_fantasy_points_for_pos
+
+                        salary.num_games_included = len(player.player_stats_list)
+
+                        salary.save()
+
+    def get_salary_for_player(self, player):
+        """
+        Method takes in a :class:`sports.models.Player` model object and
+        either gets the Salary object for that player and the pool or returns
+        a new Salary Object
+        :param player:  a :class:`sports.models.Player` model object
+        :return: a :class:`salary.models.Salary` object
+        """
+        try:
+            player_type = ContentType.objects.get_for_model(player)
+            salary_obj = Salary.objects.get(pool=self.pool,
+                                            player_type=player_type,
+                                            player_id=player.id)
+
+            return salary_obj
+        except Salary.DoesNotExist:
+            return Salary()
+
+    def __round_salary(self, val):
+            # return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) * SalaryGenerator.ROUND_TO_NEAREST)
+            return self.rounder.round(val)
+
 class SportSalaryGenerator(SalaryGenerator):
     """
     This class is a wrapper for SalaryGenerator which requires only the sport name to run salaries
@@ -849,7 +1272,7 @@ class SportSalaryGenerator(SalaryGenerator):
 
 class PlayerFppgGenerator(FppgGenerator):
     """
-    Generates regular seasona "fantasy points per game" for players for a sport.
+    Generates regular season "fantasy points per game" for players for a sport.
 
     Utilizes the SalaryGenerator class for its methods which are capable
     of calculating averages on the PlayerStats.fantasy_points field,
