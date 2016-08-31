@@ -113,6 +113,7 @@ class Player( sports.models.Player ):
 
     class Meta:
         abstract = False
+        ordering = ('first_name',)
 
 class PlayerLineupName( Player ):
 

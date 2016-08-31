@@ -44,8 +44,9 @@ class GameSerializer(sports.serializers.GameSerializer):
 
         model = Game
 
+        # parent fields include the 'boxscore' field
         fields = sports.serializers.GameSerializer.PARENT_FIELDS + \
-                 ('srid_home','srid_away','title', 'weather_json','boxscore')
+                 ('srid_home','srid_away','title', 'weather_json')
 
 class InjurySerializer(sports.serializers.InjurySerializer):
 
