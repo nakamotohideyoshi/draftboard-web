@@ -1,6 +1,7 @@
 #
 # draftgroup/classes.py
 
+from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 import mysite.exceptions
 from .exceptions import (
@@ -12,6 +13,7 @@ from .exceptions import (
 from django.db.transaction import atomic
 from .models import (
     DraftGroup,
+    UpcomingDraftGroup, # proxy model which limits DraftGroup models to upcoming only
     Player,
     GameTeam,
     PlayerUpdate,
@@ -514,19 +516,134 @@ class AbstractUpdateManager(object):
 
     class ValueException(Exception): pass
 
+    class PlayerDoesNotExist(Exception): pass
+
     def __init__(self):
+        self.players_not_found = None
+
+    def add(self, update_id, category, type, value,
+            status, source_origin, url_origin, published_at=None):
+        """
+        create or update a PlayerUpdate
+
+        *this method DOES NOT CALL .save() on the model, letting the subclasses do that.
+
+        :param update_id:
+        :param category:
+        :param type:
+        :param value:
+        :return:
+        """
+
+        self.validate_update_id(update_id)
+        self.validate_category(category)
+        self.validate_type(type)
+        self.validate_value(value)
+
+        # parse and return a datetime object representing the publish time
+        updated_at = published_at
+        if updated_at is None:
+            updated_at = timezone.now()
+
+        created = False
+        try:
+            update = self.model.objects.get(update_id=update_id)
+        except self.model.DoesNotExist:
+            update = self.model()
+            update.update_id = update_id
+            created = True
+
+        update.category = category
+        update.type = type
+
+        if update.updated_at is None or update.updated_at != updated_at:
+            update.updated_at = updated_at
+
+        if update.value is None or update.value != value:
+            update.value = value
+
+        if update.status is None or update.status != status:
+            update.status = status
+
+        if update.source_origin is None or update.source_origin != source_origin:
+            update.source_origin = source_origin
+
+        if update.url_origin is None or update.url_origin != url_origin:
+            update.url_origin = url_origin
+
+        # for newly created Update models we need to
+        # to associated any relevant draft_groups
+        if created == True:
+            self.update_applicable_draft_groups(update)
+
+        # let the subclasses set the srid & any other fields specific to their type of update
+
+        return update
+
+    def update_applicable_draft_groups(self, update):
+        """
+        subclasses can override this method to associate the update with one or more draftgroups
+
+        this method is stubbed out for this abstract/parent class
+        """
         pass
+
+    def validate_update_id(self, update_id):
+        pass # ?
+
+    def validate_category(self, category):
+        if category not in [x[0] for x in self.model.CATEGORIES]:
+            raise self.CategoryException()
+
+    def validate_type(self, type):
+        pass # ?
+
+    def validate_value(self, value):
+        pass # ?
+
+class LookupItem(object):
+
+    field_srid = 'srid'
+    field_model = 'model'
+
+    def __init__(self, model):
+        self.model = model
+        self.data = {
+            'srid' : model.srid,
+            'model' : model,
+        }
+
+    def get_data(self):
+        return self.data
 
 class PlayerUpdateManager(AbstractUpdateManager):
     """
     This class should exclusively be used as the interface
     to adding draftgroup.models.PlayerUpdate objects to draftgroups.
 
+    usage ex:
+
+        from django.contrib.contenttypes.models import ContentType
+        import sports.nfl.models
+        from draftgroup.models import Player, PlayerUpdate
+        from draftgroup.classes import PlayerUpdateManager
+        sport = 'nfl'
+        player_srid = '41c44740-d0f6-44ab-8347-3b5d515e5ecf' # TB12
+        update_id = 'abcde'
+        category = PlayerUpdate.INJURY # alternatives: NEWS, START, LINEUP
+        type = 'rotowire'
+        value = 'hes the GOAT ' + update_id
+        pum = PlayerUpdateManager(sport, player_srid, now=True)
+        update_obj = pum.add(update_id, category, type, value)
+
     """
 
     model = PlayerUpdate
 
-    def __init__(self, sport, player_srid, draft_groups=None, now=None):
+    history_model_class = None  # if None, wont be saved
+    lookup_model_class = None   # if None, relies solely on name-matching
+
+    def __init__(self, sport):
         """
 
         :param sport:
@@ -537,37 +654,160 @@ class PlayerUpdateManager(AbstractUpdateManager):
         """
         super().__init__()
 
+        self.player_name = None
         self.sport = sport
-        self.player_srid = player_srid
-        self.now = now
-        if self.now is None:
-            self.now = timezone.now()
-        self.draft_groups = draft_groups
-        if self.draft_groups is None:
-            self.draft_groups = self.get_applicable_draft_groups(self.now)
-        print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
+        self.sport_player_model_class = self.get_player_model_class(self.sport)
+        self.players = None
 
-    def add(self, update_id, category, value):
+    def build_player_lookup_table(self):
         """
-        create or update a PlayerUpdate
-
-        :param update_id:
-        :param category:
-        :param value:
-        :return:
+        return a dictionary that indexes player fullnames to objects with their draftboard information
+        to help us determine a player who is coming from a third party service for which no srid exists.
         """
-        pass # TODO
+        players = {}
+        for player in self.sport_player_model_class.objects.all():
+            player_data = LookupItem(player).get_data()
+            player_name = '%s %s' % (player.first_name, player.last_name)
+            players[player_name] = player_data
+        return players
 
-    def get_applicable_draft_groups(self, dt):
+    def get_player_model_class(self, sport):
+        ssm = SiteSportManager()
+        site_sport = ssm.get_site_sport(sport)
+        sport_player_model_class = ssm.get_player_class(site_sport)
+        return sport_player_model_class
+
+    def get_player_srid_for_pid(self, pid):
+        """
+        retrieve the player's srid by specifying the third party service pid for the player.
+
+        if multiple entries have been added for the 'pid' to the PlayerLookup model use the most recent.
+
+        :param pid:
+        """
+        if self.lookup_model_class is None:
+            return None
+
+        lookups = self.lookup_model_class.objects.filter(pid=pid).order_by('-created')
+        if lookups.count() <= 0:
+            return None
+
+        # otherwise, return the first model in the queryset
+        return lookups[0]
+
+    def get_player_srid_for_name(self, name):
+        """
+        this is where the name-matching happens.
+        eventually we will want to be able to link third-party players to
+        their known srids internally.
+
+        for now we simply use string matching on the [full] name the third party service gives us.
+        """
+        if self.players is None:
+            self.players = self.build_player_lookup_table()
+
+        lookup_data = self.players.get(name)
+        if lookup_data is None:
+            # the caller should handle this for players not found
+            # because its expected we should find all the players a
+            # high percentage of the time -- or else admin needs
+            # to update the PlayerLookup model for each missing player!
+            self.add_player_not_found(name)
+            part1 = 'for name: %s' % str(name)
+            part2 = 'check the internal "players_not_found" list'
+            err_msg = '%s | %s' % (part1, part2)
+            raise self.PlayerDoesNotExist(err_msg)
+
+        # return the found player
+        return lookup_data.get(LookupItem.field_srid)
+
+    def add_player_not_found(self, name):
+        """
+        adds the player name to the internal list of players not found by name.
+
+        returns True is the player was added to the list, False if they were already in the list.
+        """
+        if self.players_not_found is None:
+            self.players_not_found = []
+        if name not in self.players_not_found:
+            self.players_not_found.append(name)
+            return True
+        return False
+
+    # def update_applicable_draft_groups(self, update):
+    #     return super().update_applicable_draft_groups(update)
+
+    def get_draft_groups(self):
         """
         return a queryset of draft groups which we think the
-        update is for , stirctly based on the time param 'dt'
+        update is for , strictly based on the time param 'dt'
         :param dt:
         :return:
         """
-        return [] # TODO
+        player_srid = self.get_player_srid_for_name(self.player_name)
 
-class GameUpdateManager(AbstractUpdateManager):
+        # get all DraftGroup objects which include this Player (by their SRID)
+        # we should use UpcomingDraftGroup so we only
+        # associate PlayerUpdate objects with relevant draftgroups
+        try:
+            p = self.sport_player_model_class.objects.get(srid=player_srid)
+        except self.sport_player_model_class.DoesNotExist:
+            err_msg = 'could not find draftboard player with srid: %s' % str(player_srid)
+            raise self.PlayerDoesNotExist(err_msg)
+        ctype = ContentType.objects.get_for_model(p)
+        Player.objects.filter(salary_player__player_type__pk=ctype.pk, salary_player__player_id=p.pk)
+        draft_group_players = Player.objects.filter(draft_group__in=UpcomingDraftGroup.objects.all(),
+                                        salary_player__player_type__pk=ctype.pk,
+                                        salary_player__player_id=p.pk).distinct('draft_group')
+        return [dgp.draft_group for dgp in draft_group_players]
+
+        # TODO we should determine the player's srid in here, not outside this class!
+
+        # TODO we should choose the 'category' inside this class !
+
+    def add(self, player_srid, *args, **kwargs):
+        """
+        example super().add() arguments: update_id, category, type, value, published_at=None
+        """
+        # create the model instance
+        update_obj = super().add(*args, **kwargs)
+        update_obj.player_srid = player_srid
+        update_obj.save()
+        return update_obj
+
+    def get_srid_for(self, pid=None, name=None):
+        """
+        attempt to get the player's SRID based on the values passed to this method
+
+        this method raises an exception if all arguments are None.
+
+        :param pid: the player id (aka 'pid') to look up in the lookup model class (if set)
+        :param name: the players full name
+        :return: the player's SRID if found, otherwise returns None
+        """
+        if pid is None and name is None:
+            raise Exception('get_srid_for() error - all arguments are None.')
+
+        player_srid = None # we dont know it yet
+
+        # 1. first try to find the srid using the PlayerLookup model
+        if pid is not None:
+            player_srid = self.get_player_srid_for_pid(pid)
+        # return it if found.
+        if player_srid is not None:
+            return player_srid
+
+        # 1b. check if someone set the players name as their pid in draftboards system
+        if name is not None:
+            player_srid = self.get_player_srid_for_pid(name)
+        # return it if found.
+        if player_srid is not None:
+            return player_srid
+
+        # 2. fall back on using string matching on the name to find the player
+        return self.get_player_srid_for_name(name)
+
+class GameUpdateManager(AbstractUpdateManager): # TODO need to fix this to be more like PlayerUpdateManager
     """
     This class should exclusively be used as the interface
     to adding draftgroup.models.GameUpdate objects to draftgroups.
@@ -594,15 +834,6 @@ class GameUpdateManager(AbstractUpdateManager):
         self.draft_groups = self.get_draft_groups(self.game_srid)
         print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
 
-    # def validate_game_srid(self, game_srid):
-    #     """
-    #     given a game_srid, return the sports.<sport>.Game model
-    #
-    #     :param game_srid:
-    #     :return:
-    #     """
-    #     pass # TODO decide if were going to look the game up
-
     def add_probable_pitcher(self, team_srid, player_srid):
         """
         helper method that calls add() with the GameUpdate.LINEUP category
@@ -621,7 +852,6 @@ class GameUpdateManager(AbstractUpdateManager):
         :return:
         """
 
-        # TODO - validation methods
         self.validate_update_id(update_id)
         self.validate_category(category)
         self.validate_type(type)
@@ -651,13 +881,3 @@ class GameUpdateManager(AbstractUpdateManager):
         """
         game_teams = GameTeam.objects.filter(game_srid=game_srid).distinct('draft_group')
         return [ gt.draft_group for gt in game_teams ]
-
-    def validate_update_id(self, update_id): pass # TODO
-
-    def validate_category(self, category):
-        if category not in [ x[0] for x in self.model.CATEGORIES ]:
-            raise self.CategoryException()
-
-    def validate_type(self, type): pass # TODO
-
-    def validate_value(self, value): pass # TODO

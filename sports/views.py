@@ -27,6 +27,7 @@ from sports.mlb.models import (
     PlayerStatsPitcher,
 )
 from rest_framework import generics
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 import json
@@ -35,6 +36,66 @@ import dataden.models
 import dataden.serializers
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
+#
+from draftgroup.models import (
+    GameUpdate,
+    PlayerUpdate,
+)
+from draftgroup.serializers import (
+    GameUpdateSerializer,
+    PlayerUpdateSerializer,
+)
+
+class GetSerializedDataMixin:
+
+    def get_serialized_data(self, model_class, serializer_class):
+        updates = model_class.objects.filter().order_by('-updated_at')
+        serialized_data = serializer_class(updates, many=True).data
+        return serialized_data
+
+class AbstractUpdateAPIView(APIView, GetSerializedDataMixin):
+    """
+    parent view class for XXXXUpdateAPIView(s)
+    """
+
+    authentication_classes = (IsAuthenticated, )
+
+    model_class = None          # child view must set this
+    serializer_class = None     # child view must set this
+
+    def get(self, request, *args, **kwargs):
+        data = self.get_serialized_data(self.model_class, self.serializer_class)
+        return Response(data, status=200)
+
+class GameUpdateAPIView(AbstractUpdateAPIView):
+    """
+
+    """
+    model_class = GameUpdate
+    serializer_class = GameUpdateSerializer
+
+class PlayerUpdateAPIView(AbstractUpdateAPIView):
+    """
+
+    """
+    model_class = PlayerUpdate
+    serializer_class = PlayerUpdateSerializer
+
+class UpdateAPIView(APIView, GetSerializedDataMixin):
+    """
+    return recent game & player updates for the sport
+    """
+
+    authentication_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        data = {
+            'player_updates' : self.get_serialized_data(PlayerUpdate, PlayerUpdateSerializer),
+            #'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
+            # TODO truncate game_updates and player_updates!
+            'game_updates' : [],
+        }
+        return Response(data, status=200)
 
 class LeagueTeamAPIView(generics.ListAPIView):
     """

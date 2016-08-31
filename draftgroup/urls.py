@@ -9,9 +9,9 @@ from draftgroup.views import (
     DraftGroupPbpDescriptionView,
     UpcomingDraftGroupAPIView,
     CurrentDraftGroupAPIView,
-    GameUpdateAPIView,
-    PlayerUpdateAPIView,
-    PlayerAndGameUpdateAPIView,
+    # GameUpdateAPIView,
+    # PlayerUpdateAPIView,
+    # PlayerAndGameUpdateAPIView,
 )
 
 urlpatterns = [
@@ -38,11 +38,13 @@ urlpatterns = [
 
     #
     # get the game updates for draft group by its id
-    url(r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
-    url(r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
+    # url(r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
+    # url(r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
 
     # get the game and player updates
-    url(r'^updates/(?P<draft_group_id>[0-9]+)/$', PlayerAndGameUpdateAPIView.as_view()),
+    # i want to deprecate this API, and move the updates api to the 'sports' app
+    # and use it similar to stats, aka: /api/sports/updates/{sport}/
+    # url(r'^updates/(?P<draft_group_id>[0-9]+)/$', PlayerAndGameUpdateAPIView.as_view()),
 
     #
     # Get the draftgroup players for a draftgroup id.

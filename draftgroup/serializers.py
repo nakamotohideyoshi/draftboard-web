@@ -32,15 +32,23 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 class PlayerUpdateSerializer(serializers.ModelSerializer):
 
+    srid = serializers.SerializerMethodField()
+    def get_srid(self, obj):
+        return obj.player_srid
+
     class Meta:
         model = PlayerUpdate
-        fields = ('category','type','value')
+        fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
 
 class GameUpdateSerializer(serializers.ModelSerializer):
 
+    srid = serializers.SerializerMethodField()
+    def get_srid(self, obj):
+        return obj.game_srid
+
     class Meta:
         model = GameUpdate
-        fields = ('category','type','value') # ,'game_id')
+        fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
 
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """

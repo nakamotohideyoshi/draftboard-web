@@ -242,6 +242,14 @@ app.conf.update(
             'schedule': crontab(hour='3', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
         },
 
+        #
+        # swish updates
+        'nfl_swish_update_injury_feed': {
+            'task': 'swish.tasks.update_injury_feed',
+            'schedule': timedelta(minutes=1),
+            'args': ('nfl',),
+        }
+
     },
 
     CELERY_ENABLE_UTC=True,
