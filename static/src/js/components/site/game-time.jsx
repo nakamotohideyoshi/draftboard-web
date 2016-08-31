@@ -1,6 +1,5 @@
 import moment from 'moment';
 import React from 'react';
-import { dateNow } from '../../lib/utils';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { hasGameStarted } from '../../actions/sports';
 import { stringifyMLBWhen } from '../../actions/events/pbp';
@@ -19,9 +18,11 @@ if (process.env.NODE_ENV !== 'test') {
  * @return {jsx}          JSX of component
  */
 const GameTime = (props) => {
-  const { boxscore, modifiers, sport, start, status } = props;
+  const { modifiers, game } = props;
+  const { boxscore, sport, start, status } = game;
   const block = 'game-time';
-  const hasNotStarted = !hasGameStarted(sport, status) || start > dateNow();
+
+  const hasNotStarted = !hasGameStarted(sport, game);
   let value = null;
 
   // always have sport modifier
@@ -106,24 +107,21 @@ const GameTime = (props) => {
 };
 
 GameTime.propTypes = {
-  boxscore: React.PropTypes.object,
+  game: React.PropTypes.object,
   modifiers: React.PropTypes.array,
-  sport: React.PropTypes.string.isRequired,
-  start: React.PropTypes.oneOfType([
-    React.PropTypes.string,
-    React.PropTypes.number,
-  ]).isRequired,
-  status: React.PropTypes.string,
 };
 
 GameTime.defaultProps = {
-  boxscore: {
-    clock: null,
-    periodDisplay: null,
-    quarter: null,
+  game: {
+    boxscore: {
+      clock: null,
+      inning: null,
+      inning_half: null,
+      periodDisplay: null,
+      quarter: null,
+    },
   },
   modifiers: [],
-  status: 'scheduled',  // todo start using just boxscore or game status
 };
 
 export default GameTime;

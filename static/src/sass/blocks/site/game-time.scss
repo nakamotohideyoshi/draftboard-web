@@ -54,5 +54,11 @@ $block: '.game-time';
     #{$block}__half-inning path {
       fill: #9ea1b1;
     }
+
+    #{$block}__clock,
+    #{$block}__period {
+      display: inline-block;
+      padding-right: 4px;
+    }
   }
 }
