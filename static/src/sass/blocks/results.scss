@@ -173,15 +173,15 @@ $results-selected-text-color: #2bb677;
       vertical-align: middle;
       text-transform: uppercase;
 
-      .title {
+      .title,
+      .value {
         display: inline-block;
-        position: relative;
-        top: -2px;
+        line-height: 1;
+        vertical-align: middle;
       }
 
       .value {
         color: #47495e;
-        display: inline-block;
         font-family: $font-oswald;
         font-size: 15px;
         margin-left: 6px;
@@ -874,7 +874,15 @@ $results-selected-text-color: #2bb677;
       padding-left: 88px;
       line-height: 50px;
 
-      .item .value {
+      .item {
+        &.possible,
+        &.winnings,
+        &.buyins {
+          width: 130px;
+        }
+      }
+
+      .item.entries .value {
         margin-right: 36px;
       }
     }
