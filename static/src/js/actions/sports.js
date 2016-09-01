@@ -230,68 +230,6 @@ export const SPORT_CONST = {
 };
 
 
-// dispatch to reducer methods
-
-/**
- * Dispatch parsed API information related to relevant games
- * Also pass through an updated at so that we can expire and re-poll after a period of time.
- * NOTE: this method must be wrapped with dispatch()
- * @param  {string} sport  Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
- * @param  {object} games  Object of games
- * @return {object}        Changes for reducer
- */
-const receiveGames = (sport, games) => {
-  const doneStatuses = ['closed', 'complete'];
-
-  const mappedBoxscore = zipObject(
-    Object.keys(games),
-    map(games, (game) => {
-      const newGame = merge({}, game);
-
-      // TEMP replace boxscore2 with boxscore
-      if ('boxscore2' in game && newGame.boxscore2 instanceof Object) {
-        newGame.boxscore = game.boxscore2;
-        delete(newGame.boxscore2);
-
-      // remove null boxscores
-      } else if ('boxscore' in newGame && !(newGame.boxscore instanceof Object)) {
-        delete(newGame.boxscore);
-      }
-
-      return newGame;
-    })
-  );
-
-  const gamesCompleted = map(
-    sortBy(
-      filter(
-        mappedBoxscore, (game) => doneStatuses.indexOf(game.status) !== -1
-      ),
-      (filteredGame) => filteredGame.start
-    ),
-    (sortedGame) => sortedGame.srid
-  );
-
-  const gamesNotCompleted = map(
-    sortBy(
-      filter(
-        mappedBoxscore, (game) => gamesCompleted.indexOf(game.srid) === -1
-      ),
-      (filteredGame) => filteredGame.start
-    ),
-    (sortedGame) => sortedGame.srid
-  );
-
-  const gameIds = gamesNotCompleted.concat(gamesCompleted);
-
-  return {
-    sport,
-    games: mappedBoxscore,
-    gameIds,
-  };
-};
-
-
 // helper methods
 
 /**
@@ -326,9 +264,8 @@ export const calculateTimeRemaining = (sport, game) => {
   const endStatuses = ['completed', 'complete', 'closed'];
 
   // if the game hasn't started, return full time
-  if (!game.hasOwnProperty('boxscore')) {
-    return sportConst.gameDuration;
-  }
+  if (!('boxscore' in game)) return sportConst.gameDuration;
+
   const boxScore = game.boxscore;
 
   // if the game is done, then set to 0
@@ -386,6 +323,91 @@ export const calculateTimeRemaining = (sport, game) => {
   }
 };
 
+
+// dispatch to reducer methods
+
+/**
+ * Dispatch parsed API information related to relevant games
+ * Also pass through an updated at so that we can expire and re-poll after a period of time.
+ * NOTE: this method must be wrapped with dispatch()
+ * @param  {string} sport  Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
+ * @param  {object} games  Object of games
+ * @return {object}        Changes for reducer
+ */
+const receiveGames = (sport, games) => {
+  logAction.debug('receiveGames', sport, games);
+
+  const doneStatuses = ['closed', 'complete'];
+
+  const fixedBoxscores = map(games, (game) => {
+    const newGame = merge({}, game);
+
+    newGame.sport = sport;
+
+    // TEMP replace boxscore2 with boxscore
+    if ('boxscore2' in game && newGame.boxscore2 instanceof Object) {
+      newGame.boxscore = game.boxscore2;
+      delete(newGame.boxscore2);
+    }
+
+    // remove null boxscores
+    if ('boxscore' in newGame && !(newGame.boxscore instanceof Object)) {
+      delete(newGame.boxscore);
+    }
+
+    // if no boxscore, default to upcoming = 100% remaining
+    if (!('boxscore' in newGame)) {
+      newGame.timeRemaining = {
+        duration: SPORT_CONST[sport].gameDuration,
+        decimal: 0.9999,
+      };
+    } else {
+      const durationRemaining = calculateTimeRemaining(sport, game);
+      const decimalRemaining = calcDecimalRemaining(durationRemaining, SPORT_CONST[sport].gameDuration);
+
+      newGame.timeRemaining = {
+        duration: durationRemaining,
+        decimal: decimalRemaining,
+      };
+    }
+
+    return newGame;
+  });
+
+  const mappedBoxscore = zipObject(
+    Object.keys(games),
+    fixedBoxscores
+  );
+
+  const gamesCompleted = map(
+    sortBy(
+      filter(
+        mappedBoxscore, (game) => doneStatuses.indexOf(game.status) !== -1
+      ),
+      (filteredGame) => filteredGame.start
+    ),
+    (sortedGame) => sortedGame.srid
+  );
+
+  const gamesNotCompleted = map(
+    sortBy(
+      filter(
+        mappedBoxscore, (game) => gamesCompleted.indexOf(game.srid) === -1
+      ),
+      (filteredGame) => filteredGame.start
+    ),
+    (sortedGame) => sortedGame.srid
+  );
+
+  const gameIds = gamesNotCompleted.concat(gamesCompleted);
+
+  return {
+    sport,
+    games: mappedBoxscore,
+    gameIds,
+  };
+};
+
 /**
  * TODO switch to fetch
  *
@@ -404,31 +426,7 @@ const fetchGames = (sport) => ({
     expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes
     endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
     requestFields: { sport },
-    callback: (json) => {
-      // add in the sport so we know how to differentiate it.
-      const games = merge({}, json || {});
-      forEach(games, (game, id) => {
-        games[id].sport = sport;
-
-        // if no boxscore, default to upcoming = 100% remaining
-        if (game.hasOwnProperty('boxscore') === false) {
-          games[id].timeRemaining = {
-            duration: SPORT_CONST[sport].gameDuration,
-            decimal: 0.9999,
-          };
-        } else {
-          const durationRemaining = calculateTimeRemaining(sport, game);
-          const decimalRemaining = calcDecimalRemaining(durationRemaining, SPORT_CONST[sport].gameDuration);
-
-          games[id].timeRemaining = {
-            duration: durationRemaining,
-            decimal: decimalRemaining,
-          };
-        }
-      });
-
-      return receiveGames(sport, games);
-    },
+    callback: (json) => receiveGames(sport, json || {}),
   },
 });
 
