@@ -74,7 +74,9 @@ const ResultsStatic = React.createClass({
     } else {
       // Show empty stats line to prevent rendering glitches.
       statsAndLineups = (
-        <div className="results-page--stats"></div>
+        <div>
+          <ResultsStats />
+        </div>
       );
     }
 

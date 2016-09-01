@@ -299,13 +299,13 @@ export const LiveStandingsPane = React.createClass({
           <div className="title">{name}</div>
           <div className="profit">
             <div className="fees">
-              {humanizeCurrency(buyin)} Fees
+              {humanizeCurrency(+(buyin))} Fees
             </div>
             {" "} / {" "}
             <div className="earnings">
               Winning
               {" "}
-              <span>{humanizeCurrency(potentialWinnings)}</span>
+              <span>{humanizeCurrency(+(potentialWinnings))}</span>
             </div>
           </div>
         </div>
@@ -436,7 +436,7 @@ export const LiveStandingsPane = React.createClass({
           <div className="live-pmr">{ pmr }</div>
           <div className="lineup--score-name">{username}</div>
           <div className="lineup--score-points">{humanizeFP(lineup.fp)} Pts</div>
-          <div className={earningsClass}>{humanizeCurrency(potentialWinnings)}</div>
+          <div className={earningsClass}>{humanizeCurrency(+(potentialWinnings))}</div>
           { overlay }
         </div>
       );
