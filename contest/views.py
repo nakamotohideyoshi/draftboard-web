@@ -450,7 +450,10 @@ class EnterLineupAPIView(generics.CreateAPIView):
 
         task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
         # get() blocks the view from returning until the task completes its work
-        task_result.get()
+        try:
+            task_result.get()
+        except Exception as e:
+            raise APIException(e)
         task_helper = TaskHelper(buyin_task, task_result.id)
         #print('task_helper.get_data()', task_helper.get_data())
         data = task_helper.get_data()
