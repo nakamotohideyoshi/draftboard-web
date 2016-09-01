@@ -18,6 +18,10 @@ import { dateNow } from '../lib/utils';
 const receiveResults = (when, response) => {
   const filteredResponse = merge({}, response);
 
+  filteredResponse.overall.winnings = +(filteredResponse.overall.winnings);
+  filteredResponse.overall.possible = +(filteredResponse.overall.possible);
+  filteredResponse.overall.buyins = +(filteredResponse.overall.buyins);
+
   // TODO receiveResults() - remove this when coderden fixes API call to not return bad entries
   forEach(filteredResponse.lineups, (lineup, index) => {
     const entries = filter(lineup.entries, (entry) => entry.final_rank !== -1);
