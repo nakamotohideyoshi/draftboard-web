@@ -23,7 +23,7 @@ describe('Time', function() {
 
   describe('getDaysForMonth', function () {
     it('should return a list of Date objects for provided year and month', function() {
-      expect(getDaysForMonth(2015, 1).toString()).to.equal([
+      expect(getDaysForMonth(2015, 2).toString()).to.equal([
         new Date(2015, 1, 1),
         new Date(2015, 1, 2),
         new Date(2015, 1, 3),
@@ -54,7 +54,7 @@ describe('Time', function() {
         new Date(2015, 1, 28)
       ].toString());
 
-      expect(getDaysForMonth(2016, 0).toString()).to.equal([
+      expect(getDaysForMonth(2016, 1).toString()).to.equal([
         new Date(2016, 0, 1),
         new Date(2016, 0, 2),
         new Date(2016, 0, 3),
@@ -138,7 +138,7 @@ describe('Time', function() {
              new Date(2014, 2, 2)
            ]
          ].toString();
-         expect(daysToWeekView(getDaysForMonth(2014, 1)).toString()).to.equal(result);
+         expect(daysToWeekView(getDaysForMonth(2014, 2)).toString()).to.equal(result);
     });
   });
 

@@ -11,7 +11,7 @@ import ResultsDaysSlider from '../../../components/results/results-days-slider.j
 let selectedDate = null;
 const defaultProps = {
   year: 2015,
-  month: 1,
+  month: 2,
   day: 1,
   onSelectDate(year, month, day) {
     selectedDate = [year, month, day];
@@ -78,7 +78,7 @@ describe("ResultsDaysSlider Component", function() {
 
     expect(wrapper.find('.item').at(0).hasClass('selected')).to.equal(true);
     wrapper.find('.item').at(5).simulate('click');
-    expect(selectedDate.toString()).to.equal([2015, 1, 6].toString());
+    expect(selectedDate.toString()).to.equal([2015, 2, 6].toString());
   });
 
   it('should not be able to select a future date', function() {

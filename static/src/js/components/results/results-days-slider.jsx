@@ -64,6 +64,18 @@ const ResultsDaysSlider = React.createClass({
     this.scrollItem += direction;
 
     if (this.scrollItem < 0) {
+      // let { year, month } = this.props;
+
+      // if (--month === 0) {
+      //   month = 11;
+      //   year--;
+      // } else {
+      //   month--;
+      // }
+
+      // const day = getDaysForMonth(year, month).pop().getDate();
+      // this.props.onSelectDate(year, month, day);
+
       this.scrollItem = 0;
     }
 
@@ -79,22 +91,29 @@ const ResultsDaysSlider = React.createClass({
   },
 
   handleScrollNext() {
-    let left = this.getNextScrollPosition(1);
+    const left = this.getNextScrollPosition(1);
 
     const content = this.refs.content;
-    const minLeft = content.clientWidth - content.scrollWidth;
+    // const minLeft = 290 - content.scrollWidth;
 
-    if (left < minLeft) {
-      left = minLeft;
-      this.getNextScrollPosition(-1);
-    }
+    // if (left < minLeft) {
+    //   left = minLeft;
+    //   this.getNextScrollPosition(-1);
+    // }
 
     content.style.left = `${left}px`;
   },
 
   handleScrollPrev() {
     const left = this.getNextScrollPosition(-1);
-    this.refs.content.style.left = `${left}px`;
+
+    const content = this.refs.content;
+    // const minLeft = 290 - content.scrollWidth;
+    // if (left < minLeft) {
+    //   left = minLeft;
+    // }
+
+    content.style.left = `${left}px`;
   },
 
   /**

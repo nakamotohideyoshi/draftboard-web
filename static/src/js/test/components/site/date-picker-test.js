@@ -10,7 +10,7 @@ const expect = require('chai').expect;
 let selectedDate = null;
 const defaultProps = {
   year:  2015,
-  month: 1,
+  month: 2,
   day:   1,
   onSelectDate(year, month, day) {
     selectedDate = [year, month, day];
@@ -55,13 +55,6 @@ describe("DatePicker Component", function() {
     expect(
       this.componentElement.querySelectorAll('tbody td')[6].className.trim()
     ).to.equal('selected');
-
-    // Last Sunday is 01.03.2015.
-    expect(
-      [].slice.call(
-        this.componentElement.querySelectorAll('tbody td')
-      ).pop().className.trim()
-    ).to.equal('inactive');
 
     // All other days are active.
     [].slice.call(
