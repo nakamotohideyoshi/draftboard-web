@@ -56,8 +56,8 @@ const DatePicker = React.createClass({
   handleSelectPrevMonth() {
     let { year, month } = this.state;
 
-    if (--month < 0) {
-      month = 11;
+    if (--month === 0) {
+      month = 12;
       year--;
     }
 
@@ -67,8 +67,8 @@ const DatePicker = React.createClass({
   handleSelectNextMonth() {
     let { year, month } = this.state;
 
-    if (++month > 11) {
-      month = 0;
+    if (++month > 12) {
+      month = 1;
       year++;
     }
 
@@ -85,8 +85,8 @@ const DatePicker = React.createClass({
       const days = week.map((day) => {
         let className = '';
         if (day.getDate() === this.state.day &&
-            day.getMonth() === this.state.month) className += 'selected ';
-        if (day.getMonth() !== this.state.month) className += 'inactive ';
+            day.getMonth() === this.state.month - 1) className += 'selected ';
+        if (day.getMonth() !== this.state.month - 1) className += 'inactive ';
 
         const isInTheFuture = isDateInTheFuture(day.getTime());
         let selectHandler = null;
@@ -97,7 +97,7 @@ const DatePicker = React.createClass({
           selectHandler = this.handleSelectDate.bind(
             this,
             day.getFullYear(),
-            day.getMonth(),
+            day.getMonth() + 1,
             day.getDate()
           );
         }

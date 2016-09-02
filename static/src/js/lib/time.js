@@ -11,22 +11,12 @@ import log from './logging.js';
  * @return {Array}
  */
 export function getDaysForMonth(year, month) {
-  const date = new Date(year, month, 1);
+  const date = new Date(year, month - 1, 1);
   const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
   return (Array.apply(null, Array(lastDay.getDate()))).map((_, i) => {
     return new Date(date.getFullYear(), date.getMonth(), i + 1);
   });
-}
-
-/**
- * Returns a list of Date objects. Each object represents a day
- * from the current month.
- * @return {Array}
- */
-export function getDaysForThisMonth() {
-  const date = new Date();
-  return getDaysForMonth(date.getFullYear(), date.getMonth());
 }
 
 /**
@@ -49,24 +39,24 @@ export function weekdayNumToName(dayNum) {
 }
 
 /**
- * Returns month name from it's number from `Date.prototype.getMonth()`.
+ * Returns month name from it's number based on 1-12.
  * @param {Number} monthNum
  * @return {String}
  */
 export function monthNumToName(monthNum) {
   switch (monthNum) {
-    case 0: return 'January';
-    case 1: return 'February';
-    case 2: return 'March';
-    case 3: return 'April';
-    case 4: return 'May';
-    case 5: return 'June';
-    case 6: return 'July';
-    case 7: return 'August';
-    case 8: return 'September';
-    case 9: return 'October';
-    case 10: return 'November';
-    case 11: return 'December';
+    case 1: return 'January';
+    case 2: return 'February';
+    case 3: return 'March';
+    case 4: return 'April';
+    case 5: return 'May';
+    case 6: return 'June';
+    case 7: return 'July';
+    case 8: return 'August';
+    case 9: return 'September';
+    case 10: return 'October';
+    case 11: return 'November';
+    case 12: return 'December';
     default:
       throw new Error(`Unknown month number: ${monthNum}`);
   }
@@ -78,8 +68,9 @@ export function monthNumToName(monthNum) {
  * @return {Array} Matrix representing weeks of the month.
  */
 export function daysToWeekView(days) {
-  let prevMonth = getDaysForMonth(days[0].getFullYear(), days[0].getMonth() - 1);
-  let nextMonth = getDaysForMonth(days[0].getFullYear(), days[0].getMonth() + 1);
+  const initialMonth = days[0].getMonth() + 1;
+  let prevMonth = getDaysForMonth(days[0].getFullYear(), initialMonth - 1);
+  let nextMonth = getDaysForMonth(days[0].getFullYear(), initialMonth + 1);
 
   // Handle first week separately as it can be incomplete.
   let firstWeek = [];
