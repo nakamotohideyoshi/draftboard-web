@@ -635,7 +635,11 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
             else:
                 # update the away team points
                 boxscore.away_score = points
-
+        if boxscore.home_score is None:
+            boxscore.home_score = 0
+        if boxscore.away_score is None:
+            boxscore.away_score = 0
+            
         boxscore.save()
         #boxscore.refresh_from_db()
 
