@@ -21,7 +21,32 @@ from django.db.utils import DEFAULT_DB_ALIAS
 from django.http import HttpResponse
 from django.utils.six import StringIO
 
-LOCK_EXPIRE = 60
+LOCK_EXPIRE = 20
+
+@app.task(bind=True)
+def reset_replay_test(self, s3file):
+    """
+    call this task from a view!
+
+    :return:
+    """
+
+    lock_id = 'task-LOCK-%s' % 'reset_replay_test'
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app draftboard-prod"')
+            #cmd = 'ssh -o "StrictHostKeyChecking no" -i draftboardmongo.pem ubuntu@54.172.56.78 "fab reset_replay"' # --set s3file=%s"' % s3file
+            cmd = 'fab reset_replay'
+            print( cmd )
+            rp = replayer.classes.ReplayManager()
+            # subprocess.call( cmd )
+            rp.sub_call( cmd )
+
+        finally:
+            release_lock()
 
 @app.task(bind=True)
 def reset_db_for_replay(self, s3file):

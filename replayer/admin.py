@@ -11,6 +11,7 @@ from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
 from ast import literal_eval
 from djcelery.models import PeriodicTask
+import requests
 
 # change the datetime to show seconds for replayer/admin.py
 # from django.conf.locale.en import formats as en_formats
@@ -229,10 +230,18 @@ class TimeMachineAdmin(admin.ModelAdmin):
         set_system_time( dt_set_time )
         print( 'set_system_time( %s )' % str(dt_set_time) )
 
+    def reset_replay(self, request, querset):
+        # forcibly calls the endpoint at the replayers remote controller ec2 server to reset the replay!
+        session = requests.Session()
+        r = session.post('http://54.172.56.78/api/replayer/reset-replay/')
+
     # actions = [load_initial_database, set_time_one_hour_before_replay_start, fill_existing_contests, start_replayer, stop_replayer]
-    actions = [#load_initial_database,
-               set_time_one_hour_before_replay_start,
-               #fill_existing_contests,
-               start_replayer,
-               stop_replayer]
+    actions = [
+        #load_initial_database,
+        set_time_one_hour_before_replay_start,
+        #fill_existing_contests,
+        start_replayer,
+        stop_replayer,
+        reset_replay
+    ]
 
