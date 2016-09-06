@@ -438,8 +438,35 @@ def restore_db():
     _puts('s3 url -> %s' % url)
 
     # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-prod --confirm draftboard-prod
-    operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-prod --confirm draftboard-prod" % url)
+    operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-delorean --confirm draftboard-delorean" % url)
 
+def reset_replay():
+    # /admin/replayer/timemachine/
+    # 1. its always a good idea to turn off celerbeat (the scheduler)
+    #    before loading the replay so nothing kicks of prematurely.
+    #    the replay .dump SHOULD have all its cronned tasks disabled when its restored however.
+    #    remember to turn celerybeat back on later if you disable it initially.
+    operations.local("heroku maintenance:on --app draftboard-delorean")
+    operations.local("heroku ps:scale --app draftboard-delorean heroku ps:scale --app draftboard-delorean web=0 purger=0 celery300=0 celeryrt=0 celerybeat=0 celery=0")
+
+    # works - restores the draftboard-delorean postgres db with the public dump
+    #         just be careful not to use the INPROGRESS one which
+    operations.local("heroku pg:backups --app draftboard-delorean restore 'https://s3.amazonaws.com/draftboard-db-dumps/nfl_replay_aug_11_645pm_est.dump' DATABASE_URL --confirm draftboard-delorean")
+
+    # we are going to want to always trigger the following things:
+    operations.local("heroku run --app draftboard-delorean python manage.py flush_cache")
+    operations.local("heroku run --app draftboard-delorean python manage.py migrate")
+
+    # sets the server time to ~3 hours before the 'ts' field of the first Update in /admin/replayer/update/
+    operations.local("heroku run --app draftboard-delorean python manage.py set_time_before_replay_start")
+
+    # these processes should be running before you start the replay using /admin/replayer/timemachine/
+    # you may find that you want more than web dyno, but the rest should be totally fine for running a replay.
+    operations.local("heroku ps:scale --app draftboard-delorean web=2 purger=1")
+    operations.local("heroku ps:scale --app draftboard-delorean celery300=1 celeryrt=1 celerybeat=1")
+
+    # you can turn maintenance off as early as now
+    operations.local("heroku maintenance:off --app draftboard-delorean")
 
 def s3ls():
     """

@@ -5,6 +5,8 @@ from django.conf.urls import url
 from .views import (
     PauseActiveReplayAPIView,
     ResumeActiveReplayAPIView,
+
+    ResetReplayAPIView,
 )
 
 urlpatterns = [
@@ -14,5 +16,8 @@ urlpatterns = [
 
     # resume the active replay
     url(r'^pause/0/$', ResumeActiveReplayAPIView.as_view()),
+
+    # reset replay
+    url(r'^reset-replay/$', ResetReplayAPIView.as_view()),
 
 ]
