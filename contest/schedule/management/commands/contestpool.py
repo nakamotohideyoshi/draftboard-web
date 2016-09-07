@@ -23,6 +23,11 @@ class Command(NoArgsCommand):
             values.append( x )
 
         game_srid = values[0]
+        duration = 500
+        try:
+            duration = int(values[1]) # defaults to
+        except IndexError:
+            pass # there wasnt a duration specified, just use the default
 
         # find the Game -- check all sports
         ssm = SiteSportManager()
@@ -50,5 +55,5 @@ class Command(NoArgsCommand):
         self.stdout.write('randomly chosen prize structure: %s' % str(prize_structure))
 
         #
-        contest_pool_creator = ContestPoolCreator(the_sport, prize_structure, game.start, 500)
+        contest_pool_creator = ContestPoolCreator(the_sport, prize_structure, game.start, duration)
         contest_pool = contest_pool_creator.get_or_create()
