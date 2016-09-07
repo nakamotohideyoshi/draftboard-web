@@ -96,9 +96,9 @@ export const resultsWithLive = createSelector(
 
     return {
       overall: {
-        winnings: '0',
-        possible: '0',
-        buyins: '0',
+        winnings: 0,
+        possible: 0,
+        buyins: 0,
         entries: size(lineups),
         contests: 0,
       },

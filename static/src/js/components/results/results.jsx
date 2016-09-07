@@ -36,7 +36,7 @@ const mapStateToProps = (state) => ({
 /*
  * The overarching component for the results section.
  */
-const Results = React.createClass({
+export const Results = React.createClass({
 
   propTypes: {
     dispatch: React.PropTypes.func.isRequired,
@@ -76,13 +76,16 @@ const Results = React.createClass({
         parseInt(urlParams.day, 10)
       );
     } else {
-      const today = moment(dateNow());
+      let today = new Date(dateNow());
 
       // We change results, draft groups, everything over at 10AM UTC, so
       // until then show the yesterdays results.
-      if (today.hour() < 10) {
-        today.add(-1, 'days');
+      if (today.getUTCHours() < 10) {
+        today.setDate(today.getDate() - 1);
       }
+
+      // for easier formatting
+      today = moment(today);
 
       this.handleSelectDate(
         parseInt(today.format('YYYY'), 10),
@@ -93,21 +96,22 @@ const Results = React.createClass({
   },
 
   componentDidUpdate(prevProps) {
-    if (prevProps.hasRelatedInfo === false && this.props.hasRelatedInfo === true) {
-      if (this.state.dateIsToday === true) {
-        this.props.dispatch(updateLiveMode({
-          sport: map(
-            uniqBy(this.props.resultsWithLive.lineups, 'sport'),
-            lineup => lineup.sport
-          ),
-        }));
-      }
+    if (
+      prevProps.hasRelatedInfo === false &&
+      this.props.hasRelatedInfo === true &&
+      this.state.dateIsToday === true
+    ) {
+      this.props.dispatch(updateLiveMode({
+        sport: map(
+          uniqBy(this.props.resultsWithLive.lineups, 'sport'),
+          lineup => lineup.sport
+        ),
+      }));
     }
   },
 
   handleSelectDate(year, month, day) {
     const newState = {
-      dateObject: new Date(year, month, day),
       year,
       month,
       day,
@@ -129,7 +133,7 @@ const Results = React.createClass({
       this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));
     }
 
-    this.props.dispatch(routerPush(`/results/${newState.year}/${newState.month}/${newState.day}/`));
+    this.props.dispatch(routerPush(`/results/${year}/${month}/${day}/`));
   },
 
   render() {

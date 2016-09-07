@@ -61,7 +61,7 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
       },
     };
     assert.equal(
-      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGames)),
+      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', relevantGames)),
       playerStatsRan
     );
   });
@@ -74,7 +74,7 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
       },
     };
     assert.equal(
-      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGames)),
+      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', relevantGames)),
       addEventRan
     );
   });
