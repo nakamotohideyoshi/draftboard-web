@@ -639,7 +639,7 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
             boxscore.home_score = 0
         if boxscore.away_score is None:
             boxscore.away_score = 0
-            
+
         boxscore.save()
         #boxscore.refresh_from_db()
 
