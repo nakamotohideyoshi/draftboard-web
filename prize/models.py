@@ -69,7 +69,7 @@ class PrizeStructure( models.Model ):
         elif payout_spots == (max_entrants / 2):
             return '50/50'
         else:
-            return '%s-Man Tourney' % max_entrants
+            return 'Tourney' # '%s-Man Tourney' % max_entrants
 
     class Meta:
         verbose_name = 'Prize Structure'
