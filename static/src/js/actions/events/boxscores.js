@@ -74,7 +74,6 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
   const sport = calcSportByGame(state.sports.games, gameId);
   if (!sport) return false;
 
-  if (!isGameReady(state, dispatch, sport, gameId)) return false;
   if (!isMessageUsed(message, sport)) return false;
 
   const status = message.status;

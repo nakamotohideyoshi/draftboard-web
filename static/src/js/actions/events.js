@@ -12,7 +12,6 @@ import {
 } from './events-multipart';
 import {
   relevantGamesPlayersSelector,
-  watchingMyLineupSelector,
   watchingOpponentLineupSelector,
 } from '../selectors/watching';
 
@@ -28,12 +27,6 @@ const setCurrentAnimation = (value) => ({
   type: ActionTypes.EVENT__SET_CURRENT,
   value,
 });
-
-// const addPlayerEventDescription = (key, value) => ({
-//   type: ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION,
-//   key,
-//   value,
-// });
 
 const differencePlayersPlaying = (players) => ({
   type: ActionTypes.EVENT_DIFFERENCE_PLAYERS_PLAYING,
@@ -65,33 +58,17 @@ export const removeCurrentEvent = (key) => ({
   key,
 });
 
-// const removePlayerEventDescription = (key) => ({
-//   type: ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION,
-//   key,
-// });
-
 const unshiftPlayerHistory = (key, value) => ({
   type: ActionTypes.EVENT_UNSHIFT_PLAYER_HISTORY,
   key,
   value,
 });
 
-export const updatePBPPlayersStats = (playersStats) => (dispatch, getState) => {
-  logAction.debug('actions.updatePBPPlayersStats', playersStats);
-
-  const state = getState();
-  const myLineup = watchingMyLineupSelector(state);
-  const { draftGroupId } = myLineup;
-
-  // if there's nowhere to put the data, don't bother
-  if (!state.liveDraftGroups[draftGroupId]) return false;
-  if (!state.liveDraftGroups[draftGroupId].playersStats) return false;
+export const updatePBPPlayersStats = (sport, playersStats) => (dispatch) => {
+  logAction.debug('actions.updatePBPPlayersStats', sport, playersStats);
 
   forEach(playersStats, (playerStats) => {
-    const playerId = playerStats.fields.player_id;
-    if (state.liveDraftGroups[draftGroupId].playersStats.hasOwnProperty(playerId)) {
-      dispatch(updatePlayerStats(playerStats, draftGroupId));
-    }
+    dispatch(updatePlayerStats(sport, playerStats));
   });
 };
 
@@ -113,16 +90,6 @@ const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGam
 
   return 'mine';
 };
-
-// const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
-//   logAction.debug('actions.showThenHidePlayerEventDescription');
-
-//   dispatch(addPlayerEventDescription(key, value));
-
-//   setTimeout(() => {
-//     dispatch(removePlayerEventDescription(key));
-//   }, 3000);
-// };
 
 export const showAnimationEventResults = (animationEvent) => (dispatch) => {
   logAction.debug('actions.showAnimationEventResults', animationEvent);
@@ -201,7 +168,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
   // if there are no more relevant players, just update stats
-  if (relevantPlayersInEvent.length === 0) return dispatch(updatePBPPlayersStats(playersStats));
+  if (relevantPlayersInEvent.length === 0) return dispatch(updatePBPPlayersStats(sport, playersStats));
 
   logAction.debug('showGameEvent has relevant player(s)', relevantPlayersInEvent);
 
@@ -228,7 +195,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
 
       return Promise.all([
         dispatch(storeEventMultipart(message.sridAtBat, animationEvent, relevantPlayersInEvent)),
-        dispatch(updatePBPPlayersStats(playersStats)),
+        dispatch(updatePBPPlayersStats(sport, playersStats)),
       ]);
     }
 
@@ -277,8 +244,7 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
       dispatch(updateGameTeam(message));
       break;
     case 'stats': {
-      const myLineup = watchingMyLineupSelector(state);
-      dispatch(updatePlayerStats(message, myLineup.draftGroupId));
+      dispatch(updatePlayerStats(oldestEvent.sport, message));
       break;
     }
     default:

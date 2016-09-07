@@ -7,9 +7,9 @@ const ResultsStats = React.createClass({
 
   propTypes: {
     stats: React.PropTypes.shape({
-      winnings: React.PropTypes.string.isRequired,
-      possible: React.PropTypes.string.isRequired,
-      buyins: React.PropTypes.string.isRequired,
+      winnings: React.PropTypes.number.isRequired,
+      possible: React.PropTypes.number.isRequired,
+      buyins: React.PropTypes.number.isRequired,
       entries: React.PropTypes.number.isRequired,
       contests: React.PropTypes.number.isRequired,
     }).isRequired,
@@ -20,11 +20,11 @@ const ResultsStats = React.createClass({
   getDefaultProps() {
     return {
       stats: {
-        winnings: null,
-        possible: null,
-        buyins: null,
-        entries: null,
-        contests: null,
+        winnings: 0,
+        possible: 0,
+        buyins: 0,
+        entries: 0,
+        contests: 0,
       },
     };
   },

@@ -21,7 +21,7 @@ const logAction = log.getLogger('action');
  * @param  {integer} draftGroupId  Draft group the player is in
  * @param  {object} relevantGames  Games we would need to animate
  */
-export const onPlayerStatsReceived = (message, sport, draftGroupId, relevantGames) => (dispatch, getState) => {
+export const onPlayerStatsReceived = (message, sport, relevantGames) => (dispatch, getState) => {
   logAction.debug('actions.onPlayerStatsReceived', message);
 
   const gameId = message.fields.srid_game;
@@ -29,7 +29,7 @@ export const onPlayerStatsReceived = (message, sport, draftGroupId, relevantGame
   if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
 
   // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
-  if (relevantGames.indexOf(gameId) === -1) return dispatch(updatePlayerStats(message, draftGroupId));
+  if (relevantGames.indexOf(gameId) === -1) return dispatch(updatePlayerStats(sport, message));
 
   return dispatch(addEventAndStartQueue(gameId, message, 'stats', sport));
 };

@@ -284,11 +284,30 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
  * @param  {number} draftGroupId) Draft group ID to find player in redux store
  * @return {object}               Changes for reducer, wrapped in thunk
  */
-export const updatePlayerStats = (message, draftGroupId) => (dispatch, getState) => {
+export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
   logAction.debug('actions.updatePlayerStats');
 
+  const state = getState();
   const playerId = message.fields.player_id;
   const playerSrid = message.fields.srid_player;
+
+  let draftGroupId = null;
+
+  // this means we're in the results section
+  // loop through each draft group
+  Object.keys(state.liveDraftGroups).map((currentDraftGroupId) => {
+    const liveDraftGroup = state.liveDraftGroups[currentDraftGroupId];
+    if (
+      liveDraftGroup.sport === sport &&
+      message.fields.player_id in liveDraftGroup.playersStats) {
+      draftGroupId = currentDraftGroupId;
+    }
+  });
+
+  // no player to update
+  log.info('actions.updatePlayerStats - player not in any draft group', message);
+
+  if (draftGroupId === null) return false;
 
   // if this is a relevant player, update their stats
   if (getState().livePlayers.relevantPlayers.hasOwnProperty(playerSrid)) {

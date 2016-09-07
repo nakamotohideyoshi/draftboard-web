@@ -679,26 +679,6 @@ export const updateGameTime = (event) => (dispatch, getState) => {
   let game = merge({}, state.sports.games[gameId]);
   const { updatedFields } = event;
 
-  // if the boxscore doesn't exist yet, that means we need to update games
-  if (!('boxscore' in game)) return dispatch(fetchGames(game.sport));
-
-  // if we think the game hasn't started, also update the games
-  if (['scheduled', 'created'].indexOf(game.status) > -1) return dispatch(fetchGames(game.sport));
-
-  switch (game.sport) {
-    case 'nba':
-    case 'nfl':
-    case 'nhl': {
-      // if the boxscore doesn't have quarter yet, update the game
-      if (game.boxscore.hasOwnProperty('quarter') === false) {
-        return dispatch(fetchGames(game.sport));
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
   // temp update fields to be able to calculateTimeRemaining
   game = merge({}, game, updatedFields);
 

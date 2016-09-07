@@ -86,16 +86,19 @@ module.exports = (state = {
         },
       });
     }
-    case ActionTypes.UPDATE_GAME:
-      if (!(action.gameId in state.games)) break;
+    case ActionTypes.UPDATE_GAME: {
+      if (!(action.gameId in state.games)) return state;
 
-      return update(state, {
-        games: {
-          [action.gameId]: {
-            $set: merge({}, state.games[action.gameId], action.updatedFields),
-          },
-        },
-      });
+      const newState = merge({}, state);
+
+      newState.games[action.gameId] = merge(
+        {},
+        state.games[action.gameId],
+        action.updatedFields
+      );
+
+      return newState;
+    }
 
     default:
       return state;
