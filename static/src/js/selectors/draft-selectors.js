@@ -7,7 +7,7 @@ import find from 'lodash/find';
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayersFilters.focusedPlayerId;
 const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
-const playerNewsSelector = (state) => state.playerNews;
+const draftGroupUpdatesSelector = (state) => state.draftGroupUpdates;
 const playerBoxScoreHistorySelector = (state) => state.playerBoxScoreHistory;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
@@ -23,7 +23,7 @@ const newLineupSelector = (state) => state.createLineup.lineup;
 export const focusedPlayerSelector = createSelector(
   focusedPlayerIdSelector,
   allPlayersSelector,
-  playerNewsSelector,
+  draftGroupUpdatesSelector,
   playerBoxScoreHistorySelector,
   boxScoreGamesSelector,
   sportSelector,
@@ -31,7 +31,7 @@ export const focusedPlayerSelector = createSelector(
   sportInfoSelector,
   availablePositionSelector,
   newLineupSelector,
-  (focusedPlayerId, allPlayers, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId,
+  (focusedPlayerId, allPlayers, draftGroupUpdates, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId,
     sportInfo, availablePositions, newLineup
   ) => {
     // if no player is focused, return nothing.
@@ -54,10 +54,11 @@ export const focusedPlayerSelector = createSelector(
     });
 
     // Attach any news stories to the player object.
-    if (playerNews.hasOwnProperty(sport)) {
-      if (playerNews[sport].hasOwnProperty(focusedPlayer.player_id)) {
-        player.news = playerNews[sport][focusedPlayer.player_id].news;
-      }
+    if (sport in draftGroupUpdates &&
+      'playerUpdates' in draftGroupUpdates[sport] &&
+      'injury' in draftGroupUpdates[sport].playerUpdates
+    ) {
+      player.news = draftGroupUpdates[sport].playerUpdates.injury[focusedPlayer.player_srid];
     }
 
     // Attach player boxscore history to the player object.
