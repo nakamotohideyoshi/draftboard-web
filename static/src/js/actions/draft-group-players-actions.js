@@ -1,13 +1,11 @@
-import log from '../lib/logging';
-import * as actionTypes from '../action-types.js';
+// import log from '../lib/logging';
+import * as actionTypes from '../action-types';
 import { CALL_API } from '../middleware/api';
 import { normalize, Schema, arrayOf } from 'normalizr';
-// import { dateNow } from '../lib/utils';
-// import { fetchSportInjuries } from './injury-actions.js';
-import { fetchFantasyHistory } from './fantasy-history-actions.js';
-import { fetchTeamsIfNeeded } from './sports.js';
-import { fetchPlayerNewsIfNeeded } from './player-news-actions.js';
-import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js';
+import { fetchDraftGroupUpdatesIfNeeded } from './draft-group-updates';
+import { fetchFantasyHistory } from './fantasy-history-actions';
+import { fetchTeamsIfNeeded } from './sports';
+import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id',
@@ -84,12 +82,8 @@ const fetchDraftGroup = (draftGroupId) => (dispatch) => {
         // Now that we know which sport we're dealing with, fetch the injuries + fp history for
         // these players.
         dispatch(fetchFantasyHistory(json.sport));
-        // TODO: zach: not loading injuries untill we get the API source sorted out.
-        log.warn('not loading injuries until we get the API source sorted out.');
-        // dispatch(fetchSportInjuries(json.sport));
-
         dispatch(fetchTeamsIfNeeded(json.sport));
-        dispatch(fetchPlayerNewsIfNeeded(json.sport));
+        dispatch(fetchDraftGroupUpdatesIfNeeded(json.sport));
         dispatch(fetchPlayerBoxScoreHistoryIfNeeded(json.sport));
 
         // Normalize player list by ID.
