@@ -14,11 +14,10 @@ import PlayerPositionFilter from './player-position-filter.jsx';
 import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import { addMessage } from '../../actions/message-actions.js';
-import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter }
-  from '../../actions/draft-group-players-actions.js';
-import { fetchUpcomingDraftGroupUpdatesIfNeeded } from '../../actions/upcoming-draft-group-updates.js';
-import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId }
-  from '../../actions/upcoming-draft-groups-actions.js';
+import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter } from
+  '../../actions/draft-group-players-actions.js';
+import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId } from
+  '../../actions/upcoming-draft-groups-actions.js';
 import { createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
   editLineupInit, importLineup } from '../../actions/upcoming-lineup-actions.js';
 import { draftGroupPlayerSelector, filteredPlayersSelector } from '../../selectors/draft-group-players-selector.js';
@@ -44,6 +43,7 @@ function mapStateToProps(state) {
     activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
     filters: state.draftGroupPlayersFilters.filters,
     draftGroupTime: state.draftGroupPlayers.start,
+    draftGroupUpdates: state.draftGroupUpdates,
     sport: state.draftGroupPlayers.sport,
     teams: state.sports,
     lineups: state.upcomingLineups.lineups,
@@ -66,8 +66,6 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
-    fetchUpcomingDraftGroupUpdatesIfNeeded: (draftGroupId) =>
-      dispatch(fetchUpcomingDraftGroupUpdatesIfNeeded(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
     focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
@@ -92,7 +90,7 @@ const DraftContainer = React.createClass({
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
     fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
-    fetchUpcomingDraftGroupUpdatesIfNeeded: React.PropTypes.func.isRequired,
+    draftGroupUpdates: React.PropTypes.object,
     filters: React.PropTypes.object.isRequired,
     createLineupViaCopy: React.PropTypes.func.isRequired,
     editLineupInit: React.PropTypes.func,
@@ -200,7 +198,7 @@ const DraftContainer = React.createClass({
   loadData() {
     this.props.setActiveDraftGroupId(this.props.params.draftgroupId);
     this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId);
-    this.props.fetchUpcomingDraftGroupUpdatesIfNeeded(this.props.params.draftgroupId);
+    // this.props.fetchPlayerUpdatesIfNeeded(this.props.params.sport);
 
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     // Wrap this in a promise for testing purposes.
@@ -290,6 +288,22 @@ const DraftContainer = React.createClass({
         return;
       }
 
+      // Find the player's latest injury update, if one exists.
+      let latestInjuryUpdate = {};
+
+      if (
+        this.props.sport in this.props.draftGroupUpdates
+        && 'playerUpdates' in this.props.draftGroupUpdates[this.props.sport]
+        && 'injury' in this.props.draftGroupUpdates[this.props.sport].playerUpdates
+      ) {
+        if (
+          this.props.draftGroupUpdates[this.props.sport].playerUpdates.injury[row.player_srid]
+          && this.props.draftGroupUpdates[this.props.sport].playerUpdates.injury[row.player_srid].length > 0
+        ) {
+          latestInjuryUpdate = this.props.draftGroupUpdates[this.props.sport].playerUpdates.injury[row.player_srid][0];
+        }
+      }
+
       visibleRows.push(
         <DraftPlayerListRow
           key={row.player_id}
@@ -299,6 +313,7 @@ const DraftContainer = React.createClass({
           draftPlayer={self.props.draftPlayer}
           unDraftPlayer={self.props.unDraftPlayer}
           isVisible={isVisible}
+          latestInjuryUpdate={latestInjuryUpdate}
         />
       );
     });

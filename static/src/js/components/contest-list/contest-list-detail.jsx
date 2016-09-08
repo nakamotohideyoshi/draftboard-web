@@ -256,7 +256,7 @@ const ContestListDetail = React.createClass({
 
                 <div className="header__fee-prizes-pool">
                   <div>
-                    <span className="info-title">Prize</span>
+                    <span className="info-title">Prize Pool</span>
                     <div>{humanizeCurrency(this.props.focusedContestInfo.contest.prize_pool)}</div>
                   </div>
                   <div>

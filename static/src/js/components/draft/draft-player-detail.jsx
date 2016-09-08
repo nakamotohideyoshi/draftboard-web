@@ -350,22 +350,25 @@ const DraftPlayerDetail = React.createClass({
 
   renderPlayerNews() {
     let news = [];
-
-    if (!Object.keys(this.props.player.news).length) {
+    if (!this.props.player.news) {
       news = (
         <div><h5>No recent news updates.</h5></div>
       );
     }
 
-    forEach(this.props.player.news, (item) => {
+    forEach(this.props.player.news, (item, i) => {
       news.push(
-        <article key={item.tsxitem.srid} className="report">
+        <article key={i} className="report">
           <header className="header">
-            <address className="byline">{item.tsxitem.credit}</address>
-            <h5 className="title">{item.tsxitem.title}</h5>
+            <address className="byline">
+              <a rel="nofollow" target="_blank" href={item.url_origin}>{item.source_origin}</a>&nbsp;
+              <span className="timestamp">{moment.utc(item.updated_at).fromNow()}</span>
+            </address>
+
+            <h5 className="title">{item.status}</h5>
           </header>
           <section className="content">
-            <p>{item.tsxitem.content}</p>
+            <p>{item.value}</p>
           </section>
         </article>
       );
@@ -523,9 +526,10 @@ const DraftPlayerDetail = React.createClass({
     const player = this.props.player;
     const tabNav = this.getTabNav();
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.player.sport}`;
+    const paneClass = `draft-player-detail player-detail-pane sport-${this.props.player.sport}`;
 
     return (
-      <div className="draft-player-detail player-detail-pane">
+      <div className={paneClass}>
         <div
           onClick={this.close}
           className="pane__close"
