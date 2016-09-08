@@ -1,6 +1,6 @@
-import * as actionTypes from '../action-types.js';
+import * as actionTypes from '../action-types';
 import { CALL_API } from '../middleware/api';
-import log from '../lib/logging.js';
+import log from '../lib/logging';
 import groupBy from 'lodash/groupBy';
 import forEach from 'lodash/forEach';
 
@@ -11,7 +11,7 @@ import forEach from 'lodash/forEach';
  * @param  {string} sport one of ['nfl', 'nba', 'mlb', 'nhl']
  * @return {Promise}
  */
-const fetchDraftGroupUpdates = (sport) => (dispatch) => {
+export const fetchDraftGroupUpdates = (sport) => (dispatch) => {
   // Because we need the sport in the reducer, we have to manually dispatch this action, the
   // API middleware doens't have support for that. This means that
   // DRAFT_GROUP_UPDATES__FETCHING_NULL is just a dummy action that should never be used by a
@@ -51,7 +51,7 @@ const fetchDraftGroupUpdates = (sport) => (dispatch) => {
   apiActionResponse.then((action) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
-      dispatch({
+      return dispatch({
         type: actionTypes.DRAFT_GROUP_UPDATES__FETCH_FAIL,
         response: action.error,
         sport,

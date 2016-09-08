@@ -19,23 +19,25 @@ const initialState = {
  * Reducer for drafgroup updates. this includes player injury status, player news status, starting
  * pitchers, etc.
  */
-module.exports = (state = initialState, action) => {
+module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
 
-    case actionTypes.DRAFT_GROUP_UPDATES__FETCHING:
+    case actionTypes.DRAFT_GROUP_UPDATES__FETCHING: {
       return merge({}, state, {
         isFetching: {
           [action.sport]: true,
         },
       });
+    }
 
 
-    case actionTypes.DRAFT_GROUP_UPDATES__FETCH_FAIL:
+    case actionTypes.DRAFT_GROUP_UPDATES__FETCH_FAIL: {
       return merge({}, state, {
         isFetching: {
           [action.sport]: false,
         },
       });
+    }
 
 
     case actionTypes.DRAFT_GROUP_UPDATES__FETCH_SUCCESS: {
@@ -43,7 +45,7 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state);
 
       newState.isFetching[action.response.sport] = false;
-      newState[action.response.sport] = {
+      newState.sports[action.response.sport] = {
         playerUpdates: action.response.updates.playerUpdates,
         gameUpdates: action.response.updates.gameUpdates,
         // An array containing the values (player.srid) of probable pitchers.

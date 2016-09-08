@@ -7,7 +7,7 @@ import find from 'lodash/find';
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayersFilters.focusedPlayerId;
 const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
-const draftGroupUpdatesSelector = (state) => state.draftGroupUpdates;
+const draftGroupUpdatesSelector = (state) => state.draftGroupUpdates.sports;
 const playerBoxScoreHistorySelector = (state) => state.playerBoxScoreHistory;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
@@ -54,7 +54,8 @@ export const focusedPlayerSelector = createSelector(
     });
 
     // Attach any news stories to the player object.
-    if (sport in draftGroupUpdates &&
+    if (draftGroupUpdates && sport &&
+      sport in draftGroupUpdates &&
       'playerUpdates' in draftGroupUpdates[sport] &&
       'injury' in draftGroupUpdates[sport].playerUpdates
     ) {
@@ -62,12 +63,13 @@ export const focusedPlayerSelector = createSelector(
     }
 
     // Attach player boxscore history to the player object.
-    if (playerBoxScoreHistory.hasOwnProperty(sport)) {
-      if (playerBoxScoreHistory[sport].hasOwnProperty(focusedPlayer.player_id)) {
+    if (playerBoxScoreHistory && sport && playerBoxScoreHistory[sport]) {
+      if (focusedPlayer.player_id in playerBoxScoreHistory[sport]) {
         player.boxScoreHistory = playerBoxScoreHistory[sport][focusedPlayer.player_id];
 
         // If we have boxscore info, attach splits history.
         if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
+          // Since each sport tracks different stats, build up a sport-specific set here.
           switch (sport) {
             case 'nba': {
               const playerTeam = sportInfo[sport].teams[player.team_srid];

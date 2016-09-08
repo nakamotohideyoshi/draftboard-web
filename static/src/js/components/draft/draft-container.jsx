@@ -43,7 +43,7 @@ function mapStateToProps(state) {
     activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
     filters: state.draftGroupPlayersFilters.filters,
     draftGroupTime: state.draftGroupPlayers.start,
-    draftGroupUpdates: state.draftGroupUpdates,
+    draftGroupUpdates: state.draftGroupUpdates.sports,
     sport: state.draftGroupPlayers.sport,
     teams: state.sports,
     lineups: state.upcomingLineups.lineups,
