@@ -96,8 +96,8 @@ const ContestListConfirmModal = React.createClass({
 
                 <footer className="footer">
                   <div className="contest-fees footer-section">
-                    <span className="footer-title">Prize</span>
-                    {humanizeCurrency(this.props.contest.prize_structure.ranks[0].value)}
+                    <span className="footer-title">Prize Pool</span>
+                    {humanizeCurrency(this.props.contest.prize_pool)}
                   </div>
 
                   <div className="contest-fees footer-section">

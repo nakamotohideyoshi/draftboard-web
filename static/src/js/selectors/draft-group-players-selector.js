@@ -9,7 +9,7 @@ import { isPlayerInLineup } from '../components/draft/draft-utils.js';
 
 // All the players in the state.
 const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
-const injuriesSelector = (state) => state.injuries;
+const injuriesSelector = (state) => state.draftGroupUpdates;
 const historiesSelector = (state) => state.fantasyHistory;
 const sportInfoSelector = (state) => state.sports;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;

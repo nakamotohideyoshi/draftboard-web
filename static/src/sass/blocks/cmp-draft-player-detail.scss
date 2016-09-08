@@ -59,6 +59,20 @@
   }
 
 
+  // NFL player images need some tweaks since they are so wide.
+  &.sport-nfl {
+    .header__player-image {
+      height: 230px;
+      width: 262px;
+
+      img {
+        height: 230px;
+        margin: 0 auto;
+      }
+    }
+  }
+
+
   .pane-lower {
     .tabs {
       padding: 40px 10%;
@@ -159,13 +173,13 @@
     text-align: left;
 
     .byline {
-      color: #b0b2c1;
       font-size: 11px;
       font-style: normal;
       padding-bottom: 5px;
     }
 
     .title {
+      text-transform: capitalize;
       color: #46495e;
       font-size: 13px;
       font-weight: 600;

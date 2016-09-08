@@ -11,21 +11,19 @@ const events = require('./events');
 const eventsMultipart = require('./events-multipart');
 const fantasyHistory = require('./fantasy-history');
 const featuredContests = require('./featured-contests');
-const injuries = require('./injuries');
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
 const messages = require('./messages');
 const payments = require('./payments');
 const playerBoxScoreHistory = require('./player-box-score-history');
-const playerNews = require('./player-news');
 const prizes = require('./prizes');
 const results = require('./results');
 const sports = require('./sports');
 const transactions = require('./transactions');
 const contestPools = require('./contest-pools');
 const upcomingDraftGroups = require('./upcoming-draft-groups');
-const upcomingDraftGroupUpdates = require('./upcoming-draft-group-updates.js');
+const draftGroupUpdates = require('./draft-group-updates');
 const upcomingLineups = require('./upcoming-lineups');
 const user = require('./user');
 const watching = require('./watching');
@@ -45,14 +43,12 @@ export default combineReducers({
   draftGroupPlayersFilters,
   fantasyHistory,
   featuredContests,
-  injuries,
   liveContests,
   liveDraftGroups,
   eventsMultipart,
   livePlayers,
   messages,
   payments,
-  playerNews,
   playerBoxScoreHistory,
   prizes,
   events,
@@ -61,7 +57,7 @@ export default combineReducers({
   sports,
   transactions,
   upcomingDraftGroups,
-  upcomingDraftGroupUpdates,
+  draftGroupUpdates,
   upcomingLineups,
   user,
   watching,
