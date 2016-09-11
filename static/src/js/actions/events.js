@@ -139,7 +139,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       });
 
       // update player stats if we have them
-      calls.push(dispatch(updatePBPPlayersStats(animationEvent.playersStats)));
+      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.playersStats)));
 
       break;
     }
