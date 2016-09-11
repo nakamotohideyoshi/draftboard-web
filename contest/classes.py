@@ -606,13 +606,6 @@ class FairMatch(object):
 
         # make a copy of original list of all the entries
         self.original_entries = list(entries)
-        counter = Counter()
-        for entry in self.original_entries:
-            counter[entry] += 1
-        self.counter_original_entries = counter
-
-        # setup a Counter which will keep track of the runtime count of entries
-        self.counter_runtime_entries = None
 
         # for debugging - a list of all the contests made
         self.contests = None
@@ -629,33 +622,26 @@ class FairMatch(object):
         """
         return self.contests['contests_forced']
 
-    def fill_contest(self, entries, force=False):
+    def fill_contest(self, entries, size, force=False):
         """
         :param force: if force is true, skip the size check, and add the entries to contest regardless
-        :return: list of the values that were used, otherwise raises
+        :return:
         """
         if len(entries) == 0:
-            err_msg = 'Exception fill_contest() - 0 entries'
+            err_msg = '0 entries passed to fill_contest()'
             raise self.ZeroEntriesException(err_msg)
 
-        if not force and len(entries) < self.contest_size:
-            err_msg = 'Exception fill_contest() - contest_size: %s, entries: %s' % (self.contest_size, str(entries))
+        if not force and len(entries) < size:
+            err_msg = '%s needed, entries list: %s' % (size, str(entries))
             raise self.NotEnoughEntriesException(err_msg)
 
         ss = ''
         if force:
             ss = '** = superlay is possible here.'
-        print('    making contest:', str(sorted(entries)), 'force:', str(force), '%s'%ss)
+        print('    making contest:', str(entries), 'force:', str(force), '%s'%ss)
+        # TODO fill c
 
-        self.__add_contest_debug(entries, self.contest_size, force=force)
-
-        # counter will help us validate results along the way
-        # primarily a debug thing.
-        for e in entries:
-            self.counter_runtime_entries[e] += 1
-
-        # return a list of the entries used to create this contest
-        return list(entries)
+        self.__add_contest_debug(entries, size, force=force)
 
     def __add_contest_debug(self, entries, size, force=False):
         if force:
@@ -666,32 +652,12 @@ class FairMatch(object):
             self.contests['contests'].append( entries )
         self.contests['contest_size'] = size
 
-    def lsubtract(self, l1, l2):
-        """
-        subtract the values in l2 from l1 and return the resulting list
-
-        # todo raise exception if we cant remove an element?
-
-        :param l1:
-        :param l2:
-        :return:
-        """
-        l = list(l1) # copy l1 so we dont side effect it
-        for x in l2:
-            try:
-                l.remove(x)
-            except ValueError:
-                print('    <!> couldnt remove entry: %s' % str(x) )
-        return l
-
-    def run(self, verbose=True):
+    @atomic
+    def run(self):
         """
         create all required contests using the FairMatch algorithm
         with the given user entries.
         """
-
-        # initialize
-        self.counter_runtime_entries = Counter()
 
         self.contests = {
             'entry_pool_size'   : len(list(self.original_entries)),
@@ -700,170 +666,166 @@ class FairMatch(object):
             'contests_forced'   : []
         }
 
-        # run the algorithm. give it a copy of the total entries
-        self.run_h(1, list(self.original_entries), exclude=[], verbose=True)
+        # run the algorithm, starting it all off by passing
+        # a mutable copy of all the unique entries to run_h()
+        all_entries = list(self.original_entries)
+        self.run_h(all_entries, 1, [], verbose=True)
 
-    def run_h(self, round, entries, exclude=[], verbose=True):
+        # now set the unused entries
+        unused_entries = self.contests['entry_pool']
+        for c in self.contests['contests']:
+            for entry in c:
+                unused_entries.remove(entry)
+        self.contests['unused_entries'] = unused_entries
+
+    def get_and_remove_uniques(self, entries, exclude):
         """
-        run FairMatch starting with the specified round and entries, plus optional excludes
+        breaks up the list of entries into two lists:
+         a) all unique entries
+         b) the remaining pool of entries after 1 of each unique has been removed
 
-        :param round: integer # of the round
-        :param entries: total pool of entries. remove entries only if they've been filled into a contest.
-        :param exclude: entries from the previous round that got 2 fills
-        :param verbose: more output when True
+        :param entries: all entries pool
+        :param exclude: ignore these entries
+        :return: a tuple of two lists in the form: (unique_entries, remaining_entries)
         """
-
-        # the list of unique entries to select from
         uniques = list(set(entries) - set(exclude))
-        n_uniques = len(uniques)
+        for e in uniques:
+            entries.remove(e)
+        # also remove the excludes! they might not have been
+        # entirely removed because uniques will not
+        return uniques, entries
 
-        if n_uniques < self.contest_size:
-            self.contests['unused_entries']                 = entries
-            self.contests['FairMatch_unused_uniques']       = uniques
-            self.contests['FairMatch_unused_unq_cnt']       = n_uniques
-            print('done! unique entries: %s < contest size: %s   '
-                  '-> so we cant make anymore contests' % (n_uniques, self.contest_size))
-            return
+    def remove_from_list(self, target, removes):
+        for e in removes:
+            target.remove(e)
+        return target
 
-        # additional 2nd entries this round. includes duplicates (potentially),
-        # because we havent yet selected uniques.
-        additional = list(set(self.lsubtract(entries, uniques)))
+    def get_additional_uniques(self, entries, n, exclude):
+        """
+        get 'n' uniques out of 'entries', excluding those in 'exclude' list
+
+        removes the entries return from the original 'entries' list
+
+        :param entries:
+        :param n:
+        :param exclude:
+        :return:
+        """
+
+        additional_uniques = list(set(entries))
+        print('        get %sx entry from %s ignoring entries in %s' % (str(n), str(additional_uniques), str(exclude)))
+        # excludes the entries we already have
+        for e in exclude:
+            try:
+                additional_uniques.remove(e)
+            except ValueError:
+                pass # e didnt exist
+        shuffle(additional_uniques)
+        additional_uniques = additional_uniques[:n]
+
+        entries = self.remove_from_list(entries, additional_uniques)
+
+        return additional_uniques, entries
+
+    def run_h(self, entries, round, exclude, verbose=False):
+        """
+        check for any priority entries from the previous round
+        and get them into contests if possible.
+
+        continue onto the main contest generation loop,
+        and fill all the entries at this round that we can.
+
+        :param remaining_uniques: all first entries for this round
+        :param round: integer number of the round starting with 1
+        :param priority: entries with priority (from previous round)
+        :return:
+        """
+        if entries == [] and exclude == []:
+            if verbose:
+                print('done!')
+            return # we are done
 
         if verbose:
             print('')
-            print('+++ round %s +++' % str(round))
-            print('entries              :', str(sorted(entries)), '   (%s total)' %str(len(entries)))
-            print('uniques              :', str(sorted(uniques)), '   (%s total)' % str(len(uniques)))
-            print('additional           :', str(sorted(additional)), '   (%s total)' % str(len(additional)))
-            print('exclude              :', str(sorted(exclude)), '   (%s total)' % str(len(exclude)))
+            print('++++ beginning of round %s ++++' % str(round))
+            print('(pre-round) entry pool:', str(entries))
 
+        # get the unique entries for this round
+        round_uniques, remaining_entries = self.get_and_remove_uniques(entries, exclude)
+        remaining_uniques = list(set(remaining_entries) - set(exclude))
+        if verbose:
+            print('excluded(for fairness):', str(exclude))
+            print('round uniques         :', str(round_uniques))
+            print('remaining entries     :', str(remaining_entries), 'including any entries in exclude (debug)')
+            print('remaining uniques     :', str(remaining_uniques), 'not including excludes. potential additional entries this round')
+
+        exclude_users_for_fairness = []
         while True:
-            # 0. randomize the order of the values in the lists we will take from
-            shuffle(uniques)
-            shuffle(additional)
-            shuffle(exclude)
+            # shuffle the entries and then select enough for a contest
+            shuffle(round_uniques)
+            random_contest_entries = round_uniques[:self.contest_size]
 
-            # 1. fill contests using values from uniques, until we cant.
             try:
-                used_entries = self.fill_contest(uniques[:self.contest_size])
-                entries = self.lsubtract(entries, used_entries)
-                uniques = self.lsubtract(uniques, used_entries)
-            except (self.NotEnoughEntriesException, self.ZeroEntriesException) as e:
-                print('        ', str(e))
+                # create and fill a contest using the random entries
+                self.fill_contest(random_contest_entries, self.contest_size)
+                # remove entries from the round uniques once they are filled
+                round_uniques = self.remove_from_list(round_uniques, random_contest_entries)
+
+            except self.ZeroEntriesException:
                 break
 
-        # the number of extra entries we would need to completely fill a contest
-        n = self.contest_size - len(uniques)
+            except self.NotEnoughEntriesException:
+                # attempt to fill one last contest by randomly
+                # selecting additional entries from the remaining pool of uniques.
+                # in order to be fair, add additional selected users to a
+                # list of excludes to prevent them from getting fills
+                # next round (because they would have had 2 fills this round).
+                n = self.contest_size - len(round_uniques)
+                # get n additional uniques from the remaining uniques, not including
+                # whatever is currently in round_uniques
+                additional_uniques = list(set(remaining_uniques) - set(round_uniques))
+                shuffle(additional_uniques)
+                selected_additional_entries = additional_uniques[:n]
 
-        # 2. if we have enough additional values, use them.
-        #    here we know we have to use all uniques, so
-        #    be sure to remove duplicate values from exclude first!
-        additional = list(set(additional) - set(uniques))
-        shuffle(additional)
-        chosen_additional = additional[:n]
-        possible_excludes = []
-        if round == 1:
-            try:
-                used_entries = self.fill_contest(uniques + chosen_additional, force=True)
-            except self.ZeroEntriesException:
-                pass
-            # contest filled, now remove the values from entries (and update additional)
-            #entries = self.lsubtract(entries, used_entries)
-            # update additional in case we use later, though that is unlikely
-            #additional = self.lsubtract(additional, chosen_additional)
+                if verbose:
+                    print('        -> %s didnt get filled.' % str(round_uniques))
+                    # print('        -> selected_additional_entries = '
+                    #       'list(set(remaining_uniques) - set(round_uniques))[:n]')
+                    print('        -> randomly chose:', str(selected_additional_entries), 'from', str(additional_uniques), ''
+                                        '(avoiding these obviously:', str(round_uniques),')')
 
-        # 3. round >= 2. (ie: dealing with 2nd+ entries)
-        else:
-            chosen_entries = uniques + chosen_additional
-            n = self.contest_size - len(chosen_entries)
-            if n < 0:
-                raise Exception('too many contest entries in Round %s step' % str(round))
+                # now make the last contest of the round, or issue refunds
+                first_round = round == 1
+                try:
+                    self.fill_contest(round_uniques + selected_additional_entries, self.contest_size, force=first_round)
+                except:
+                    # failed on the last time around, but there may be enough
+                    # excludes required to create the last contest on
+                    # one more round so break and try again
 
-            elif n == 0:
-                # we have the right amount -- fill a contest
-                # used_entries = self.fill_contest(chosen_entries, force=False)
-                # entries = self.lsubtract(entries, chosen_entries)
-                # # update remaining
-                pass # it will all work when this falls outside this elif block
+                    break
 
-            else: # ie: n > 0
-                # grab values from the excludes as a last resort.
-                # be sure to remove duplicates already in the chosen ones
-                possible_excludes = list(set(exclude) - set(chosen_entries))
-                shuffle(possible_excludes)
-                chosen_entries.extend(possible_excludes[:n])
+                exclude_users_for_fairness = selected_additional_entries
+                # be sure to remove successfully filled entries from the total remaining entries
+                entries = self.remove_from_list(entries, exclude_users_for_fairness)
+                break
 
-            # it could fail here still, but lets run it and see what happens
-            try:
-                used_entries = self.fill_contest(chosen_entries, force=False)
-            except self.NotEnoughEntriesException as e:
-                # it may not be possible to make this.
-                # stash un-filled entries in the 'unused_entries' contests data
-                print(' >>>>>> entries into next round: %s' % str(entries))
-                return self.run_h(round + 1, entries, exclude=[], verbose=verbose)
+        if verbose: print('    (exclude %s in round %s)' % (str(exclude_users_for_fairness),str(round+1)))
 
-        entries = self.lsubtract(entries, used_entries)
-
-        # recursive call handles the next round
-        existing_excludes = []
-        for exclude_entry in chosen_additional:
-            if exclude_entry in entries:
-                existing_excludes.append(exclude_entry)
-
-        print('+++ and round %s >>> entries %s <<<  and > excludes %s <  ]]] existing_excludes: %s [[['
-              'heading into round [%s]' % (str(round), str(entries),
-                                           str(chosen_additional), str(existing_excludes), str(round+1)))
-
-        self.run_h(round + 1, entries, exclude=existing_excludes, verbose=verbose)
+        # post while loop
+        self.run_h(entries, round+1, exclude_users_for_fairness, verbose=verbose)
 
     def print_debug_info(self):
-        # # remove the forced contest entries from the leftover 'unused_entries'
-        # unused_entries = list(self.contests['unused_entries'])
-        # for contest in self.contests['contests_forced']:
-        #     for entry in contest:
-        #         unused_entries.remove(entry)
-        # # now update the actual unused entries
-        # self.contests['unused_entries'] = unused_entries
-
-        #
-        print('*** %s *** post run() information ***' % self.__class__.__name__)
+        print('*** post run() information ***')
         # print(self.contests)
         for k,v in self.contests.items():
-            if k == 'entry_pool':
-                continue
             print('%-16s:'%k, v)
-
-        count_total_entries = 0
-        counter = Counter()
-        for contest in self.contests['contests']:
-            for entry in contest:
-                counter[entry] += 1
-                count_total_entries += 1
-        for contest in self.contests['contests_forced']:
-            for entry in contest:
-                counter[entry] += 1
-                count_total_entries += 1
-        for entry in self.contests['unused_entries']:
-            counter[entry] += 1
-
-        standard = len(self.contests['contests'])
-        forced = len(self.contests['contests_forced'])
-        total = standard + forced
-
-        # print('original entries (before):', str(sorted(dict(self.counter_original_entries).items())))
-        # print('counter entries (after)  :', str(sorted(dict(counter).items())))
-        orig = dict(self.counter_original_entries).copy()
-        after = dict(counter)
-
-        print('%s original entries, %s final entries in contests + %s in '
-              'unused_entries' % (str(len(self.original_entries)),
-                                  str(count_total_entries), str(len(self.contests['unused_entries']))))
-        print('%s total contests (%s standard, %s forced)' % (total, standard, forced))
-        if orig != after:
-            print('(debug) orig != after   ->   this indicates we lost/added a rando entry somewhere. very bad.')
-            print('orig : %s' % str(orig))
-            print('')
-            print('after: %s' % str(after))
+        print(len(self.contests['contests']), 'contests created')
+        #unused_entries = self.contests['entry_pool']
+        # for c in self.contests['contests']:
+        #     for entry in c:
+        #         unused_entries.remove(entry)
+        print('unused entries:', str(self.contests['unused_entries']))
 
 # from contest.classes import ContestPoolCreator
 # creator = ContestPoolCreator('nba', ps, start, duration)
