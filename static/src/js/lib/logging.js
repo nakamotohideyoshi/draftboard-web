@@ -50,6 +50,7 @@ log.getLogger('action').setLevel('SILENT');
 log.getLogger('app').setLevel('DEBUG');  // normally DEBUG
 log.getLogger('app-state-store').setLevel('SILENT');
 log.getLogger('component').setLevel('SILENT');
+log.getLogger('lib').setLevel('SILENT');
 log.getLogger('selector').setLevel('SILENT');
 
 // by default, export the log object to work with

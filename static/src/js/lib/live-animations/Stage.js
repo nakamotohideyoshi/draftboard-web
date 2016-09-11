@@ -9,7 +9,7 @@ export default class Stage {
    * @return {number}
    */
   getWidth() {
-    return this.el.getBoundingClientRect().width;
+    return this.el.offsetWidth;
   }
 
   /**
@@ -17,7 +17,7 @@ export default class Stage {
    * @return {number}
    */
   getHeight() {
-    return this.el.getBoundingClientRect().height;
+    return this.el.offsetHeight;
   }
 
   /**

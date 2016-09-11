@@ -1,4 +1,4 @@
-import LiveAnimation from './LiveAnimation';
+import LiveAnimation from '../LiveAnimation';
 import PassingPlayAnimation from './PassingPlayAnimation';
 import RushingPlayAnimation from './RushingPlayAnimation';
 import log from '../../logging.js';

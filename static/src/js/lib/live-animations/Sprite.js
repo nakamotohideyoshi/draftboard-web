@@ -39,11 +39,12 @@ export default class Sprite {
   /**
    * Render all the frames.
    */
-  renderFrames(image, canvas, frameWidth, frameHeight, flip = false) {
+  renderFrames(image, canvas, frameWidth, frameHeight, flip = false, start = 1, length = -1) {
     const frameRate = 29.97;
-    const numFrames = this.getNumFrames(image.width, image.height, frameWidth, frameHeight);
     const context = canvas.getContext('2d');
-    let curFrame = 1;
+    const numFrames = length !== -1 ? length : this.getNumFrames(image.width, image.height, frameWidth, frameHeight);
+    let curFrame = start;
+    const targetFrame = curFrame + numFrames;
 
     context.translate(flip ? this.canvas.width : 0, 0);
     context.scale(flip ? -1 : 1, 1);
@@ -51,7 +52,7 @@ export default class Sprite {
     return new Promise((resolve) => {
       this.animate(frameRate, () => {
         this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
-        if (++curFrame < numFrames) {
+        if (++curFrame < targetFrame) {
           return true;
         }
 
@@ -139,11 +140,11 @@ export default class Sprite {
    * Plays through the animation once.
    * @param {boolean}     Draw each frame flipped horizontally.
    */
-  playOnce(flip = false) {
+  playOnce(flip = false, start = 1, length = -1) {
     if (!this.isLoaded()) {
       Promise.reject('No image data loaded.');
     }
 
-    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, flip);
+    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, flip, start, length);
   }
 }
