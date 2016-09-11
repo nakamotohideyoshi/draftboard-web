@@ -1,5 +1,5 @@
 import DownLineAnimation from './DownLineAnimation';
-import LiveAnimation from './LiveAnimation';
+import LiveAnimation from '../LiveAnimation';
 import OutroAnimation from './OutroAnimation';
 import PassArrowAnimation from './PassArrowAnimation';
 import ReceptionAnimation from './ReceptionAnimation';

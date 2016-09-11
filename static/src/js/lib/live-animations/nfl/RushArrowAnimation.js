@@ -1,60 +1,8 @@
-import LiveAnimation from './LiveAnimation';
-import { createPath, createSVGElement } from './svgTools';
+import LiveAnimation from '../LiveAnimation';
 import NFLPlayRecapVO from './NFLPlayRecapVO';
+import RushArrow from './graphics/RushArrow';
 
 export default class RushArrowAnimation extends LiveAnimation {
-
-  /**
-   * Returns an SVG arrow based on the provided field and
-   * starting/ending yard lines.
-   */
-  createArrow(field, startingYardLine, endingYardLine, color = '#dedede', opacity = 0.75) {
-    const barStart = startingYardLine;
-    let barEnd = endingYardLine;
-    const barTop = 0.38;
-    const barBottom = 0.42;
-
-    const tipWidth = 0.02;
-    const tipHeight = 0.04;
-    const tipTop = barTop - tipHeight;
-    const tipPointY = 0.40;
-    const tipPointX = barEnd;
-    const tipBottom = barBottom + tipHeight;
-
-    // Substract or add the width of the tip to the end
-    // of the bar based on the arrows direction.
-    if (barStart > barEnd) {
-      barEnd += tipWidth;
-    } else {
-      barEnd -= tipWidth;
-    }
-
-    const points = [
-      field.getFieldPos(barStart, barTop),
-      field.getFieldPos(barEnd, barTop),
-      // Begin tip of arrow
-      field.getFieldPos(barEnd, tipTop),
-      field.getFieldPos(tipPointX, tipPointY),
-      field.getFieldPos(barEnd, tipBottom),
-      // End tip of arrow
-      field.getFieldPos(barEnd, barBottom),
-      field.getFieldPos(barStart, barBottom),
-    ].map(pt => [pt.x, pt.y]);
-
-    const arrow = createPath(points);
-    arrow.setAttribute('style', `fill:${color};fill-opacity:${opacity}`);
-
-    const shadow = createPath(points);
-    shadow.setAttribute('style', 'fill:#000;fill-opacity:.25;');
-    shadow.setAttribute('transform', 'translate(-2,6)');
-
-    const svg = createSVGElement(field.getWidth(), field.getHeight());
-    svg.style.display = 'block';
-    svg.appendChild(shadow);
-    svg.appendChild(arrow);
-
-    return svg;
-  }
 
   /**
    * Returns the starting line of the rush.
@@ -63,7 +11,7 @@ export default class RushArrowAnimation extends LiveAnimation {
   getRushStartingYardLine(recap) {
     // Define a slight offset to help move the arrow just forward
     // of the previous animation.
-    const offsetX = 0.01;
+    const offsetX = 0.02;
 
     if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
       return recap.startingYardLine() + recap.passDistance() + offsetX;
@@ -81,21 +29,32 @@ export default class RushArrowAnimation extends LiveAnimation {
   }
 
   play(recap, field) {
-    // TODO: Skip the rush arrow animation unless the rush distance
-    // is long enough to display the minimum arrow. This is a little
-    // wonky and should be thought through more.
+    // Only show the rush arrow when there is visually enough room for
+    // the mimimum length of the arrow (3 yards).
     if (recap.isTurnover() || recap.rushDistance() <= 0.03) {
       return Promise.resolve();
     }
 
     const arrowStart = this.getRushStartingYardLine(recap);
     const arrowEnd = this.getRushEndingYardLine(recap);
-    const svg = this.createArrow(field, arrowStart, arrowEnd);
+    const arrowY = field.getSideOffsetY(recap.side());
+    const arrow = new RushArrow(field, arrowStart, arrowEnd, arrowY);
 
-    field.addChild(svg, 0, 0, 20);
+    field.addChild(arrow.el, 0, 0, 20);
 
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(), 200);
+    return new Promise(resolve => {
+      arrow.progress = 0;
+      const tick = () => {
+        arrow.progress = arrow.progress + 0.020;
+
+        if (arrow.progress !== 1) {
+          window.requestAnimationFrame(tick);
+        } else {
+          resolve();
+        }
+      };
+
+      tick();
     });
   }
 }
