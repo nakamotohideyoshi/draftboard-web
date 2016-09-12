@@ -11,7 +11,6 @@ RUN apk add make libffi-dev openssl-dev
 
 # update with needed outside repositories
 RUN echo "@main33 http://dl-cdn.alpinelinux.org/alpine/v3.3/main" >> /etc/apk/repositories
-RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
 RUN apk update
 
 # install req for python modules using postgres
@@ -20,6 +19,9 @@ RUN apk add "postgresql@main33<9.5" "postgresql-dev@main33<9.5" "postgresql-clie
 
 # install these for python req that use git
 RUN apk add git
+
+# dumb-init https://github.com/Yelp/dumb-init
+RUN pip install dumb-init
 
 # install python req
 RUN mkdir /code/requirements
@@ -32,9 +34,6 @@ COPY docker-services/django/.ash_history /root/.ash_history
 
 # point `python3` to `python`
 RUN echo "alias python='python3'" >> /etc/profile.d/draftboard.sh
-
-# dumb-init https://github.com/Yelp/dumb-init
-RUN apk add dumb-init@testing
 
 # placing this last as it is a run time variable
 ARG DRAFTBOARD_SETTINGS
