@@ -1279,8 +1279,8 @@ class DataDenNfl(AbstractDataDenParser):
             team_boxscore_parser.send()
 
         # update home or away team scores
-        elif self.target in [self.target_home_boxscores,
-                             self.target_away_boxscores]:
+        elif self.target in [(self.mongo_db_for_sport+'.home','boxscores'),
+                             (self.mongo_db_for_sport + '.away', 'boxscores')]:
             team_boxscore_parser = TeamBoxscoreParser()
             team_boxscore_parser.parse(obj, self.target)
             team_boxscore_parser.send()
