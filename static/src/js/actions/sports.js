@@ -8,7 +8,7 @@ import sortBy from 'lodash/sortBy';
 import zipObject from 'lodash/zipObject';
 import { addMessage } from './message-actions';
 import { CALL_API } from '../middleware/api';
-import { dateNow, hasExpired } from '../lib/utils';
+import { dateNow, hasExpired, isDateInTheFuture } from '../lib/utils';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -581,13 +581,17 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
  * TODO move to lib.utils
  *
  * Check whether a game has started
- * 1. If boxscore exists, we know it has started
+ * 1. If the start time hasn't passed yet, then return false
+ * 2. If the status is closed, we know the game is over, so true
+ * 3. If boxscore exists, we know it has started, so true
  *
  * @param  {string} sport  Sport to base statuses on
  * @param  {object} message Current game
  * @return {boolean}       True if game has started, false if not
  */
 export const hasGameStarted = (sport, message) => {
+  if (isDateInTheFuture(message.start)) return false;
+
   if (['closed', 'complete'].indexOf(message.status) !== -1) {
     return true;
   }
