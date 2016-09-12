@@ -54,6 +54,25 @@ $live-pane-width: 36vw;
     }
   }
 
+  &__minimize {
+    background: url('../img/blocks/pane/btn-close-arrow.png') no-repeat;
+    background-size: 100% auto;
+    cursor: pointer;
+    display: block;
+    height: 20px;
+    left: -20px;
+    visibility: hidden;
+    transform: rotate(180deg);
+    position: absolute;
+    top: $nav-scoreboard-height + 8px;
+    width: 35px;
+    z-index: $zindex-modal + 2;
+
+    &:hover {
+      opacity: .75;
+    }
+  }
+
   &__content {
     background-color: rgb(28, 31, 43);
     height: 100%;
