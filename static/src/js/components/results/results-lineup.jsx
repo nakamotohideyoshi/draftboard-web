@@ -104,7 +104,7 @@ const ResultsLineup = React.createClass({
         team = (<span className="team">- {player.player_meta.team.alias}</span>);
       }
 
-      let score = player.fantasy_points;
+      let score = humanizeFP(player.fantasy_points);
       if (!isFinished && isUpcoming === true) {
         score = `$${player.salary.toLocaleString('en')}`;
       }

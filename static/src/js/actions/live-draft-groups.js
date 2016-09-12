@@ -285,7 +285,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
  * @return {object}               Changes for reducer, wrapped in thunk
  */
 export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
-  logAction.debug('actions.updatePlayerStats');
+  logAction.debug('actions.updatePlayerStats', sport, message);
 
   const state = getState();
   const playerId = message.fields.player_id;
@@ -304,10 +304,12 @@ export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
     }
   });
 
-  // no player to update
-  log.info('actions.updatePlayerStats - player not in any draft group', message);
+  if (draftGroupId === null) {
+    // no player to update
+    log.info('actions.updatePlayerStats - player not in any draft group', message);
 
-  if (draftGroupId === null) return false;
+    return false;
+  }
 
   // if this is a relevant player, update their stats
   if (getState().livePlayers.relevantPlayers.hasOwnProperty(playerSrid)) {
