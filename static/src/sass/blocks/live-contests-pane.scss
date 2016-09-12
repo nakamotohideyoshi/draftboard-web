@@ -171,5 +171,9 @@
 .appstate--live-contests-pane--open {
   .live-contests-pane {
     right: 0;
+
+    .live-pane__minimize, {
+      visibility: visible;
+    }
   }
 }

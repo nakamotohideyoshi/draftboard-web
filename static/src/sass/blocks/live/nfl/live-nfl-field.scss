@@ -14,6 +14,7 @@ $imgDir: '../../../../img/blocks/live/nfl/live-nfl-field/';
   left: 50%;
   position: absolute;
   top: 50%;
+  transition: transform 600ms cubic-bezier(.65, .47, .35, 1);
   transform-origin: 0 0;
 
   &--debug {
@@ -41,19 +42,43 @@ $imgDir: '../../../../img/blocks/live/nfl/live-nfl-field/';
 
 // annoying media queries to scale the football field, would love a dynamic way to accomplish this
 // but afaik you can't use calc() + percentage of width within a transform property
-@media (min-width: 1024px) and (max-width: 1279px) {
+@media (max-width: 1279px) {
   #{$block} {
-    transform: scale(0.45) translate(-50%, -50%);
+    transform: scale(0.75) translate(-50%, -50%);
+  }
+
+  // modify to center venues between lineups
+  .appstate--live-contests-pane--open,
+  .appstate--live-standings-pane--open {
+    #{$block} {
+      transform: scale(0.45) translate(-50%, -50%);
+    }
   }
 }
 @media (min-width: 1280px) and (max-width: 1439px) {
   #{$block} {
-    transform: scale(0.6) translate(-50%, -50%);
+    transform: scale(0.9) translate(-50%, -50%);
+  }
+
+  // modify to center venues between lineups
+  .appstate--live-contests-pane--open,
+  .appstate--live-standings-pane--open {
+    #{$block} {
+      transform: scale(0.6) translate(-50%, -50%);
+    }
   }
 }
 @media (min-width: 1440px) and (max-width: 1599px) {
   #{$block} {
-    transform: scale(0.72) translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
+
+  // modify to center venues between lineups
+  .appstate--live-contests-pane--open,
+  .appstate--live-standings-pane--open {
+    #{$block} {
+      transform: scale(0.7) translate(-50%, -50%);
+    }
   }
 }
 @media (min-width: 1600px) {
