@@ -632,15 +632,15 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # first_name  = o.get('first_name', None)
             # last_name   = o.get('last_name', None)
             # full_name   = '%s %s' % (str(first_name), str(last_name))
-            #print( str(o) )
-            #print('Player object for PlayerStats DoesNotExist')
+            print( obj, target )
+            print('Player object for PlayerStats DoesNotExist')
             return # dont create the playerstats then
 
         try:
             self.g = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
-            #print( str(o) )
-            #print('Game object for PlayerStats DoesNotExist')
+            print( obj, target )
+            print('Game object for PlayerStats DoesNotExist')
             return # dont create the playerstats then
 
         try:
@@ -669,6 +669,8 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # #
             # # set it but it wont be saved until child performs save()
             self.ps.position = self.p.position
+
+            print('creating new PlayerStats model (hopefully):', str(self.ps))
 
 class DataDenGameBoxscores(AbstractDataDenParseable):
 
