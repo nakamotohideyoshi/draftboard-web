@@ -384,6 +384,10 @@ class PlayerStats(models.Model):
     position    = models.ForeignKey(Position, null=False,
                     related_name='%(app_label)s_%(class)s_playerstats_position')
 
+    field_id = 'id'
+    field_fp = 'fp'
+    field_pos = 'pos'
+
     def get_cache_token(self):
         """
         return a globally unique value for this object
