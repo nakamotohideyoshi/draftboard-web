@@ -219,7 +219,7 @@ class PlayerStats( sports.models.PlayerStats ):
     def save(self, *args, **kwargs):
         # perform score update
         scorer = scoring.classes.NflSalaryScoreSystem()
-        self.fantasy_points = scorer.score_player( self )
+        #self.fantasy_points = scorer.score_player( self )
 
         # #
         # # pusher the fantasy points with stats
@@ -228,6 +228,8 @@ class PlayerStats( sports.models.PlayerStats ):
         # countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         old_fantasy_points = self.fantasy_points
+        if self.fantasy_points is None:
+            self.fantasy_points = 0.0
         new_fantasy_points = scorer.score_player(self)
         self.fantasy_points = new_fantasy_points
         self.fp_change = new_fantasy_points - old_fantasy_points
