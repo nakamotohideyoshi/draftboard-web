@@ -1,4 +1,5 @@
 import GameTime from '../site/game-time';
+import { isDateInTheFuture } from '../../lib/utils';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import React from 'react';
 
@@ -29,7 +30,10 @@ const NavScoreboardGame = React.createClass({
     const game = this.props.game;
 
     // if the game hasn't started
-    if (game.hasOwnProperty('boxscore') && game.boxscore.quarter !== '') {
+    if (game.hasOwnProperty('boxscore') &&
+      game.boxscore.quarter !== '' &&
+      !isDateInTheFuture(game.start)
+    ) {
       const boxScore = game.boxscore;
 
       return (
