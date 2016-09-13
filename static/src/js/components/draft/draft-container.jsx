@@ -43,7 +43,7 @@ function mapStateToProps(state) {
     activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
     filters: state.draftGroupPlayersFilters.filters,
     draftGroupTime: state.draftGroupPlayers.start,
-    draftGroupUpdates: state.draftGroupUpdates,
+    draftGroupUpdates: state.draftGroupUpdates.sports,
     sport: state.draftGroupPlayers.sport,
     teams: state.sports,
     lineups: state.upcomingLineups.lineups,
@@ -173,7 +173,7 @@ const DraftContainer = React.createClass({
       { title: 'RB', column: 'position', match: 'rb' },
       { title: 'WR', column: 'position', match: 'wr' },
       { title: 'TE', column: 'position', match: 'te' },
-      { title: 'DST', column: 'position', match: 'dst' },
+      { title: 'FX', column: 'position', match: ['rb', 'wr', 'te'] },
     ],
     nhl: [
       { title: 'All', column: 'position', match: '' },
