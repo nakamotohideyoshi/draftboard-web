@@ -1,4 +1,4 @@
-import LiveAnimation from './LiveAnimation';
+import LiveAnimation from '../LiveAnimation';
 
 /**
 * ...

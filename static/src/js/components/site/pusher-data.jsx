@@ -1,4 +1,5 @@
 import * as ReactRedux from 'react-redux';
+import isEqual from 'lodash/isEqual';
 import log from '../../lib/logging';
 import Pusher from '../../lib/pusher';
 import React from 'react';
@@ -8,7 +9,7 @@ import { onBoxscoreGameReceived, onBoxscoreTeamReceived } from '../../actions/ev
 import { onPBPReceived, onPBPEventReceived } from '../../actions/events/pbp';
 import { onPlayerStatsReceived } from '../../actions/events/stats';
 import {
-  relevantGamesPlayersSelector, watchingDraftGroupTimingSelector, watchingMyLineupSelector,
+  relevantGamesPlayersSelector, watchingDraftGroupTimingSelector,
 } from '../../selectors/watching';
 
 // get custom logger for actions
@@ -39,7 +40,6 @@ const mapStateToProps = (state) => ({
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
   hasRelatedInfo: lineupsHaveRelatedInfoSelector(state),
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
-  myLineup: watchingMyLineupSelector(state),
   watching: state.watching,
 });
 
@@ -52,7 +52,6 @@ export const PusherData = React.createClass({
     actions: React.PropTypes.object.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
     hasRelatedInfo: React.PropTypes.bool.isRequired,
-    myLineup: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
     relevantGamesPlayers: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
@@ -79,8 +78,7 @@ export const PusherData = React.createClass({
    */
   componentWillReceiveProps(nextProps) {
     if (nextProps.hasRelatedInfo &&
-        nextProps.draftGroupTiming.started &&
-        nextProps.relevantGamesPlayers.isLoading !== true
+        nextProps.draftGroupTiming.started
     ) {
       if (!this.state.loadedBoxscores) {
         const boxscoresChannel = this.state.pusher.subscribe(`${this.state.channelPrefix}boxscores`);
@@ -99,10 +97,8 @@ export const PusherData = React.createClass({
       // onload set sport
       if (!this.state.loadedForSport && newSports.length > 0) {
         this.subscribeToSportSockets(newSports);
-      }
-
       // switch sports
-      if (newSports.length > 0 && oldSports[0] !== newSports[0]) {
+      } else if (isEqual(newSports.sort(), oldSports.sort()) === false) {
         this.unsubscribeToSportSockets(oldSports);
         this.subscribeToSportSockets(newSports);
       }
@@ -118,7 +114,7 @@ export const PusherData = React.createClass({
     const { actions } = this.props;
     const { pusher, channelPrefix } = this.state;
 
-    logComponent.debug('pusherData.subscribeToSockets', { channelPrefix });
+    logComponent.debug('pusherData.subscribeToSockets', { channelPrefix, newSports });
 
     // note that when binding, we need to reference `this.props` so that when the event occurs, it pulls latest props
     newSports.map((sport) => {
@@ -128,7 +124,7 @@ export const PusherData = React.createClass({
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
       statsChannel.bind('player', (message) => actions.onPlayerStatsReceived(
-        message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers.relevantItems.games
+        message, sport, this.props.relevantGamesPlayers.relevantItems.games
       ));
     });
 

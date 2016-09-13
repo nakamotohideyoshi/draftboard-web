@@ -1,6 +1,7 @@
 import LiveAnimationArea from './live-animation-area';
 import LiveChooseLineup from './live-choose-lineup';
 import LiveContestsPane from './live-contests-pane';
+import LiveContestsToggle from './live-contests-toggle';
 import LiveCountdown from './live-countdown';
 import LiveHeader from './live-header';
 import LiveLineup from './live-lineup';
@@ -243,14 +244,16 @@ export const Live = React.createClass({
 
     // defining optional component pieces
     let liveStandingsPane;
+    let liveContestsToggle = (<LiveContestsToggle />);
     let opponentLineupComponent;
     let contestsPaneOpen = true;
-    let venuesPosition = 'right-panes-open';
+    let venuesPosition = '';
     const modifiers = [`sport-${watching.sport}`];
 
     // if viewing a contest
     if (watching.contestId !== null && !contest.isLoading) {
       contestsPaneOpen = false;
+      liveContestsToggle = null;
       let standingsPaneOpen = true;
 
       // if viewing an opponent, add in lineup and update moneyline
@@ -311,6 +314,7 @@ export const Live = React.createClass({
           openOnStart={contestsPaneOpen}
           watching={watching}
         />
+        {liveContestsToggle}
 
         {liveStandingsPane}
       </div>

@@ -219,13 +219,28 @@ class PlayerStats( sports.models.PlayerStats ):
     def save(self, *args, **kwargs):
         # perform score update
         scorer = scoring.classes.NflSalaryScoreSystem()
-        self.fantasy_points = scorer.score_player( self )
+        #self.fantasy_points = scorer.score_player( self )
+
+        # #
+        # # pusher the fantasy points with stats
+        # args = (self.get_cache_token(), push.classes.PUSHER_NFL_STATS, 'player', self.to_json())
+        # self.set_cache_token()
+        # countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
+
+        old_fantasy_points = self.fantasy_points
+        if self.fantasy_points is None:
+            self.fantasy_points = 0.0
+        new_fantasy_points = scorer.score_player(self)
+        self.fantasy_points = new_fantasy_points
+        self.fp_change = new_fantasy_points - old_fantasy_points
 
         #
-        # pusher the fantasy points with stats
-        args = (self.get_cache_token(), push.classes.PUSHER_NFL_STATS, 'player', self.to_json())
-        self.set_cache_token()
-        countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
+        # send the pusher obj for fantasy points with scoring
+        # if self.fp_change != 0.0:
+        # self.set_cache_token()
+        # push.classes.DataDenPush   previously
+        push.classes.PlayerStatsPush(push.classes.PUSHER_NFL_STATS, 'player').send(
+                                    self.to_json(), async=settings.DATADEN_ASYNC_UPDATES)
 
         super().save(*args, **kwargs)
 

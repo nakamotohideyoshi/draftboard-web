@@ -217,10 +217,7 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
     calls.push(dispatch(fetchGamesIfNeeded(sport)));
 
     // only pull contests for the lineup you are watching
-    if (contests.length > 0 &&
-        hasExpired(lineup.start) &&
-        state.watching.myLineupId === lineup.id
-    ) {
+    if (contests.length > 0 && hasExpired(lineup.start)) {
       contests.map(
         (contest) => calls.push(dispatch(fetchContestIfNeeded(contest, sport)))
       );

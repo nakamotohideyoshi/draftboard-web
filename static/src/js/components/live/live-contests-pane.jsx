@@ -52,6 +52,11 @@ export const LiveContestsPane = React.createClass({
     AppActions.addClass('appstate--live-contests-pane--faded-out');
   },
 
+  minimizePane() {
+    AppActions.removeClass('live--right-panes-open');
+    AppActions.removeClass('appstate--live-contests-pane--open');
+  },
+
   renderContests() {
     const { lineup } = this.props;
 
@@ -69,6 +74,7 @@ export const LiveContestsPane = React.createClass({
 
     return (
       <div className="live-contests-pane live-pane live-pane--right">
+        <div className="live-pane__minimize" onClick={this.minimizePane}></div>
         <div className="live-pane__content">
           <h2>
             My Contests

@@ -294,25 +294,41 @@ class PlayerStats(DataDenPlayerStats):
 
         parent_list = o.get('parent_list__id', None)
 
+        # {'longest_touchdown': 19.0, 'reference': '00-0029668',
+        #  '_id': 'cGFyZW50X2FwaV9faWRzdGF0c2dhbWVfX2lkNjczYjQ1OWMtNzUwNi00YzExLTkyNzMtMWI5NTAyNTM3ZjFkdGVhbV9faWQ4MmNmOTU2NS02ZWI5LTRmMDEtYmRiZC01YWEwZDQ3MmZjZDlwYXJlbnRfbGlzdF9faWRwYXNzaW5nX19saXN0aWRlMzE4MTQ5My02YTJhLTRlOTUtYWE2Zi0zZmMxZGRlYjc1MTI=',
+        #  'parent_list__id': 'passing__list', 'id': 'e3181493-6a2a-4e95-aa6f-3fc1ddeb7512', 'attempts': 47.0,
+        #  'interceptions': 0.0, 'air_yards': 282.0, 'position': 'QB', 'longest': 51.0,
+        #  'game__id': '673b459c-7506-4c11-9273-1b9502537f1d', 'completions': 31.0, 'dd_updated__id': 1473637122978,
+        #  'team__id': '82cf9565-6eb9-4f01-bdbd-5aa0d472fcd9', 'redzone_attempts': 2.0, 'touchdowns': 4.0,
+        #  'rating': 119.5, 'sack_yards': 17.0, 'parent_api__id': 'stats', 'sacks': 2.0, 'jersey': 12.0,
+        #  'name': 'Andrew Luck', 'avg_yards': 8.2, 'yards': 385.0, 'cmp_pct': 66.0}
+
         if parent_list == "passing__list":
+            print('passing__list', str(o))
             self.ps.pass_td     = o.get('touchdowns',       0)
-            self.ps.pass_yds    = o.get('yards',            0)
+            self.ps.pass_yds    = o.get('yards',              0) # previously 'yards'
             self.ps.pass_int    = o.get('interceptions',    0)
-        if parent_list == "rushing__list":
+        elif parent_list == "rushing__list":
+            print('rushing__list', str(o))
             self.ps.rush_td     = o.get('touchdowns',   0)
             self.ps.rush_yds    = o.get('yards',        0)
         elif parent_list == "receiving__list":
+            print('receiving__list', str(o))
             self.ps.rec_td      = o.get('touchdowns',   0)
             self.ps.rec_yds     = o.get('yards',        0)
             self.ps.rec_rec     = o.get('receptions',   0)
         elif parent_list == "punt_returns__list":
+            print('punt_returns__list', str(o))
             self.ps.ret_punt_td = o.get('touchdowns',   0)
         elif parent_list == "kick_returns__list":
+            print('kick_returns__list', str(o))
             self.ps.ret_kick_td = o.get('touchdowns',   0)
         elif parent_list == "fumbles__list":
+            print('fumbles__list', str(o))
             self.ps.off_fum_lost    = o.get('lost_fumbles',     0)
             self.ps.off_fum_rec_td  = o.get('own_rec_tds',      0)
         elif parent_list == "conversions__list":
+            print('conversions__list', str(o))
             # {
             #   'jersey': 11.0, 'category': 'receive', 'dd_updated__id': 1464828941114,
             #   'id': 'f9036897-99d5-4d9a-8965-0c7e0f9e43bd', 'team__id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
@@ -1263,8 +1279,8 @@ class DataDenNfl(AbstractDataDenParser):
             team_boxscore_parser.send()
 
         # update home or away team scores
-        elif self.target in [self.target_home_boxscores,
-                             self.target_away_boxscores]:
+        elif self.target in [(self.mongo_db_for_sport+'.home','boxscores'),
+                             (self.mongo_db_for_sport + '.away', 'boxscores')]:
             team_boxscore_parser = TeamBoxscoreParser()
             team_boxscore_parser.parse(obj, self.target)
             team_boxscore_parser.send()
