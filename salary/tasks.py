@@ -17,12 +17,36 @@ def generate_salaries_from_statscom_projections_nfl(self):
     #from statscom.classes import FantasyProjectionsNFL
     api = FantasyProjectionsNFL()
     # projections = api.get_projections(week=1)
-    player_projections = api.get_player_projections(week=1)
+    #player_projections = api.get_player_projections(week=1)
+    player_projections = api.get_player_projections()
 
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name='nfl')
-    salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool, slack_updates=True)
-    salary_generator.generate_salaries()
+    #salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool, slack_updates=True)
+    #salary_generator.generate_salaries()
+
+    sport_md5 = md5(str('nfl').encode('utf-8')).hexdigest()
+    lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
+
+    # cache.add fails if the key already exists
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    # advantage of using add() for atomic locking
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            # start generating the salary pool, time consuming...
+            salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
+                                                              slack_updates=True)
+            salary_generator.generate_salaries()
+
+        finally:
+            release_lock()
+
+    else:
+        err_msg = 'a task is already generating salaries for sport: nfl (stats.com)'
+        print(err_msg)
+        # raise Exception(err_msg)
 
 LOCK_EXPIRE = 60 * 10 # Lock expires in 10 minutes
 
