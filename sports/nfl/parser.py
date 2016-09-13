@@ -308,7 +308,7 @@ class PlayerStats(DataDenPlayerStats):
             self.ps.pass_td     = o.get('touchdowns',       0)
             self.ps.pass_yds    = o.get('yards',              0) # previously 'yards'
             self.ps.pass_int    = o.get('interceptions',    0)
-        if parent_list == "rushing__list":
+        elif parent_list == "rushing__list":
             print('rushing__list', str(o))
             self.ps.rush_td     = o.get('touchdowns',   0)
             self.ps.rush_yds    = o.get('yards',        0)
