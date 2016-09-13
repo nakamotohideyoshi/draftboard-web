@@ -173,7 +173,7 @@ const DraftContainer = React.createClass({
       { title: 'RB', column: 'position', match: 'rb' },
       { title: 'WR', column: 'position', match: 'wr' },
       { title: 'TE', column: 'position', match: 'te' },
-      { title: 'DST', column: 'position', match: 'dst' },
+      { title: 'FX', column: 'position', match: ['rb', 'wr', 'te'] },
     ],
     nhl: [
       { title: 'All', column: 'position', match: '' },
