@@ -290,6 +290,17 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
         player_stats_models = ssm.get_player_stats_class( sport=draft_group.salary_pool.site_sport )
         data = {}
+
+        # fill with 0s for every player in the draft group first
+        for stats_model in player_stats_models:
+            for draft_group_player in Player.objects.filter(draft_group=draft_group):
+                data[draft_group_player.player_id] = {
+                    stats_model.field_id : draft_group_player.player_id,
+                    stats_model.field_fp : 0.0,
+                    stats_model.field_pos : draft_group_player.position,
+                }
+
+        # then add the stats for the existing player stats objects
         for stats_model in player_stats_models:
             for player_stat_obj in stats_model.objects.filter( srid_game__in=game_srids ):
                 # l.append( player_stat_obj.to_json() )

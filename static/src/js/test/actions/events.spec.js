@@ -105,18 +105,6 @@ describe('actions.events.showGameEvent', () => {
     zonePitches: [],
   };
 
-  it('should update player stats if no relevant players involved', () => {
-    // initial store, state
-    const store = mockStore(defaultStore);
-
-    const response = store.dispatch(actions.showGameEvent(defaultMessage));
-    // false because we don't have any of these players in a draft group
-    assert.equal(
-      response,
-      false
-    );
-  });
-
   it('should create promise of multievent and updating stats if valid mlb pbp with relevant player', () => {
     // use proxyquire to mock in responses
     const proxyActions = proxyquire('../../actions/events', {

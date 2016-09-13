@@ -159,4 +159,74 @@ describe('reducers.sports', () => {
       state.mlb.gamesExpireAt
     );
   });
+
+  it('should handle UPDATE_GAME', () => {
+    const defaultResponse = {
+      type: types.UPDATE_GAME,
+      gameId: '30fba042-9c84-43ff-850d-06574ac05ab4',
+      updatedFields: {
+        status: 'inprogress',
+        boxscore: {
+          attendance: 0,
+          weather: 'Indoor Temp:  F, Wind:   mph',
+          srid_game: '30fba042-9c84-43ff-850d-06574ac05ab4',
+          ts: 1470958010613,
+          clock: '4:10',
+          scheduled: '2016-08-11T23:00:00+00:00',
+          summary: {
+            venue: '216de6bf-bce0-409a-a9e7-90db8df1f7b9',
+            week: '1d810a06-3f3b-4865-a0ba-f28091dd8d6f',
+            season: '659d2bd0-c43e-4bb0-8503-9d576911d029',
+            away: '22052ff7-c065-42ee-bc8f-c4691c50e624',
+            home: 'e6aa13a4-0055-48a9-bc41-be28dc106929',
+          },
+          status: 'inprogress',
+          quarter: 1,
+        },
+        timeRemaining: {
+          duration: 49,
+          decimal: 0.8167,
+        },
+      },
+    };
+
+    // return nothing if there is no current lineup to associate rosters with
+    let oldState = reducer(defaultState, defaultResponse);
+    assert.deepEqual(oldState.games, {});
+    assert.deepEqual(oldState.mlb.gameIds, []);
+
+    // check updatedFields merged in
+    oldState = merge({}, defaultState, {
+      games: {
+        '30fba042-9c84-43ff-850d-06574ac05ab4': {
+          srid: '30fba042-9c84-43ff-850d-06574ac05ab4',
+          status: 'scheduled',
+          start: '2016-06-17T02:10:00Z',
+          srid_away: 'dcfd5266-00ce-442c-bc09-264cd20cf455',
+          srid_home: 'ef64da7f-cfaf-4300-87b0-9313386b977c',
+          title: '',
+          game_number: 1,
+          day_night: 'N',
+          sport: 'mlb',
+          timeRemaining: { duration: 18, decimal: 0.9999 },
+        },
+      },
+    });
+
+    oldState = reducer(oldState, defaultResponse);
+    const game = oldState.games['30fba042-9c84-43ff-850d-06574ac05ab4'];
+
+    assert.deepEqual(
+      game.boxscore,
+      defaultResponse.updatedFields.boxscore
+    );
+    assert.deepEqual(
+      game.timeRemaining,
+      defaultResponse.updatedFields.timeRemaining
+    );
+    assert.deepEqual(
+      game.status,
+      defaultResponse.updatedFields.status
+    );
+  });
 });

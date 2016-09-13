@@ -15,6 +15,7 @@ from draftgroup.models import (
     CurrentDraftGroup,
     GameUpdate,
     PlayerUpdate,
+    Player,
 )
 from draftgroup.classes import DraftGroupManager
 from draftgroup.serializers import (
@@ -26,6 +27,7 @@ from draftgroup.serializers import (
 from django.conf import settings
 from django.core.cache import caches
 from sports.classes import SiteSportManager
+from sports.models import PlayerStats
 import json
 from django.http import HttpResponse
 from django.views.generic import View

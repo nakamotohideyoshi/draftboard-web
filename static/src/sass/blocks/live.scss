@@ -9,6 +9,26 @@
 
 $block: '.live';
 
+// NON BEM need to figure out a better solution
+// modify to center venues between lineups
+.appstate--live-contests-pane--open,
+.appstate--live-standings-pane--open {
+  #{$block} #{$block}__venues {
+    width: 76%;
+  }
+}
+
+&--showing-opponent-lineup #{$block}__venues,
+&--hiding-pane #{$block}__venues {
+  width: 100%;
+}
+
+// modify to have venue show between my lineup and right pane
+&--right-panes-open #{$block}__venues {
+  width: 76%;
+}
+
+
 #{$block} {
   background: transparent url(../img/blocks/live/bg.jpg) no-repeat center top;
   background-size: cover;
@@ -47,23 +67,15 @@ $block: '.live';
     }
   }
 
-  // modify to center venues between lineups
-  &--showing-opponent-lineup #{$block}__venues {
-    width: 100%;
-  }
-
-  // modify to have venue show between my lineup and right pane
-  &--right-panes-open #{$block}__venues {
-    width: 76%;
-  }
-
   // vertically center the stats of the venue
   &__venues {
+    background: radial-gradient(ellipse at center, rgba(20, 52, 75, 0.8) 0%, transparent 70%);
     display: table;
     height: 100%;
     position: absolute;
     transform: translateZ(0);
     transition: width 600ms cubic-bezier(.65, .47, .35, 1);
+    width: 100%;
   }
   &__venues-inner {
     display: table-cell;

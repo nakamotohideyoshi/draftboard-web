@@ -1,0 +1,21 @@
+//
+// BEM block for React LiveContestsToggle
+//
+
+$block: '.live-contests-toggle';
+
+
+#{$block} {
+  background-color: #1B1E31;
+  background-image: url(../../../img/blocks/live-lineup/back-to-standings.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 50% auto;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 52px;
+  position: absolute;
+  right: 35px;
+  top: 44px;
+  width: 52px;
+}
