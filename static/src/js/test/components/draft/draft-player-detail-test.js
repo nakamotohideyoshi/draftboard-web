@@ -11,6 +11,7 @@ const defaultTestProps = {
   draftPlayer: () => true,
   unDraftPlayer: () => true,
   player: FocusedPlayerSelectorData,
+  fetchSinglePlayerBoxScoreHistoryIfNeeded: () => true,
 };
 
 
