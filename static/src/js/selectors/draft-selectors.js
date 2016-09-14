@@ -4,7 +4,6 @@ import merge from 'lodash/merge';
 import orderBy from 'lodash/orderBy';
 import find from 'lodash/find';
 import map from 'lodash/map';
-import log from '../lib/logging';
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayersFilters.focusedPlayerId;
 const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
