@@ -4,13 +4,14 @@ import ImageLoader from 'react-imageloader';
 import * as ReactRedux from 'react-redux';
 import moment from 'moment';
 import store from '../../store';
-import * as AppActions from '../../stores/app-state-store.js';
+import * as AppActions from '../../stores/app-state-store';
 import renderComponent from '../../lib/render-component';
 import forEach from 'lodash/forEach';
-import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
-import { roundUpToDecimalPlace } from '../../lib/utils.js';
-import { createLineupAddPlayer, removePlayer } from '../../actions/upcoming-lineup-actions.js';
-import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
+import { focusedPlayerSelector } from '../../selectors/draft-selectors';
+import { createLineupAddPlayer, removePlayer } from '../../actions/upcoming-lineup-actions';
+import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils';
+import { fetchSinglePlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
+import DraftPlayerDetailAverages from './draft-player-detail-averages';
 
 const { Provider, connect } = ReactRedux;
 
@@ -49,6 +50,8 @@ function mapDispatchToProps(dispatch) {
   return {
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
+    fetchSinglePlayerBoxScoreHistoryIfNeeded: (sport, playerId) =>
+      dispatch(fetchSinglePlayerBoxScoreHistoryIfNeeded(sport, playerId)),
   };
 }
 
@@ -61,8 +64,9 @@ const DraftPlayerDetail = React.createClass({
 
   propTypes: {
     player: React.PropTypes.object,
-    draftPlayer: React.PropTypes.func,
-    unDraftPlayer: React.PropTypes.func,
+    draftPlayer: React.PropTypes.func.isRequired,
+    unDraftPlayer: React.PropTypes.func.isRequired,
+    fetchSinglePlayerBoxScoreHistoryIfNeeded: React.PropTypes.func.isRequired,
   },
 
 
@@ -77,6 +81,17 @@ const DraftPlayerDetail = React.createClass({
     PubSub.subscribe('pane.close', () => {
       focusPlayerSearchField();
     });
+  },
+
+
+  componentWillReceiveProps(nextProps) {
+    // If we have a valid player id, fetch the boxscore history. The action + reducer layers will
+    // take care of any caching needs for us.
+    if (nextProps.player && 'player_id' in nextProps.player) {
+      this.props.fetchSinglePlayerBoxScoreHistoryIfNeeded(
+        nextProps.player.sport, nextProps.player.player_id
+      );
+    }
   },
 
 
@@ -206,14 +221,49 @@ const DraftPlayerDetail = React.createClass({
     const content = [];
     let headers = [];
 
-    if (!Object.keys(this.props.player.boxScoreHistory).length) {
+    if (!this.props.player.splitsHistory) {
       content.push(
-        <tr><td colSpan="10"><h5>Loading...</h5></td></tr>
+        <tr key="header"><td colSpan="10"><h5>Loading...</h5></td></tr>
       );
     }
 
 
     switch (this.props.player.sport) {
+      case 'nfl':
+        headers = [
+          <th key="opp">opp</th>,
+          <th key="date">date</th>,
+          <th key="py">pass yds</th>,
+          <th key="pt">pass td</th>,
+          <th key="pi">pass int</th>,
+          <th key="ry">rush yds</th>,
+          <th key="rt">rush td</th>,
+          <th key="rcy">rec yds</th>,
+          <th key="rct">rec td</th>,
+          <th key="fum">fum</th>,
+          <th key="fp">fp</th>,
+        ];
+
+        this.props.player.splitsHistory.map((game, index) => {
+          content.push(
+            <tr key={index}>
+              <td key="1">{game.opp}</td>
+              <td key="2">{moment.utc(game.date).format('M/D/YY')}</td>
+              <td key="3">{game.pass_yds}</td>
+              <td key="4">{game.pass_td}</td>
+              <td key="5">{game.pass_int}</td>
+              <td key="6">{game.rush_yds}</td>
+              <td key="7">{game.rush_td}</td>
+              <td key="8">{game.rec_yds}</td>
+              <td key="9">{game.rec_td}</td>
+              <td key="10">{game.off_fum_lost}</td>
+              <td key="11">{game.fp}</td>
+            </tr>
+          );
+        });
+
+        break;
+
       case 'nba':
         headers = [
           <th>opp</th>,
@@ -382,137 +432,6 @@ const DraftPlayerDetail = React.createClass({
   },
 
 
-  renderStatsAverage() {
-    const player = this.props.player;
-
-    if (!Object.keys(player.boxScoreHistory).length) {
-      return <div className="player-stats"></div>;
-    }
-
-
-    switch (player.sport) {
-      case 'nba':
-        return (
-          <div className="player-stats">
-            <ul>
-              <li>
-                <div className="stat-name">PPG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.points, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">RPG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.rebounds, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">APG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.assists, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">STLPG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.steals, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">TO</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.turnovers, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">FPPG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.fppg, 1)}
-                </div>
-              </li>
-            </ul>
-          </div>
-        );
-
-      case 'nhl':
-      // For NHL goalies:
-        if (player.position === 'G') {
-          return (
-            <div className="player-stats">
-              <ul>
-                <li>
-                  <div className="stat-name">S</div>
-                  <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.saves, 1)}
-                  </div>
-                </li>
-                <li>
-                  <div className="stat-name">A</div>
-                  <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.assist, 1)}
-                  </div>
-                </li>
-                <li>
-                  <div className="stat-name">SOG</div>
-                  <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.sog, 1)}
-                  </div>
-                </li>
-                <li>
-                  <div className="stat-name">FPPG</div>
-                  <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.fp, 1)}
-                  </div>
-                </li>
-              </ul>
-            </div>
-          );
-        }
-        // For regular NHL Players:
-        return (
-          <div className="player-stats">
-            <ul>
-              <li>
-                <div className="stat-name">G</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.goal, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">A</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.assist, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">BLK</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.blk, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">SOG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.sog, 1)}
-                </div>
-              </li>
-              <li>
-                <div className="stat-name">FPPG</div>
-                <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.fp, 1)}
-                </div>
-              </li>
-            </ul>
-          </div>
-        );
-
-      default:
-        return <div className="player-stats"></div>;
-    }
-  },
-
-
   render() {
     // No player has been selected.
     if (!this.props.player) {
@@ -557,7 +476,7 @@ const DraftPlayerDetail = React.createClass({
             </div>
           </div>
 
-          { this.renderStatsAverage() }
+          <DraftPlayerDetailAverages player={this.props.player} />
         </div>
 
         <div className="pane-lower">

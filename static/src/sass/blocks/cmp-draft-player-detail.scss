@@ -75,15 +75,19 @@
 
   .pane-lower {
     .tabs {
-      padding: 40px 10%;
+      padding: 40px 10% 100px;
     }
 
     .table {
+      th:first-child {
+        padding-left: 10px;
+      }
+
       td {
         padding: 10px 5px;
 
         &:first-child {
-          padding-left: 20px;
+          padding-left: 10px;
         }
       }
     }
