@@ -5,7 +5,6 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 import { fetchDraftGroupUpdatesIfNeeded } from './draft-group-updates';
 import { fetchFantasyHistory } from './fantasy-history-actions';
 import { fetchTeamsIfNeeded } from './sports';
-import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id',
@@ -84,7 +83,6 @@ const fetchDraftGroup = (draftGroupId) => (dispatch) => {
         dispatch(fetchFantasyHistory(json.sport));
         dispatch(fetchTeamsIfNeeded(json.sport));
         dispatch(fetchDraftGroupUpdatesIfNeeded(json.sport));
-        dispatch(fetchPlayerBoxScoreHistoryIfNeeded(json.sport));
 
         // Normalize player list by ID.
         const normalizedPlayers = normalize(
