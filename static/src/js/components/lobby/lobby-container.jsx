@@ -2,25 +2,27 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import Cookies from 'js-cookie';
 import store from '../../store';
+import log from '../../lib/logging';
 import { push as routerPush } from 'react-router-redux';
-import { fetchContestPoolEntries } from '../../actions/contest-pool-actions.js';
-import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions.js';
-import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
+import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
+import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions';
+import { fetchPrizeIfNeeded } from '../../actions/prizes';
+import { lineupFocused } from '../../actions/upcoming-lineup-actions';
 import { fetchContestPools, enterContest, setFocusedContest, updateOrderByFilter }
-  from '../../actions/contest-pool-actions.js';
-import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
+  from '../../actions/contest-pool-actions';
+import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions';
 import { focusedContestInfoSelector, focusedLineupSelector, entrySkillLevelsSelector }
-  from '../../selectors/lobby-selectors.js';
-import { contestPoolsSelector } from '../../selectors/contest-pools-selector.js';
-import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
-import { upcomingContestUpdateReceived } from '../../actions/contest-pool-actions.js';
-import * as AppActions from '../../stores/app-state-store.js';
-import ContestList from '../contest-list/contest-list.jsx';
+  from '../../selectors/lobby-selectors';
+import { contestPoolsSelector } from '../../selectors/contest-pools-selector';
+import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
+import { upcomingContestUpdateReceived } from '../../actions/contest-pool-actions';
+import * as AppActions from '../../stores/app-state-store';
+import ContestList from '../contest-list/contest-list';
 import renderComponent from '../../lib/render-component';
-import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
-import { addMessage } from '../../actions/message-actions.js';
-import { removeParamFromURL } from '../../lib/utils.js';
-import Pusher from '../../lib/pusher.js';
+import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal';
+import { addMessage } from '../../actions/message-actions';
+import { removeParamFromURL } from '../../lib/utils';
+import Pusher from '../../lib/pusher';
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -36,18 +38,19 @@ const { Provider, connect } = ReactRedux;
 function mapStateToProps(state) {
   return {
     allContests: state.contestPools.allContests,
-    isFetchingContestPools: state.contestPools.isFetchingContestPools,
+    contestFilters: state.contestPools.filters,
     draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
+    entrySkillLevels: entrySkillLevelsSelector(state),
     featuredContests: state.featuredContests.banners,
     filteredContests: contestPoolsSelector(state),
-    contestFilters: state.contestPools.filters,
     focusedContest: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
-    entrySkillLevels: entrySkillLevelsSelector(state),
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
+    isFetchingContestPools: state.contestPools.isFetchingContestPools,
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.contestPools.filters.orderBy.direction,
     orderByProperty: state.contestPools.filters.orderBy.property,
+    queryAction: state.routing.locationBeforeTransitions.query.action,
   };
 }
 
@@ -64,6 +67,7 @@ function mapDispatchToProps(dispatch) {
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
     fetchContestPools: () => dispatch(fetchContestPools()),
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
+    lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     updateOrderByFilter: (property, direction) => dispatch(
       updateOrderByFilter(property, direction)
@@ -81,14 +85,17 @@ function mapDispatchToProps(dispatch) {
 const LobbyContainer = React.createClass({
 
   propTypes: {
+    addMessage: React.PropTypes.func,
     allContests: React.PropTypes.object,
+    contestFilters: React.PropTypes.object,
     draftGroupsWithLineups: React.PropTypes.array,
     enterContest: React.PropTypes.func,
+    entrySkillLevels: React.PropTypes.object.isRequired,
     featuredContests: React.PropTypes.array,
     fetchContestPoolEntries: React.PropTypes.func,
+    fetchContestPools: React.PropTypes.func,
     fetchFeaturedContestsIfNeeded: React.PropTypes.func,
     fetchPrizeIfNeeded: React.PropTypes.func,
-    fetchContestPools: React.PropTypes.func,
     fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
     filteredContests: React.PropTypes.array,
     focusedContest: React.PropTypes.object,
@@ -96,16 +103,15 @@ const LobbyContainer = React.createClass({
     hoveredLineupId: React.PropTypes.number,
     isFetchingContestPools: React.PropTypes.bool.isRequired,
     lineupsInfo: React.PropTypes.object,
+    lineupFocused: React.PropTypes.func,
     orderByDirection: React.PropTypes.string,
     orderByProperty: React.PropTypes.string,
-    setFocusedContest: React.PropTypes.func,
-    contestFilters: React.PropTypes.object,
-    updateOrderByFilter: React.PropTypes.func,
-    routerPush: React.PropTypes.func,
-    addMessage: React.PropTypes.func,
-    upcomingContestUpdateReceived: React.PropTypes.func,
+    queryAction: React.PropTypes.string,
     removeContestPoolEntry: React.PropTypes.func,
-    entrySkillLevels: React.PropTypes.object.isRequired,
+    routerPush: React.PropTypes.func,
+    setFocusedContest: React.PropTypes.func,
+    upcomingContestUpdateReceived: React.PropTypes.func,
+    updateOrderByFilter: React.PropTypes.func,
   },
 
 
@@ -121,12 +127,12 @@ const LobbyContainer = React.createClass({
     // Fetch all of the necessary data for the lobby.
     this.props.fetchContestPools();
     this.props.fetchUpcomingDraftGroupsInfo();
-    // this.props.fetchFeaturedContestsIfNeeded();
 
+    log.info(`Action '${this.props.queryAction}' found in query params.`);
     // If the url indicates that a lineup was just saved, show a success message.
-    if (window.location.search.indexOf('lineup-saved=true') !== -1) {
+    if (this.props.queryAction === 'lineup-saved') {
       // remove the param from the URL.
-      const strippedParams = removeParamFromURL(window.location.search, 'lineup-saved');
+      const strippedParams = removeParamFromURL(window.location.search, 'action');
       this.props.routerPush(`/contests/${strippedParams}`);
       this.props.addMessage({
         header: 'Lineup Saved!',
