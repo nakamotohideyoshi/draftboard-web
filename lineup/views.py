@@ -90,8 +90,11 @@ class CreateLineupAPIView(generics.CreateAPIView):
         except Exception as e:
             raise APIException(e)
 
-        # on successful lineup creation:
-        return Response('Lineup created.', status=status.HTTP_201_CREATED)
+        # On successful lineup creation:
+        return Response({
+            'detail': 'Lineup created.',
+            'lineup_id': lineup.id
+        }, status=status.HTTP_201_CREATED)
 
 
 class LineupUserAPIView(APIView):
