@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import Client
 from django.test import TestCase
+from django.test.utils import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 from test.classes import (
@@ -21,6 +22,7 @@ from account.views import (
     # PayPalSavedCardDeleteAPIView,
     # PayPalSavedCardListAPIView,
 )
+from .utils import CheckUserAccess
 
 
 class AccountsViewsTest(TestCase):
@@ -359,3 +361,26 @@ class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, 
 #         self.print_response(response)
 #         # is_client_error() checks any 400 errors (401, 402, etc...)
 #         self.assertTrue(status.is_client_error(response.status_code))
+
+
+class CheckUserAccessTest(TestCase):
+    
+    def setUp(self):
+        self.blocked_ip = '194.44.221.54'
+        self.available_ip = '72.229.28.185'
+
+    @override_settings(
+        BLOCKED_COUNTRIES_CODES=['UA'],
+        BLOCKED_CITIES=['Lviv']
+    )
+    def test_checker_failure(self):
+        checker = CheckUserAccess(ip=self.blocked_ip)
+        self.assertFalse(checker.check_location_country)
+        self.assertFalse(checker.check_location_city)
+        self.assertFalse(checker.check_access)
+
+    def test_checker_ok(self):
+        checker = CheckUserAccess(ip=self.available_ip)
+        self.assertTrue(checker.check_location_country)
+        self.assertTrue(checker.check_location_city)
+        self.assertTrue(checker.check_access)
