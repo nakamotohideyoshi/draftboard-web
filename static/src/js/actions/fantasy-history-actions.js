@@ -1,58 +1,50 @@
-import * as types from '../action-types.js';
-import request from 'superagent';
+import * as actionTypes from '../action-types';
 import { normalize, Schema, arrayOf } from 'normalizr';
-import log from '../lib/logging';
+import { CALL_API } from '../middleware/api';
+import get from 'lodash/get';
 
+/**
+ * The Fantasy History endpoint gives us every player's last 10 games of fantasy
+ * points. We use this to plot a tiny graph for each player row on the draft
+ * page.
+ */
 
 const historySchema = new Schema('history', {
   idAttribute: 'player_id',
 });
 
 
-function fetchFantasyHistorySuccess(body) {
-  return {
-    type: types.FETCH_FANTASY_HISTORY_SUCCESS,
-    body,
-  };
-}
+export const fetchFantasyHistory = (sport) => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FANTASY_HISTORY__FETCHING,
+        actionTypes.FANTASY_HISTORY__FETCH_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/sports/fp-history/${sport}/`,
+      callback: (json) => {
+        const normalizedResponse = normalize(
+          json,
+          arrayOf(historySchema)
+        );
 
+        return get(normalizedResponse, 'entities.history');
+      },
+    },
+  });
 
-function fetchFantasyHistoryFail(body) {
-  return {
-    type: types.FETCH_FANTASY_HISTORY_FAIL,
-    body,
-  };
-}
-
-
-export function fetchFantasyHistory(sport) {
-  if (!sport) {
-    log.error('<sport> must be supplied to fetch fantasy point history.');
-  }
-
-  return (dispatch) => {
-    request
-    .get(`/api/sports/fp-history/${sport}/`)
-    .set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      Accept: 'application/json',
-    })
-    .end((err, res) => {
-      if (err) {
-        log.error(res.body);
-        return dispatch(fetchFantasyHistoryFail(res.body));
-      }
-
-      // Normalize injuries
-      const normalizedHistory = normalize(
-        res.body,
-        arrayOf(historySchema)
-      );
-
-      return dispatch(fetchFantasyHistorySuccess({
-        history: normalizedHistory.entities.history,
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      return dispatch({
+        type: actionTypes.FANTASY_HISTORY__FETCH_FAIL,
+        response: action.error,
         sport,
-      }));
-    });
-  };
-}
+      });
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};

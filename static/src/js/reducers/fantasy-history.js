@@ -7,9 +7,8 @@ const initialState = {};
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.FETCH_FANTASY_HISTORY_SUCCESS:
-      return merge({}, state, action.body.history);
-
+    case ActionTypes.FANTASY_HISTORY__FETCH_SUCCESS:
+      return merge({}, state, action.response);
 
     default:
       return state;
