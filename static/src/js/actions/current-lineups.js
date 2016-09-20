@@ -6,7 +6,8 @@ import { CALL_API } from '../middleware/api';
 import { camelizeKeys } from 'humps';
 import { doesMyLineupExist, resetWatchingAndPath } from './watching';
 import { dateNow, hasExpired } from '../lib/utils';
-import { fetchContestIfNeeded } from './live-contests';
+import { fetchContestLineupsIfNeeded } from './live-contests';
+import { fetchContestPoolIfNeeded } from './live-contest-pools';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchGamesIfNeeded } from './sports';
 import { Schema, arrayOf, normalize } from 'normalizr';
@@ -104,7 +105,19 @@ export const fetchCurrentLineups = () => ({
     callback: (json) => {
       // normalize and camelcase it
       const camelizedJson = camelizeKeys(json);
-      return normalize(camelizedJson, arrayOf(lineupSchema)).entities;
+      const entries = normalize(camelizedJson, arrayOf(lineupSchema)).entities;
+
+      Object.keys(entries.lineups).map((lineupId) => {
+        const lineup = entries.lineups[lineupId];
+        let contests = [];
+        Object.keys(lineup.contestsByPool).map((contestPoolId) => {
+          contests = contests.concat(lineup.contestsByPool[contestPoolId]);
+        });
+
+        lineup.contests = [...new Set(contests)];
+      });
+
+      return entries;
     },
   },
 });
@@ -194,7 +207,7 @@ const fetchLineupsRostersIfNeeded = () => (dispatch, getState) => {
 
 /**
  * Crazy method. After we finish GETting current lineups, we go and fetch each related contest.
- * Then that fetchContestIfNeeded() pulls in related draft groups, games, prizes.
+ * Then that fetchContestLineupsIfNeeded() pulls in related draft groups, games, prizes.
  * This is a key method to the live/nav section, as it connects lineups will all of the related calls and needed info.
  * @return {promise}   Returns chainable promise that first gets contests (and therein draft groups + lineups), then
  *                     takes all that info and incorporates some of it back into lineups. Ends with updating redux store
@@ -211,16 +224,21 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
   const calls = [];
 
   forEach(state.currentLineups.items, (lineup) => {
-    const { contests, sport, draftGroup } = lineup;
+    const { contestsByPool, sport, draftGroup } = lineup;
 
     calls.push(dispatch(fetchDraftGroupIfNeeded(draftGroup, sport)));
     calls.push(dispatch(fetchGamesIfNeeded(sport)));
 
+    // pull in contest pools
+    Object.keys(contestsByPool).map((contestPoolId) => calls.push(dispatch(fetchContestPoolIfNeeded(contestPoolId))));
+
     // only pull contests for the lineup you are watching
-    if (contests.length > 0 && hasExpired(lineup.start)) {
-      contests.map(
-        (contest) => calls.push(dispatch(fetchContestIfNeeded(contest, sport)))
-      );
+    if (hasExpired(lineup.start)) {
+      Object.keys(contestsByPool).map((poolId) => {
+        const poolContests = contestsByPool[poolId];
+        // pull relevant contests
+        poolContests.map((contest) => calls.push(dispatch(fetchContestLineupsIfNeeded(contest, poolId, sport))));
+      });
     }
   });
 

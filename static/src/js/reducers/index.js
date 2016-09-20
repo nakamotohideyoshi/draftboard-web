@@ -12,6 +12,7 @@ const eventsMultipart = require('./events-multipart');
 const fantasyHistory = require('./fantasy-history');
 const featuredContests = require('./featured-contests');
 const liveContests = require('./live-contests');
+const liveContestPools = require('./live-contest-pools');
 const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
 const messages = require('./messages');
@@ -44,6 +45,7 @@ export default combineReducers({
   fantasyHistory,
   featuredContests,
   liveContests,
+  liveContestPools,
   liveDraftGroups,
   eventsMultipart,
   livePlayers,
