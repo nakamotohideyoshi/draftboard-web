@@ -79,6 +79,32 @@ class SavedCardDetails(models.Model):
 
     class Meta:
         # make sure a user cant have multiple similar saved cards
-        unique_together = ('user','token')
+        unique_together = ('user', 'token')
 
 
+class UserLog(models.Model):
+    """
+    Store user actions for easy access
+    """
+    CHECK_IP = 0
+    CHECK_COUNTRY = 1
+    CHECK_CITY = 1
+    TYPES = (
+        (CHECK_IP, 'IP check result'),
+        (CHECK_COUNTRY, 'Country check result'),
+        (CHECK_CITY, 'City check result'),
+    )
+
+    LOGIN = 0
+    ACTIONS = (
+        (LOGIN, 'User Login'),
+    )
+    type = models.SmallIntegerField(choices=TYPES)
+    ip = models.CharField(max_length=15)
+    user = models.ForeignKey(User, related_name='logs')
+    action = models.SmallIntegerField(choices=ACTIONS)
+    timestamp = models.DateTimeField(auto_now=True)
+    metadata = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'User Logs'
