@@ -1,0 +1,22 @@
+//
+// BEM block for React NavScoreboardReplayerData
+//
+
+$block: '.nav-scoreboard-replayer-data';
+$nav-scoreboard-height: 54px;
+$zindex-nav-scoreboard-replayer: 1210; // nav is 1200 so just above
+
+#{$block} {
+  background: black;
+  color: white;
+  font-size: 10px;
+  height: $nav-scoreboard-height;
+  opacity: 0.8;
+  padding: 12px;
+  position: fixed;
+  right: 0;
+  text-align: right;
+  text-transform: uppercase;
+  top: 0;
+  width: 180px;
+}
