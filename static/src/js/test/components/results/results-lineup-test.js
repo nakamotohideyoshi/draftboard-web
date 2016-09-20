@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import { expect } from 'chai';
 import { shallow } from 'enzyme';
@@ -21,10 +19,11 @@ const defaultProps = {
       roster_spot: 'asd',
       timeRemaining: new Date,
       player_meta: {
-        team: { alias: 'team-alias', },
+        srid: 'foo',
+        team: { alias: 'team-alias' },
       },
       salary: 33,
-    }
+    },
   ],
   entries: [],
   stats: {
@@ -41,11 +40,8 @@ const defaultProps = {
   },
 };
 
-describe("ResultsLineup Component", function() {
-
-  function renderComponent(props = defaultProps) {
-    return shallow(<ResultsLineup {...props} />);
-  }
+describe('ResultsLineup Component', () => {
+  const renderComponent = (props = defaultProps) => shallow(<ResultsLineup {...props} />);
 
   it('should render all expected children', () => {
     const wrapper = renderComponent();
@@ -62,7 +58,7 @@ describe("ResultsLineup Component", function() {
   it('should render lineup and allow switching to contests', () => {
     const wrapper = renderComponent();
     expect(wrapper.find('.flip-container.hover')).to.have.length(0);
-    wrapper.find('.switch-to-contests').simulate('click');
+    wrapper.find('.icon-flip.action').simulate('click');
     expect(wrapper.find('.flip-container.hover')).to.have.length(1);
     wrapper.find('.to-lineup').simulate('click');
     expect(wrapper.find('.flip-container.hover')).to.have.length(0);
@@ -80,7 +76,7 @@ describe("ResultsLineup Component", function() {
     expect(footerItems).to.have.length(2);
     expect(footerItems.at(0).text()).to.contain('Won');
     expect(footerItems.at(1).text()).to.contain('PTS');
-    expect(wrapper.find('.to-contests--popup').find('.item')).to.have.length(1);
+    expect(wrapper.find('.icon-flip.action')).to.have.length(1);
     expect(wrapper.find('.right-stat-title').text()).to.contain('PTS');
 
     // Live
@@ -94,7 +90,7 @@ describe("ResultsLineup Component", function() {
     expect(footerItems.at(0).text()).to.contain('Winning');
     expect(footerItems.at(1).text()).to.contain('Pts');
     expect(wrapper.find('.watch-live')).to.have.length(1);
-    expect(wrapper.find('.to-contests--popup').find('.item')).to.have.length(1);
+    expect(wrapper.find('.actions-menu-container .actions').find('li')).to.have.length(1);
     expect(wrapper.find('.right-stat-title').text()).to.contain('PTS');
 
     // Live footer remains in contests
@@ -114,7 +110,7 @@ describe("ResultsLineup Component", function() {
     footerItems = wrapper.find('.footer-upcoming').find('.item');
     expect(footerItems.at(0).text()).to.contain('Live');
     expect(footerItems.at(1).text()).to.contain('Fees');
-    expect(wrapper.find('.to-contests--popup').find('.item')).to.have.length(3);
+    expect(wrapper.find('.actions-menu-container .actions').find('li')).to.have.length(2);
     expect(wrapper.find('.right-stat-title').text()).to.contain('Salary');
   });
 });

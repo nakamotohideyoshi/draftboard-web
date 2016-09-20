@@ -14,6 +14,7 @@ from contest.views import (
     SingleLineupView,
     CurrentEntryAPIView,
     SingleContestAPIView,
+    SingleContestPoolAPIView,
     RegisteredUsersAPIView,
     EnterLineupAPIView,
     PayoutsAPIView,
@@ -45,6 +46,10 @@ urlpatterns = [
     #
     # get the info for a single Contest by its id
     url(r'^info/(?P<contest_id>[0-9]+)/$', SingleContestAPIView.as_view()),
+
+    #
+    # get the info for a single Contest by its id
+    url(r'^info/contest_pool/(?P<contest_pool_id>[0-9]+)/$', SingleContestPoolAPIView.as_view()),
 
     #
     # get a users current entries (the Entries they current have in live/upcoming contests

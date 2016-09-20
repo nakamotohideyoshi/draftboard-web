@@ -3,7 +3,7 @@ import PrizeStructure from '../contest-list/prize-structure.jsx';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
-import { fetchContestIfNeeded } from '../../actions/live-contests';
+import { fetchContestLineupsIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupBoxscoresIfNeeded } from '../../actions/live-draft-groups.js';
@@ -37,7 +37,7 @@ const ResultsPane = React.createClass({
   componentWillUpdate(nextProps) {
     if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
       this.props.dispatch(
-        fetchContestIfNeeded(nextProps.contestId, this.props.sport, true)
+        fetchContestLineupsIfNeeded(nextProps.contestId, this.props.sport, true)
       ).then(() => {
         const newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
 

@@ -7,7 +7,7 @@ import size from 'lodash/size';
 
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
-import { fetchContestIfNeeded, fetchRelatedContestInfo, generateContestStats } from '../../actions/live-contests'
+import { fetchContestLineupsIfNeeded, fetchRelatedContestPoolInfo, generateContestStats } from '../../actions/live-contests'
 import { mockStore } from '../mock-store'
 
 
@@ -23,19 +23,19 @@ describe('actionsLiveContests', () => {
   })
 
 
-  it('should properly fetchContestIfNeeded on initial call', (done) => {
+  it('should properly fetchContestLineupsIfNeeded on initial call', (done) => {
     const expectedActions = [
       // { type: '@@redux/INIT' }
       null,
 
       // requestLiveContestInfo
       function(action) {
-        expect(action.type).to.equal('REQUEST_LIVE_CONTEST_INFO')
+        expect(action.type).to.equal('REQUEST_CONTEST_POOL_INFO')
       },
 
       // receiveLiveContestInfo
       function(action) {
-        expect(action.type).to.equal('RECEIVE_LIVE_CONTEST_INFO')
+        expect(action.type).to.equal('RECEIVE_CONTEST_POOL_INFO')
         expect(action.info.name).to.equal('NBA $5 Head-to-Head')
       },
 
@@ -50,7 +50,7 @@ describe('actionsLiveContests', () => {
         expect(action.lineupBytes.length).to.equal(92)
       },
 
-      // the end is from fetchRelatedContestInfo, tested in live draft groups
+      // the end is from fetchRelatedContestPoolInfo, tested in live draft groups
       null,
       null,
       null,
@@ -65,11 +65,11 @@ describe('actionsLiveContests', () => {
     ]
 
     const store = mockStore(reducers, {}, expectedActions, done)
-    store.dispatch(fetchContestIfNeeded(2))
+    store.dispatch(fetchContestLineupsIfNeeded(2))
   })
 
 
-  it('should not complete fetchContestIfNeeded if data already exists', (done) => {
+  it('should not complete fetchContestLineupsIfNeeded if data already exists', (done) => {
     const expectedActions = [
       // { type: '@@redux/INIT' }
       null
@@ -86,11 +86,11 @@ describe('actionsLiveContests', () => {
       done
     )
 
-    store.dispatch(fetchContestIfNeeded(2))
+    store.dispatch(fetchContestLineupsIfNeeded(2))
   })
 
 
-  it('should properly fetchRelatedContestInfo', (done) => {
+  it('should properly fetchRelatedContestPoolInfo', (done) => {
     const expectedActions = [
       // { type: '@@redux/INIT' }
       null,
@@ -124,7 +124,7 @@ describe('actionsLiveContests', () => {
       done
     )
 
-    store.dispatch(fetchRelatedContestInfo(2))
+    store.dispatch(fetchRelatedContestPoolInfo(2))
   })
 
 })
