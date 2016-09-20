@@ -6,7 +6,7 @@ import merge from 'lodash/merge';
 import reduce from 'lodash/reduce';
 import size from 'lodash/size';
 import { dateNow } from '../lib/utils';
-import { calcTotalPotentialEarnings } from './watching';
+import { calcTotalPotentialEarnings, calcEntryContestStats } from './watching';
 
 
 /**
@@ -35,40 +35,56 @@ export const resultsWithLive = createSelector(
         hasNotEnded: true,
       };
 
-      if (currentLineups.hasRelatedInfo === true) {
+      // hack, need to find better way to know when contests are loaded
+      const firstContestsStats = contestsStats[Object.keys(contestsStats)[0]];
+
+      if (currentLineups.hasRelatedInfo === true && Object.keys(firstContestsStats).length > 0) {
         const lineupSelector = currentLineupsStats[lineup.id];
         const draftGroup = liveDraftGroups[lineup.draftGroup] || {};
         const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
 
-        const lineupEntriesInfo = lineupSelector.upcomingContestsStats ||
-          map(lineupSelector.contestsStats, (contestEntry) => ({
-            contest: {
-              id: contestEntry.id,
-              name: contestEntry.name,
-            },
-            final_rank: contestEntry.myEntryRank,
-            payout: {
-              amount: contestEntry.potentialWinnings,
-            },
-            sport: lineup.sport,
-            hasNotEnded: hasEnded === false,
-          })
-        );
+        let lineupEntriesInfo = null;
+        if (lineupSelector.upcomingContestsStats) {
+          lineupEntriesInfo = lineupSelector.upcomingContestsStats;
+        } else {
+          const contestsStatsWithRank = calcEntryContestStats(lineupSelector, lineup.contests, contestsStats);
+
+          lineupEntriesInfo = map(lineup.contests, (contestId) => {
+            const contestInfo = contestsStatsWithRank[contestId];
+
+            return {
+              contest: {
+                id: contestInfo.id,
+                name: contestInfo.name,
+              },
+              final_rank: contestInfo.myEntryRank,
+              payout: {
+                amount: contestInfo.potentialWinnings,
+              },
+              sport: lineup.sport,
+              hasNotEnded: hasEnded === false,
+            };
+          });
+        }
 
         lineupInfo = merge(lineupInfo, {
-          players: map(lineupSelector.rosterDetails, (player) => ({
-            player_id: player.id,
-            full_name: player.name,
-            fantasy_points: player.fp,
-            roster_spot: player.position,
-            timeRemaining: {
-              decimal: player.timeRemaining.decimal,
-            },
-            player_meta: {
-              srid: player.srid,
-            },
-            salary: draftGroup.playersInfo && draftGroup.playersInfo[player.id].salary,
-          })),
+          players: map(lineupSelector.roster, (playerId) => {
+            const player = lineupSelector.rosterDetails[playerId];
+
+            return {
+              player_id: player.id,
+              full_name: player.name,
+              fantasy_points: player.fp,
+              roster_spot: player.position,
+              timeRemaining: {
+                decimal: player.timeRemaining.decimal,
+              },
+              player_meta: {
+                srid: player.srid,
+              },
+              salary: draftGroup.playersInfo && draftGroup.playersInfo[player.id].salary,
+            };
+          }),
           entries: lineupEntriesInfo,
           start: lineup.start,
           draftGroupId: draftGroup.id,

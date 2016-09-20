@@ -86,7 +86,7 @@ const calcContestPlayersOwnership = (contestLineups, draftGroup, sport, gamesTim
  * @param  {object} liveContests   List of live contests from the server
  * @return {object}                List of contests with new stats
  */
-const calcEntryContestStats = (lineup, lineupContests, liveContests) => {
+export const calcEntryContestStats = (lineup, lineupContests, liveContests) => {
   if (lineup.hasOwnProperty('id') === false) return {};
 
   const stats = {};

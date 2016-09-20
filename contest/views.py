@@ -112,6 +112,27 @@ class SingleContestAPIView(generics.GenericAPIView):
         return Response(serialized_data)
 
 
+class SingleContestPoolAPIView(generics.GenericAPIView):
+    """
+    get the information related to a specific Contest
+    """
+
+    serializer_class = ContestPoolSerializer
+
+    def get_object(self, pk):
+        try:
+            return ContestPool.objects.get(pk=pk)
+        except ContestPool.DoesNotExist:
+            raise NotFound()
+
+    def get(self, request, contest_pool_id, format=None):
+        """
+        given the GET param 'contest_pool_id', get the contest pool
+        """
+        serialized_data = ContestPoolSerializer(self.get_object(contest_pool_id), many=False).data
+        return Response(serialized_data)
+
+
 class LobbyAPIView(generics.ListAPIView):
     """
     Retrieve the contests which are relevant to the home page lobby.
