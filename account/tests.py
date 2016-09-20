@@ -23,6 +23,7 @@ from account.views import (
     # PayPalSavedCardListAPIView,
 )
 from .utils import CheckUserAccess
+from .models import UserLog
 
 
 class AccountsViewsTest(TestCase):
@@ -363,24 +364,26 @@ class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, 
 #         self.assertTrue(status.is_client_error(response.status_code))
 
 
-class CheckUserAccessTest(TestCase):
+class CheckUserAccessTest(TestCase, MasterAbstractTest):
     
     def setUp(self):
         self.blocked_ip = '194.44.221.54'
         self.available_ip = '72.229.28.185'
+        self.user = self.get_user_with_account_information('user_withinformation')
+        self.action = UserLog.LOGIN
 
     @override_settings(
         BLOCKED_COUNTRIES_CODES=['UA'],
         BLOCKED_CITIES=['Lviv']
     )
     def test_checker_failure(self):
-        checker = CheckUserAccess(ip=self.blocked_ip)
-        self.assertFalse(checker.check_location_country)
-        self.assertFalse(checker.check_location_city)
-        self.assertFalse(checker.check_access)
+        checker = CheckUserAccess(action=self.action, ip=self.blocked_ip, user=self.user)
+        self.assertFalse(checker.check_location_country[0])
+        self.assertFalse(checker.check_location_city[0])
+        self.assertFalse(checker.check_ip()[0])
 
     def test_checker_ok(self):
-        checker = CheckUserAccess(ip=self.available_ip)
-        self.assertTrue(checker.check_location_country)
-        self.assertTrue(checker.check_location_city)
-        self.assertTrue(checker.check_access)
+        checker = CheckUserAccess(action=self.action,ip=self.available_ip, user=self.user)
+        self.assertTrue(checker.check_location_country[0])
+        self.assertTrue(checker.check_location_city[0])
+        self.assertTrue(checker.check_ip()[0])
