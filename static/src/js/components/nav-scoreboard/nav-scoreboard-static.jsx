@@ -8,6 +8,7 @@ import NavScoreboardLineupsList from './nav-scoreboard-lineups-list';
 import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info';
 import NavScoreboardLogo from './nav-scoreboard-logo';
 import NavScoreboardMenu from './nav-scoreboard-menu';
+import NavScoreboardReplayerData from './nav-scoreboard-replayer-data';
 import NavScoreboardSeparator from './nav-scoreboard-separator';
 import NavScoreboardSlider from './nav-scoreboard-slider';
 import NavScoreboardUserInfo from './nav-scoreboard-user-info';
@@ -119,6 +120,7 @@ const NavScoreboardStatic = React.createClass({
   render() {
     const { username } = this.props.user;
     let userInfo;
+    let replayerData;
     let filters;
     let slider;
 
@@ -147,6 +149,10 @@ const NavScoreboardStatic = React.createClass({
       );
     }
 
+    if (window.dfs.replayerTimeDelta > 0) {
+      replayerData = (<NavScoreboardReplayerData />);
+    }
+
     return (
       <div className="inner">
         <NavScoreboardMenu />
@@ -156,6 +162,7 @@ const NavScoreboardStatic = React.createClass({
         { filters }
         { slider }
         <NavScoreboardLogo />
+        { replayerData }
       </div>
     );
   },

@@ -1,14 +1,12 @@
 import * as ActionTypes from '../action-types';
 import Cookies from 'js-cookie';
-import { handleError, trackUnexpected } from './track-exceptions';
+import { handleError } from './track-exceptions';
 import fetch from 'isomorphic-fetch';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
 import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
-import { CALL_API } from '../middleware/api';
 import { dateNow } from '../lib/utils';
-import { fetchPrizeIfNeeded } from './prizes';
 import { SPORT_CONST } from '../actions/sports';
 
 // get custom logger for actions
@@ -24,13 +22,13 @@ const { API_DOMAIN = '' } = process.env;
  * NOTE: this method must be wrapped with dispatch()
  * @return {object}   Changes for reducer
  */
-const confirmRelatedContestInfo = (id) => ({
-  type: ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO,
-  id,
-  stats: {
-    updatedAt: dateNow(),
-  },
-});
+// const confirmRelatedContestInfo = (id) => ({
+//   type: ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO,
+//   id,
+//   stats: {
+//     updatedAt: dateNow(),
+//   },
+// });
 
 /**
  * Dispatch information to reducer that we are trying to get contest lineups
@@ -63,8 +61,9 @@ const requestContestLineupsUsernames = (id) => ({
  * @param  {object} parsedLineups Parsed lineups, generated from binary hex
  * @return {object}               Changes for reducer
  */
-const receiveContestLineups = (id, response, parsedLineups) => ({
+const receiveContestLineups = (id, contestPoolId, response, parsedLineups) => ({
   type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS,
+  contestPoolId,
   id,
   lineupBytes: response,
   lineups: parsedLineups,
@@ -181,7 +180,7 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestLineups = (id, sport) => (dispatch) => {
+const fetchContestLineups = (id, poolId, sport) => (dispatch) => {
   logAction.debug('actions.fetchContestLineups');
 
   dispatch(requestContestLineups(id));
@@ -199,7 +198,7 @@ const fetchContestLineups = (id, sport) => (dispatch) => {
 
     return response.text();
   }).then(res =>
-    dispatch(receiveContestLineups(id, res, parseContestLineups(res, sport)))
+    dispatch(receiveContestLineups(id, poolId, res, parseContestLineups(res, sport)))
   ).catch((err) => dispatch(handleError(err, {
     header: 'Failed to connect to API.',
     content: 'Please refresh the page to reconnect.',
@@ -208,27 +207,6 @@ const fetchContestLineups = (id, sport) => (dispatch) => {
   })));
 };
 
-/**
- * API GET to return information about a contest
- * @param {number} contestId  Contest ID
- * @return {promise}          Promise that resolves with API response body to reducer
- */
-const fetchContestInfo = (id) => ({
-  [CALL_API]: {
-    types: [
-      ActionTypes.REQUEST_LIVE_CONTEST_INFO,
-      ActionTypes.RECEIVE_LIVE_CONTEST_INFO,
-      ActionTypes.ADD_MESSAGE,
-    ],
-    expiresAt: dateNow() + 1000 * 60 * 60 * 24,  // 1 day
-    endpoint: `/api/contest/info/${id}/`,
-    requestFields: { id },
-    callback: (json) => ({
-      id,
-      info: json,
-    }),
-  },
-});
 
 /**
  * API POST to return all the usernames for all the lineups in a contest.
@@ -279,7 +257,7 @@ const fetchContestLineupsUsernames = (id) => (dispatch) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchContestLineupsUsernames = (state, id) => {
+const shouldFetchContestLineupsLineupsUsernames = (state, id) => {
   // fetch if we have no data yet
   if (state.liveContests.hasOwnProperty(id) === false) {
     return true;
@@ -294,17 +272,15 @@ const shouldFetchContestLineupsUsernames = (state, id) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchContest = (liveContests, id) => {
+const shouldFetchContestLineups = (liveContests, id) => {
+  logAction.debug('actions.shouldFetchContestLineups');
+
   const contest = liveContests[id] || false;
 
   // if we have no data yet, fetch
   if (contest === false) return true;
 
-  // if no info yet, then fetch
-  if (contest.hasOwnProperty('info') === false) return true;
-
-  // if it hasn't started yet, don't bother getting lineups yet
-  if (new Date(contest.info.start).getTime() > dateNow()) return false;
+  if (contest.isFetchingLineups === true) return false;
 
   // if we don't yet have lineups (as in not live), then fetch
   if (contest.hasOwnProperty('lineupBytes') === true && contest.lineupBytes !== '') return false;
@@ -324,42 +300,11 @@ const shouldFetchContest = (liveContests, id) => {
 export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState) => {
   logAction.debug('actions.fetchContestLineupsUsernamesIfNeeded');
 
-  if (shouldFetchContestLineupsUsernames(getState(), id) === false) {
+  if (shouldFetchContestLineupsLineupsUsernames(getState(), id) === false) {
     return Promise.resolve('Contest usernames already exists');
   }
 
   return dispatch(fetchContestLineupsUsernames(id));
-};
-
-/**
- * Outside facing method to go ahead and fetch contest information after checking whether we should
- * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
- *                     returned method or directly as a resolved promise
- */
-export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
-  logAction.debug('actions.fetchRelatedContestInfo');
-
-  const state = getState();
-
-  // don't bother if there is no contest yet!
-  if (!(id in state.liveContests)) {
-    return trackUnexpected(`fetchRelatedContestInfo failed, no contest ${id} in Redux`, { state });
-  }
-
-  const contestInfo = getState().liveContests[id].info || {};
-
-  if (!('prize_structure' in contestInfo)) {
-    return trackUnexpected(`fetchRelatedContestInfo failed, no prize structure in contest ${id}`, { state });
-  }
-
-  const prizeId = contestInfo.prize_structure;
-
-  return Promise.all([
-    dispatch(fetchPrizeIfNeeded(prizeId)),
-  ])
-  .then(() =>
-    dispatch(confirmRelatedContestInfo(id))
-  );
 };
 
 /**
@@ -368,20 +313,10 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) => {
-  logAction.debug('actions.fetchContestIfNeeded');
+export const fetchContestLineupsIfNeeded = (id, poolId, sport) => (dispatch, getState) => {
+  logAction.debug('actions.fetchContestLineupsIfNeeded');
 
-  if (shouldFetchContest(getState().liveContests, id) === false && force !== true) {
-    return dispatch(fetchRelatedContestInfo(id));
-  }
-
-  return Promise.all([
-    dispatch(fetchContestInfo(id)),
-    dispatch(fetchContestLineups(id, sport)),
-  ])
-  .then(() =>
-    dispatch(fetchRelatedContestInfo(id))
-  );
+  if (shouldFetchContestLineups(getState().liveContests, id)) return dispatch(fetchContestLineups(id, poolId, sport));
 };
 
 /**

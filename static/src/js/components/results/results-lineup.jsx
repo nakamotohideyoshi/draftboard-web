@@ -7,6 +7,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import React from 'react';
 import ResultsPane from './results-pane';
 
+
 const ResultsLineup = React.createClass({
 
   propTypes: {
@@ -126,12 +127,12 @@ const ResultsLineup = React.createClass({
               playerSrid={player.player_meta.srid}
               sport={sport}
               uniquePmrId={`pmr-live-lineup-player-${player.id}`}
-              width={32}
+              width={28}
             />
           </div>
 
           <span className="name">{player.full_name}</span>
-          {team}
+          <span classNmae="team">{team}</span>
           <span className={scoreClassName}>
             {score}
           </span>
@@ -166,12 +167,15 @@ const ResultsLineup = React.createClass({
       );
 
       popup = (
-        <div className="to-contests--popup">
-          <div className="triangle-border"></div>
-          <div className="triangle"></div>
-          <div className="item switch-to-contests" onClick={this.handleSwitchToContests}>
-            View Entered Contests
-          </div>
+        <div className="actions-menu-container">
+          <ul className="actions">
+            <li>
+              <div
+                className="icon-flip action"
+                onClick={this.handleSwitchToContests}
+              ></div>
+            </li>
+          </ul>
         </div>
       );
     } else if (isLive) {
@@ -199,20 +203,20 @@ const ResultsLineup = React.createClass({
         );
 
         let editLineupURL = `/draft/${this.props.draftGroupId}/lineup/${this.props.id}/edit`;
-        let copyLineupURL = `/draft/${this.props.draftGroupId}/lineup/${this.props.id}/copy`;
         popup = (
-          <div className="to-contests--popup">
-            <div className="triangle-border"></div>
-            <div className="triangle"></div>
-            <div className="item">
-              <a href={editLineupURL}>Edit Lineup</a>
-            </div>
-            <div className="item">
-              <a href={copyLineupURL}>New Lineup via Copy</a>
-            </div>
-            <div className="item switch-to-contests" onClick={this.handleSwitchToContests}>
-              View Entered Contests
-            </div>
+          <div className="actions-menu-container">
+            <ul className="actions">
+              <li>
+                <a className="icon-edit action" href={editLineupURL} />
+              </li>
+
+              <li>
+                <div
+                  className="icon-flip action"
+                  onClick={this.handleSwitchToContests}
+                ></div>
+              </li>
+            </ul>
           </div>
         );
 
@@ -239,12 +243,15 @@ const ResultsLineup = React.createClass({
         );
 
         popup = (
-          <div className="to-contests--popup">
-            <div className="triangle-border"></div>
-            <div className="triangle"></div>
-            <div className="item switch-to-contests" onClick={this.handleSwitchToContests}>
-              View Entered Contests
-            </div>
+          <div className="actions-menu-container">
+            <ul className="actions">
+              <li>
+                <div
+                  className="icon-flip action"
+                  onClick={this.handleSwitchToContests}
+                ></div>
+              </li>
+            </ul>
           </div>
         );
       }
@@ -255,12 +262,7 @@ const ResultsLineup = React.createClass({
         <div className="header">
           {this.props.name || 'Your Lineup'}
 
-          <div className="to-contests">
-            <span>
-              …
-            </span>
-            {popup}
-          </div>
+          {popup}
 
           <div className="right-stat-title">
             {rightStatTitle}
