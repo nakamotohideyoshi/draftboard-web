@@ -18,37 +18,191 @@ const DraftPlayerDetailAverages = (props) => {
   const bsh = props.player.boxScoreHistory || {};
 
   switch (props.player.sport) {
+    /**
+     * NFL
+     */
     case 'nfl': {
-      return (
-        <div className="player-stats">
-          <ul>
-            <li>
-              <div className="stat-name">FPPG</div>
-              <div className="stat-score">
-              {roundUpToDecimalPlace(props.player.fppg, 1)}
-              </div>
-            </li>
-            <li>
-              <div className="stat-name">YDS</div>
-              <div className="stat-score">
-                {roundUpToDecimalPlace(bsh.avg_rec_yds + bsh.avg_rush_yds, 1)}
-              </div>
-            </li>
-            <li>
-              <div className="stat-name">TD</div>
-              <div className="stat-score">
-                {roundUpToDecimalPlace(bsh.avg_rec_td + bsh.avg_rush_td, 1)}
-              </div>
-            </li>
-            <li>
-              <div className="stat-name">REC</div>
-              <div className="stat-score">
-                {roundUpToDecimalPlace(bsh.avg_rec_rec, 1)}
-              </div>
-            </li>
+      // QB
+      if (props.player.position === 'QB') {
+        return (
+          <div className="player-stats">
+            <div className="stat-section">
+              <h6 className="stats-section__title">Passing Avg</h6>
+              <ul>
+                <li>
+                  <div className="stat-name">YDS</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_pass_yds, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">TD</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_pass_td, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">INT</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_pass_int, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
 
-          </ul>
-        </div>
+            <div className="stat-section">
+              <h6 className="stats-section__title">Rushing Avg</h6>
+              <ul>
+                <li>
+                  <div className="stat-name">YDS</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rush_yds, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">TD</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rush_td, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="stat-section">
+              <h6 className="stats-section__title">&nbsp;</h6>
+              <ul>
+                <li>
+                  <div className="stat-name">FUM</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_off_fum_lost, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">FP</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(props.player.fppg, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
+      }
+
+      // RB
+      if (props.player.position === 'RB') {
+        return (
+          <div className="player-stats">
+            <div className="stat-section">
+              <h6 className="stats-section__title">Rushing Avg</h6>
+              <ul>
+                <li>
+                  <div className="stat-name">YDS</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rush_yds, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">TD</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rush_td, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="stat-section">
+              <h6 className="stats-section__title">Receiving Avg</h6>
+              <ul>
+              <li>
+                <div className="stat-name">REC</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(bsh.avg_rec_rec, 1)}
+                </div>
+              </li>
+
+                <li>
+                  <div className="stat-name">YDS</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rec_yds, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">TD</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rec_td, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="stat-section">
+              <h6 className="stats-section__title">&nbsp;</h6>
+              <ul>
+                <li>
+                  <div className="stat-name">FUM</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_off_fum_lost, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">FP</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(props.player.fppg, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
+      }
+
+      // WR/TE
+      if (props.player.position === 'WR' || props.player.position === 'TE') {
+        return (
+          <div className="player-stats">
+            <div className="stat-section">
+              <h6 className="stats-section__title">Game Avg</h6>
+              <ul>
+                <li>
+                  <div className="stat-name">REC</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rec_rec, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">YDS</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rush_yds + bsh.avg_rec_yds, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">TD</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_rush_td + bsh.avg_rec_td, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">FUM</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(bsh.avg_off_fum_lost, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">FP</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(props.player.fppg, 1)}
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
+      }
+
+      // Unsupported player position
+      return (
+        <div className="player-stats"></div>
       );
     }
 

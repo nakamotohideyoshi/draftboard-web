@@ -36,6 +36,7 @@ describe('<DraftPlayerDetailAverages /> Component', () => {
     wrapper = renderComponent(
       { player: {
         sport: 'nfl',
+        position: 'QB',
         boxScoreHistory: {
           someState: 0,
         },
@@ -43,6 +44,6 @@ describe('<DraftPlayerDetailAverages /> Component', () => {
     );
 
     expect(wrapper.find(Component)).to.have.length(1);
-    expect(wrapper.find('.player-stats ul')).to.have.length(1);
+    expect(wrapper.find('ul')).to.have.length.above(1);
   });
 });
