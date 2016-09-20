@@ -1,23 +1,26 @@
 import React from 'react';
 import ReactDom from 'react-dom';
-import log from '../../lib/logging.js';
 import * as ReactRedux from 'react-redux';
+import { push as routerPush } from 'react-router-redux';
 import find from 'lodash/find';
+import log from '../../lib/logging';
 import store from '../../store';
-import LineupCard from '../lineup/lineup-card.jsx';
+import LineupCard from '../lineup/lineup-card';
 import renderComponent from '../../lib/render-component';
-import smoothScrollTo from '../../lib/smooth-scroll-to.js';
-import LobbyDraftGroupSelectionModal from './lobby-draft-group-selection-modal.jsx';
-import { fetchUpcomingLineups, lineupFocused, lineupHovered } from '../../actions/upcoming-lineup-actions.js';
+import smoothScrollTo from '../../lib/smooth-scroll-to';
+import LobbyDraftGroupSelectionModal from './lobby-draft-group-selection-modal';
+import { fetchUpcomingLineups, lineupFocused, lineupHovered } from '../../actions/upcoming-lineup-actions';
 import { openDraftGroupSelectionModal, closeDraftGroupSelectionModal } from
-  '../../actions/upcoming-draft-groups-actions.js';
-import { removeContestPoolEntry } from '../../actions/contest-pool-actions.js';
-import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector.js';
-import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport.js';
-import { focusedContestInfoSelector } from '../../selectors/lobby-selectors.js';
-import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
-import SelectDraftGroupButton from './select-draft-group-button.jsx';
-import '../contest-list/contest-list-sport-filter.jsx';
+  '../../actions/upcoming-draft-groups-actions';
+import { removeContestPoolEntry } from '../../actions/contest-pool-actions';
+import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector';
+import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport';
+import { focusedContestInfoSelector } from '../../selectors/lobby-selectors';
+import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
+import SelectDraftGroupButton from './select-draft-group-button';
+import '../contest-list/contest-list-sport-filter';
+import { removeParamFromURL } from '../../lib/utils';
+
 const { Provider, connect } = ReactRedux;
 
 
@@ -28,13 +31,14 @@ const { Provider, connect } = ReactRedux;
  */
 function mapStateToProps(state) {
   return {
-    lineups: lineupsBySportSelector(state),
-    lineupsInfo: upcomingLineupsInfo(state),
-    focusedContestInfo: focusedContestInfoSelector(state),
-    focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state),
     draftGroupSelectionModalIsOpen: state.upcomingDraftGroups.draftGroupSelectionModalIsOpen,
+    focusedContestInfo: focusedContestInfoSelector(state),
+    focusedLineupId: state.upcomingLineups.focusedLineupId,
     focusedSport: state.contestPools.filters.sportFilter.match,
+    lineups: lineupsBySportSelector(state),
+    lineupsInfo: upcomingLineupsInfo(state),
+    queryLineup: state.routing.locationBeforeTransitions.query.lineup,
   };
 }
 
@@ -45,12 +49,13 @@ function mapStateToProps(state) {
  */
 function mapDispatchToProps(dispatch) {
   return {
+    closeDraftGroupSelectionModal: () => dispatch(closeDraftGroupSelectionModal()),
     fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
     lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId)),
     lineupHovered: (lineupId) => dispatch(lineupHovered(lineupId)),
     openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal()),
-    closeDraftGroupSelectionModal: () => dispatch(closeDraftGroupSelectionModal()),
     removeContestPoolEntry: (entry) => dispatch(removeContestPoolEntry(entry)),
+    routerPush: (path) => dispatch(routerPush(path)),
   };
 }
 
@@ -62,19 +67,21 @@ function mapDispatchToProps(dispatch) {
 const LineupCardList = React.createClass({
 
   propTypes: {
-    lineupFocused: React.PropTypes.func,
-    lineupHovered: React.PropTypes.func,
+    closeDraftGroupSelectionModal: React.PropTypes.func,
+    draftGroupInfo: React.PropTypes.object,
+    draftGroupSelectionModalIsOpen: React.PropTypes.bool,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
     focusedContestInfo: React.PropTypes.object,
-    lineups: React.PropTypes.array.isRequired,
-    lineupsInfo: React.PropTypes.object,
     focusedLineupId: React.PropTypes.number,
     focusedSport: React.PropTypes.string.isRequired,
-    draftGroupInfo: React.PropTypes.object,
+    lineupFocused: React.PropTypes.func,
+    lineupHovered: React.PropTypes.func,
+    lineups: React.PropTypes.array.isRequired,
+    lineupsInfo: React.PropTypes.object,
     openDraftGroupSelectionModal: React.PropTypes.func.isRequired,
-    closeDraftGroupSelectionModal: React.PropTypes.func,
-    draftGroupSelectionModalIsOpen: React.PropTypes.bool,
+    queryLineup: React.PropTypes.string,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
+    routerPush: React.PropTypes.func,
   },
 
   getDefaultProps() {
@@ -86,8 +93,21 @@ const LineupCardList = React.createClass({
 
   componentWillMount() {
     if (window.dfs.user.isAuthenticated === true) {
-      this.props.fetchUpcomingLineups().catch((err) => {
-        log.error(err);
+      this.props.fetchUpcomingLineups().then(() => {
+        // if a lineup id was in the query params it means it was just saved and we should focus it.
+        if (this.props.queryLineup) {
+          const lineupId = parseInt(this.props.queryLineup, 10);
+          // make sure it's an integer.
+          if (typeof lineupId === 'number' && (lineupId % 1) === 0) {
+            log.info(`focusing lineup id: ${this.props.queryLineup}`);
+            this.props.lineupFocused(lineupId);
+            // Strip out the 'lineup' param from the url.
+            const strippedParams = removeParamFromURL(window.location.search, 'lineup');
+            this.props.routerPush(`/contests/${strippedParams}`);
+          } else {
+            log.warn(`lineup url param '${this.props.queryLineup}' is not an integer!`);
+          }
+        }
       });
     }
   },
