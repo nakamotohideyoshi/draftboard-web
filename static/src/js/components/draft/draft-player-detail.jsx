@@ -7,11 +7,13 @@ import store from '../../store';
 import * as AppActions from '../../stores/app-state-store';
 import renderComponent from '../../lib/render-component';
 import forEach from 'lodash/forEach';
+import get from 'lodash/get';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors';
 import { createLineupAddPlayer, removePlayer } from '../../actions/upcoming-lineup-actions';
 import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils';
 import { fetchSinglePlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import DraftPlayerDetailAverages from './draft-player-detail-averages';
+import DraftPlayerDetailGameLogs from './draft-player-detail-game-logs';
 
 const { Provider, connect } = ReactRedux;
 
@@ -88,9 +90,11 @@ const DraftPlayerDetail = React.createClass({
     // If we have a valid player id, fetch the boxscore history. The action + reducer layers will
     // take care of any caching needs for us.
     if (nextProps.player && 'player_id' in nextProps.player) {
-      this.props.fetchSinglePlayerBoxScoreHistoryIfNeeded(
-        nextProps.player.sport, nextProps.player.player_id
-      );
+      if (get(this.props, 'player.player_id') !== get(nextProps, 'player.player_id')) {
+        this.props.fetchSinglePlayerBoxScoreHistoryIfNeeded(
+          nextProps.player.sport, nextProps.player.player_id
+        );
+      }
     }
   },
 
@@ -218,133 +222,8 @@ const DraftPlayerDetail = React.createClass({
 
 
   renderPlayerSplits() {
-    const content = [];
-    let headers = [];
-
-    if (!this.props.player.splitsHistory) {
-      content.push(
-        <tr key="header"><td colSpan="10"><h5>Loading...</h5></td></tr>
-      );
-    }
-
-
-    switch (this.props.player.sport) {
-      case 'nfl':
-        headers = [
-          <th key="opp">opp</th>,
-          <th key="date">date</th>,
-          <th key="py">pass yds</th>,
-          <th key="pt">pass td</th>,
-          <th key="pi">pass int</th>,
-          <th key="ry">rush yds</th>,
-          <th key="rt">rush td</th>,
-          <th key="rcy">rec yds</th>,
-          <th key="rct">rec td</th>,
-          <th key="fum">fum</th>,
-          <th key="fp">fp</th>,
-        ];
-
-        this.props.player.splitsHistory.map((game, index) => {
-          content.push(
-            <tr key={index}>
-              <td key="1">{game.opp}</td>
-              <td key="2">{moment.utc(game.date).format('M/D/YY')}</td>
-              <td key="3">{game.pass_yds}</td>
-              <td key="4">{game.pass_td}</td>
-              <td key="5">{game.pass_int}</td>
-              <td key="6">{game.rush_yds}</td>
-              <td key="7">{game.rush_td}</td>
-              <td key="8">{game.rec_yds}</td>
-              <td key="9">{game.rec_td}</td>
-              <td key="10">{game.off_fum_lost}</td>
-              <td key="11">{game.fp}</td>
-            </tr>
-          );
-        });
-
-        break;
-
-      case 'nba':
-        headers = [
-          <th>opp</th>,
-          <th>date</th>,
-          <th>pts</th>,
-          <th>reb</th>,
-          <th>ast</th>,
-          <th>blk</th>,
-          <th>stl</th>,
-          <th>min</th>,
-          <th>to</th>,
-          <th>fp</th>,
-        ];
-
-        this.props.player.splitsHistory.map((game, index) => {
-          content.push(
-            <tr key={index}>
-              <td>{game.opp}</td>
-
-              <td>{moment(game.date, moment.ISO_8601).format('M/D/YY')}</td>
-              <td>{game.points}</td>
-              <td>{game.rebounds}</td>
-              <td>{game.assists}</td>
-              <td>{game.blocks}</td>
-              <td>{game.steals}</td>
-              <td>{game.minutes}</td>
-              <td>{game.turnovers}</td>
-              <td>{game.fp}</td>
-            </tr>
-          );
-        });
-
-        break;
-      case 'nhl':
-        headers = [
-          <th>opp</th>,
-          <th>date</th>,
-          <th>g</th>,
-          <th>ast</th>,
-          <th>blk</th>,
-          <th>sog</th>,
-          <th>s</th>,
-          <th>ga</th>,
-          <th>fp</th>,
-        ];
-
-        this.props.player.splitsHistory.map((game, index) => {
-          content.push(
-            <tr key={index}>
-              <td>{game.opp}</td>
-              <td>{moment(game.date, moment.ISO_8601).format('M/D/YY')}</td>
-              <td>{game.goal}</td>
-              <td>{game.assist}</td>
-              <td>{game.blocks}</td>
-              <td>{game.sog}</td>
-              <td>{game.saves}</td>
-              <td>{game.ga}</td>
-              <td>{game.fp}</td>
-            </tr>
-          );
-        });
-
-        break;
-      default:
-        // show nothing.
-    }
-
-
     return (
-      <div className="player-splits">
-        <table className="table">
-          <thead className="header">
-            <tr>
-              {headers}
-            </tr>
-          </thead>
-          <tbody>
-            {content}
-          </tbody>
-        </table>
-      </div>
+      <DraftPlayerDetailGameLogs player={this.props.player} />
     );
   },
 

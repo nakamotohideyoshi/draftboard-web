@@ -43,7 +43,7 @@ const shouldFetchSinglePlayerBoxScoreHistory = (state, sport, id) => !(id in sta
 
 
 export const fetchSinglePlayerBoxScoreHistoryIfNeeded = (sport, id) => (dispatch, getState) => {
-  logAction.debug('actions.fetchSinglePlayerBoxScoreHistoryIfNeeded', sport, id);
+  logAction.info('actions.fetchSinglePlayerBoxScoreHistoryIfNeeded', sport, id);
 
   if (shouldFetchSinglePlayerBoxScoreHistory(getState(), sport, id)) {
     return dispatch(fetchSinglePlayerBoxScoreHistory(sport, id));
