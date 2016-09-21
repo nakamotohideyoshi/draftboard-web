@@ -140,4 +140,18 @@ describe('reducers.contest-pools', () => {
 
     assert.equal(state.allContests[contestPoolUpdate.id], contestPoolUpdate);
   });
+
+
+  it('should handle LINEUP_FOCUSED', () => {
+    const state = reducer(defaultState, {
+      type: actionTypes.LINEUP_FOCUSED,
+      sport: 'sport_acronym',
+    });
+
+    assert.equal(
+      state.filters.sportFilter.match,
+      'sport_acronym',
+      'Focusing a lineup does not select that sport in the sport filter.'
+    );
+  });
 });

@@ -147,6 +147,18 @@ module.exports = (state = initialState, action = {}) => {
     }
 
 
+    case actionTypes.LINEUP_FOCUSED: {
+      // When a lineup is focused, select that sport.
+      // This is used when a lineup is saved and the user is redirected back to the lobby page.
+      if (action.sport) {
+        const stateCopy = merge({}, state);
+        stateCopy.filters.sportFilter.match = action.sport;
+        return stateCopy;
+      }
+      return state;
+    }
+
+
     default:
       return state;
   }

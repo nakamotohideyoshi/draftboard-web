@@ -92,10 +92,18 @@ export const fetchUpcomingLineups = (draftGroupId = null) => (dispatch) => {
 
 
 export function lineupFocused(lineupId) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    // Find the sport of the lineup so that we can select that filter.
+    const state = getState();
+    const lineup = state.upcomingLineups.lineups[lineupId];
+    let sport = '';
+    if (lineup) {
+      sport = lineup.sport;
+    }
     dispatch({
       type: actionTypes.LINEUP_FOCUSED,
       lineupId,
+      sport,
     });
   };
 }
