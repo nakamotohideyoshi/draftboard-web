@@ -16,6 +16,7 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
 )
+from account.forms import LoginForm
 from account.permissions import IsNotAuthenticated
 from account.serializers import (
     LoginSerializer,
@@ -451,7 +452,7 @@ def login(request, **kwargs):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('frontend:lobby'))
 
-    return auth_views.login(request)
+    return auth_views.login(request, authentication_form=LoginForm)
 
 
 class RegisterView(TemplateView):

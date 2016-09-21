@@ -399,4 +399,22 @@ GETIPNET_NORMAL = 0.99
 
 GEOIP_PATH = path.join(BASE_DIR, '../geoip')
 BLOCKED_COUNTRIES_CODES = []
-BLOCKED_CITIES = []
+BLOCKED_STATES = [
+    'TX',
+    'IL',
+    'GA',
+    'VA',
+    'WA',
+    'AZ',
+    'IN',
+    'AL',
+    'LA',
+    'IA',
+    'AK',
+    'NV',
+    'ID',
+    'HI',
+    'MT',
+    'DE',
+    'ND',
+]
