@@ -88,16 +88,22 @@ class UserLog(models.Model):
     """
     CHECK_IP = 0
     CHECK_COUNTRY = 1
-    CHECK_CITY = 1
+    CHECK_STATE = 2
     TYPES = (
         (CHECK_IP, 'IP check result'),
         (CHECK_COUNTRY, 'Country check result'),
-        (CHECK_CITY, 'City check result'),
+        (CHECK_STATE, 'State check result'),
     )
 
     LOGIN = 0
+    LINEUP = 1
+    CONTEST = 2
+    DEPOSIT = 3
     ACTIONS = (
         (LOGIN, 'User Login'),
+        (LINEUP, 'Line up creation'),
+        (CONTEST, 'Contest join'),
+        (DEPOSIT, 'Deposit money'),
     )
     type = models.SmallIntegerField(choices=TYPES)
     ip = models.CharField(max_length=15)
@@ -107,4 +113,6 @@ class UserLog(models.Model):
     metadata = models.TextField(blank=True, null=True)
 
     class Meta:
-        verbose_name = 'User Logs'
+        verbose_name = 'User Log'
+        verbose_name_plural = 'User Logs'
+        ordering = ['-timestamp']

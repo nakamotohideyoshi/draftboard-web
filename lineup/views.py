@@ -35,13 +35,16 @@ from draftgroup.models import DraftGroup
 from django.utils import timezone
 from datetime import timedelta
 from mysite.celery_app import TaskHelper
+from account.permissions import HasIpAccess
+from account.models import UserLog
 
 
 class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    permission_classes = (IsAuthenticated,)
+    log_action = UserLog.LINEUP
+    permission_classes = (IsAuthenticated, HasIpAccess)
     serializer_class = CreateLineupSerializer
 
     def post(self, request, format=None):

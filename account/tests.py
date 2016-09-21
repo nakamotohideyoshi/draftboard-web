@@ -367,23 +367,36 @@ class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, 
 class CheckUserAccessTest(TestCase, MasterAbstractTest):
     
     def setUp(self):
-        self.blocked_ip = '194.44.221.54'
+        self.blocked_ip = '66.228.119.72'
+        self.blocked_ip_county = '194.44.221.54'
         self.available_ip = '72.229.28.185'
         self.user = self.get_user_with_account_information('user_withinformation')
         self.action = UserLog.LOGIN
 
     @override_settings(
         BLOCKED_COUNTRIES_CODES=['UA'],
-        BLOCKED_CITIES=['Lviv']
     )
     def test_checker_failure(self):
-        checker = CheckUserAccess(action=self.action, ip=self.blocked_ip, user=self.user)
+        checker = CheckUserAccess(
+            action=self.action,
+            ip=self.blocked_ip_county,
+            user=self.user
+        )
         self.assertFalse(checker.check_location_country[0])
-        self.assertFalse(checker.check_location_city[0])
+        checker = CheckUserAccess(
+            action=self.action,
+            ip=self.blocked_ip,
+            user=self.user
+        )
+        self.assertFalse(checker.check_location_state[0])
         self.assertFalse(checker.check_ip()[0])
 
     def test_checker_ok(self):
-        checker = CheckUserAccess(action=self.action,ip=self.available_ip, user=self.user)
+        checker = CheckUserAccess(
+            action=self.action,
+            ip=self.available_ip,
+            user=self.user
+        )
         self.assertTrue(checker.check_location_country[0])
-        self.assertTrue(checker.check_location_city[0])
+        self.assertTrue(checker.check_location_state[0])
         self.assertTrue(checker.check_ip()[0])

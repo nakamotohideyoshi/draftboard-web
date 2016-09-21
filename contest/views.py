@@ -21,6 +21,8 @@ from rest_framework.exceptions import (
     NotFound,
     APIException,
 )
+from account.permissions import HasIpAccess
+from account.models import UserLog
 from contest.serializers import (
     ContestSerializer,
     UpcomingEntrySerializer,
@@ -420,7 +422,8 @@ class EnterLineupAPIView(generics.CreateAPIView):
     """
     enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
     """
-    permission_classes      = (IsAuthenticated,)
+    log_action = UserLog.CONTEST
+    permission_classes      = (IsAuthenticated, HasIpAccess)
     serializer_class        = EnterLineupSerializer
 
     def post(self, request, format=None):

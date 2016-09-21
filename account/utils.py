@@ -1,6 +1,8 @@
 import requests
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
+from geoip2.errors import AddressNotFoundError
+
 from .models import UserLog
 
 
@@ -34,6 +36,7 @@ class CheckUserAccess(object):
         """
         self.ip = ip
         self.user = user
+        self.action = action
         if not request and not ip :
             err_msg = 'request or ip and should be provided'
             raise Exception(err_msg)
@@ -79,19 +82,34 @@ class CheckUserAccess(object):
 
     @property
     def check_location_country(self):
-        country = self.geo_ip.country(self.ip)
-        result = True if country.get('country_code') not in settings.BLOCKED_COUNTRIES_CODES else False
-        msg = '' if result else 'Your country in blocked list'
-        self.create_log(UserLog.CHECK_COUNTRY, 'Access Grunted: %s, Country: %s' % (result, country.get('country_code')))
-        return result, msg
+        try:
+            country = self.geo_ip.country(self.ip)
+            result = True if country.get('country_code') not in settings.BLOCKED_COUNTRIES_CODES else False
+            msg = '' if result else 'Your country in blocked list'
+            self.create_log(UserLog.CHECK_COUNTRY, 'Access Grunted: %s, Country: %s' % (result, country.get('country_code')))
+            return result, msg
+        except AddressNotFoundError:
+            self.create_log(
+                UserLog.CHECK_COUNTRY,
+                'Access Grunted: True, IP not found in db'
+            )
+            return True, ''
+
 
     @property
-    def check_location_city(self):
-        city = self.geo_ip.city(self.ip)
-        result = True if city.get('city') not in settings.BLOCKED_CITIES else False
-        msg = '' if result else 'Your city in blocked list'
-        self.create_log(UserLog.CHECK_CITY, 'Access Grunted: %s, City: %s' % (result, city.get('city')))
-        return result, msg
+    def check_location_state(self):
+        try:
+            state = self.geo_ip.city(self.ip)
+            result = True if state.get('region') not in settings.BLOCKED_STATES else False
+            msg = '' if result else 'Your state in blocked list'
+            self.create_log(UserLog.CHECK_STATE, 'Access Grunted: %s, City: %s' % (result, state.get('region')))
+            return result, msg
+        except AddressNotFoundError:
+            self.create_log(
+                UserLog.CHECK_STATE,
+                'Access Grunted: True, IP not found in db'
+            )
+            return True, ''
 
     @property
     def check_access(self):
@@ -99,7 +117,7 @@ class CheckUserAccess(object):
         access, msg = self.check_location_country
         if not access:
             return access, msg
-        access, msg = self.check_location_city
+        access, msg = self.check_location_state
         if not access:
             return access, msg
         return self.check_ip()

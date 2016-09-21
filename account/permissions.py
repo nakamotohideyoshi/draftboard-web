@@ -1,5 +1,5 @@
 from rest_framework import permissions
-
+from .utils import CheckUserAccess
 
 class IsNotAuthenticated(permissions.BasePermission):
     """
@@ -13,3 +13,18 @@ class IsNotAuthenticated(permissions.BasePermission):
             return False
 
         return True
+
+
+class HasIpAccess(permissions.BasePermission):
+    """
+    check user location and ip
+    """
+    message = ""
+
+    def has_permission(self, request, view):
+        if not hasattr(view, 'log_action'):
+            raise Exception('Please dd log_action to use this permission')
+        action = view.log_action
+        checker = CheckUserAccess(action, request)
+        access, self.message = checker.check_access
+        return access
