@@ -42,7 +42,16 @@ const LiveOverallStats = React.createClass({
     }
 
     const strokeWidth = 2;
-    const decimalDone = 1 - timeRemaining.decimal;
+    let decimalDone = 1 - timeRemaining.decimal;
+
+    // safeguards
+    if (decimalDone <= 0) {
+      decimalDone = 0.00001;
+    }
+    if (decimalDone >= 1) {
+      decimalDone = 0.99999;
+    }
+
     const backgroundHex = '#0c0e16';
     const svgWidth = 280;
 
