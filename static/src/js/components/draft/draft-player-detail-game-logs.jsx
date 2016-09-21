@@ -69,7 +69,7 @@ const DraftPlayerDetailGameLogs = (props) => {
       }
 
       // RB, WR, TE
-      if (props.player.position === 'RB' || props.player.position === 'WR' || props.player.position === 'TE') {
+      if (props.player.position in ['RB', 'WR', 'TE']) {
         const gameLogs = props.player.splitsHistory.map((game, index) => (
           <tr key={index}>
             <td key="1">{game.opp}</td>
