@@ -5,6 +5,7 @@ import contestPools from '../../fixtures/json/contest-pools.js';
 // This is an example of a data payload from a pusher contest_pool.upate event.
 import contestPoolUpdate from
   '../../fixtures/json/pusher-event-data/contest-pool-update.js';
+import Cookies from 'js-cookie';
 
 
 describe('reducers.contest-pools', () => {
@@ -90,6 +91,43 @@ describe('reducers.contest-pools', () => {
         filterProperty: filterInfo.filterProperty,
         match: filterInfo.match,
       }
+    );
+  });
+
+
+  it('should set a cookie when the skillLevel filter changes', () => {
+    const filterInfo = {
+      filterName: 'skillLevelFilter',
+      filterProperty: 'skill_level.name',
+      match: ['veteran', 'all'],
+    };
+
+    assert.deepEqual(
+      defaultState.filters.skillLevelFilter.match,
+      ['rookie', 'all'],
+      'Initial skill level is not set to rookie.'
+    );
+
+    assert.isUndefined(
+      Cookies.get('skillLevel'),
+      'skillLevel cookie has been set before test started.'
+    );
+
+    const state = reducer(defaultState, {
+      type: actionTypes.UPCOMING_CONTESTS_FILTER_CHANGED,
+      filter: filterInfo,
+    });
+
+    assert.deepEqual(
+      state.filters.skillLevelFilter.match,
+      ['veteran', 'all'],
+      'filter not being set to veteran'
+    );
+
+    assert.equal(
+      Cookies.get('skillLevel'),
+      'veteran',
+      'skillLevel cookie is not being set.'
     );
   });
 
