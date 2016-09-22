@@ -16,7 +16,7 @@ export const humanizeFP = (fp, showPlusMinus = false) => {
       if (cleanedFp > 0) return `+${cleanedFp}`;
 
       // adds in - by default
-      return cleanedFp.toString();
+      return `- ${Math.abs(cleanedFp.toString())}`;
     }
     case 'string':
     default:
