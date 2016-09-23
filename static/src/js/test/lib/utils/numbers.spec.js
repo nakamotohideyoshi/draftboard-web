@@ -22,6 +22,8 @@ describe('utils.numbers.humanizeFP', () => {
 
   it('should return +- if showPlusMinus is true', () => {
     expect(humanizeFP(1, true)).to.equal('+1');
-    expect(humanizeFP(-1, true)).to.equal('-1');
+
+    // make sure there's an extra space in there, silly font
+    expect(humanizeFP(-1, true)).to.equal('- 1');
   });
 });
