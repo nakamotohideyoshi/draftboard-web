@@ -17,7 +17,10 @@ from account.models import (
     SavedCardDetails,
 )
 from account.forms import LoginForm
-from account.permissions import IsNotAuthenticated
+from account.permissions import (
+    IsNotAuthenticated,
+    HasIpAccess,
+)
 from account.serializers import (
     LoginSerializer,
     ForgotPasswordSerializer,
@@ -35,6 +38,7 @@ from account.serializers import (
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
 )
+from  account.models import UserLog
 import account.tasks
 from pp.classes import (
     CardData,
@@ -912,8 +916,8 @@ class VZeroGetClientTokenView(APIView):
     """
     retrieve a paypal vzero client token
     """
-
-    permission_classes = (IsAuthenticated, )
+    log_action = UserLog.DEPOSIT
+    permission_classes = (IsAuthenticated, HasIpAccess)
     serializer_classes = None
 
     def get(self, request, *args, **kwargs):
@@ -946,8 +950,8 @@ class VZeroDepositView(APIView):
             "extended_address":"Suite 1","locality":"Dover","region":"NH","postal_code":"03820",
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
-
-    permission_classes = (IsAuthenticated, )
+    log_action = UserLog.DEPOSIT
+    permission_classes = (IsAuthenticated, HasIpAccess)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
