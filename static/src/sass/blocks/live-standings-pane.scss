@@ -46,13 +46,13 @@
 
       .pmr {
         display: inline-block;
-        width: 63%;
-        text-indent: 14.5%;
+        width: 64%;
+        text-indent: 11.5%;
       }
 
       .pts {
         display: inline-block;
-        width: 19%;
+        width: 18%;
       }
 
       .prize {
@@ -134,7 +134,7 @@
 
       &--score-name {
         margin-left: 4%;
-        width: 36%;
+        width: 45%;
         display: inline-block;
         text-align: left;
       }
@@ -147,6 +147,11 @@
       &--score-earnings {
         width: 14%;
         display: inline-block;
+      }
+
+      &--score-points,
+      &--score-earnings {
+        text-align: left;
       }
     }
   }
@@ -187,12 +192,12 @@
       .pmr {
         display: inline-block;
         width: 67%;
-        text-indent: 14.5%;
+        text-indent: 14%;
       }
 
       .pts {
         display: inline-block;
-        width: 15%;
+        width: 14%;
       }
 
       .owned {
@@ -256,7 +261,7 @@
       }
 
       &--name {
-        width: 36%;
+        width: 45%;
         display: inline-block;
         text-align: left;
 
@@ -267,13 +272,17 @@
       }
       &--points {
         font-family: $font-oswald;
-        width: 18%;
         display: inline-block;
       }
       &--progress {
         font-family: $font-oswald;
-        width: 14%;
         display: inline-block;
+      }
+
+      &--points,
+      &--progress {
+        text-align: left;
+        width: 14%;
       }
 
       &--overlay {

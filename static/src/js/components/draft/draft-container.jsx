@@ -353,6 +353,7 @@ const DraftContainer = React.createClass({
           <ProbablePitchersFilter
             onUpdate={this.handleFilterChange}
             enabled={this.props.filters.probablePitchersFilter.match}
+            sport={this.props.sport}
           />
 
           <PlayerPositionFilter

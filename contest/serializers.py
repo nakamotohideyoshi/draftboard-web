@@ -71,7 +71,7 @@ class ContestPoolSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = ContestPool
-        fields = ('id', 'name', 'sport', 'status', 'start', 'buyin',
+        fields = ('id', 'name', 'sport', 'start', 'buyin',
                   'draft_group', 'max_entries', 'prize_structure', 'prize_pool',
                   'entries', 'current_entries', 'contest_size', 'skill_level')
 
@@ -124,7 +124,9 @@ class UpcomingEntrySerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Entry
-        fields = ('id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
+        fields = (
+            'id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start',
+            'lineup_name', 'sport')
 
 
 class CurrentEntrySerializer(serializers.ModelSerializer):
@@ -159,7 +161,9 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Entry
-        fields = ('id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
+        fields = (
+            'id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start',
+            'lineup_name', 'sport')
 
 
 class RegisteredUserSerializer(serializers.ModelSerializer):

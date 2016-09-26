@@ -28,27 +28,6 @@ module.exports = (state = {}, action = {}) => {
   let newProps = {};
 
   switch (action.type) {
-    case ActionTypes.REQUEST_LIVE_CONTEST_INFO:
-      newProps = {
-        id: action.id,
-        isFetchingInfo: true,
-        hasRelatedInfo: false,
-      };
-
-      return setOrMerge(state, action, newProps);
-
-
-    case ActionTypes.RECEIVE_LIVE_CONTEST_INFO:
-      return update(state, {
-        [action.response.id]: {
-          $merge: {
-            info: action.response.info,
-            expiresAt: action.expiresAt,
-            isFetchingInfo: false,
-          },
-        },
-      });
-
 
     case ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS:
       newProps = {
@@ -68,6 +47,7 @@ module.exports = (state = {}, action = {}) => {
             lineupBytes: action.lineupBytes,
             lineups: action.lineups,
             isFetchingLineups: false,
+            contestPoolId: action.contestPoolId,
           },
         },
       });

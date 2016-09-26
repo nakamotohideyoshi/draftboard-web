@@ -3,6 +3,7 @@ import { isPlayerInLineup } from '../components/draft/draft-utils.js';
 import merge from 'lodash/merge';
 import orderBy from 'lodash/orderBy';
 import find from 'lodash/find';
+import map from 'lodash/map';
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayersFilters.focusedPlayerId;
 const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
@@ -62,77 +63,127 @@ export const focusedPlayerSelector = createSelector(
       player.news = draftGroupUpdates[sport].playerUpdates.injury[focusedPlayer.player_srid];
     }
 
+
     // Attach player boxscore history to the player object.
-    if (playerBoxScoreHistory && sport && playerBoxScoreHistory[sport]) {
-      if (focusedPlayer.player_id in playerBoxScoreHistory[sport]) {
-        player.boxScoreHistory = playerBoxScoreHistory[sport][focusedPlayer.player_id];
+    if (playerBoxScoreHistory
+      && sport
+      && sport in playerBoxScoreHistory
+      && focusedPlayer.player_id in playerBoxScoreHistory[sport]
+    ) {
+      player.boxScoreHistory = playerBoxScoreHistory[sport][focusedPlayer.player_id];
 
-        // If we have boxscore info, attach splits history.
-        if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
-          // Since each sport tracks different stats, build up a sport-specific set here.
-          switch (sport) {
-            case 'nba': {
-              const playerTeam = sportInfo[sport].teams[player.team_srid];
+      // If we have boxscore info, attach splits history.
+      if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
+        // Since each sport tracks different stats, build up a sport-specific set here.
+        switch (sport) {
 
-              if (!player.boxScoreHistory.games) {
-                player.splitsHistory = [];
-                break;
-              }
+          /**
+           * NFL
+           */
+          case 'nfl': {
+            const playerTeam = sportInfo[sport].teams[player.team_srid];
 
-              player.splitsHistory = player.boxScoreHistory.games.map((game, i) => {
-                // Figure out which team the opponent was.
-                const awayTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
-                const homeTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.home_id[i] });
-                // start with the assumption that the home team is the opponent.
-                let oppTeam = homeTeam;
+            if (!player.boxScoreHistory) {
+              player.splitsHistory = [];
+              break;
+            }
+
+            player.splitsHistory = map(player.boxScoreHistory.games, (game, i) => {
+              // Figure out which team the opponent was.
+              const awayTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
+              const homeTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.home_id[i] });
+              // start with the assumption that the home team is the opponent.
+              let oppTeam = homeTeam;
+
+              if (homeTeam && awayTeam) {
                 // if the home team is actually the player's team, the away team is the opp.
                 if (homeTeam.id === playerTeam.id) {
                   oppTeam = awayTeam;
                 }
+              }
 
-                return {
-                  assists: player.boxScoreHistory.assists[i],
-                  blocks: player.boxScoreHistory.blocks[i],
-                  date: player.boxScoreHistory.start[i],
-                  fp: player.boxScoreHistory.fp[i],
-                  opp: oppTeam.alias,
-                  points: player.boxScoreHistory.points[i],
-                  rebounds: player.boxScoreHistory.rebounds[i],
-                  steals: player.boxScoreHistory.steals[i],
-                  turnovers: player.boxScoreHistory.turnovers[i],
-                  minutes: player.boxScoreHistory.minutes[i],
-                };
-              });
+              return {
+                fp: player.boxScoreHistory.fp[i],
+                pass_yds: player.boxScoreHistory.pass_yds[i],
+                pass_td: player.boxScoreHistory.pass_td[i],
+                pass_int: player.boxScoreHistory.pass_int[i],
+                rush_td: player.boxScoreHistory.rush_td[i],
+                rush_yds: player.boxScoreHistory.rush_yds[i],
+                rec_td: player.boxScoreHistory.rec_td[i],
+                rec_yds: player.boxScoreHistory.rec_yds[i],
+                off_fum_lost: player.boxScoreHistory.off_fum_lost[i],
+                opp: oppTeam.alias,
+              };
+            });
 
+            break;
+          }
+
+          /**
+           * NBA
+           */
+          case 'nba': {
+            const playerTeam = sportInfo[sport].teams[player.team_srid];
+
+            if (!player.boxScoreHistory.games) {
+              player.splitsHistory = [];
               break;
             }
 
-            case 'nhl':
-              if (!player.boxScoreHistory.games) {
-                player.splitsHistory = [];
-                break;
+            player.splitsHistory = player.boxScoreHistory.games.map((game, i) => {
+              // Figure out which team the opponent was.
+              const awayTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
+              const homeTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.home_id[i] });
+              // start with the assumption that the home team is the opponent.
+              let oppTeam = homeTeam;
+              // if the home team is actually the player's team, the away team is the opp.
+              if (homeTeam.id === playerTeam.id) {
+                oppTeam = awayTeam;
               }
-              player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
-                // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
-                // done server-side since we don't have ALL historical boxScores to pull from.
+
+              return {
+                assists: player.boxScoreHistory.assists[i],
+                blocks: player.boxScoreHistory.blocks[i],
                 date: player.boxScoreHistory.start[i],
-                opp: 'opp',
                 fp: player.boxScoreHistory.fp[i],
-                goal: player.boxScoreHistory.goal[i],
-                assist: player.boxScoreHistory.assist[i],
-                blocks: player.boxScoreHistory.blk[i],
-                sog: player.boxScoreHistory.sog[i],
-                saves: player.boxScoreHistory.saves[i],
-                ga: player.boxScoreHistory.ga[i],
-              }));
-              break;
+                opp: oppTeam.alias,
+                points: player.boxScoreHistory.points[i],
+                rebounds: player.boxScoreHistory.rebounds[i],
+                steals: player.boxScoreHistory.steals[i],
+                turnovers: player.boxScoreHistory.turnovers[i],
+                minutes: player.boxScoreHistory.minutes[i],
+              };
+            });
 
-            default:
-
+            break;
           }
-          // Now sort them by date since the server is dumb.
-          player.splitsHistory = orderBy(player.splitsHistory, 'date', 'desc');
+
+          /**
+           * NHL
+           */
+          case 'nhl':
+            if (!player.boxScoreHistory.games) {
+              player.splitsHistory = [];
+              break;
+            }
+            player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
+              date: player.boxScoreHistory.start[i],
+              opp: 'opp',
+              fp: player.boxScoreHistory.fp[i],
+              goal: player.boxScoreHistory.goal[i],
+              assist: player.boxScoreHistory.assist[i],
+              blocks: player.boxScoreHistory.blk[i],
+              sog: player.boxScoreHistory.sog[i],
+              saves: player.boxScoreHistory.saves[i],
+              ga: player.boxScoreHistory.ga[i],
+            }));
+            break;
+
+          default:
+
         }
+        // Now sort them by date since the server is dumb.
+        player.splitsHistory = orderBy(player.splitsHistory, 'date', 'desc');
       }
     }
 

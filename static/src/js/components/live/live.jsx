@@ -16,7 +16,6 @@ import { addMessage, clearMessages } from '../../actions/message-actions';
 import { bindActionCreators } from 'redux';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
-import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { Provider, connect } from 'react-redux';
 import { Router, Route, browserHistory } from 'react-router';
@@ -46,7 +45,6 @@ const mapDispatchToProps = (dispatch) => ({
     checkForUpdates,
     clearMessages,
     fetchCurrentLineupsAndRelated,
-    fetchPlayerBoxScoreHistoryIfNeeded,
     fetchRelatedLineupsInfo,
     updateLiveMode,
   }, dispatch),
@@ -145,11 +143,11 @@ export const Live = React.createClass({
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
           logComponent.warn('live.currentEntriesRefresh - fetching lineups');
-          actions.fetchCurrentLineupsAndRelated(true);
+          // actions.fetchCurrentLineupsAndRelated(true);
         }, 5000) });
 
         // also immediately check
-        actions.fetchCurrentLineupsAndRelated(true);
+        // actions.fetchCurrentLineupsAndRelated(true);
       }
 
       // stop checking once we have a contest

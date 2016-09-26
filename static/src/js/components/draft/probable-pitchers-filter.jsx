@@ -5,6 +5,7 @@ const ProbablePitchersFilter = React.createClass({
   propTypes: {
     enabled: React.PropTypes.bool,
     onUpdate: React.PropTypes.func.isRequired,
+    sport: React.PropTypes.string.isRequired,
   },
 
 
@@ -21,6 +22,11 @@ const ProbablePitchersFilter = React.createClass({
 
 
   render() {
+    // Don't show for anything other than MLB.
+    if (this.props.sport !== 'mlb') {
+      return <div className="cmp-probable-pitchers-filter"></div>;
+    }
+
     return (
       <div className="cmp-probable-pitchers-filter">
         <div className="radio-button-list__button-container">

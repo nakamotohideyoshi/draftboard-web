@@ -7,6 +7,7 @@ import merge from 'lodash/merge';
 
 const defaultTestProps = {
   enabled: true,
+  sport: 'mlb',
   onUpdate: () => true,
 };
 
@@ -58,5 +59,10 @@ describe('<ProbablePitchersFilter /> Component', () => {
     // And when the filter is disabled, should not be checked.
     wrapper.setProps({ enabled: false });
     expect(wrapper.find('.radio-button-list__input').props().checked).to.equal(false);
+  });
+
+  it('should show nothing for non-MLB sports', () => {
+    wrapper.setProps({ sport: 'NBA' });
+    expect(wrapper.find('.radio-button-list__input').length).to.equal(0);
   });
 });

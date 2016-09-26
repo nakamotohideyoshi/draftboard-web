@@ -74,14 +74,14 @@ const calcContestLineupsValues = (lineups, rankedLineupIDs, prizeRanks) => {
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-export const rankContestLineups = (contest, draftGroup, gamesTimeRemaining, prizeStructure = {}) => {
+export const rankContestLineups = (contest, contestPool, draftGroup, gamesTimeRemaining, prizeStructure = {}) => {
   logSelector.info('rankContestLineups', contest.id, {
-    info: { contest, draftGroup, gamesTimeRemaining, prizeStructure },
+    info: { contest, contestPool, draftGroup, gamesTimeRemaining, prizeStructure },
   });
 
   // return nothing if the contest hasn't started or we don't have info yet
   if (
-    new Date(contest.start).getTime() > dateNow() ||
+    new Date(contestPool.start).getTime() > dateNow() ||
     draftGroup.hasAllInfo === false
   ) return {};
 
@@ -124,41 +124,57 @@ export const rankContestLineups = (contest, draftGroup, gamesTimeRemaining, priz
 
 const onlyLiveContestsSelector = (state) => state.liveContests;
 const liveDraftGroupsSelector = (state) => state.liveDraftGroups;
+const liveContestPoolsSelector = (state) => state.liveContestPools;
 const prizesSelector = (state) => state.prizes;
 
 /**
  * Redux reselect selector to compile all relevant information for contests
  */
 export const liveContestsSelector = createSelector(
-  [onlyLiveContestsSelector, liveDraftGroupsSelector, gamesTimeRemainingSelector, prizesSelector],
-  (liveContests, liveDraftGroups, gamesTimeRemaining, prizes) =>
+  [
+    onlyLiveContestsSelector,
+    liveContestPoolsSelector,
+    liveDraftGroupsSelector,
+    gamesTimeRemainingSelector,
+    prizesSelector,
+  ],
+  (liveContests, liveContestPools, liveDraftGroups, gamesTimeRemaining, prizes) =>
     mapValues(liveContests, (contest) => {
       logSelector.info('selectors.liveContestsSelector', contest.id);
 
       // if the contest has not started, return nothing
-      if (!contest.info) return {};
+      if (!(contest.contestPoolId in liveContestPools)) return {};
+      const contestPool = liveContestPools[contest.contestPoolId];
 
       // if draft groups have not loaded yet, return nothing
-      if (liveDraftGroups.hasOwnProperty(contest.info.draft_group) === false) return {};
+      if (liveDraftGroups.hasOwnProperty(contestPool.draft_group) === false) return {};
 
-      // logSelector.info('selectors.liveContestsSelector - IN', contest.id);
+      logSelector.info('selectors.liveContestsSelector - IN', contest, contestPool);
 
       // default prize structure so we can still return stats
-      const prize = prizes[contest.info.prize_structure] || {};
+      const prize = prizes[contestPool.prize_structure] || {};
       const prizeStructure = prize.info || {};
 
+      const entriesCount = Object.keys(contest.lineups).length;
+      let percentageCanWin = prizeStructure.payout_spots / entriesCount * 100 || 100;
+
+      if (percentageCanWin > 100) {
+        percentageCanWin = 100;
+      }
+
       const stats = {
-        buyin: contest.info.buyin,
-        entriesCount: contest.info.entries,
+        buyin: contestPool.buyin,
+        entriesCount,
         id: contest.id,
-        name: contest.info.name,
-        percentageCanWin: prizeStructure.payout_spots / contest.info.entries * 100 || 100,
-        start: contest.info.start,
+        name: contestPool.name,
+        percentageCanWin,
+        start: contestPool.start,
       };
 
       const rankedLineups = rankContestLineups(
         contest,
-        liveDraftGroups[contest.info.draft_group],
+        contestPool,
+        liveDraftGroups[contestPool.draft_group],
         gamesTimeRemaining,
         prizeStructure
       );
