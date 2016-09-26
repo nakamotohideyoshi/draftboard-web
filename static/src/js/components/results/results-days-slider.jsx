@@ -48,10 +48,7 @@ const ResultsDaysSlider = React.createClass({
     state.settings.initialSlide = nextProps.day - 1;
     this.setState(state);
 
-    // if new month, trigger slick to change position
-    if (this.props.month === nextProps.month) {
-      this.refs.slider.slickGoTo(this.props.day - 1);
-    }
+    this.refs.slider.slickGoTo(nextProps.day - 1);
   },
 
   getItemsList() {
