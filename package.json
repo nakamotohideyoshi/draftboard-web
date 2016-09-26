@@ -15,7 +15,7 @@
     "babel-preset-react": "^6.5.0",
     "babel-preset-stage-2": "^6.5.0",
     "babel-register": "^6.7.2",
-    "braintree-web": "^2.27.0",
+    "braintree-web": "^3.3.0",
     "buffer": "^4.5.1",
     "card-react": "git+https://git@github.com/hhursev/card-react.git",
     "chai": "^3.2.0",

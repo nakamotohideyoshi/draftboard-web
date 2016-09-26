@@ -188,7 +188,8 @@ $button-box-shadow: 0px 5px 20px 0px rgba(22, 37, 48, 0.38);
       box-shadow: $button-box-shadow;
     }
 
-    &.button--disabled {
+    &.button--disabled,
+    &:disabled {
       background: #c6c6d0;
       color: #fff;
       transition: none;
