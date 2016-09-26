@@ -54,7 +54,6 @@ class BoxscoreSerializer(serializers.ModelSerializer):
                      'home_score','away_score',
                      # 'status', # remove because we want to start using only the Game.status!
                      'attendance','coverage',
-                     'home_score','away_score',
                      'home_scoring_data','away_scoring_data')
 
 class GameBoxscoreSerializer(serializers.ModelSerializer):
