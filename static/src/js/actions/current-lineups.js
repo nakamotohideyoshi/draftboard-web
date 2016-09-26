@@ -107,6 +107,9 @@ export const fetchCurrentLineups = () => ({
       const camelizedJson = camelizeKeys(json);
       const entries = normalize(camelizedJson, arrayOf(lineupSchema)).entities;
 
+      // API returns [] if there are no entries
+      if (!('lineups' in entries)) return {};
+
       Object.keys(entries.lineups).map((lineupId) => {
         const lineup = entries.lineups[lineupId];
         let contests = [];
