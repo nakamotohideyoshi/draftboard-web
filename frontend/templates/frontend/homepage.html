@@ -1,5 +1,6 @@
 {% load pipeline %}
 {% load staticfiles %}
+{% load analytics %}
 {% load cache %}
 
 {% cache 0 tmpl-homepage using="django_templates" %}
@@ -18,6 +19,7 @@
   <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
 
   <link rel="prefetch" href="{% static 'css/app.css' %}">
+  {% kissanalyticsjs %}
   <link rel="prefetch" href="{% static 'js/app.js' %}">
   <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400">
 </head>
