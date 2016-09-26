@@ -32,8 +32,9 @@ $results-selected-text-color: #2bb677;
 
     .results-days-slider {
       display: inline-block;
+      width: 290px;
 
-      .arrow-left, .arrow-right {
+      .slick-prev, .slick-next {
         color: #878a9f;
         display: inline-block;
         width: 20px;
@@ -42,15 +43,15 @@ $results-selected-text-color: #2bb677;
         font-weight: bold;
         transform: scaleX(0.50) translateY(9px);
         cursor: pointer;
-        top: -12px;
-        position: relative;
+        top: -6px;
+        position: absolute;
       }
-      .arrow-left {
-        margin-right: 6px;
+      .slick-prev {
+        left: -26px;
       }
 
-      .arrow-right {
-        margin-left: 6px;
+      .slick-next {
+        right: -22px;
       }
 
       .content-holder {
@@ -76,6 +77,8 @@ $results-selected-text-color: #2bb677;
         font-weight: bold;
         font-size: 9.5px;
         cursor: pointer;
+        padding-right: 25px;
+        position: relative;
 
         .value {
           display: block;
@@ -98,10 +101,12 @@ $results-selected-text-color: #2bb677;
       }
 
       .separator {
-        display: inline-block;
-        position: relative;
+        display: block;
+        position: absolute;
         height: 36px;
         width: 25px;
+        right: 0;
+        top: 0;
 
         span {
           background: #dee1e8;
@@ -129,7 +134,7 @@ $results-selected-text-color: #2bb677;
         position: relative;
         top: 4px;
         cursor: pointer;
-        margin-left: 25px;
+        margin-left: 45px;
       }
     }
 
@@ -802,8 +807,8 @@ $results-selected-text-color: #2bb677;
 
       .results-days-slider {
         position: relative;
-        top: 4px;
-        margin-left: 30px;
+        top: 14px;
+        margin-left: 60px;
       }
 
       .draft-a-team {
