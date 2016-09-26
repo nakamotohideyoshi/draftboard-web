@@ -52,7 +52,7 @@ export const fetchRelatedContestPoolInfo = (id) => (dispatch, getState) => {
     return trackUnexpected(`fetchRelatedContestPoolInfo failed, no prize structure in contest ${id}`, { state });
   }
 
-  const prizeId = pool.prize_structure;
+  const prizeId = pool.prize_structure.id;
 
   return Promise.all([
     dispatch(fetchPrizeIfNeeded(prizeId)),

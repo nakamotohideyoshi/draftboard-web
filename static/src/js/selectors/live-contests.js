@@ -152,7 +152,7 @@ export const liveContestsSelector = createSelector(
       logSelector.info('selectors.liveContestsSelector - IN', contest, contestPool);
 
       // default prize structure so we can still return stats
-      const prize = prizes[contestPool.prize_structure] || {};
+      const prize = prizes[contestPool.prize_structure.id] || {};
       const prizeStructure = prize.info || {};
 
       const entriesCount = Object.keys(contest.lineups).length;
