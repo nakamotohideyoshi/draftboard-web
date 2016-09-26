@@ -385,3 +385,10 @@ LOGGING = {
         },
     },
 }
+
+# ANALYTICS settings
+# ----------------------------------------------------------
+KISS_ANALYTICS_CODE = 'e8364f869a83f5c9e1079489abfeb217f0e0ceff'
+# enable this settings in your local settings if you want debug analytics
+# locally
+KISS_ANALYTICS_LOCAL = False

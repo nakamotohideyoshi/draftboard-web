@@ -1,6 +1,7 @@
 {% load pipeline %}
 {% load staticfiles %}
 {% load humanize %}
+{% load analytics %}
 {% spaceless %}
 
 <!DOCTYPE html>
@@ -84,7 +85,7 @@
     }
   };
   </script>
-
+  {% kissanalyticsjs %}
   <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 </body>
 </html>
