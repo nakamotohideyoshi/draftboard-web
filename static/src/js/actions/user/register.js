@@ -1,7 +1,5 @@
 import Cookies from 'js-cookie';
 import log from '../../lib/logging';
-import { handleError } from '../track-exceptions';
-import store from '../../store';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -41,13 +39,4 @@ export const registerUser = (email, username, password, passwordConfirm) =>
     }
 
     return { success: true };
-  }).catch((err) => {
-    store.dispatch(handleError(err, {
-      header: 'Website failed to respond when submitting registration.',
-      content: 'Please refresh the page to try again.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-
-    return Promise.reject('No response');
   });

@@ -17,15 +17,16 @@ export const testUsersByLineup = {
 
 describe('selectors.liveContests.rankContestLineups', () => {
   it('should return empty object if the contest has not started', () => {
-    assert.deepEqual(rankContestLineups({ start: dateNow() + 1000 }), {});
+    assert.deepEqual(rankContestLineups({}, { start: dateNow() + 1000 }), {});
   });
 
   it('should return empty object if the draft group has no info', () => {
-    assert.deepEqual(rankContestLineups({ start: dateNow() - 1000 }, { hasAllInfo: false }), {});
+    assert.deepEqual(rankContestLineups({}, { start: dateNow() - 1000 }, { hasAllInfo: false }), {});
   });
 
   it('should return shell if we do not have lineups yet', () => {
     assert.deepEqual(rankContestLineups(
+      {},
       { start: dateNow() - 1000, lineups: {} },
       { hasAllInfo: true }
     ), {
@@ -38,10 +39,12 @@ describe('selectors.liveContests.rankContestLineups', () => {
   it('should return shell if we do not have prize ranks yet', () => {
     assert.deepEqual(rankContestLineups(
       {
-        start: dateNow() - 1000,
         lineups: {
           5: testLineup,
         },
+      },
+      {
+        start: dateNow() - 1000,
       },
       {
         hasAllInfo: true,

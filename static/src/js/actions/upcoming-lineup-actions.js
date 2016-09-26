@@ -92,10 +92,18 @@ export const fetchUpcomingLineups = (draftGroupId = null) => (dispatch) => {
 
 
 export function lineupFocused(lineupId) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    // Find the sport of the lineup so that we can select that filter.
+    const state = getState();
+    const lineup = state.upcomingLineups.lineups[lineupId];
+    let sport = '';
+    if (lineup) {
+      sport = lineup.sport;
+    }
     dispatch({
       type: actionTypes.LINEUP_FOCUSED,
       lineupId,
+      sport,
     });
   };
 }
@@ -183,7 +191,7 @@ export function saveLineup(lineup, title, draftGroupId) {
           dispatch(saveLineupFail(res.body));
         } else {
           // Upon save success, send user to the lobby.
-          document.location.href = '/contests/?lineup-saved=true';
+          document.location.href = `/contests/?action=lineup-saved&lineup=${res.body.lineup_id}`;
         }
       });
   };
@@ -251,7 +259,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
               lineupId,
             });
             // Redirect to lobby with url param.
-            document.location.href = '/contests/?lineup-saved=true';
+            document.location.href = `/contests/?action=lineup-saved&lineup=${lineupId}`;
           }
         }
       });

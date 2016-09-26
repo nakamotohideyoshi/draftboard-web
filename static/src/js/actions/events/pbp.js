@@ -159,8 +159,8 @@ const yardlineToDecimal = (yardline, driveDirection) => {
   // inverse if away team
   if (driveDirection === 'rightToLeft') asDecimal = 1 - asDecimal;
 
-  if (asDecimal > 1) return 1.05;  // touchdown
-  if (asDecimal < 0) return -0.05;  // touchback
+  if (asDecimal > 1) return 1;  // touchdown
+  if (asDecimal < 0) return 0;  // touchback
   return asDecimal;
 };
 

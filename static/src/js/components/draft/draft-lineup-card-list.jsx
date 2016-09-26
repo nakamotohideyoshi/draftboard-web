@@ -10,7 +10,8 @@ import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
   from '../../actions/upcoming-lineup-actions.js';
 import map from 'lodash/map';
-// import find from 'lodash/find';
+import filter from 'lodash/filter';
+import get from 'lodash/get';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 
@@ -135,7 +136,16 @@ const DraftLineupCardList = React.createClass({
 
 
   render() {
-    const lineups = map(this.props.lineups, (lineup) => {
+    // If we are currently editing a lineup, filter that one out from the list so it doesn't
+    // get displayed.
+    const visibleLineups = filter(
+      // Cast them both as strings since the the url param is a string. If not editing, the lineupId
+      // is not available, so set a default value.
+      this.props.lineups, (lineup) =>
+        lineup.id.toString() !== get(this.props.params, 'lineupId', 'not-editing').toString()
+    );
+
+    const lineups = map(visibleLineups, (lineup) => {
       const refName = `lineup-${lineup.id}`;
       return (
         <LineupCard

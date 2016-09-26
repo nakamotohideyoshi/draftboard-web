@@ -1,12 +1,12 @@
 import React from 'react';
 import { Provider, connect } from 'react-redux';
 import store from '../../store';
-import log from '../../lib/logging';
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx';
 import GamesList from './games-list.jsx';
 import EntryList from './entry-list.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
+import ScoringInfo from './scoring-info';
 import { enterContest, setFocusedContest, removeContestPoolEntry }
   from '../../actions/contest-pool-actions';
 import * as AppActions from '../../stores/app-state-store';
@@ -156,6 +156,12 @@ const ContestListDetail = React.createClass({
         );
       }
 
+      case 'scoring': {
+        return (
+          <ScoringInfo sport={this.props.focusedContestInfo.contest.sport} />
+        );
+      }
+
       default: {
         return ('Select a tab');
       }
@@ -170,6 +176,7 @@ const ContestListDetail = React.createClass({
       { title: 'Payout', tab: 'prizes' },
       { title: 'My Entries', tab: 'entries' },
       { title: 'Games', tab: 'games' },
+      { title: 'Scoring', tab: 'scoring' },
     ];
 
     return tabs.map((tab) => {
@@ -293,11 +300,6 @@ const ContestListDetail = React.createClass({
     return (
       <div>Select a Contest</div>
     );
-  },
-
-
-  removeContestPoolEntry() {
-    log.info('removeContestPoolEntry');
   },
 
 

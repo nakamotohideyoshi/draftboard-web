@@ -5,6 +5,7 @@ import contestPools from '../../fixtures/json/contest-pools.js';
 // This is an example of a data payload from a pusher contest_pool.upate event.
 import contestPoolUpdate from
   '../../fixtures/json/pusher-event-data/contest-pool-update.js';
+import Cookies from 'js-cookie';
 
 
 describe('reducers.contest-pools', () => {
@@ -94,6 +95,43 @@ describe('reducers.contest-pools', () => {
   });
 
 
+  it('should set a cookie when the skillLevel filter changes', () => {
+    const filterInfo = {
+      filterName: 'skillLevelFilter',
+      filterProperty: 'skill_level.name',
+      match: ['veteran', 'all'],
+    };
+
+    assert.deepEqual(
+      defaultState.filters.skillLevelFilter.match,
+      ['rookie', 'all'],
+      'Initial skill level is not set to rookie.'
+    );
+
+    assert.isUndefined(
+      Cookies.get('skillLevel'),
+      'skillLevel cookie has been set before test started.'
+    );
+
+    const state = reducer(defaultState, {
+      type: actionTypes.UPCOMING_CONTESTS_FILTER_CHANGED,
+      filter: filterInfo,
+    });
+
+    assert.deepEqual(
+      state.filters.skillLevelFilter.match,
+      ['veteran', 'all'],
+      'filter not being set to veteran'
+    );
+
+    assert.equal(
+      Cookies.get('skillLevel'),
+      'veteran',
+      'skillLevel cookie is not being set.'
+    );
+  });
+
+
   it('should handle SET_FOCUSED_CONTEST', () => {
     const state = reducer(defaultState, {
       type: actionTypes.SET_FOCUSED_CONTEST,
@@ -139,5 +177,19 @@ describe('reducers.contest-pools', () => {
     });
 
     assert.equal(state.allContests[contestPoolUpdate.id], contestPoolUpdate);
+  });
+
+
+  it('should handle LINEUP_FOCUSED', () => {
+    const state = reducer(defaultState, {
+      type: actionTypes.LINEUP_FOCUSED,
+      sport: 'sport_acronym',
+    });
+
+    assert.equal(
+      state.filters.sportFilter.match,
+      'sport_acronym',
+      'Focusing a lineup does not select that sport in the sport filter.'
+    );
   });
 });

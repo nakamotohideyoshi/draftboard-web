@@ -39,6 +39,8 @@ const LivePMRProgressBar = (props) => {
     strokeWidth,
   };
 
+  const remainingD = describeArc(0, 0, radius, 0, decimalRemaining * 360);
+
   return (
     <svg className="pmr" viewBox={svgProps.viewBox}>
       <defs>
@@ -61,6 +63,7 @@ const LivePMRProgressBar = (props) => {
         <mask id={`gradientMask-${id}`}>
           <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
         </mask>
+        <path fill="none" stroke={`#${backgroundHex}`} strokeWidth={progressArc.strokeWidth} d={remainingD}></path>
         <g mask={`url(#gradientMask-${id})`}>
           <rect
             x={-svgMidpoint}
