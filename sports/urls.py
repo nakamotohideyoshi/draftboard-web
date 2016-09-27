@@ -65,7 +65,6 @@ urlpatterns = [
     url(r'^fp-history/nhl/$', FantasyPointsHistoryAPIView.as_view(), {"sport": "nhl"}),
     url(r'^fp-history/mlb/$', FantasyPointsHistoryAPIView.as_view(), {"sport": "mlb"}),
 
-
     # single player
     url(r'^player/history/nba/(?P<n_games_history>[0-9]+)/(?P<player>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nba"}),
     # all players
@@ -86,22 +85,6 @@ urlpatterns = [
     # all players - one call for hitters, one for pitchers...
     url(r'^player/history/mlb/hitter/(?P<n_games_history>[0-9]+)/$', PlayerHistoryMlbHitterAPIView.as_view(), {'sport': 'mlb'}),
     url(r'^player/history/mlb/pitcher/(?P<n_games_history>[0-9]+)/$', PlayerHistoryMlbPitcherAPIView.as_view(), {'sport': 'mlb'}),
-
-    # TODO: Remove the views for these disabled routes.
-    #
-    # both urls below return the same data.
-    #   1. the first returns only 1 players news
-    #   2. the second takes a bit longer but returns all player news
-    #
-    # url(r'^player/news/nba/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "nba"}),
-    # url(r'^player/news/nfl/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "nfl"}),
-    # url(r'^player/news/nhl/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "nhl"}),
-    # url(r'^player/news/mlb/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "mlb"}),
-    #
-    # url(r'^player/news/nba/$', PlayerNewsAPIView.as_view(), {"sport": "nba"}),
-    # url(r'^player/news/nfl/$', PlayerNewsAPIView.as_view(), {"sport": "nfl"}),
-    # url(r'^player/news/nhl/$', PlayerNewsAPIView.as_view(), {"sport": "nhl"}),
-    # url(r'^player/news/mlb/$', PlayerNewsAPIView.as_view(), {"sport": "mlb"}),
 
     #
     # for the day (or for nfl - weekly) games.
