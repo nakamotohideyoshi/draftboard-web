@@ -50,8 +50,13 @@ export default React.createClass({
   simulate() {
     const { event } = this.props;
 
-    const curAnimation = new NFLLivePlayAnimation();
+    let curAnimation = new NFLLivePlayAnimation();
+
     curAnimation.play(new NFLPlayRecapVO(event), this.field).then(() => {
+      curAnimation = null;
+      this.field.removeAll();
+      logComponent.debug('liveNFLPlay.simulate complete');
+
       // show the results, remove the animation
       store.dispatch(showAnimationEventResults(event));
 
@@ -65,6 +70,9 @@ export default React.createClass({
         store.dispatch(shiftOldestEvent());
       }, 6000);
     }).catch(error => {
+      curAnimation = null;
+      this.field.removeAll();
+
       logComponent.error('LiveNFLField.curAnimation error', error);
     });
   },
