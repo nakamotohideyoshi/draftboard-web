@@ -7,12 +7,8 @@ class ShowKissAnalyticsJS(template.Node):
 
     def render(self, context):
         code = getattr(settings, "KISS_ANALYTICS_CODE", False)
-        local = getattr(settings, "KISS_ANALYTICS_LOCAL", False)
-        if not code and not local:
-            return "<!-- KISS Analytics not included because you haven't set the settings.GOOGLE_ANALYTICS_CODE variable! -->"
-
-        if settings.DEBUG and not local:
-            return "<!-- KISS Analytics not included because you are in Debug mode! -->"
+        if not code:
+            return "<!-- KISS Analytics not included because you haven't set the settings.KISS_ANALYTICS_CODE variable! -->"
 
         return """
         <script type="text/javascript">var _kmq = _kmq || [];

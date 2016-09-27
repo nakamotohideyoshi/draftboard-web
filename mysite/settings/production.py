@@ -123,3 +123,5 @@ SLACK_UPDATES = False
 slack_updates = environ.get('SLACK_UPDATES', None)
 if slack_updates is not None and 't' in str(slack_updates).lower():
     SLACK_UPDATES = True
+
+KISS_ANALYTICS_CODE = '38999ef9bc7158192a6d6dfcc27004c48ed13538'
