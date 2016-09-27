@@ -2,6 +2,7 @@
 # models.py
 
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User
 
 class Information(models.Model):
@@ -110,7 +111,7 @@ class UserLog(models.Model):
     user = models.ForeignKey(User, related_name='logs')
     action = models.SmallIntegerField(choices=ACTIONS)
     timestamp = models.DateTimeField(auto_now=True)
-    metadata = models.TextField(blank=True, null=True)
+    metadata = JSONField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'User Log'
