@@ -71,7 +71,13 @@ class CheckUserAccess(object):
             value = float(response.content)
             result = True if value < settings.GETIPNET_NORMAL else False
             msg = '' if result else 'Your ip to risky, or VPN used'
-            self.create_log(UserLog.CHECK_IP, 'Access Grunted: %s, Risky value: %s' % (result, value))
+            self.create_log(
+                UserLog.CHECK_IP,
+                {
+                    'result': 'Access Grunted: %s, Risky value: %s' %
+                              (result, value)
+                }
+            )
             return result, msg
         # in case of out of limit
         elif response.status_code == 429:
@@ -86,15 +92,20 @@ class CheckUserAccess(object):
             country = self.geo_ip.country(self.ip)
             result = True if country.get('country_code') not in settings.BLOCKED_COUNTRIES_CODES else False
             msg = '' if result else 'Your country in blocked list'
-            self.create_log(UserLog.CHECK_COUNTRY, 'Access Grunted: %s, Country: %s' % (result, country.get('country_code')))
+            self.create_log(
+                UserLog.CHECK_COUNTRY,
+                {
+                    'result': 'Access Grunted: %s, Country: %s' %
+                              (result, country.get('country_code'))
+                }
+            )
             return result, msg
         except AddressNotFoundError:
             self.create_log(
                 UserLog.CHECK_COUNTRY,
-                'Access Grunted: True, IP not found in db'
+                {'result': 'Access Grunted: True, IP not found in db'}
             )
             return True, ''
-
 
     @property
     def check_location_state(self):
@@ -102,12 +113,18 @@ class CheckUserAccess(object):
             state = self.geo_ip.city(self.ip)
             result = True if state.get('region') not in settings.BLOCKED_STATES else False
             msg = '' if result else 'Your state in blocked list'
-            self.create_log(UserLog.CHECK_STATE, 'Access Grunted: %s, City: %s' % (result, state.get('region')))
+            self.create_log(
+                UserLog.CHECK_STATE,
+                {
+                    'result': 'Access Grunted: %s, City: %s' %
+                              (result, state.get('region'))
+                }
+            )
             return result, msg
         except AddressNotFoundError:
             self.create_log(
                 UserLog.CHECK_STATE,
-                'Access Grunted: True, IP not found in db'
+                {'result': 'Access Grunted: True, IP not found in db'}
             )
             return True, ''
 
