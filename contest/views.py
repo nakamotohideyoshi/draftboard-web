@@ -573,13 +573,9 @@ class UserPlayHistoryAPIView(APIView):
     permission_classes      = (IsAuthenticated,)
     serializer_class        = UserLineupHistorySerializer
 
-    def get(self, request, year, month, day, format=None):
+    def get_history_data(self, year, month, day):
         """
-        Given the 'task' parameter, return the status of the task (ie: the buyin)
-
-        :param request:
-        :param format:
-        :return:
+        get the historical lineup data
         """
         #print( year, month, day)
         rng     = DfsDate.get_current_dfs_date_range()
@@ -628,4 +624,94 @@ class UserPlayHistoryAPIView(APIView):
             'overall'   : overall,
         }
 
+        return data
+
+    def get(self, request, year, month, day, format=None):
+        """
+
+        """
+        data = self.get_history_data(year, month, day)
+        return Response(data, status=status.HTTP_200_OK)
+
+class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
+    """
+    inherits UserPlayHistoryAPIView for the get_history_data() method.
+
+    get the entry history & the Current lineups for a user on a day.
+    """
+
+    def get_current_data(self):
+        """
+        get the Current lineup data
+        """
+
+        # get a list of the lineups in live entries for the day
+        current_entries = CurrentEntry.objects.filter(user=self.request.user)
+
+        # TODO below
+        payouts = Payout.objects.filter( entry__in=current_entries)
+        distinct_lineup_ids = [ e.lineup.pk for e in current_entries ]
+        lineup_map = {}
+        for entry in current_entries:
+            lineup_map[ entry.lineup.pk ] = entry.lineup
+
+        #
+        # sum the values for each lineup (and all its entries for paid contests)
+        total_buyins = 0
+        num_entries = 0
+        winnings = 0
+        possible = 0
+        contest_map = {}
+        for lineup in list(lineup_map.values()):     # for each distinct lineup
+            for current_entry in current_entries.filter(lineup=lineup):
+                if current_entry.contest is None:
+                    # this means the lineup is not yet live. skip it.
+                    continue
+                total_buyins += current_entry.contest.buyin
+                num_entries += 1
+                try:
+                    winnings += payouts.get(entry=current_entry).amount
+                except Payout.DoesNotExist:
+                    pass
+                # print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
+                possible += current_entry.contest.prize_structure.generator.first_place
+                contest_map[ current_entry.contest.pk ] = current_entry.contest
+
+        overall = {
+            "buyins"    : '%.2f' % total_buyins,
+            "entries"   : num_entries,
+            "winnings"  : '%.2f' % winnings,
+            "possible"  : '%.2f' % possible,
+            "contests"  : len(contest_map.values()),
+        }
+
+        data = {
+            'lineups'   : self.serializer_class( list(lineup_map.values()), many=True).data,
+            'overall'   : overall,
+        }
+
+        return data
+
+    def get(self, request, year, month, day, format=None):
+        """
+        Given the 'task' parameter, return the status of the task (ie: the buyin)
+
+        :param request:
+        :param format:
+        :return:
+        """
+
+        # build the historical lineup data
+        history_data = self.get_history_data(year, month, day)
+
+        # build the data for any lineups that are currently live
+        current_data = self.get_current_data()
+
+        # pack it into this dict and return it
+        data = {
+            'history'   : history_data,
+            'current'   : current_data,
+        }
+
+        # return http response with the data
         return Response(data, status=status.HTTP_200_OK)
