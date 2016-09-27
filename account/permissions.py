@@ -22,9 +22,12 @@ class HasIpAccess(permissions.BasePermission):
     message = ""
 
     def has_permission(self, request, view):
-        if not hasattr(view, 'log_action'):
-            raise Exception('Please dd log_action to use this permission')
-        action = view.log_action
-        checker = CheckUserAccess(action, request)
-        access, self.message = checker.check_access
-        return access
+        if request.method == 'POST':
+            if not hasattr(view, 'log_action'):
+                raise Exception('Please dd log_action to use this permission')
+            action = view.log_action
+            checker = CheckUserAccess(action, request)
+            access, self.message = checker.check_access
+            return access
+        else:
+            return True
