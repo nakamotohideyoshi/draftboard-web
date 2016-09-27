@@ -110,10 +110,10 @@ describe('reducers.events', () => {
   });
 
 
-  it('should handle EVENT_DIFFERENCE_PLAYERS_PLAYING', () => {
+  it('should handle EVENT_REMOVE_PLAYERS_PLAYING', () => {
     // should return no players when none exist
     let state = reducer(defaultState, {
-      type: types.EVENT_DIFFERENCE_PLAYERS_PLAYING,
+      type: types.EVENT_REMOVE_PLAYERS_PLAYING,
       players: ['player1', 'player2'],
     });
     assert.deepEqual(state.playersPlaying, []);
@@ -123,10 +123,10 @@ describe('reducers.events', () => {
       playersPlaying: ['player1', 'player3'],
     });
     state = reducer(state, {
-      type: types.EVENT_DIFFERENCE_PLAYERS_PLAYING,
+      type: types.EVENT_REMOVE_PLAYERS_PLAYING,
       players: ['player1', 'player2'],
     });
-    assert.deepEqual(state.playersPlaying, ['player3']);
+    assert.deepEqual(state.playersPlaying, []);
   });
 
 
