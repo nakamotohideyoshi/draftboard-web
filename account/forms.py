@@ -7,8 +7,9 @@ from .utils import CheckUserAccess
 class LoginForm(AuthenticationForm):
 
     def clean(self):
-        checker = CheckUserAccess(action=UserLog.LOGIN, request=self.request)
+        cleaned_data = super().clean()
+        checker = CheckUserAccess(action=UserLog.LOGIN, request=self.request, user=self.user_cache)
         access, msg = checker.check_access
         if not access:
             raise forms.ValidationError(msg)
-        return super().clean()
+        return cleaned_data
