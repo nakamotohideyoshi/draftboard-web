@@ -33,12 +33,12 @@ module.exports = (state = initialState, action = {}) => {
         },
       });
 
-    case ActionTypes.EVENT_REMOVE_PLAYERS_PLAYING:
-      return update(state, {
-        $merge: {
-          playersPlaying: [],
-        },
-      });
+    case ActionTypes.EVENT_REMOVE_PLAYERS_PLAYING: {
+      const newState = merge({}, state);
+      newState.playersPlaying = [];
+
+      return newState;
+    }
 
     case ActionTypes.EVENT__SET_CURRENT: {
       const newState = merge({}, state);
