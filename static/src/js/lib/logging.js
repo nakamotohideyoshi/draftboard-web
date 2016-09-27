@@ -42,16 +42,23 @@ if (['trace', 'debug', 'info', 'warn', 'error'].indexOf(window.dfs.logLevel) > -
 
   // don't persist! we do that in python so we can clear js localStorage yet still log
   log.setLevel(logLevel, false);
+  log.getLogger('action').setLevel(logLevel);
+  log.getLogger('app').setLevel(logLevel);  // normally DEBUG
+  log.getLogger('app-state-store').setLevel(logLevel);
+  log.getLogger('component').setLevel(logLevel);
+  log.getLogger('lib').setLevel(logLevel);
+  log.getLogger('selector').setLevel(logLevel);
+} else {
+  // default custom loggers to production level, change when debugging locally
+  // search for `getLogger` on this page to learn more https://www.npmjs.com/package/loglevel
+  log.getLogger('action').setLevel('SILENT');
+  log.getLogger('app').setLevel('DEBUG');  // normally DEBUG
+  log.getLogger('app-state-store').setLevel('SILENT');
+  log.getLogger('component').setLevel('SILENT');
+  log.getLogger('lib').setLevel('SILENT');
+  log.getLogger('selector').setLevel('SILENT');
 }
 
-// default custom loggers to production level, change when debugging locally
-// search for `getLogger` on this page to learn more https://www.npmjs.com/package/loglevel
-log.getLogger('action').setLevel('SILENT');
-log.getLogger('app').setLevel('DEBUG');  // normally DEBUG
-log.getLogger('app-state-store').setLevel('SILENT');
-log.getLogger('component').setLevel('SILENT');
-log.getLogger('lib').setLevel('SILENT');
-log.getLogger('selector').setLevel('SILENT');
 
 // by default, export the log object to work with
 export default log;
