@@ -40,9 +40,9 @@ export default class RushArrow {
    * @param {number} The new progress.
    */
   set progress(value) {
+    this._progress = Math.max(0, Math.min(1, value));
     const points = this.getPoints(this.field, this.startingYardLine, this.endingYardLine, this.yardLineY);
     const path = this.getPath(points);
-    this._progress = Math.max(0, Math.min(1, value));
     this.shadow.setAttribute('d', path);
     this.arrow.setAttribute('d', path);
   }
