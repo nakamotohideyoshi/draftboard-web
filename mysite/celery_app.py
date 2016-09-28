@@ -113,7 +113,7 @@ app.conf.update(
         # checks all sports all sports
         'generate_contest_pool_contests': {
             'task': 'contest.tasks.spawn_contest_pool_contests',
-            'schedule': timedelta(seconds=60),  # every 60 seconds
+            'schedule': timedelta(seconds=30),  # every 60 seconds
             # 'args'      : ('nba',),
         },
 

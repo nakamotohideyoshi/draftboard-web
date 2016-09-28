@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+#
+# salary/tasks.py
+
 from mysite.celery_app import app, locking
 from .models import Pool
 from .classes import SalaryGenerator, PlayerFppgGenerator
@@ -8,9 +11,22 @@ from django.conf import settings
 from celery import task
 from django.core.cache import cache
 from hashlib import md5
-from statscom.classes import FantasyProjectionsNFL
+from statscom.classes import(
+    FantasyProjectionsNFL,
+    ProjectionsWeekWebhook,
+)
 from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
 from salary.models import SalaryConfig, Pool
+
+@app.task(bind=True)
+def check_current_projections_week(self):
+    api = FantasyProjectionsNFL()
+    data = api.get_projections()
+    week = data.get('week')
+
+    # send slack webhook with the week
+    webhook = ProjectionsWeekWebhook()
+    webhook.send(str(week))
 
 @app.task(bind=True)
 def generate_salaries_from_statscom_projections_nfl(self):

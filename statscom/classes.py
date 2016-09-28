@@ -14,6 +14,17 @@ import draftgroup.classes
 from statscom.models import (
     PlayerLookup,
 )
+from util.slack import Webhook
+
+class ProjectionsWeekWebhook(Webhook):
+
+    # its a piece of the full url from something like this:
+    # https://hooks.slack.com/services/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
+    identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.username = 'current-projections-week'
 
 class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
     """

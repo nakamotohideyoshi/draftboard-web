@@ -650,6 +650,8 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         db, obj_type = ns.split('.') # split into 'nflo' and 'home'/'away'
         if obj_type == self.fallback_obj_type and dataden.models.Trigger.objects.filter(db=db,
                                             collection__in=['home','away'], parent_api='pbp').count() == 0:
+            #
+            print('fallback trigger type for updating boxscore')
             # if we enter here, we are likely running a replay, and we should use the 'play'
             # from parent api 'pbp' to update team scores. it has 'home_points' and 'away_points'
             boxscore.home_score = o.get('home_points', 0.0)
@@ -658,12 +660,19 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         else:
             srid_team = o.get(self.field_srid_team)
             points = o.get(self.field_points)
+
+            is_home = True
             if srid_team == boxscore.srid_home:
                 # update the home team points
                 boxscore.home_score = points
             else:
                 # update the away team points
+                is_home = False
                 boxscore.away_score = points
+
+        print('updating boxscore is_home[%s] for '
+              'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
+
         if boxscore.home_score is None:
             boxscore.home_score = 0
         if boxscore.away_score is None:
