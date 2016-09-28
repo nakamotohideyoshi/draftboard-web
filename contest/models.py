@@ -207,22 +207,6 @@ class AbstractContest(models.Model):
         self.draft_group = dgm.get_for_contest( self )
         return self
 
-
-    def kissmetrics_data(self, user):
-        money = False
-        data = {
-            'Total Fees/Money Entered': '',
-            'Sport': self.sport,
-            'Total Entries': self.current_entries,
-            'Contest Type': self.prize_structure.get_format_str(),
-            'Total Lineups': Entry.objects.filter(user=user, contest=self).count(),
-            'In Money': money,
-        }
-        if money:
-            data['Money Won'] = 0
-            data['Place'] = 0
-        return data
-
     class Meta:
         abstract = True
 

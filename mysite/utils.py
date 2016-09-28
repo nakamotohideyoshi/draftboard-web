@@ -3,7 +3,6 @@
 
 # import os
 import urllib
-import KISSmetrics
 from ast import literal_eval
 from redis import Redis
 from django.conf import settings
@@ -121,7 +120,3 @@ class QuickCache(object):
         ret_val = self.add_to_cache_method(k, data)
         #print('stashed: key', str(k), ':', str(data))
         return ret_val
-
-
-def get_kissmetrics():
-    return KISSmetrics.Client(key=settings.KISS_ANALYTICS_CODE)

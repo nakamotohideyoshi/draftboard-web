@@ -10,7 +10,7 @@ class ShowKissAnalyticsJS(template.Node):
         if not code:
             return "<!-- KISS Analytics not included because you haven't set the settings.KISS_ANALYTICS_CODE variable! -->"
 
-        return """
+        script = """
         <script type="text/javascript">var _kmq = _kmq || [];
             var _kmk = _kmk || '""" + str(code) + """';
             function _kms(u){
@@ -25,6 +25,14 @@ class ShowKissAnalyticsJS(template.Node):
             _kms('//scripts.kissmetrics.com/' + _kmk + '.2.js');
         </script>
         """
+        user = context['user']
+        if user.is_authenticated():
+            script += """
+            <script type="text/javascript">
+                _kmq.push(['identify', '""" + str(user.username) + """']);
+            </script>
+            """
+        return script
 
 
 def kissanalyticsjs(parser, token):
