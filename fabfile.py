@@ -462,8 +462,8 @@ def reset_replay():
 
     # these processes should be running before you start the replay using /admin/replayer/timemachine/
     # you may find that you want more than web dyno, but the rest should be totally fine for running a replay.
-    operations.local("heroku ps:scale --app draftboard-delorean web=2 purger=1")
-    operations.local("heroku ps:scale --app draftboard-delorean celery300=1 celeryrt=1 celerybeat=1")
+    operations.local("heroku ps:scale --app draftboard-delorean web=2 purger=2")
+    operations.local("heroku ps:scale --app draftboard-delorean celeryrt=1 celerybeat=1")
 
     # you can turn maintenance off as early as now
     operations.local("heroku maintenance:off --app draftboard-delorean")
