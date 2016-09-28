@@ -143,7 +143,7 @@ export const Live = React.createClass({
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
           logComponent.warn('live.currentEntriesRefresh - fetching lineups');
-          // actions.fetchCurrentLineupsAndRelated(true);
+          actions.fetchCurrentLineupsAndRelated(true);
         }, 5000) });
 
         // also immediately check
