@@ -2,10 +2,11 @@ from __future__ import absolute_import
 
 #
 # mysite/tasks.py
-
+import json
 from django.conf import settings
 from django.core.cache import cache
 from mysite.celery_app import app
+from mysite.kissmetrics import track_contest_end
 from datetime import timedelta
 from django.utils import timezone
 from contest.models import (
@@ -16,6 +17,7 @@ from contest.models import (
 )
 from contest.classes import ContestPoolFiller
 from contest.payout.tasks import payout_task
+from contest.payout.models import Payout
 from draftgroup.models import DraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
@@ -186,3 +188,26 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     #                 msg_str,
     #                 HIGH_PRIORITY_FROM_EMAIL,
     #                 HIGH_PRIORITY_EMAILS)
+
+
+@app.task
+def track_contest(contest):
+    base_data = {
+        'Total Fees/Money Entered': '',
+        'Sport': contest.sport,
+        'Total Entries': contest.current_entries,
+        'Contest Type': contest.prize_structure.get_format_str(),
+    }
+    users = [x.user for x in contest.contests.distinct('users')]
+    for user in users:
+        payment = Payout.objects.filter(entry__contest=contest,
+                                        entry__user=user).first()
+        data = base_data.copy()
+        data.update({
+            'Total Lineups': contest.contests.filter(user=user).count(),
+            'In Money': True if payment else False,
+        })
+        if payment:
+            data['Money Won'] = payment.amount
+            data['Place'] = payment.rank
+        track_contest_end(user.username, data)
