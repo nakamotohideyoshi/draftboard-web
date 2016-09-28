@@ -38,7 +38,7 @@ module.exports = (markup) => {
       pusher_key: 'NONE',
       pusher_channel_prefix: 'test',
     },
-    logLevel: 'warn',
+    // logLevel: 'warn',
     replayerTimeDelta: 0,
     playerImagesBaseUrl: 'http://localhost',
   };
