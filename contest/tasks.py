@@ -191,23 +191,24 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
 
 
 @app.task
-def track_contest(contest):
-    base_data = {
-        'Total Fees/Money Entered': '',
-        'Sport': contest.sport,
-        'Total Entries': contest.current_entries,
-        'Contest Type': contest.prize_structure.get_format_str(),
-    }
-    users = [x.user for x in contest.contests.distinct('users')]
-    for user in users:
-        payment = Payout.objects.filter(entry__contest=contest,
-                                        entry__user=user).first()
-        data = base_data.copy()
-        data.update({
-            'Total Lineups': contest.contests.filter(user=user).count(),
-            'In Money': True if payment else False,
-        })
-        if payment:
-            data['Money Won'] = payment.amount
-            data['Place'] = payment.rank
-        track_contest_end(user.username, data)
+def track_contests(contests):
+    for contest in contests:
+        base_data = {
+            'Total Fees/Money Entered': contest.prize_structure.prize_pool,
+            'Sport': contest.sport,
+            'Total Entries': contest.current_entries,
+            'Contest Type': contest.prize_structure.get_format_str(),
+        }
+        users = [x.user for x in contest.contests.distinct('users')]
+        for user in users:
+            payment = Payout.objects.filter(entry__contest=contest,
+                                            entry__user=user).first()
+            data = base_data.copy()
+            data.update({
+                'Total Lineups': contest.contests.filter(user=user).count(),
+                'In Money': True if payment else False,
+            })
+            if payment:
+                data['Money Won'] = payment.amount
+                data['Place'] = payment.rank
+            track_contest_end(user.username, data)
