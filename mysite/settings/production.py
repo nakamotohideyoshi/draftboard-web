@@ -25,7 +25,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 3600
 # SECURE_HSTS_SECONDS = 31536000  # one year, prevents accepting traffic via HTTP
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # set this once all subdomains are under HTTPS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # set this if all subdomains are under HTTPS
 
 # Heroku Redis - for api views/pages
 HEROKU_REDIS_URL = environ.get('REDIS_URL')
@@ -82,9 +82,6 @@ CACHES = {
 
 # Static assets, served via cloudfront + django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
-
-# Testing mode off for production
-DEBUG = False
 
 INSTALLED_APPS += (
     'gunicorn',  # gunicorn for Heroku
