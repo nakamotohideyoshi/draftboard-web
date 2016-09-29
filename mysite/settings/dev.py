@@ -4,14 +4,11 @@ from dj_database_url import config as heroku_db_config
 from urllib import parse
 
 # Constant for determining environment
-DOMAIN = 'draftboard-dev.herokuapp.com'
-ALLOWED_HOSTS = ['.draftboard-dev.herokuapp.com', '*.draftboard-dev.herokuapp.com', ]
+DOMAIN = 'dev.draftboard.com'
+ALLOWED_HOSTS = [DOMAIN]
 
-# Testing mode off for production
+# Testing mode off
 DEBUG = False
-
-# Allowing time travel on dev server
-DATETIME_DELTA_ENABLE = True
 
 # Connect Heroku database
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
@@ -24,6 +21,11 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
 
+# SSL - we redirect all traffic to HTTPS at domain level, no need at application level
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 3600
+
 # heroku redis - for api views/pages
 HEROKU_REDIS_URL = environ.get('REDIS_URL')
 heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
@@ -31,7 +33,8 @@ heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
 API_CACHE_NAME = 'api'
 
 # Redis caching
-redis_url = parse.urlparse(environ.get('REDISCLOUD_URL'))
+REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
+redis_url = parse.urlparse(REDISCLOUD_URL)
 
 CACHES = {
     # default django cache
@@ -48,6 +51,15 @@ CACHES = {
 
     # separate one to invalidate all of cachalot if need be
     'cachalot': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    },
+
+    # separate for template caching so we can clear when we want
+    'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
         'OPTIONS': {
