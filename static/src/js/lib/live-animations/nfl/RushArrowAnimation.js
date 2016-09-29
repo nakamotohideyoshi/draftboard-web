@@ -1,6 +1,7 @@
 import LiveAnimation from '../LiveAnimation';
 import NFLPlayRecapVO from './NFLPlayRecapVO';
 import RushArrow from './graphics/RushArrow';
+import TweenLite from 'gsap';
 
 export default class RushArrowAnimation extends LiveAnimation {
 
@@ -28,6 +29,21 @@ export default class RushArrowAnimation extends LiveAnimation {
     return recap.endingYardLine();
   }
 
+  /**
+   * Returns the duration of the pass animation in seconds
+   * based on the distance of the pass.
+   * @return {number}
+   */
+  getRushDuration(recap) {
+    if (recap.rushDistance() <= 0.2) {
+      return 0.5;
+    } else if (recap.rushDistance() <= 0.4) {
+      return 1;
+    }
+
+    return 1.5;
+  }
+
   play(recap, field) {
     // Only show the rush arrow when there is visually enough room for
     // the mimimum length of the arrow (3 yards).
@@ -44,17 +60,11 @@ export default class RushArrowAnimation extends LiveAnimation {
 
     return new Promise(resolve => {
       arrow.progress = 0;
-      const tick = () => {
-        arrow.progress = arrow.progress + 0.020;
-
-        if (arrow.progress !== 1) {
-          window.requestAnimationFrame(tick);
-        } else {
-          resolve();
-        }
-      };
-
-      tick();
+      TweenLite.to(arrow, this.getRushDuration(recap), {
+        progress: 1,
+        ease: 'Linear',
+        onComplete: () => resolve(),
+      });
     });
   }
 }
