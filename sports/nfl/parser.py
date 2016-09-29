@@ -673,19 +673,22 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
             if srid_team == boxscore.srid_home:
                 # update the home team points
                 if points is not None:
+                    print('updating boxscore is_home[%s] for '
+                          'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
                     boxscore.home_score = points
             else:
                 # update the away team points
                 is_home = False
                 if points is not None:
+                    print('updating boxscore is_home[%s] for '
+                          'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
                     boxscore.away_score = points
 
-        print('updating boxscore is_home[%s] for '
-              'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
-
         if boxscore.home_score is None:
+            print('boxscore.home_score was None so initialized to 0.0')
             boxscore.home_score = 0
         if boxscore.away_score is None:
+            print('boxscore.away_score was None so initialized to 0.0')
             boxscore.away_score = 0
 
         # halftime hack to force the 'quarter' to be 3 (typically remains at 2) if status is 'halftime'
