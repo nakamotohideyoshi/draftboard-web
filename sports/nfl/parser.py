@@ -654,8 +654,16 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
             print('fallback trigger type for updating boxscore')
             # if we enter here, we are likely running a replay, and we should use the 'play'
             # from parent api 'pbp' to update team scores. it has 'home_points' and 'away_points'
-            boxscore.home_score = o.get('home_points', 0.0)
-            boxscore.away_score = o.get('away_points', 0.0)
+
+            # set home_points if they exist
+            home_score = o.get('home_points')
+            if home_score is not None:
+                boxscore.home_score = home_score
+
+            # set away points if they exist
+            away_score = o.get('away_points')
+            if away_score is not None:
+                boxscore.away_score = away_score
 
         else:
             srid_team = o.get(self.field_srid_team)
@@ -664,11 +672,13 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
             is_home = True
             if srid_team == boxscore.srid_home:
                 # update the home team points
-                boxscore.home_score = points
+                if points is not None:
+                    boxscore.home_score = points
             else:
                 # update the away team points
                 is_home = False
-                boxscore.away_score = points
+                if points is not None:
+                    boxscore.away_score = points
 
         print('updating boxscore is_home[%s] for '
               'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
