@@ -1,3 +1,6 @@
+// Since we don't always need to fire off actions via the API middleware, this
+// can be used to prevent redux from complaining about misspelled actions.
+exports.NULL = 'NULL';
 exports.USER_NOT_AUTHENTICATED = 'USER_NOT_AUTHENTICATED';
 
 // reducers.draft-group-players
@@ -168,6 +171,7 @@ exports.FETCHING_CASH_BALANCE = 'FETCHING_CASH_BALANCE';
 exports.FETCH_CASH_BALANCE_FAIL = 'FETCH_CASH_BALANCE_FAIL';
 exports.FETCH_CASH_BALANCE_SUCCESS = 'FETCH_CASH_BALANCE_SUCCESS';
 
+exports.VERIFY_LOCATION = 'VERIFY_LOCATION';
 
 // reducers.payments
 exports.WITHDRAW_FUNDS = 'WITHDRAW_FUNDS';

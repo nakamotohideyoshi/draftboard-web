@@ -20,18 +20,29 @@ const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
 }).then(response => {
   // First, reject a response that isn't in the 200 range.
   if (!response.ok) {
-    log.debug(`API request failed: ${endpoint}`, response);
-    // Log the request error to Sentry with some info.
-    Raven.captureMessage(
-      `API request failed: ${endpoint}`,
-      { extra: {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-      },
-    });
+    return response.json().then((json) => {
+      // If the error response is for a restricted location, immediately redirect to the
+      // restricted location page.
+      if (json.detail === 'IP_CHECK_FAILED') {
+        window.location.href = '/restricted-location/';
+        return Promise.reject('redirecting due to location restriction.');
+      }
 
-    return Promise.reject(response);
+      // If it wasn't a location issue, log the error, and reject the promise.
+      // The provided failure action will be called after this.
+      log.debug(`API request failed: ${endpoint}`, response);
+      // Log the request error to Sentry with some info.
+      Raven.captureMessage(
+        `API request failed: ${endpoint}`,
+        { extra: {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+        },
+      });
+
+      return Promise.reject(response);
+    });
   }
 
   // Otherwise parse the (hopefully) json from the response body.
@@ -112,10 +123,8 @@ export default store => next => action => {
         log.error(error.stack);
       }
 
-
       // Call the failure action (probably showing a message to the user) with the supplied info.
       return next(actionWith({
-
         // where to pass to
         type: failureType,
         requestType,

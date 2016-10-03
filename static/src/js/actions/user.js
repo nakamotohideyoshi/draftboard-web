@@ -1,5 +1,5 @@
-import * as types from '../action-types';
-
+import * as actionTypes from '../action-types';
+import { CALL_API } from '../middleware/api';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
@@ -7,14 +7,14 @@ import log from '../lib/logging.js';
 
 function fetchUserInfoSuccess(body) {
   return {
-    type: types.FETCH_USER_INFO_SUCCESS,
+    type: actionTypes.FETCH_USER_INFO_SUCCESS,
     body,
   };
 }
 
 function fetchUserInfoFail(ex) {
   return {
-    type: types.FETCH_USER_INFO_FAIL,
+    type: actionTypes.FETCH_USER_INFO_FAIL,
     ex,
   };
 }
@@ -43,14 +43,14 @@ export function fetchUserInfo() {
  */
 function updateUserInfoSuccess(body) {
   return {
-    type: types.UPDATE_USER_INFO_SUCCESS,
+    type: actionTypes.UPDATE_USER_INFO_SUCCESS,
     body,
   };
 }
 
 function updateUserInfoFail(body) {
   return {
-    type: types.UPDATE_USER_INFO_FAIL,
+    type: actionTypes.UPDATE_USER_INFO_FAIL,
     body,
   };
 }
@@ -82,14 +82,14 @@ export function updateUserInfo(postData = {}) {
  */
 function updateUserEmailPassSuccess(body) {
   return {
-    type: types.UPDATE_USER_EMAIL_PASS_SUCCESS,
+    type: actionTypes.UPDATE_USER_EMAIL_PASS_SUCCESS,
     body,
   };
 }
 
 function updateUserEmailPassFail(body) {
   return {
-    type: types.UPDATE_USER_EMAIL_PASS_FAIL,
+    type: actionTypes.UPDATE_USER_EMAIL_PASS_FAIL,
     body,
   };
 }
@@ -143,7 +143,7 @@ export function updateUserEmailPass(formData = {}) {
         if (res.status === 400) {
           return dispatch(updateUserEmailPassFail({ errors: res.body }));
         }
-        // Catch-all for any other error response types.
+        // Catch-all for any other error responseactionTypes.
         return dispatch(updateUserEmailPassFail({ errors: { password: [res.body.detail] } }));
       }
 
@@ -158,14 +158,14 @@ export function updateUserEmailPass(formData = {}) {
  */
 function fetchingCashBalance() {
   return {
-    type: types.FETCHING_CASH_BALANCE,
+    type: actionTypes.FETCHING_CASH_BALANCE,
   };
 }
 
 
 function fetchCashBalanceFail(body) {
   return {
-    type: types.FETCH_CASH_BALANCE_FAIL,
+    type: actionTypes.FETCH_CASH_BALANCE_FAIL,
     body,
   };
 }
@@ -173,7 +173,7 @@ function fetchCashBalanceFail(body) {
 
 function fetchCashBalanceSuccess(body) {
   return {
-    type: types.FETCH_CASH_BALANCE_SUCCESS,
+    type: actionTypes.FETCH_CASH_BALANCE_SUCCESS,
     body,
   };
 }
@@ -229,7 +229,7 @@ export function fetchCashBalanceIfNeeded() {
 export function fetchEmailNotificationSettings() {
   return (dispatch) => {
     dispatch({
-      type: types.FETCH_EMAIL_NOTIFICATIONS,
+      type: actionTypes.FETCH_EMAIL_NOTIFICATIONS,
     });
 
     return new Promise((resolve, reject) => {
@@ -249,20 +249,20 @@ export function fetchEmailNotificationSettings() {
           // If validation errors are provided, pass them along.
           if (res.body.detail) {
             return dispatch({
-              type: types.FETCH_EMAIL_NOTIFICATIONS_FAIL,
+              type: actionTypes.FETCH_EMAIL_NOTIFICATIONS_FAIL,
               body: res.detail,
             });
           }
 
           // If no specific validation errors, just send the response body.
           return dispatch({
-            type: types.FETCH_EMAIL_NOTIFICATIONS_FAIL,
+            type: actionTypes.FETCH_EMAIL_NOTIFICATIONS_FAIL,
             body: res.body,
           });
         }
 
         dispatch({
-          type: types.FETCH_EMAIL_NOTIFICATIONS_SUCCESS,
+          type: actionTypes.FETCH_EMAIL_NOTIFICATIONS_SUCCESS,
           body: res.body,
         });
         return resolve(res);
@@ -274,7 +274,7 @@ export function fetchEmailNotificationSettings() {
 export function updateEmailNotificationSettings(formData) {
   return (dispatch) => {
     dispatch({
-      type: types.UPDATE_EMAIL_NOTIFICATIONS,
+      type: actionTypes.UPDATE_EMAIL_NOTIFICATIONS,
     });
 
     return new Promise((resolve, reject) => {
@@ -293,19 +293,19 @@ export function updateEmailNotificationSettings(formData) {
           // If validation errors are provided, pass them along.
           if (res.body.detail) {
             return dispatch({
-              type: types.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
+              type: actionTypes.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
               err: res.body.detail,
             });
           }
 
           dispatch({
-            type: types.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
+            type: actionTypes.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
             err: err.message,
           });
           reject(err);
         } else {
           dispatch({
-            type: types.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS,
+            type: actionTypes.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS,
             body: res.body,
           });
           resolve(res);
@@ -314,3 +314,20 @@ export function updateEmailNotificationSettings(formData) {
     });
   };
 }
+
+
+/**
+ * API GET to verify the user's location based on their IP address.
+ * The user will be redirect to the invalid location page if this  doesn't
+ * return a 200 response. The redirection is taken care of in the API middleware
+ */
+export const verifyLocation = () => ({
+  [CALL_API]: {
+    types: [
+      actionTypes.VERIFY_LOCATION,
+      actionTypes.NULL,
+      actionTypes.ADD_MESSAGE,
+    ],
+    endpoint: '/api/account/verify-location/',
+  },
+});

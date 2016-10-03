@@ -13,6 +13,7 @@ import ProbablePitchersFilter from './probable-pitchers-filter.jsx';
 import PlayerPositionFilter from './player-position-filter.jsx';
 import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
+import { verifyLocation } from '../../actions/user';
 import { addMessage } from '../../actions/message-actions.js';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter } from
   '../../actions/draft-group-players-actions.js';
@@ -77,6 +78,7 @@ function mapDispatchToProps(dispatch) {
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
     routerPush: (path) => dispatch(routerPush(path)),
     setActiveDraftGroupId: (draftGroupId) => dispatch(setActiveDraftGroupId(draftGroupId)),
+    verifyLocation: () => dispatch(verifyLocation()),
   };
 }
 
@@ -87,33 +89,34 @@ function mapDispatchToProps(dispatch) {
 const DraftContainer = React.createClass({
 
   propTypes: {
+    activeDraftGroupBoxScores: React.PropTypes.object,
+    allPlayers: React.PropTypes.array,
+    availablePositions: React.PropTypes.array,
+    createLineupViaCopy: React.PropTypes.func.isRequired,
+    draftGroupTime: React.PropTypes.string,
+    draftGroupUpdates: React.PropTypes.object,
+    draftPlayer: React.PropTypes.func,
+    editLineupInit: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
     fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
-    draftGroupUpdates: React.PropTypes.object,
-    filters: React.PropTypes.object.isRequired,
-    createLineupViaCopy: React.PropTypes.func.isRequired,
-    editLineupInit: React.PropTypes.func,
-    importLineup: React.PropTypes.func,
-    allPlayers: React.PropTypes.array,
-    lineups: React.PropTypes.object,
     filteredPlayers: React.PropTypes.array,
+    filters: React.PropTypes.object.isRequired,
     focusPlayer: React.PropTypes.func,
-    draftPlayer: React.PropTypes.func,
-    unDraftPlayer: React.PropTypes.func,
+    importLineup: React.PropTypes.func,
+    lineups: React.PropTypes.object,
     newLineup: React.PropTypes.array,
     newLineupExtra: React.PropTypes.object,
-    updateFilter: React.PropTypes.func.isRequired,
-    sport: React.PropTypes.string,
-    availablePositions: React.PropTypes.array,
-    draftGroupTime: React.PropTypes.string,
-    teams: React.PropTypes.object.isRequired,
-    params: React.PropTypes.object,
     orderByDirection: React.PropTypes.string,
     orderByProperty: React.PropTypes.string,
-    updateOrderByFilter: React.PropTypes.func,
+    params: React.PropTypes.object,
     setActiveDraftGroupId: React.PropTypes.func.isRequired,
-    activeDraftGroupBoxScores: React.PropTypes.object,
+    sport: React.PropTypes.string,
+    teams: React.PropTypes.object.isRequired,
+    unDraftPlayer: React.PropTypes.func,
+    updateFilter: React.PropTypes.func.isRequired,
+    updateOrderByFilter: React.PropTypes.func,
+    verifyLocation: React.PropTypes.func.isRequired,
   },
 
 
@@ -136,6 +139,9 @@ const DraftContainer = React.createClass({
 
 
   componentWillMount() {
+    // First check if the user's location is valid. they will be redirected if
+    // it isn't.
+    this.props.verifyLocation();
     // load in draft group players and injuries and boxscores and stuff.
     this.loadData();
     // Initialize the lazy image loader for all player images.
