@@ -1,0 +1,46 @@
+# Action Types used for UserLogs
+LOCATION_VERIFY = 0
+CONTEST = 1
+FUNDS = 2
+AUTHENTICATION = 3
+
+TYPES = (
+    (LOCATION_VERIFY, 'Location verification'),
+    (CONTEST, 'Contest actions'),
+    (FUNDS, 'User funds actions'),
+    (AUTHENTICATION, 'User authenntication'),
+)
+
+
+# User Actions used for UserLogs
+IP_CHECK_FAILED_COUNTRY = 0
+IP_CHECK_FAILED_STATE = 1
+IP_CHECK_FAILED_VPN = 2
+IP_CHECK_STATUS = 3
+IP_CHECK_LOCAL = 4
+LOGIN = 5
+LINEUP_CREATED = 6
+LINEUP_EDIT = 7
+CONTEST_ENTERED = 8
+CONTEST_DEREGISTERED = 9
+DEPOSIT = 10
+DEPOSIT_CLIENT_TOKEN = 11
+WITHDRAWAL_PAYPAL = 12
+WITHDRAWAL_CHECK = 13
+
+ACTIONS = (
+    (IP_CHECK_FAILED_COUNTRY, 'Country check failed'),
+    (IP_CHECK_FAILED_STATE, 'State check failed'),
+    (IP_CHECK_FAILED_VPN, 'VPN check failed'),
+    (IP_CHECK_STATUS, 'IP check status'),
+    (IP_CHECK_LOCAL, 'IP check bypassed, user on local network'),
+    (LOGIN, 'User Login'),
+    (LINEUP_CREATED, 'Lineup creation'),
+    (LINEUP_EDIT, 'Lineup edited'),
+    (CONTEST_ENTERED, 'Contest entered'),
+    (CONTEST_DEREGISTERED, 'Contest deregistered'),
+    (DEPOSIT, 'Deposit funds'),
+    (DEPOSIT_CLIENT_TOKEN, 'Deposit pageview'),
+    (WITHDRAWAL_PAYPAL, 'Withraw request - paypal'),
+    (WITHDRAWAL_CHECK, 'Withraw request - check'),
+)

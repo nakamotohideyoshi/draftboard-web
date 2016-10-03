@@ -187,42 +187,45 @@ export function enterContest(contestPoolId, lineupId) {
     }).then((response) => {
       // First, reject a response that isn't in the 200 range.
       if (!response.ok) {
-        // Log the request error to Sentry with some info.
-        Raven.captureMessage(
-          'API request failed: /api/contest/enter-lineup/',
-          { extra: {
-            status: response.status,
-            statusText: response.statusText,
-            url: response.url,
-          },
-        });
-
-        // Fetch the user's current contest pool entries which will force the UI to update.
-        dispatch(fetchContestPoolEntries());
-        // Re-Fetch the contest list that will have an updated current_entries count.
-        dispatch(fetchContestPools());
-
-        // Read the text of the response and show it in a banner message
-        return response.json().then(
-          json => {
-            // Tell the state the entry attempt failed.
-            dispatch({
-              type: actionTypes.ENTERING_CONTEST_POOL_FAIL,
-              contestPoolId,
-              lineupId,
-            });
-
-            // Show the user a message
-            dispatch(addMessage({
-              header: 'Unable to join contest.',
-              level: 'warning',
-              content: json.detail,
-            }));
-
-            // Kill the promise chain.
-            return Promise.reject({ contestPoolId, lineupId, response: json });
+        return response.json().then((json) => {
+          // Redirect in case of an invalid location check.
+          if (json.detail === 'IP_CHECK_FAILED') {
+            window.location.href = '/restricted-location/';
+            return false;
           }
-        );
+
+          // Log the request error to Sentry with some info.
+          Raven.captureMessage(
+            'API request failed: /api/contest/enter-lineup/',
+            { extra: {
+              status: response.status,
+              statusText: response.statusText,
+              url: response.url,
+            },
+          });
+
+          // Fetch the user's current contest pool entries which will force the UI to update.
+          dispatch(fetchContestPoolEntries());
+          // Re-Fetch the contest list that will have an updated current_entries count.
+          dispatch(fetchContestPools());
+
+          // Tell the state the entry attempt failed.
+          dispatch({
+            type: actionTypes.ENTERING_CONTEST_POOL_FAIL,
+            contestPoolId,
+            lineupId,
+          });
+
+          // Show the user a message
+          dispatch(addMessage({
+            header: 'Unable to join contest.',
+            level: 'warning',
+            content: json.detail,
+          }));
+
+          // Kill the promise chain.
+          return Promise.reject({ contestPoolId, lineupId, response: json });
+        });
       }
 
       // If the request was a success, parse the (hopefully) json from the response body.

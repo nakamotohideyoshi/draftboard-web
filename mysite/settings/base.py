@@ -385,3 +385,36 @@ LOGGING = {
         },
     },
 }
+
+# GETIPNET settings
+# ----------------------------------------------------------
+
+GETIPNET_DEFAULT_SUBDOMAIN = "check"
+GETIPNET_SUBDOMAIN = "runfdv4kure0vjqfmdl8hba"
+GETIPNET_CONTACT = "inlanger@gmail.com"
+GETIPNET_NORMAL = 0.99
+
+# GEOIP settings
+# ----------------------------------------------------------
+
+GEOIP_PATH = path.join(BASE_DIR, '../geoip')
+BLOCKED_COUNTRIES_CODES = []
+BLOCKED_STATES = [
+    'TX',
+    'IL',
+    'GA',
+    'VA',
+    'WA',
+    'AZ',
+    'IN',
+    'AL',
+    'LA',
+    'IA',
+    'AK',
+    'NV',
+    'ID',
+    'HI',
+    'MT',
+    'DE',
+    'ND',
+]
