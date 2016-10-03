@@ -36,15 +36,15 @@ from django.utils import timezone
 from datetime import timedelta
 from mysite.celery_app import TaskHelper
 from account.permissions import HasIpAccess
-from account.models import UserLog
+from account import const as _account_const
+from account.utils import create_user_log
 
 
 class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    log_action = UserLog.LINEUP
-    permission_classes = (IsAuthenticated, HasIpAccess)
+    permission_classes = (IsAuthenticated, HasIpAccess,)
     serializer_class = CreateLineupSerializer
 
     def post(self, request, format=None):
@@ -93,10 +93,22 @@ class CreateLineupAPIView(generics.CreateAPIView):
         except Exception as e:
             raise APIException(e)
 
+        create_user_log(
+            request=request,
+            type=_account_const.CONTEST,
+            action=_account_const.LINEUP_CREATED,
+            metadata={
+                'detail': 'Lineup was created.',
+                'lineup_id': lineup.id,
+                'players': players,
+            }
+        )
+
         # On successful lineup creation:
         return Response({
             'detail': 'Lineup created.',
             'lineup_id': lineup.id
+
         }, status=status.HTTP_201_CREATED)
 
 
@@ -180,11 +192,10 @@ class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, HasIpAccess,)
     serializer_class = EditLineupSerializer
 
     def post(self, request, format=None):
-        # print( request.data )
         lineup_id = request.data.get('lineup')
         players = request.data.get('players', [])
         name = request.data.get('name', '')
@@ -216,6 +227,17 @@ class EditLineupAPIView(generics.CreateAPIView):
         # get() blocks the view from returning until the task finishes
         task_result.get()
         task_helper = TaskHelper(edit_lineup, task_result.id)
+
+        create_user_log(
+            request=request,
+            type=_account_const.CONTEST,
+            action=_account_const.LINEUP_EDIT,
+            metadata={
+                'detail': 'Lineup was edited.',
+                'lineup_id': lineup.id,
+                'players': players
+            }
+        )
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 
@@ -330,7 +352,6 @@ class UserLiveAPIView(AbstractLineupAPIView):
         offset_hours = 12
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
-        # print('now', str(now), 'dt', str(dt))
         return Lineup.objects.filter(user=self.request.user,
                                      draft_group__start__lte=now,
                                      draft_group__end__gt=dt)
@@ -350,5 +371,4 @@ class UserHistoryAPIView(AbstractLineupAPIView):
         offset_hours = 12
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
-        # print(str(dt))
         return Lineup.objects.filter(user=self.request.user, draft_group__end__lte=dt)

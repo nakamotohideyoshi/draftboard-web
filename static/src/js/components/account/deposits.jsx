@@ -6,6 +6,7 @@ import { deposit } from '../../actions/payments';
 import { setupPaypalButton } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
 import { fetchPayPalClientTokenIfNeeded } from '../../actions/payments';
+import { verifyLocation } from '../../actions/user';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
@@ -26,6 +27,7 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchPayPalClientTokenIfNeeded: () => dispatch(fetchPayPalClientTokenIfNeeded()),
     deposit: (nonce, amount) => dispatch(deposit(nonce, amount)),
+    verifyLocation: () => dispatch(verifyLocation()),
     setupPaypalButton,
   };
 }
@@ -40,6 +42,7 @@ const Deposits = React.createClass({
     payPalNonce: React.PropTypes.string,
     fetchPayPalClientTokenIfNeeded: React.PropTypes.func.isRequired,
     setupPaypalButton: React.PropTypes.func.isRequired,
+    verifyLocation: React.PropTypes.func.isRequired,
   },
 
 
@@ -51,6 +54,10 @@ const Deposits = React.createClass({
 
 
   componentWillMount() {
+    // First check if the user's location is valid. they will be redirected if
+    // it isn't.
+    this.props.verifyLocation();
+    // Subscribe to the success event of this form, rest when it fires.
     PubSub.subscribe('account.depositSuccess', () => this.resetForm());
     // Once we know it will mount, fetch a paypal client token from our server.
     // We need this in order to get a nonce from the user.

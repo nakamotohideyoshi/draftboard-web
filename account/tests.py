@@ -1,9 +1,9 @@
 from .classes import AccountInformation
 from .exceptions import AccountInformationException
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
 from django.test import Client
 from django.test import TestCase
+from django.test import RequestFactory
 from django.test.utils import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -23,7 +23,7 @@ from account.views import (
     # PayPalSavedCardListAPIView,
 )
 from .utils import CheckUserAccess
-from .models import UserLog
+# from account import const as _account_const
 
 
 class AccountsViewsTest(TestCase):
@@ -365,38 +365,41 @@ class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, 
 
 
 class CheckUserAccessTest(TestCase, MasterAbstractTest):
-    
+
     def setUp(self):
+        self.factory = RequestFactory()
         self.blocked_ip = '66.228.119.72'
-        self.blocked_ip_county = '194.44.221.54'
+        self.blocked_ip_country = '194.44.221.54'
         self.available_ip = '72.229.28.185'
         self.user = self.get_user_with_account_information('user_withinformation')
-        self.action = UserLog.LOGIN
 
     @override_settings(
         BLOCKED_COUNTRIES_CODES=['UA'],
     )
     def test_checker_failure(self):
-        checker = CheckUserAccess(
-            action=self.action,
-            ip=self.blocked_ip_county,
-            user=self.user
-        )
+        # A request with the blocked state IP
+        blocked_request = self.factory.get('/', REMOTE_ADDR=self.blocked_ip)
+        blocked_request.user = self.user
+        # A request with the blocked country IP
+        blocked_country_request = self.factory.get('/', REMOTE_ADDR=self.blocked_ip_country)
+        blocked_country_request.user = self.user
+
+        # Make sure the blocked country request fails.
+        checker = CheckUserAccess(blocked_country_request)
         self.assertFalse(checker.check_location_country[0])
-        checker = CheckUserAccess(
-            action=self.action,
-            ip=self.blocked_ip,
-            user=self.user
-        )
+
+        # Make sure the blocked state request fails.
+        checker = CheckUserAccess(blocked_request)
         self.assertFalse(checker.check_location_state[0])
         self.assertFalse(checker.check_ip()[0])
 
     def test_checker_ok(self):
-        checker = CheckUserAccess(
-            action=self.action,
-            ip=self.available_ip,
-            user=self.user
-        )
+        # A valid request
+        valid_request = self.factory.get('/', REMOTE_ADDR=self.available_ip)
+        valid_request.user = self.user
+
+        # Make sure a valid request passes.
+        checker = CheckUserAccess(valid_request)
         self.assertTrue(checker.check_location_country[0])
         self.assertTrue(checker.check_location_state[0])
         self.assertTrue(checker.check_ip()[0])

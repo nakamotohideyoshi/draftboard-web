@@ -9,6 +9,7 @@ const defaultTestProps = {
   errors: {},
   isWithdrawing: false,
   onWithdraw: () => true,
+  verifyLocation: () => true,
 };
 
 
