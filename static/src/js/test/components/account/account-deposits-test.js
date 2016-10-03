@@ -18,6 +18,7 @@ describe('<Deposits /> Component', () => {
     payPalClientToken: null,
     setupBraintree: () => true,
     beginPaypalCheckout: () => true,
+    verifyLocation: () => true,
   };
 
 
