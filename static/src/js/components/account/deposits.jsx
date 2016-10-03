@@ -5,10 +5,10 @@ import renderComponent from '../../lib/render-component';
 import { deposit } from '../../actions/payments';
 import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
+import { verifyLocation } from '../../actions/user';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
-// import { addMessage } from '../../actions/message-actions';
 
 const { Provider, connect } = ReactRedux;
 const depositOptions = ['25', '50', '100', '250', '500'];
@@ -28,6 +28,7 @@ function mapDispatchToProps(dispatch) {
     deposit: (nonce, amount) => dispatch(deposit(nonce, amount)),
     setupBraintree: (callback) => setupBraintree(callback),
     beginPaypalCheckout: (options) => beginPaypalCheckout(options),
+    verifyLocation: () => dispatch(verifyLocation()),
   };
 }
 
@@ -42,6 +43,7 @@ const Deposits = React.createClass({
     payPalClientToken: React.PropTypes.string,
     setupBraintree: React.PropTypes.func.isRequired,
     beginPaypalCheckout: React.PropTypes.func.isRequired,
+    verifyLocation: React.PropTypes.func.isRequired,
   },
 
 
@@ -61,6 +63,9 @@ const Deposits = React.createClass({
       this.setState({ paypalInstance });
       this.enablePaypalButton();
     });
+    // First check if the user's location is valid. they will be redirected if
+    // it isn't.
+    this.props.verifyLocation();
     // Listen for a succesful deposit message.
     // When we find out the deposit is a success, reset the form.
     PubSub.subscribe('account.depositSuccess', () => this.resetForm());

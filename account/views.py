@@ -16,7 +16,11 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
 )
-from account.permissions import IsNotAuthenticated
+from account.forms import LoginForm
+from account.permissions import (
+    IsNotAuthenticated,
+    HasIpAccess,
+)
 from account.serializers import (
     LoginSerializer,
     ForgotPasswordSerializer,
@@ -34,6 +38,7 @@ from account.serializers import (
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
 )
+
 import account.tasks
 from pp.classes import (
     CardData,
@@ -43,7 +48,6 @@ from pp.classes import (
     VZeroTransaction,
 )
 from pp.serializers import (
-    VZeroShippingSerializer,
     VZeroDepositSerializer,
 )
 from cash.classes import (
@@ -58,6 +62,8 @@ from rest_framework.exceptions import APIException
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
+from account import const as _account_const
+from account.utils import create_user_log
 
 
 @api_view()
@@ -451,7 +457,7 @@ def login(request, **kwargs):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('frontend:lobby'))
 
-    return auth_views.login(request)
+    return auth_views.login(request, authentication_form=LoginForm)
 
 
 class RegisterView(TemplateView):
@@ -911,8 +917,7 @@ class VZeroGetClientTokenView(APIView):
     """
     retrieve a paypal vzero client token
     """
-
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (HasIpAccess, )
     serializer_classes = None
 
     def get(self, request, *args, **kwargs):
@@ -945,8 +950,7 @@ class VZeroDepositView(APIView):
             "extended_address":"Suite 1","locality":"Dover","region":"NH","postal_code":"03820",
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
-
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, HasIpAccess)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -998,7 +1002,30 @@ class VZeroDepositView(APIView):
             ct = CashTransaction(self.request.user)
             ct.deposit_vzero(amount, transaction_id)
         except Exception:
-            raise APIException('Error adding funds to draftboard account. Please contact admin@draftboard.com')
+            raise APIException(
+                'Error adding funds to draftboard account. Please contact admin@draftboard.com')
+
+        create_user_log(
+            request=request,
+            type=_account_const.FUNDS,
+            action=_account_const.DEPOSIT,
+            metadata={
+                'detail': 'Funds deposited via PayPal.',
+                'amount': amount,
+                'transaction_data': transaction_data,
+            }
+        )
 
         # return success response if everything went ok
         return Response(status=200)
+
+
+class VerifyLocationAPIView(APIView):
+    """
+    A simple endpoint to run the HasIpAccess permission class.
+    If the user's IP acceptable, return 200. otherwise a 403.
+    """
+    permission_classes = (HasIpAccess,)
+
+    def get(self, request, *args, **kwargs):
+        return Response(data={"detail": "location verification passed"}, status=200,)

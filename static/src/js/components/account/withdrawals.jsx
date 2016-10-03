@@ -3,6 +3,7 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { withdraw } from '../../actions/payments';
+import { verifyLocation } from '../../actions/user';
 import forEach from 'lodash/forEach';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
@@ -20,6 +21,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     onWithdraw: (postData) => dispatch(withdraw(postData)),
+    verifyLocation: () => dispatch(verifyLocation()),
   };
 }
 
@@ -30,6 +32,7 @@ const Withdrawals = React.createClass({
     errors: React.PropTypes.object.isRequired,
     onWithdraw: React.PropTypes.func.isRequired,
     isWithdrawing: React.PropTypes.bool.isRequired,
+    verifyLocation: React.PropTypes.func.isRequired,
   },
 
 
@@ -41,6 +44,9 @@ const Withdrawals = React.createClass({
 
 
   componentWillMount() {
+    // First check if the user's location is valid. they will be redirected if
+    // it isn't.
+    this.props.verifyLocation();
     PubSub.subscribe('account.withdrawSuccess', () => this.resetForm());
   },
 

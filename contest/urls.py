@@ -42,7 +42,7 @@ urlpatterns = [
 
     #
     # edit entry (ie: edit a lineup that is associated in a contest)
-    url(r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
+    # url(r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id

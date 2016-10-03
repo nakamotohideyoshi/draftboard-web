@@ -159,3 +159,7 @@ class FrontendPaneTemplateView(TemplateView):
 
 class FrontendTermsConditionsTemplateView(TemplateView):
     template_name = 'frontend/terms-conditions.html'
+
+
+class FrontendRestrictedLocationTemplateView(TemplateView):
+    template_name = 'frontend/restricted-location.html'
