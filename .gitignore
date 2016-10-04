@@ -101,7 +101,7 @@ celerybeat-schedule
 logs*
 
 # User-specific settings
-mysite/settings/zach.py
+mysite/settings/dev_zach.py
 mysite/settings/craigruks.py
 mysite/settings/ivo.py
 mysite/settings/hristo.py
@@ -130,4 +130,3 @@ mysite/smugglin/
 
 # pyenv named '.pythonenv'
 .pythonenv/*
-
