@@ -91,3 +91,6 @@ flower==0.8.4
 urllib3==1.16   # urllib3==1.14
 
 paypalrestsdk==1.11.5
+
+# for looking up state/city with a zipcode
+zipcode==2.0.0

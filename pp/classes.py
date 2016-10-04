@@ -85,7 +85,6 @@ class VZeroShipping(object):
         vzero_shipping_serializer.is_valid(raise_exception=True)
         self.update_data(vzero_shipping_serializer.data)
 
-
 class VZeroTransaction(object):
 
     class ValidationError(Exception):
@@ -161,10 +160,6 @@ class VZeroTransaction(object):
                           data.get(self.field_payment_method_nonce))
 
     def update_data(self, shipping_data, transaction_data):
-        """
-
-        """
-
         # update the shipping data
         self.update_shipping_data(shipping_data)
 
@@ -173,7 +168,6 @@ class VZeroTransaction(object):
 
         # raise exceptions if any required fields are not set
         self.validate()
-
 
 class VZero(object):
 
@@ -956,3 +950,4 @@ class PayoutResponse(object):
         transaction_status = self.get_item().get(self.field_transaction_status)
         print('transaction_status:', str(transaction_status))
         return transaction_status
+
