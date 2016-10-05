@@ -21,6 +21,8 @@ function mapStateToProps(state) {
     payPalNonce: state.payments.payPalNonce,
     payPalClientToken: state.payments.payPalClientToken,
     isDepositing: state.payments.isDepositing,
+    identityFormErrors: state.user.identityFormErrors,
+    identityFormIsSending: state.user.identityFormIsSending,
   };
 }
 
@@ -47,6 +49,8 @@ const Deposits = React.createClass({
     beginPaypalCheckout: React.PropTypes.func.isRequired,
     verifyLocation: React.PropTypes.func.isRequired,
     verifyIdentity: React.PropTypes.func.isRequired,
+    identityFormErrors: React.PropTypes.object,
+    identityFormIsSending: React.PropTypes.bool,
   },
 
 
@@ -291,7 +295,7 @@ const Deposits = React.createClass({
         </div>
 
         <Modal
-          isOpen={false}
+          isOpen={!this.props.user.isIdentityVerified}
           onClose={this.close}
           className="cmp-modal-identity-form"
           showCloseBtn={false}
@@ -299,6 +303,8 @@ const Deposits = React.createClass({
           <div className="cmp-modal__content">
             <IdentityForm
               verifyIdentity={this.props.verifyIdentity}
+              errors={this.props.identityFormErrors}
+              formIsSending={this.props.identityFormIsSending}
             />
           </div>
         </Modal>
