@@ -5,11 +5,12 @@ import renderComponent from '../../lib/render-component';
 import { deposit } from '../../actions/payments';
 import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
-import { verifyLocation } from '../../actions/user';
+import { verifyLocation, verifyIdentity } from '../../actions/user';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
-
+import Modal from '../modal/modal';
+import IdentityForm from './subcomponents/identity-form';
 const { Provider, connect } = ReactRedux;
 const depositOptions = ['25', '50', '100', '250', '500'];
 
@@ -29,6 +30,7 @@ function mapDispatchToProps(dispatch) {
     setupBraintree: (callback) => setupBraintree(callback),
     beginPaypalCheckout: (options) => beginPaypalCheckout(options),
     verifyLocation: () => dispatch(verifyLocation()),
+    verifyIdentity: (postData) => dispatch(verifyIdentity(postData)),
   };
 }
 
@@ -44,6 +46,7 @@ const Deposits = React.createClass({
     setupBraintree: React.PropTypes.func.isRequired,
     beginPaypalCheckout: React.PropTypes.func.isRequired,
     verifyLocation: React.PropTypes.func.isRequired,
+    verifyIdentity: React.PropTypes.func.isRequired,
   },
 
 
@@ -287,6 +290,20 @@ const Deposits = React.createClass({
             onClick={this.handleButtonClick}
           >{ this.getButtonText() }</button>
         </div>
+
+        <Modal
+          isOpen={false}
+          onClose={this.close}
+          className="cmp-modal-identity-form"
+          showCloseBtn={false}
+        >
+          <div className="cmp-modal__content">
+            <IdentityForm
+              verifyIdentity={this.props.verifyIdentity}
+            />
+          </div>
+        </Modal>
+
       </div>
     );
   },

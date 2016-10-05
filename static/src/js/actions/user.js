@@ -1,8 +1,17 @@
 import * as actionTypes from '../action-types';
+// import Raven from 'raven-js';
+import log from '../lib/logging.js';
 import { CALL_API } from '../middleware/api';
 import request from 'superagent';
 import Cookies from 'js-cookie';
-import log from '../lib/logging.js';
+import fetch from 'isomorphic-fetch';
+import { addMessage } from './message-actions';
+
+// custom API domain for local dev testing
+let { API_DOMAIN = '' } = process.env;
+// For some dumb reason fetch isn't adding the domain for POST requests, when testing we need
+// a full domain in order for nock to work.
+if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
 
 
 function fetchUserInfoSuccess(body) {
@@ -331,3 +340,68 @@ export const verifyLocation = () => ({
     endpoint: '/api/account/verify-location/',
   },
 });
+
+
+/**
+ * Verify a user's identity with Trulioo.
+ * @param  {Object} postData The field data form the IdentityForm component.
+ * @return {Promise}
+ */
+export function verifyIdentity(postData) {
+  return (dispatch) => {
+    // Tell the state that we are currently verifying an identity.
+    dispatch({
+      type: actionTypes.VERIFY_IDENTITY__SEND,
+    });
+
+    return fetch(`${API_DOMAIN}/api/account/verify-user/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        username: Cookies.get('username'),
+      },
+      body: JSON.stringify(postData),
+    }).then((response) => {
+      // If the response was not in the success (2xx) range...
+      if (!response.ok) {
+        // Extract the text and dispatch some actions.
+        return response.json().then(
+          json => {
+            dispatch(addMessage({
+              header: 'Unable to verify your identity.',
+              level: 'warning',
+              content: json.detail,
+            }));
+
+            // Tell the state it failed.
+            dispatch({ type: actionTypes.VERIFY_IDENTITY__FAIL });
+            // Kill the promise chain.
+            return Promise.reject({ response: json });
+          }
+        );
+      }
+
+      // if it was a success...
+      dispatch({
+        type: actionTypes.VERIFY_IDENTITY__SUCCESS,
+      });
+
+      // Show a success message.
+      dispatch(addMessage({
+        level: 'success',
+        header: 'Your identity was verified.',
+        ttl: 3000,
+      }));
+
+      // Parse the json response and resolve the promise chain.
+      return response.json().then(json => {
+        log.debug(json);
+        return Promise.resolve({ response: json });
+      });
+    });
+  };
+}
