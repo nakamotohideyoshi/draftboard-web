@@ -374,13 +374,16 @@ export function verifyIdentity(postData) {
             dispatch(addMessage({
               header: 'Unable to verify your identity.',
               level: 'warning',
-              content: json.detail,
+              content: json.detail || 'Please contact us if you beleive this is an error.',
             }));
 
             // Tell the state it failed.
-            dispatch({ type: actionTypes.VERIFY_IDENTITY__FAIL });
+            dispatch({
+              type: actionTypes.VERIFY_IDENTITY__FAIL,
+              response: json,
+            });
             // Kill the promise chain.
-            return Promise.reject({ response: json });
+            return Promise.resolve({ err: json });
           }
         );
       }
