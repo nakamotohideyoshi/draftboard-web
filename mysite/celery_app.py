@@ -37,6 +37,7 @@ app = Celery('mysite')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
+#
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
 broker_url = settings.CACHES['default']['LOCATION']
@@ -67,6 +68,13 @@ app.conf.update(
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
             'schedule': crontab(minute=0, hour='17'),  # ~ noon
+        },
+
+        #
+        #
+        'notify_withdraws' : {
+            'task' : 'cash.withdraw.tasks.notify_recent_withdraws',
+            'schedule' : crontab(minute=0, hour='17'), # ~ noon
         },
 
         #
@@ -201,20 +209,24 @@ app.conf.update(
             'schedule': crontab(hour='9'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('nba',),
         },
+
         'nhl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='9', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('nhl',),
         },
+
         'nfl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='9', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('nfl',),
         },
+
         'mlb_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='9', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('mlb',),
+
         },
 
         #
@@ -249,7 +261,6 @@ app.conf.update(
             'schedule': timedelta(minutes=1),
             'args': ('nfl',),
         }
-
     },
 
     CELERY_ENABLE_UTC=True,
