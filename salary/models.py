@@ -130,16 +130,14 @@ class Salary(models.Model):
     primary_roster  = models.ForeignKey(RosterSpot, null = False,
                                 verbose_name='Position')
 
-    fppg            = models.FloatField(default=0.0,
-                                verbose_name='Season FPPG',
-                                help_text='simply: (sum of fantasy points for trailing games) / (# of trailing games)')
+    fppg            = models.FloatField(default=0.0, verbose_name='STATS Projection', help_text='')
 
-    fppg_pos_weighted = models.FloatField(default=0.0,
-                                verbose_name='Past x Games FPPG')
+    fppg_pos_weighted = models.FloatField(default=0.0, verbose_name='STATS Projection')
 
     avg_fppg_for_position = models.FloatField(default=0.0,
-                                verbose_name='Past x Games Positional FPPG')
+                                verbose_name='Avg Proj for Position')
 
+    # this column no longer has a use, when using stats.com projections.
     num_games_included = models.IntegerField(default=0, null=False,
                                 verbose_name='Num Games Included')
 
@@ -153,9 +151,9 @@ class Salary(models.Model):
     # be used in postprocessing to adjust salary
     ownership_percentage = models.FloatField(null=True, default=10.0)
 
-    # def __str__(self):
-    #     return '%s | %s | %s | %s' % (self.__class__.__name__, str(self.amount),
-    #                                   str(self.player), str(self.primary_roster))
+    # new fields to compare DK & FD salaries (if they exist, for the last generation)
+    sal_dk = models.FloatField(null=True, blank=True, verbose_name='DK Salary')
+    sal_fd = models.FloatField(null=True, blank=True, verbose_name='FD Salary')
 
     def __str__(self):
         return 'Salary'
