@@ -189,6 +189,7 @@ class PlayerStats( sports.models.PlayerStats ):
 
     class Meta:
         abstract = False
+        unique_together = ('srid_player', 'srid_game')
 
     def save(self, *args, **kwargs):
         # perform score update
