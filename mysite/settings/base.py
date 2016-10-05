@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'lobby',
     'statscom',                 # STATS.com api parsers, models, projections, etc...
     'swish',                    # Swish Analytics
+    'trulioo',
 
     'rest_framework_swagger',
 )
@@ -418,3 +419,9 @@ BLOCKED_STATES = [
     'DE',
     'ND',
 ]
+
+
+# Trulioo creds
+TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
+TRULIOO_USER = 'Draftboard_Demo_API'  # 'Draftboard_Demo_Portal'
+TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'
