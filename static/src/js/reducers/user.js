@@ -11,6 +11,7 @@ const initialState = {
   identityFormIsSending: false,
   info: {
     isFetching: false,
+    isIdentityVerified: false,
   },
   infoFormErrors: {},
   infoFormSaved: false,
