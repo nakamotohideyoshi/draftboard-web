@@ -158,27 +158,31 @@ app.conf.update(
         ########################################################################
         # generate salaries each day at 8am (est)
         ########################################################################
-        'nba_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('nba',),
-        },
-        'nhl_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('nhl',),
-        },
-        'mlb_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('mlb',),
-        },
+        #
+        # DEPRECATED - we will now be running salaries by hand using stats.com projections.
+        #            - or you can run salaries the using the admin panel for doing so the old way if you have to.
+        #
+        # 'nba_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('nba',),
+        # },
+        # 'nhl_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('nhl',),
+        # },
+        # 'mlb_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('mlb',),
+        # },
         # nfl done on thursdays only
-        'nfl_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('nfl',),
-        },
+        # 'nfl_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('nfl',),
+        # },
 
         #
         # update injury information for the sports

@@ -341,8 +341,8 @@ class FantasyProjections(Stats):
     def __init__(self, sport):
         super().__init__(sport)
 
-    def build_player_projection(self, player, fantasy_points):
-        return self.player_projection_class(player, fantasy_points)
+    def build_player_projection(self, player, fantasy_points, sal_dk=None, sal_fd=None):
+        return self.player_projection_class(player, fantasy_points, sal_dk=sal_dk, sal_fd=sal_fd)
 
 class FantasyProjectionsMLB(FantasyProjections):
 
@@ -489,6 +489,7 @@ class FantasyProjectionsNFL(FantasyProjections):
     field_position = 'position'
 
     field_points = 'points'
+    field_salary = 'salary'
 
     field_player = 'player'
     field_first_name = 'firstName'
@@ -497,7 +498,12 @@ class FantasyProjectionsNFL(FantasyProjections):
 
     field_name = 'name'
 
-    default_site = 'draftkings'
+    site_dk = 'draftkings'
+    site_fd = 'fanduel'
+
+    # the sites projections to use as primary datapoint for draftboard.
+    # it should be the site that closest matches our actual scoring.
+    default_site = site_dk
 
     def __init__(self):
         super().__init__('nfl')
@@ -548,14 +554,46 @@ class FantasyProjectionsNFL(FantasyProjections):
                 raise Exception('field not found: %s' % self.field_fantasy_projections)
 
             # iterate the list of sites which we have projections for until we find the one we want
+            fantasy_projections_copy = fantasy_projections.copy()
             for site in fantasy_projections:
                 if self.default_site in site.get(self.field_name).lower():
                     # append a new a salary.classes.PlayerProjection to our return list and break
                     fantasy_points = site.get(self.field_points)
-                    player_projections.append(self.build_player_projection(player, fantasy_points))
+
+                    # try to get the sites own salary for the player for the major sites.
+                    sal_dk = self.get_site_player_salary(fantasy_projections_copy, self.site_dk)
+                    sal_fd = self.get_site_player_salary(fantasy_projections_copy, self.site_fd)
+
+                    player_projections.append(self.build_player_projection(player, fantasy_points,
+                                                                    sal_dk=sal_dk, sal_fd=sal_fd))
                     break
         #
         return player_projections
+
+    def get_site_player_salary(self, fantasy_projections, site):
+        """
+        this method should be able to retrieve the site specific
+        salary from the list of site projections objects if
+        the 'site' param is contained within each site items name property.
+
+        :param site: a string, ie: 'draftkings'
+        :return: float - the projected salary
+        """
+
+        projected_player_salary = None
+
+        for site_proj in fantasy_projections:
+            site_fullname = site_proj.get(self.field_name, '')
+
+            if site_fullname is None:
+                continue
+
+            if site in site_fullname:
+                projected_player_salary = site_proj.get(self.field_salary)
+                # break out of loop, in order to return first match
+                break
+
+        return projected_player_salary
 
 class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i might add...
     """ temp helper class to dump out projections and match up with our own players """
