@@ -77,6 +77,7 @@ class ReplayManager(object):
     DEFAULT_CACHE                   = 'default'
     CACHE_KEY_RECORDING_IN_PROGRESS = 'recording_in_progress'
     CACHE_KEY_PAUSE_ACTIVE_REPLAY   = 'CACHE_KEY_PAUSE_ACTIVE_REPLAY'
+    CACHE_KEY_FAST_FORWARD_SPEED    = 'CACHE_KEY_FAST_FORWARD_SPEED'
 
     db_name                         = settings.DATABASES['default']['NAME']
 
@@ -193,8 +194,40 @@ class ReplayManager(object):
         else:
             print('warning: time not changed - there are no realtime objects in the db')
 
+    def dt_to_millis(self, dt):
+        """
+        given a datetime object, return the corresponding unix timestamp to the millisecond
+        :param dt:
+        :return:
+        """
+        return int( time.mktime(dt.timetuple()) * 1000 + (dt.microsecond / 1000) )
+
+    def get_update_ts(self, update):
+        """
+        given an Update model, convert its 'ts' field to a unix timestamp using
+        the method dt_to_millis() which is to the millisecond.
+        :param update:
+        :return:
+        """
+        return self.dt_to_millis(update.ts)
+
+    def play_update_obj(self, parser, update, async=True):
+        """
+        play the recorded real time update object
+
+        :param parser: an instance of sports.parser.DataDenParser
+        :param u: a replayer.models.Update object
+        :param async: tasks off each update. True by default (False will single thread it)
+        :return:
+        """
+        ns_parts = update.ns.split('.')  # split namespace on dot for db and coll
+        db = ns_parts[0]
+        collection = ns_parts[1]
+        # send it thru parser! Triggers do NOT need to be running for this to work!
+        parser.parse_obj(db, collection, ast.literal_eval(update.o), async=async)
+
     def play(self, replay_name='', start_from=None, fast_forward=1.0,
-             no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=True,
+             no_delay=False, pk=None, tick=1.0, offset_minutes=0, async=True,
              load_db=True, play_until=None):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
@@ -225,89 +258,241 @@ class ReplayManager(object):
         :return:
         """
 
-        if load_db:
-            self.clear()
-            self.db_load_replay(self.db_name, replay_name )
-            self.replay = Replay.objects.get( name = replay_name )
+        #
+        # when replayer starts, set the fast-forward speed to the default (1x speed)
+        self.fast_forward(1)
 
-            if self.replay is None:
-                raise Exception('instance of ReplayManager has no Replay object set')
-
-            #
-            # get the specified time range to run on
-            start   = self.replay.start
-            if start_from is not None: start = start_from   # start from here, if specified
-            start   = start + timedelta(minutes=offset_minutes)
-            end     = self.replay.end
-
-        else:
-            # since we simply replaying Update objects, we need to determine the time
-            start   = start_from
-            updates = replayer.models.Update.objects.filter().order_by('ts') # ascending
-            if updates.count() <= 1:
-                if self.timemachine:
-                    self.timemachine.playback_status = 'ERR - NOTHING TO PLAY!'
-                    self.timemachine.save()
-                raise Exception('there are no Update objects to play thru')
-
-            if start is None:
-                start = updates[0].ts
-            end     = start + timedelta(days=1) # never going to replay more than this
-
-            #
-            # if play_until is not None, check it to make
-            # sure its valid, and set end = play_until
-            if play_until and start < play_until:
-                end = play_until
+        # #
+        # if load_db:
+        #     self.clear()
+        #     self.db_load_replay(self.db_name, replay_name )
+        #     self.replay = Replay.objects.get( name = replay_name )
+        #
+        #     if self.replay is None:
+        #         raise Exception('instance of ReplayManager has no Replay object set')
+        #
+        #     #
+        #     # get the specified time range to run on
+        #     start   = self.replay.start
+        #     if start_from is not None: start = start_from   # start from here, if specified
+        #     start   = start + timedelta(minutes=offset_minutes)
+        #     end     = self.replay.end
+        #
+        # else:
+        #     # since we simply replaying Update objects, we need to determine the time
+        #     start   = start_from
+        #     updates = replayer.models.Update.objects.filter().order_by('ts') # ascending
+        #     if updates.count() <= 1:
+        #         if self.timemachine:
+        #             self.timemachine.playback_status = 'ERR - NOTHING TO PLAY!'
+        #             self.timemachine.save()
+        #         raise Exception('there are no Update objects to play thru')
+        #
+        #     if start is None:
+        #         start = updates[0].ts
+        #     end     = start + timedelta(days=1) # never going to replay more than this
+        #
+        #     #
+        #     # if play_until is not None, check it to make
+        #     # sure its valid, and set end = play_until
+        #     if play_until and start < play_until:
+        #         end = play_until
 
         # if timemachine exists, update the playback_status to started
         if self.timemachine:
             self.timemachine.playback_status = 'RUNNING'
             self.timemachine.save()
 
-        # update the system time to the start time of the replay
-        self.set_system_time( start )
-        print('set system time to:', str(timezone.now()))
-        print( '' )
+        # # update the system time to the start time of the replay
+        # self.set_system_time( start )
+        # print('set system time to:', str(timezone.now()))
+        # print( '' )
 
         parser = sports.parser.DataDenParser()
 
-        last    = start         # trailing time since which we have no parsed Updates
-        while last <= end:      # break out of while once our 'last' update time is past the end
-            time.sleep( tick )  # every 'tick' seconds, get all the updates since the last update
+        # get all the updates that are after right now, ordered by ascending timestamps
+        # dt_start = timezone.now()
+        dt_start = self.timemachine.start
+        updates = replayer.models.Update.objects.filter(ts__gte=dt_start).order_by('ts')
+        num_updates = updates.count()
+        # raise an exception if there are no Updates
+        if num_updates == 0:
+            raise Exception('there are 0 updates to play')
 
-            # check if we are paused!
-            # (Pause) ie: stash a value in the cache             /api/replayer/pause/1/
-            # (Resume) ie: remove that value from the cache      /api/replayer/pause/0/
-            if self.is_paused():
-                self.set_system_time(last) # keep
-                print('[%s] REPLAY IS PAUSED' % (str(timezone.now())))
+        # update the system time to the start time of the replay
+        self.set_system_time(dt_start)
+        print('system time should be ~', str(dt_start))
+        print('set system time is    ~', str(timezone.now()))
+
+        # based on the current time, get the Updates in the next tick worth of time
+        update_idx = 0
+        # initialize the first ts we will play until. represented as the milliseconds since the epoch
+        # play_thru_ts = self.get_update_ts(updates[update_idx]) + (tick * 1000)
+        last_update_pk = None
+        while True:
+            # check if we are paused
+            while self.is_paused():
+                print('REPLAY IS PAUSED')
+                time.sleep(1.0)
                 continue
 
-            now = timezone.now()
-            updates = replayer.models.Update.objects.filter( ts__range=( last, now ) )
-            print( '%s | %s updates this tick' % (str(now), str(len(updates))))
-            for update in updates:
-                ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
-                db          = ns_parts[0]
-                collection  = ns_parts[1]
-                # send it thru parser! Triggers do NOT need to be running for this to work!
-                if db == 'mlb' and collection == 'pitcher':
-                    print('update.o:', str(update.o))
-                parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
+            # save the time at which we entered the loop using the hardware clock time.
+            t_start = time.time()
+            fast_forward_speed = self.get_fast_forward_speed()
+            play_thru_ts = self.get_update_ts(updates[update_idx]) + (tick * 1000 * fast_forward_speed)
+            tick_updates = 0
+            #print('play_thru_ts', play_thru_ts)  # TODO - remove debug
+            while True:
+                update = updates[update_idx]
+                update_ts = self.get_update_ts(update)
+                if update_ts <= play_thru_ts:
+                    #print('    update_ts %s <= %s play_thru_ts' % (str(update_ts), str(play_thru_ts)))
+                    # play it!
+                    self.play_update_obj(parser, update, async=async)
+                    last_update_pk = update.pk
+                    update_idx += 1 # increment update idx
+                    tick_updates += 1
+                    continue # skip breaking out
+                break
 
-            last = now # update last, now that we've parsed up until now
-            if self.timemachine:
-                self.timemachine.current = last
-                self.timemachine.save()
+            # log # of updates for this tick, and the current fast-forward speed
+            progress = '(%s of %s | %.2f%s)' % (update_idx, num_updates, float(update_idx / num_updates) * 100, '%')
+            print('%s updates this tick (fast-forward speed: %sx ... %s pk[%s])' % (str(tick_updates),
+                                                            str(fast_forward_speed), progress, str(last_update_pk)))
 
-            anymore = replayer.models.Update.objects.filter( ts__gte=last )
-            if anymore.count() <= 0:
-                # if timemachine exists, update the playback_status to finished
-                if self.timemachine:
-                    self.timemachine.playback_status = 'FINISHED'
-                    self.timemachine.save()
-                return # because there are literally no more updates
+            # the length (in milliseconds) it took the cpu to execute one 'tick'
+            t_end = time.time()
+            t_loop_millis = (t_end - t_start) * 1000
+
+            time.sleep(1.0) # TODO DEBUG to slow it down
+
+            # ----------- end of tick stuff -----------
+            # # last = now # update last, now that we've parsed up until now
+            # if self.timemachine:
+            #     # self.timemachine.current = last
+            #     # self.timemachine.current = now   # TODO
+            #     self.timemachine.save()
+            #
+            #     # TODO - temporarily commented out - the additional query slows us down
+            #     # #anymore = replayer.models.Update.objects.filter( ts__gte=last )
+            #     # anymore = replayer.models.Update.objects.filter(ts__gte=now)
+            #     # if anymore.count() <= 0:
+            #     #     # if timemachine exists, update the playback_status to finished
+            #     #     if self.timemachine:
+            #     #         self.timemachine.playback_status = 'FINISHED'
+            #     #         self.timemachine.save()
+            #     #     return # because there are literally no more updates
+            # ----------- ----------- ----------- -----------
+
+            # # if we are paused right now, maintain the current time without drifting
+            # t_paused = None
+            # while self.is_paused():
+            #     if t_paused is None:
+            #         # set it first time we encounter being paused so we can subtract the pause time from the overall
+            #         t_paused = time.time()
+            #     print('[%s] REPLAY IS PAUSED' % (str(timezone.now())))
+            #     time.sleep(1.0)
+
+            # else:
+            #     # TODO (2) get & play the next "tick" worth of updates
+            #
+            #     # TODO (2b) if we are > 1x fast forwarding, handle that fun case
+            #     fast_forward_speed = self.get_fast_forward_speed()
+            #     if fast_forward_speed > 1:
+            #         # td_delta = now - last # get a timedelta object of the different in datetimes
+            #         # now = now + (td_delta * fast_forward_speed)
+            #         # self.set_system_time(now)
+            #
+            #         # this becomes simply adding the tick * speed multiplier to increment our place in time
+            #         # get the active fast-forward speed.
+            #         # fast_forward_speed = self.get_fast_forward_speed()
+            #         # now = now + timedelta(seconds=tick * fast_forward_speed)
+            #         pass
+            #
+            #     # get the Update objects to play thru.
+            #     # do not play Updates if highest_played_update_pk is larger.
+            #     # this is hacky, but eliminates a race condition
+            #     # updates = replayer.models.Update.objects.filter( ts__range=( last, now ),
+            #     #                                                  pk__gt=highest_played_update_pk)
+            #     # updates = replayer.models.Update.objects.filter(ts__lte=now,
+            #     #                                                 pk__gt=highest_played_update_pk)
+            #
+            #     # # log every tick, and the current fast-forward speed
+            #     # print( '%s | %s updates this tick (fast-forward speed: %sx) | highest_played_update_pk (previous tick): %s' % (str(now),
+            #     #                                 str(len(updates)), str(fast_forward_speed), str(highest_played_update_pk)))
+            #
+            #     # play thru the update objects
+            #     for update in updates:
+            #         ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
+            #         db          = ns_parts[0]
+            #         collection  = ns_parts[1]
+            #         # send it thru parser! Triggers do NOT need to be running for this to work!
+            #         if db == 'mlb' and collection == 'pitcher':
+            #             print('update.o:', str(update.o))
+            #
+            #         # keep track of the highest pk of an Update we've played.
+            #         if update.pk > highest_played_update_pk:
+            #             highest_played_update_pk = update.pk
+            #
+            #         parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
+            #
+            #     # TODO - log the updates we just played after we play them... not before (like old code)
+            #     # # log every tick, and the current fast-forward speed
+            #     # print( '%s | %s updates this tick (fast-forward speed: %sx) | highest_played_update_pk (previous tick): %s' % (str(now),
+            #     #                                 str(len(updates)), str(fast_forward_speed), str(highest_played_update_pk)))
+            #
+            #     # TODO - keep track of the timeshifted time using timezone.now() and update it in the timemachine object
+            #     #last = now # update last, now that we've parsed up until now
+            #     if self.timemachine:
+            #         # self.timemachine.current = last
+            #         # self.timemachine.current = now   # TODO
+            #         self.timemachine.save()
+            #
+            #     # TODO - temporarily commented out - the additional query slows us down
+            #     # #anymore = replayer.models.Update.objects.filter( ts__gte=last )
+            #     # anymore = replayer.models.Update.objects.filter(ts__gte=now)
+            #     # if anymore.count() <= 0:
+            #     #     # if timemachine exists, update the playback_status to finished
+            #     #     if self.timemachine:
+            #     #         self.timemachine.playback_status = 'FINISHED'
+            #     #         self.timemachine.save()
+            #     #     return # because there are literally no more updates
+
+    def fast_forward(self, speed):
+        """
+        any integer value can bet set.
+
+        values less than 1 get set to 1 (normal speed, default)
+
+        any value >= 100x will simply make it fast forward as fast as it can.
+
+        :param speed: integer - the playback multiplier, ie: 1x (normal), 2x, 8x, etc...
+        :return:
+        """
+
+        if not isinstance(speed, int):
+            msg = 'speed argument must be int() - it was %s' % type(speed)
+            print(msg) # mainly for heroku logs
+            raise Exception(msg)
+
+        if speed < 1:
+            speed = 1
+        elif speed > 100:
+            speed = 100
+
+        # set the value in the cache for a long duration
+        caches[ ReplayManager.DEFAULT_CACHE ].set(
+            self.CACHE_KEY_FAST_FORWARD_SPEED, speed, 24*60*60)
+
+        print('replayer set fast-forward speed to: %sx' % str(speed))
+
+    def get_fast_forward_speed(self):
+        """
+        returns the playback multiplier as an integer
+
+        if its not set, returns 1, ie: normal speed
+        """
+        return caches[ ReplayManager.DEFAULT_CACHE ].get(self.CACHE_KEY_FAST_FORWARD_SPEED, 1)
 
     def flag_paused(self, enable):
         """
