@@ -7,6 +7,7 @@ from .views import (
     ResumeActiveReplayAPIView,
 
     ResetReplayAPIView,
+    FastForwardAPIView,
 )
 
 urlpatterns = [
@@ -16,6 +17,9 @@ urlpatterns = [
 
     # resume the active replay
     url(r'^pause/0/$', ResumeActiveReplayAPIView.as_view()),
+
+    # fast-forward url for setting the playback speed
+    url(r'^fast-forward/(?P<speed>[0-9]+)/$', FastForwardAPIView.as_view()),
 
     # reset replay
     url(r'^reset-replay/$', ResetReplayAPIView.as_view()),
