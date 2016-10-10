@@ -154,13 +154,25 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
 
     #change_list_template = 'change_list_block.html'
 
-    list_display = ['sport','date','games_included','earliest_game_in_block','cutoff_time','contest_pools_created']
+    list_display = [
+        'sport',
+        'date',
+        'games_included',
+        'spans_multiple_days',
+        'earliest_game_in_block',
+        'cutoff_time',
+        'contest_pools_created',
+        'number_of_prize_structures',
+    ]
     list_filter = ['site_sport',]
     list_editable = ['cutoff_time',]
-    readonly_fields = ('site_sport','contest_pools_created')
+    readonly_fields = ('site_sport',) #'contest_pools_created')
     exclude = ('dfsday_start','dfsday_end','cutoff')
     ordering = ('dfsday_start','site_sport')
-    actions = ['create_contest_pools']
+    actions = [
+        'create_contest_pools',
+        'update_contest_pools',
+    ]
 
     block_game_inlines = [
         TabularInlineBlockGameIncluded,
@@ -177,6 +189,14 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         return self.model.objects.filter(cutoff__lt=block.cutoff,
                                      site_sport=block.site_sport).count() == 0
 
+    def spans_multiple_days(self, block):
+        # In[9]: (b.dfsday_end - b.dfsday_start).days == 1
+        # Out[9]: True
+        if (block.dfsday_end - block.dfsday_start).days > 1:
+            return 'Yes'
+        else:
+            return 'No'
+
     def create_contest_pools(self, request, queryset):
         if queryset.count() != 1:
             # you must select exactly 1 block
@@ -184,6 +204,35 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         block = queryset[0]
         if block.contest_pools_created == True:
             warning_msg = 'Contest Pools already exist for this block. No new Contest Pools have been created!'
+            messages.warning(request, warning_msg)
+            return
+
+        if not self.__is_block_drafting(block):
+            # this is not the drafting
+            err_msg = 'Cant create ContestPools for blocks ahead of currently drafting blocks!'
+            messages.error(request, err_msg)
+            return
+
+        else:
+            try:
+                #
+                # create the contest pools for this block manually
+                cpsm = contest.schedule.classes.ContestPoolScheduleManager(block.site_sport.name)
+                cpsm.create_contest_pools(block)
+            except SalaryPoolException as e:
+                # just send the exception message straight to the admin in red text
+                err_msg = 'We could not find a SalaryPool for %s.' \
+                          ' [ Exception message: %s ]' % (block.site_sport, str(e))
+                messages.error(request, err_msg)
+
+    def update_contest_pools(self, request, queryset):
+        if queryset.count() != 1:
+            # you must select exactly 1 block
+            return
+        block = queryset[0]
+        if block.contest_pools_created == False:
+            warning_msg = 'Only use this action if new Prize Structures have been ' \
+                          'added AFTER initial Contest Pools were created.'
             messages.warning(request, warning_msg)
             return
 
@@ -236,6 +285,9 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
 
     def cutoff_time(self, obj):
         return local_time(obj.dfsday_start)
+
+    def number_of_prize_structures(self, block):
+        return str(contest.schedule.models.BlockPrizeStructure.objects.filter(block=block).count())
 
     def get_block_games(self, block):
         return block.get_block_games()
