@@ -315,8 +315,7 @@ class ScheduleDay(object):
     def __init__(self, sport, season=None, season_types=None):
         self.data = None
         self.sport = sport
-        #self.sport_day = None # TODO set this up like NbaDay, MlbDay, etc...
-        self.sport_day_class = ScheduleDay.factory(self.sport) #self.MlbDay #self.NbaDay # TODO TODO TOOD dont hardcode
+        self.sport_day_class = ScheduleDay.factory(self.sport)
         self.site_sport_manager = SiteSportManager()
         self.site_sport = self.site_sport_manager.get_site_sport(self.sport)
         self.game_model_class = self.site_sport_manager.get_game_class(self.site_sport)
@@ -525,8 +524,8 @@ class ContestPoolScheduleManager(object):
 
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
-            print(str(date_str)) # TODO remove print
-            self.sport_day = sport_day # TODO debug setting, remove from __init__() too!
+            print(str(date_str))
+            self.sport_day = sport_day
             # use the BlockCreator to make new blocks
             # which will have all teh default prize structures
             # and display the included/excluded games currently included/excluded
@@ -580,7 +579,7 @@ class BlockCreator(object):
     def create_block_games(self, block, games):
         block_games = []
         for game in games:
-            print('creating a BlockGame for', str(game)) # TODO remove print
+            print('creating a BlockGame for', str(game))
             block_game = BlockGame()
             block_game.block = block
             block_game.name = game.get_home_at_away_str()
@@ -618,6 +617,69 @@ class BlockCreator(object):
         block_prize_structure_creator = BlockPrizeStructureCreator(block)
         block_prize_structure_creator.create()
 
+        return block
+
+class BlockCreatorMulti(BlockCreator):
+
+    # TODO for things like nfl's Thursday - Monday slate, we need to implement this class
+
+    def __init__(self, sport_days):
+        """
+
+        :param sport_days: a list of 'sport_day' objects
+        """
+        self.sport_days = sport_days
+
+    def get_site_sport(self):
+        if len(self.sport_days) == 0:
+            raise Exception('empty sport_days list')
+        # otherwise
+        return self.sport_days[0].site_sport
+
+    def get_cutoff(self):
+        """
+        get the cutoff of the first day in the sport_days list.
+
+        :return: a datetime.time() object
+        """
+        return self.sport_days[0].get_cutoff()
+
+    def get_start(self):
+        return self.sport_days[0].the_datetime
+
+    def get_end(self):
+        return self.sport_days[-1].the_datetime
+
+    def create_block(self):
+        """
+        creates a multi day block
+
+        :return: the newly created Block
+        """
+        #
+        # raise an exception if the block already exists
+        site_sport = self.get_site_sport()
+        start = self.get_start()
+        end = self.get_end()
+        cutoff_time = self.get_cutoff() # datetime.time() object
+        try:
+            #
+            # set fields: dfsday_start (datetime), dfsday_end (datetime), cutoff_time (time object)
+            Block.objects.get(site_sport=site_sport,
+                                dfsday_start=start,
+                                dfsday_end=end,
+                                cutoff_time=cutoff_time)
+            err_msg = 'a %s scheduled block at %s ' \
+                      'already exists'%(str(site_sport.name), str(start))
+            raise self.BlockExistsException(err_msg)
+        except Block.DoesNotExist:
+            pass
+
+        # create it
+        block = Block.objects.create(site_sport=site_sport,
+                                        dfsday_start=start,
+                                        dfsday_end=end,
+                                        cutoff_time=cutoff_time)
         return block
 
 class BlockManager(object):
@@ -680,16 +742,8 @@ class BlockManager(object):
                 # we really want to let exceptions propagate up to the admin
                 # so were not currently catching any in here...
 
-                # TODO
-                # except DraftGroup.NoGamesInRangeException:
-                #
-                # TODO there are more i think
-
-                # except Exception as e:
-                #     print(e)
-                #     #pass
-
-        self.block.contest_pools_created = True
+        if num_contest_pools_created != 0:
+            self.block.contest_pools_created = True
         self.block.save()
 
         print('%s ContestPool(s) created for Block: %s' % (str(num_contest_pools_created), str(self.block)))
