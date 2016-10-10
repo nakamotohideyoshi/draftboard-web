@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
+from django.contrib.auth.forms import PasswordResetForm
 from geoip2.errors import AddressNotFoundError
 from raven.contrib.django.raven_compat.models import client
 import logging
@@ -165,3 +166,8 @@ class CheckUserAccess(object):
             return access, msg
 
         return self.check_ip()
+
+
+def reset_user_password_email(user):
+    form = PasswordResetForm({'email': user.email})
+    form.save(from_email=settings.DEFAULT_FROM_EMAIL)
