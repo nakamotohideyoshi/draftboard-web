@@ -389,3 +389,4 @@ LOGGING = {
 # ANALYTICS settings
 # ----------------------------------------------------------
 KISS_ANALYTICS_CODE = 'db1235e51a9c6ea2d7bb2d3d1bdf93cbd2efaeff'
+GOOGLE_ANALYTICS_CODE = 'UA-85293033-1'
