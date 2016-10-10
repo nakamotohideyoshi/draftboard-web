@@ -431,5 +431,6 @@ BLOCKED_STATES = [
 
 # Trulioo creds
 TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
-TRULIOO_USER = 'Draftboard_Demo_API'  # 'Draftboard_Demo_Portal'
-TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'
+TRULIOO_USER = 'Draftboard_Demo_API'
+TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
+TRULIOO_DEMO_MODE = True

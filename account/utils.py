@@ -6,7 +6,7 @@ from raven.contrib.django.raven_compat.models import client
 import logging
 from account import const as _account_const
 
-logger = logging.getLogger('django')
+logger = logging.getLogger(__name__)
 
 
 def create_user_log(request=None, type=None, action=None, metadata={}):
@@ -29,8 +29,8 @@ def create_user_log(request=None, type=None, action=None, metadata={}):
     # If the log creation failed, capture the exception and log it to both
     # Sentry and the django logger.
     except Exception as e:
-            logger.error("create_user_log() %s" % str(e))
-            client.captureException()
+        logger.error("create_user_log() %s" % str(e))
+        client.captureException()
 
 
 def get_client_ip(request):
