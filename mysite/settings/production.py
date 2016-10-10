@@ -120,3 +120,10 @@ SLACK_UPDATES = False
 slack_updates = environ.get('SLACK_UPDATES', None)
 if slack_updates is not None and 't' in str(slack_updates).lower():
     SLACK_UPDATES = True
+
+
+# Trulioo creds
+TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
+TRULIOO_USER = 'Draftboard_API'
+TRULIOO_PASSWORD = 'b8)8=799yf&#jN,'
+TRULIOO_DEMO_MODE = False

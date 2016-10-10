@@ -1,6 +1,4 @@
-#
-# views.py
-
+from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework import status
@@ -47,7 +45,6 @@ from pp.classes import (
     VZeroTransaction,
 )
 from pp.serializers import (
-    VZeroShippingSerializer,
     VZeroDepositSerializer,
 )
 from cash.classes import (
@@ -64,10 +61,15 @@ from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from account import const as _account_const
 from account.utils import create_user_log
-
 from trulioo.classes import (
     Trulioo,
+    VerifyDataValidationError,
+    TruliooException
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
@@ -927,7 +929,7 @@ class VZeroGetClientTokenView(APIView):
 
     def get(self, request, *args, **kwargs):
         # do we need the user?
-        #user = self.request.user
+        # user = self.request.user
 
         # TODO - check if its anonymous user(?)
         vzero = VZero()
@@ -1027,6 +1029,7 @@ class VZeroDepositView(APIView):
         # return success response if everything went ok
         return Response(status=200)
 
+
 class VerifyLocationAPIView(APIView):
     """
     A simple endpoint to run the HasIpAccess permission class.
@@ -1036,6 +1039,7 @@ class VerifyLocationAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         return Response(data={"detail": "location verification passed"}, status=200,)
+
 
 class TruliooVerifyUserAPIView(APIView):
     """
@@ -1065,16 +1069,34 @@ class TruliooVerifyUserAPIView(APIView):
         birth_year = args.get('birth_year')
         postal_code = args.get('postal_code')
 
+        # VerifyDataValidationError
+        #
+        # TruliooException
+
         # use Trulioo class to verify the user
         verified = False
+
         try:
             t = Trulioo()
-            verified = t.verify_minimal(first, last, birth_day, birth_month, birth_year, postal_code, user=user)
-        except Exception as e:
-            raise APIException(str(e))
+            verified = t.verify_minimal(first, last, birth_day, birth_month,
+                                        birth_year, postal_code, user=user)
+        # Send data validation exceptions back through the API.
+        except VerifyDataValidationError as e:
+            raise APIException({"detail": str(e)})
 
-        if verified == False:
-            raise APIException('User verification was unsuccessful. Please contact support@draftboard.com')
+        except TruliooException as e:
+            raise APIException({"detail": str(e)})
+
+        # Log all others before sending the user a generic response.
+        except Exception as e:
+            logger.error("TruliooVerifyUserAPIView: %s" % str(e))
+            client.captureException()
+            raise APIException(
+                'User verification was unsuccessful. Please contact support@draftboard.com')
+
+        if verified is False:
+            raise APIException(
+                'User verification was unsuccessful. Please contact support@draftboard.com')
 
         # return success response if everything went ok
         return Response(status=200)
