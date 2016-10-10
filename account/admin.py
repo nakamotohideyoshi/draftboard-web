@@ -37,7 +37,7 @@ class EmailNotificationAdmin(admin.ModelAdmin):
 def sent_reset_password(modeladmin, request, queryset):
     for user in queryset:
         reset_user_password_email(user)
-sent_reset_password.short_description = "Sent reset password"
+sent_reset_password.short_description = "Sent reset password email"
 
 
 class MyUserAdmin(UserAdmin):
