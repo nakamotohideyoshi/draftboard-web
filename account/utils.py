@@ -168,6 +168,6 @@ class CheckUserAccess(object):
         return self.check_ip()
 
 
-def reset_user_password_email(user):
+def reset_user_password_email(user, request):
     form = PasswordResetForm({'email': user.email})
-    form.save(from_email=settings.DEFAULT_FROM_EMAIL)
+    form.save(from_email=settings.DEFAULT_FROM_EMAIL, request=request)
