@@ -1,6 +1,6 @@
 import React from 'react';
 // import sinon from 'sinon';
-import { expect } from 'chai';
+import { assert } from 'chai';
 import { mount } from 'enzyme';
 import Deposits from '../../../components/account/deposits';
 
@@ -19,16 +19,52 @@ describe('<Deposits /> Component', () => {
     setupBraintree: () => true,
     beginPaypalCheckout: () => true,
     verifyLocation: () => true,
+    verifyIdentity: () => true,
   };
-
+  let wrapper = null;
 
   afterEach(() => {
     document.body.innerHTML = '';
   });
 
+  beforeEach(() => {
+    wrapper = renderComponent(defaultTestProps);
+  });
+
 
   it('should render a div', () => {
-    const wrapper = renderComponent(defaultTestProps);
-    expect(wrapper.find('.cmp-account-deposits')).to.have.length(1);
+    assert.lengthOf(wrapper.find('.cmp-account-deposits'), 1);
+  });
+
+
+  it('should default to a disabled paypal button', () => {
+    assert.isTrue(
+      wrapper.ref('paypal-button').prop('disabled'),
+      'Paypal button is not disabled by default.'
+    );
+  });
+
+
+  it('should enable paypal button only if nonce, amount and !isDepositing are present', () => {
+    // set a nonce.
+    wrapper.setProps({ payPalNonce: 'we have a nonce :)' });
+    assert.isTrue(
+      wrapper.ref('paypal-button').prop('disabled'),
+      'Paypal button is wrongly enabled.'
+    );
+
+    // add an amount
+    wrapper.setState({ amount: 25 });
+    assert.isFalse(
+      wrapper.ref('paypal-button').prop('disabled'),
+      'Paypal button is not enabling.'
+    );
+
+    // pretend a deposit is happening.
+    wrapper.setProps({ isDepositing: true });
+    assert.isTrue(
+      wrapper.ref('paypal-button').prop('disabled'),
+      'Paypal button not disabling when a deposit is taking place.'
+    );
   });
 });
