@@ -87,7 +87,7 @@ class PoolAdmin(admin.ModelAdmin):
         return format_html('<a href="{}" class="btn btn-success">{}</a>',
                             "/api/salary/export-pool-csv/%s/" % str(obj.pk), "Download .csv" )
 
-    def generate_salaries(self, request, queryset):
+    def OLD_generate_salaries(self, request, queryset):
         if len(queryset) > 1:
             self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
@@ -129,12 +129,12 @@ class PoolAdmin(admin.ModelAdmin):
         else:
             return [inline(self.model, self.admin_site) for inline in self.inlines]
 
-    def generate_salaries_and_adjust_for_ownership(self, *args, **kwargs):
-        """
-        condense the two actions into 1 step for ease.
-        """
-        self.generate_salaries(*args, **kwargs)
-        self.apply_ownership_adjustment(*args, **kwargs)
+    # def generate_salaries_and_adjust_for_ownership(self, *args, **kwargs):
+    #     """
+    #     condense the two actions into 1 step for ease.
+    #     """
+    #     self.generate_salaries(*args, **kwargs)
+    #     self.apply_ownership_adjustment(*args, **kwargs)
 
     def reset_ownership_adjustment(self, request, queryset):
         """
@@ -148,7 +148,7 @@ class PoolAdmin(admin.ModelAdmin):
                 opa = OwnershipPercentageAdjuster(pool)
                 opa.reset()
 
-    def generate_salaries_using_statscom(self, request, queryset):
+    def generate_salaries_using_STATScom_Projections(self, request, queryset):
         """
         admin action to generate salaries for the selected pool based on stats.com fantasy projections
 
@@ -185,11 +185,13 @@ class PoolAdmin(admin.ModelAdmin):
     #
     # admin actions in dropdown
     actions = [
-        generate_salaries_using_statscom,
-        generate_salaries,
+        generate_salaries_using_STATScom_Projections,
+
         apply_ownership_adjustment,
         reset_ownership_adjustment,
-        generate_salaries_and_adjust_for_ownership,
+
+        OLD_generate_salaries,
+        # generate_salaries_and_adjust_for_ownership,
     ]
     list_filter = ['salary__flagged', 'salary__primary_roster']
 

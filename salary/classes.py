@@ -31,9 +31,8 @@ from util.slack import Webhook
 
 class SalaryProgressWebhook(Webhook):
 
-    # https://hooks.slack.com/services/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
-    #identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT' # #scheduler-logs
-    identifier = 'T03UVUNP8/B141P6N2C/9TMse3utYJSqICg1iXdcaOPZ'
+    # rio slack - channel #stats-projections
+    identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
 
 class SalaryRounder(object):
     """
@@ -1449,7 +1448,7 @@ class SalaryPool2Csv(object):
     #         return value
 
     columns = ['id','last_name','first_name','price_draftboard','position',
-               'fppg','avg_fppg_for_position','num_games_included', 'sal_dk', 'sal_fd']
+               'fppg','avg_fppg_for_position','num_games_included', 'sal_dk', 'sal_fd', 'team', 'alias']
 
     def __init__(self, salary_pool_id, httpresponse=None):
         self.httpresponse = httpresponse # set streaming to True when returning this csv in an http response
@@ -1458,12 +1457,18 @@ class SalaryPool2Csv(object):
         self.csvfile = None
 
     def __writerow(self, writer, salary):
+
+        # hack to make FBs show up as RBs in the csv for readability.
+        position_name = salary.player.position.name
+        if position_name == 'FB' and self.pool.site_sport.name == 'nfl':
+            position_name = 'RB'
+
         writer.writerow([
             salary.player.pk,               # 'id'
             salary.player.last_name,        # 'last_name'
             salary.player.first_name,       # 'first_name'
             salary.amount,                  # 'price_draftboard'
-            salary.player.position.name,    # 'position'
+            position_name,    # 'position'
             salary.fppg,
             salary.avg_fppg_for_position,
             salary.num_games_included,
@@ -1471,6 +1476,9 @@ class SalaryPool2Csv(object):
             # new: include actual site salaries for major sites.
             salary.sal_dk,
             salary.sal_fd,
+
+            salary.player.team.name,
+            salary.player.team.alias,
         ])
 
     def generate(self):
