@@ -1449,7 +1449,7 @@ class SalaryPool2Csv(object):
     #         return value
 
     columns = ['id','last_name','first_name','price_draftboard','position',
-               'fppg','avg_fppg_for_position','num_games_included', 'sal_dk', 'sal_fd']
+               'fppg','avg_fppg_for_position','num_games_included', 'sal_dk', 'sal_fd', 'team', 'alias']
 
     def __init__(self, salary_pool_id, httpresponse=None):
         self.httpresponse = httpresponse # set streaming to True when returning this csv in an http response
@@ -1471,6 +1471,9 @@ class SalaryPool2Csv(object):
             # new: include actual site salaries for major sites.
             salary.sal_dk,
             salary.sal_fd,
+
+            salary.player.team.name,
+            salary.player.team.alias,
         ])
 
     def generate(self):
