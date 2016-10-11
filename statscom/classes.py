@@ -202,29 +202,43 @@ class Stats(object):
             self.sport_players = self.get_player_model_class().objects.filter()
         return self.sport_players
 
-    def find_player(self, first_name, last_name):
+    def find_player(self, first_name, last_name, pid):
+        """
+        may return None if a draftboard player with the same First & Last name cant be found
+        AND a player with this first name & last name & player id (third party player id -- a 'pid' ) cant be found.
+
+        :param first_name:
+        :param last_name:
+        :param pid: third-party service player id.
+        :return:
+        """
         model_class = self.get_player_model_class()
         try:
             return self.get_sport_players().get(first_name=first_name, last_name=last_name)
+
         except (model_class.MultipleObjectsReturned, model_class.DoesNotExist) as e:
-            # we matched more than 1 player or we didnt match any players
-
             # check the lookup table
-            return self.find_player_in_lookup_table(first_name, last_name)
+            return self.find_player_in_lookup_table(first_name, last_name, pid)
 
-        # except model_class.DoesNotExist:
-        #     # we didnt match any players!
-        #     return None
+        #raise Exception('statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
 
-    def find_player_in_lookup_table(self, first_name, last_name):
-        """ uses the PlayerLookup table to find the named player -- creates an instance if they dont exist """
+    def find_player_in_lookup_table(self, first_name, last_name, pid):
+        """
+        uses the PlayerLookup table to find the named player -- creates an instance if they dont exist
+
+        returns None if no player could be looked up in /admin/statscom/playerlookup/
+        """
+
         try:
-            player_lookup = PlayerLookup.objects.get(first_name=first_name, last_name=last_name)
+            player_lookup = PlayerLookup.objects.get(first_name=first_name, last_name=last_name, pid=pid)
             return player_lookup.player # may return None if admin has not set it yet
-        except PlayerLookup.DoesNotExist:
-            # create their entry
-            player_lookup = PlayerLookup.objects.create(first_name=first_name, last_name=last_name)
 
+        except PlayerLookup.DoesNotExist:
+            # create their entry, but theres nothing to return, because a newly created object wont be linked
+            # to an actual SR player yet!
+            player_lookup = PlayerLookup.objects.create(first_name=first_name, last_name=last_name, pid=pid)
+
+        #
         return None
 
 class DailyGamesMLB(Stats):
@@ -533,19 +547,25 @@ class FantasyProjectionsNFL(FantasyProjections):
         data = self.get_projections(week=week)
         offensive_projections = data.get(self.field_offensive_projections)
         player_projections = []
+        no_lookups = []
         for proj in offensive_projections:
             # get the players position
             position = proj.get(self.field_position)
 
             # lookup the player in our database by matching the full name
             player_data = proj.get(self.field_player)
+            pid = player_data.get(self.field_player_id)
             first_name = player_data.get(self.field_first_name)
             last_name = player_data.get(self.field_last_name)
 
             # look up this third party api player in our own db
-            player = self.find_player(first_name, last_name)
+            player = self.find_player(first_name, last_name, pid)
             if player is None:
-                print("YUH OH WE DIDNT FIND -> %s" % (str(first_name + ' ' + last_name)))
+                player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
+                                                str(first_name + ' ' + last_name), str(position))
+                no_lookups.append(player_string)
+                err_msg = 'COULDNT LOOKUP -> %s' % player_string
+                print(err_msg)
                 continue
 
             #
@@ -567,6 +587,14 @@ class FantasyProjectionsNFL(FantasyProjections):
                     player_projections.append(self.build_player_projection(player, fantasy_points,
                                                                     sal_dk=sal_dk, sal_fd=sal_fd))
                     break
+
+        # send slack webhook with the players we couldnt link
+        num_players_without_lookup = len(no_lookups)
+        if num_players_without_lookup > 0:
+            webhook = ProjectionsWeekWebhook()
+            webhook.send('check draftboard.com/admin/statscom/playerlookup/ '
+                         'and link [%s] players!' % str(num_players_without_lookup))
+
         #
         return player_projections
 
