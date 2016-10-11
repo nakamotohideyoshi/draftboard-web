@@ -225,8 +225,7 @@ const Deposits = React.createClass({
   render() {
     const depositButtonClasses = classNames('button button--flat-alt1');
     // If we don't have a nonce, or if we have an outstanding deposit request, disable the button.
-    const buttonIsDisabled = (this.doHaveNonce() || !this.state.amount || this.props.isDepositing);
-
+    const buttonIsDisabled = (!this.doHaveNonce() || !this.state.amount || this.props.isDepositing);
     // Create the list of quick deposit amounts.
     const quckDeposits = depositOptions.map((amount) => {
       const dolarPrepended = '$'.concat(amount);
