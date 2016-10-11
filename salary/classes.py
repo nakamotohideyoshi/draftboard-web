@@ -31,9 +31,8 @@ from util.slack import Webhook
 
 class SalaryProgressWebhook(Webhook):
 
-    # https://hooks.slack.com/services/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
-    #identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT' # #scheduler-logs
-    identifier = 'T03UVUNP8/B141P6N2C/9TMse3utYJSqICg1iXdcaOPZ'
+    # rio slack - channel #stats-projections
+    identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
 
 class SalaryRounder(object):
     """
