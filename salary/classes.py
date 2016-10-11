@@ -1457,12 +1457,18 @@ class SalaryPool2Csv(object):
         self.csvfile = None
 
     def __writerow(self, writer, salary):
+
+        # hack to make FBs show up as RBs in the csv for readability.
+        position_name = salary.player.position.name
+        if position_name == 'FB' and self.pool.site_sport.name == 'nfl':
+            position_name = 'RB'
+
         writer.writerow([
             salary.player.pk,               # 'id'
             salary.player.last_name,        # 'last_name'
             salary.player.first_name,       # 'first_name'
             salary.amount,                  # 'price_draftboard'
-            salary.player.position.name,    # 'position'
+            position_name,    # 'position'
             salary.fppg,
             salary.avg_fppg_for_position,
             salary.num_games_included,
