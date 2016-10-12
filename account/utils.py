@@ -89,13 +89,12 @@ class CheckUserAccess(object):
             value = float(response.content)
             result = True if value < settings.GETIPNET_NORMAL else False
             msg = '' if result else 'Your ip is too risky, or VPN used'
-            self.create_log(
-                _account_const.IP_CHECK_STATUS,
-                {
-                    'result': 'Access Granted: %s, Risky value: %s' %
-                              (result, value)
-                }
-            )
+            # Log all failed attempts.
+            if result is False:
+                self.create_log(
+                    _account_const.IP_CHECK_STATUS,
+                    {'result': 'Access Denied, Risk value: %s' % value}
+                )
             return result, msg
         # in case of out of limit
         elif response.status_code == 429:

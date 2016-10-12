@@ -1084,6 +1084,7 @@ class TruliooVerifyUserAPIView(APIView):
         except VerifyDataValidationError as e:
             raise APIException({"detail": str(e)})
 
+        # There was a data validation error sent back from Trulioo.
         except TruliooException as e:
             raise APIException({"detail": str(e)})
 
@@ -1095,8 +1096,29 @@ class TruliooVerifyUserAPIView(APIView):
                 'User verification was unsuccessful. Please contact support@draftboard.com')
 
         if verified is False:
+            # Create a user log for the failed attempt.
+            create_user_log(
+                request=request,
+                type=_account_const.AUTHENTICATION,
+                action=_account_const.IDENTITY_VERIFICATION_FAILED,
+                metadata={
+                    'detail': 'No identity match was found for provided info.',
+                }
+            )
+
             raise APIException(
                 'User verification was unsuccessful. Please contact support@draftboard.com')
+
+        # If the verification request was successful...
+        # Create a user log for the verification.
+        create_user_log(
+            request=request,
+            type=_account_const.AUTHENTICATION,
+            action=_account_const.IDENTITY_VERIFICATION_SUCCESS,
+            metadata={
+                'detail': 'An identity match was found.',
+            }
+        )
 
         # return success response if everything went ok
         return Response(status=200)
