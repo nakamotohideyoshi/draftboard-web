@@ -39,7 +39,7 @@ const IdentityForm = React.createClass({
   },
 
 
-  renderErrors(errors) {
+  renderErrors() {
     return '';
   },
 
