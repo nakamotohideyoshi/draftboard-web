@@ -93,6 +93,11 @@ class Pool(models.Model):
     max_percent_adjust = models.FloatField(null=False, default=10.0,
                                     help_text='the maximum percentage shift due to ownership adjustment')
 
+    # randomly add/subtract this much to the final salary (value is % of the salary)
+    random_percent_adjust = models.FloatField(default=0.0, null=False,
+                              help_text='if this is non-zero, apply an additional shift to all salaries '
+                                        'randomly chosen from [-X%, +X% ]. this will happen before the final rounding.')
+
     #
     # make sure that only one Pool can be active at a time (for the site_sport)
     def save(self, *args, **kwargs):
@@ -124,7 +129,8 @@ class Salary(models.Model):
     amount          = models.PositiveIntegerField(null=False,
                                 verbose_name='Salary')
     # new field to store the salary without ownership % adjustments
-    amount_unadjusted = models.PositiveIntegerField(null=False, default=0)
+    amount_unadjusted = models.PositiveIntegerField(null=False, default=0,
+                                verbose_name='Salary Pre-Ownership Adjustments')
 
     flagged         = models.BooleanField(default=False, null=False)
     primary_roster  = models.ForeignKey(RosterSpot, null = False,
@@ -154,6 +160,9 @@ class Salary(models.Model):
     # new fields to compare DK & FD salaries (if they exist, for the last generation)
     sal_dk = models.FloatField(null=True, blank=True, verbose_name='DK Salary')
     sal_fd = models.FloatField(null=True, blank=True, verbose_name='FD Salary')
+
+    random_adjust_amount = models.FloatField(null=False, default=0.0,
+                        help_text='the amount of ($) salary +/- applied before final rounding.')
 
     def __str__(self):
         return 'Salary'
