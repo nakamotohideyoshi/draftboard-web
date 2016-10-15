@@ -6,6 +6,7 @@ from collections import (
     OrderedDict,
     Counter,
 )
+from random import Random
 from statistics import mean
 from django.db.models import Q
 from .exceptions import (
@@ -519,11 +520,49 @@ class SalaryGenerator(FppgGenerator):
         self.update_progress('updating (%s) players' % len(players))
         self.helper_update_salaries(players, position_average_list, sum_average_points)
 
+        # apply hardcoded minimum salaries.
+        # this method must be run AFTER salaries are complete, and the final rounding has been done.
+        # it ALSO must be run BEFORE update_unadjusted_salaries() !
+        self.update_position_minimum_salaries(self.pool)
+
         #
-        # Save this original salary into the 'amount_unadjusted' field to be able to reset
+        # Save this original salary into the 'amount_unadjusted' field to be able to reset.
         self.update_unadjusted_salaries(self.pool)
 
         self.update_progress('finished. (%s seconds)' % str((timezone.now() - start).total_seconds()))
+
+    def update_position_minimum_salaries(self, pool):
+        """
+        overrides to 'min_player_salary' for specific RosterSpot(s)
+
+        this should only be used to raise the minimum for specific positions.
+        the salary amount set in the SalaryConfig.min_player_salary should be the lowest for the sport
+        and will be used for any specific spots we dont specifically code in this method.
+
+        :param pool:
+        :return:
+        """
+
+        for salary in Salary.objects.filter(pool=pool):
+            print('pos min override check: %s' % str(salary))
+            sport = self.pool.site_sport.name
+            if sport == 'nfl':
+                qb = 6000.0
+                if salary.primary_roster.name == 'QB' and salary.amount < qb:
+                    salary.amount = qb
+                    salary.save()
+                    print('   *changed %s' % str(salary))
+                else:
+                    print('    unchanged %s' % str(salary))
+
+            elif sport == 'nba':
+                pass
+            elif sport == 'nhl':
+                pass
+            elif sport == 'mlb':
+                pass
+            else:
+                pass
 
     def helper_get_player_stats(self, trailing_games=None):
         """
@@ -853,6 +892,23 @@ class SalaryGenerator(FppgGenerator):
                         salary.amount   = self.__round_salary(salary.amount)
                         if(salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
+
+                            # # this if statement can be hardcoded to override
+                            # # the 'min_player_salary' per sport&position
+                            # sport = self.pool.site_sport.name
+                            # if sport == 'nfl':
+                            #     if salary.primary_roster.name == 'QB':
+                            #         salary.amount = 6000.0
+                            #
+                            # elif sport == 'nba':
+                            #     pass
+                            # elif sport == 'nhl':
+                            #     pass
+                            # elif sport == 'mlb':
+                            #     pass
+                            # else:
+                            #     pass
+
                         salary.flagged  = player.flagged
                         salary.pool     = self.pool
                         salary.player   = player.player
@@ -952,6 +1008,11 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         # the mean of weighted score of their position
         self.update_progress('updating (%s) players' % len(self.players))
         self.helper_update_salaries(self.players, self.position_average_data, self.sum_average_points)
+
+        # apply hardcoded minimum salaries.
+        # this method must be run AFTER salaries are complete, and the final rounding has been done.
+        # it ALSO must be run BEFORE update_unadjusted_salaries() !
+        self.update_position_minimum_salaries(self.pool)
 
         # Save this original salary into the 'amount_unadjusted' field to be able to reset
         self.update_unadjusted_salaries(self.pool)
@@ -1256,6 +1317,20 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         sal_fd = proj_obj.sal_fd
                         salary.sal_dk = sal_dk
                         salary.sal_fd = sal_fd
+
+                        # apply randomization, if pool.random_percent_adjust is non-zero
+                        if self.pool.random_percent_adjust != 0.0:
+                            r_pct = self.pool.random_percent_adjust
+                            #
+                            decimal_places = 1000000
+                            r = Random()
+                            # divide by 100, because its entered as 1.75 for 1.75% on the admin
+                            plus_minus = int(r_pct * decimal_places) / 100
+                            random_pct = r.randrange(plus_minus * -1, plus_minus) / decimal_places
+                            random_amount = float(int(salary.amount * random_pct))      # its + or -, but truncate decimals
+                            salary.random_adjust_amount = random_amount
+                            print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
+                            salary.amount += salary.random_adjust_amount
 
                         #
                         salary.amount = self.__round_salary(salary.amount)

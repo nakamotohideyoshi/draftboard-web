@@ -54,6 +54,8 @@ class SalaryInline(admin.TabularInline):
         'amount_unadjusted',
         'ownership_percentage',
 
+        'random_adjust_amount',
+
     )
     # + ('flagged','amount','amount_unadjusted','ownership_percentage')
 
@@ -199,7 +201,7 @@ class PoolAdmin(admin.ModelAdmin):
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
 
     list_display    = ['player','amount','flagged','pool',
-                       'primary_roster', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included']
+                       'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included']
     list_editable   = ['amount', 'flagged']
     model           = Salary
     list_filter     = [ 'primary_roster', 'flagged', 'pool']
