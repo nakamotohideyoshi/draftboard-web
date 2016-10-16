@@ -48,6 +48,7 @@ class MyUserAdmin(UserAdmin):
         CashTransactionDetailAdminInline,
         UserLogAdminInline,
     ]
+    actions = [sent_reset_password]
 
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
