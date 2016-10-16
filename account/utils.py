@@ -169,5 +169,7 @@ class CheckUserAccess(object):
 
 
 def reset_user_password_email(user, request):
-    form = PasswordResetForm({'email': user.email})
-    form.save(from_email=settings.DEFAULT_FROM_EMAIL, request=request)
+    if user.email:
+        form = PasswordResetForm({'email': user.email})
+        form.is_valid()
+        form.save(from_email=settings.DEFAULT_FROM_EMAIL, request=request)
