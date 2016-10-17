@@ -6,6 +6,7 @@ from collections import (
     OrderedDict,
     Counter,
 )
+from random import Random
 from statistics import mean
 from django.db.models import Q
 from .exceptions import (
@@ -31,9 +32,8 @@ from util.slack import Webhook
 
 class SalaryProgressWebhook(Webhook):
 
-    # https://hooks.slack.com/services/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
-    #identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT' # #scheduler-logs
-    identifier = 'T03UVUNP8/B141P6N2C/9TMse3utYJSqICg1iXdcaOPZ'
+    # rio slack - channel #stats-projections
+    identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
 
 class SalaryRounder(object):
     """
@@ -144,15 +144,23 @@ class PlayerProjection(object):
     run projections thru the SalaryGeneratorFromProjections.
     """
 
-    def __init__(self, player, fantasy_points=0.0):
+    def __init__(self, player, fantasy_points=0.0, sal_dk=None, sal_fd=None):
         self.player = player
         self.fantasy_points = fantasy_points
+        self.sal_dk = sal_dk
+        self.sal_fd = sal_fd
 
     def get_player(self):
         return self.player
 
     def get_fantasy_points(self):
         return self.fantasy_points
+
+    def get_sal_dk(self):
+        return self.sal_dk
+
+    def get_sal_fd(self):
+        return self.sal_fd
 
 class SalaryPlayerStatsObject(object):
     """
@@ -224,7 +232,7 @@ class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
     this is especially useful for SalaryGeneratorFromProjections.
     """
 
-    def __init__(self, player, fantasy_points):
+    def __init__(self, player, fantasy_points, sal_dk=None, sal_fd=None):
         """
         'projection' needs to allow us to look up the sports.<sport>.models.Player
         as well as get a fantasy_points value.
@@ -241,6 +249,10 @@ class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
         self.fantasy_points = float(fantasy_points)
         self.position = self.player.position
         self.player_id = self.player.pk
+
+        # save the actual DK and FD salaries for the player
+        self.sal_dk = sal_dk
+        self.sal_fd = sal_fd
 
 class SalaryPlayerObject(object):
     """
@@ -508,11 +520,49 @@ class SalaryGenerator(FppgGenerator):
         self.update_progress('updating (%s) players' % len(players))
         self.helper_update_salaries(players, position_average_list, sum_average_points)
 
+        # apply hardcoded minimum salaries.
+        # this method must be run AFTER salaries are complete, and the final rounding has been done.
+        # it ALSO must be run BEFORE update_unadjusted_salaries() !
+        self.update_position_minimum_salaries(self.pool)
+
         #
-        # Save this original salary into the 'amount_unadjusted' field to be able to reset
+        # Save this original salary into the 'amount_unadjusted' field to be able to reset.
         self.update_unadjusted_salaries(self.pool)
 
         self.update_progress('finished. (%s seconds)' % str((timezone.now() - start).total_seconds()))
+
+    def update_position_minimum_salaries(self, pool):
+        """
+        overrides to 'min_player_salary' for specific RosterSpot(s)
+
+        this should only be used to raise the minimum for specific positions.
+        the salary amount set in the SalaryConfig.min_player_salary should be the lowest for the sport
+        and will be used for any specific spots we dont specifically code in this method.
+
+        :param pool:
+        :return:
+        """
+
+        for salary in Salary.objects.filter(pool=pool):
+            print('pos min override check: %s' % str(salary))
+            sport = self.pool.site_sport.name
+            if sport == 'nfl':
+                qb = 6000.0
+                if salary.primary_roster.name == 'QB' and salary.amount < qb:
+                    salary.amount = qb
+                    salary.save()
+                    print('   *changed %s' % str(salary))
+                else:
+                    print('    unchanged %s' % str(salary))
+
+            elif sport == 'nba':
+                pass
+            elif sport == 'nhl':
+                pass
+            elif sport == 'mlb':
+                pass
+            else:
+                pass
 
     def helper_get_player_stats(self, trailing_games=None):
         """
@@ -842,6 +892,23 @@ class SalaryGenerator(FppgGenerator):
                         salary.amount   = self.__round_salary(salary.amount)
                         if(salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
+
+                            # # this if statement can be hardcoded to override
+                            # # the 'min_player_salary' per sport&position
+                            # sport = self.pool.site_sport.name
+                            # if sport == 'nfl':
+                            #     if salary.primary_roster.name == 'QB':
+                            #         salary.amount = 6000.0
+                            #
+                            # elif sport == 'nba':
+                            #     pass
+                            # elif sport == 'nhl':
+                            #     pass
+                            # elif sport == 'mlb':
+                            #     pass
+                            # else:
+                            #     pass
+
                         salary.flagged  = player.flagged
                         salary.pool     = self.pool
                         salary.player   = player.player
@@ -919,6 +986,10 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         # call overridden method instead of helper_get_player_stats() (it uses PlayerStats history)
         self.players = self.helper_get_player_stats()
 
+        # we could zero out all existing actual salaries right here to eliminate stale data,
+        # but only players on the current day will be updated. this is likely the desired route.
+        # TODO clear all sites actual salaries. they will be updated later on.
+
         # Get the average score per position so we know
         # which positions should have more value
         self.update_progress('calculating positional averages')
@@ -938,6 +1009,11 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         self.update_progress('updating (%s) players' % len(self.players))
         self.helper_update_salaries(self.players, self.position_average_data, self.sum_average_points)
 
+        # apply hardcoded minimum salaries.
+        # this method must be run AFTER salaries are complete, and the final rounding has been done.
+        # it ALSO must be run BEFORE update_unadjusted_salaries() !
+        self.update_position_minimum_salaries(self.pool)
+
         # Save this original salary into the 'amount_unadjusted' field to be able to reset
         self.update_unadjusted_salaries(self.pool)
 
@@ -948,6 +1024,8 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         override method in order to return a custom list,
         where we use the projection instead of the calculated fppg
         but we still return a list of SalaryPlayerObject(s)
+
+        this method updates the players actual DK & FD salary in the salarys player model if possible!
 
         returns a list of SalaryPlayerObject objects
 
@@ -961,12 +1039,17 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
             fantasy_points = player_projection.get_fantasy_points()
 
             # create SalaryPlayerStatsProjectionObject
-            player_stats_object = SalaryPlayerStatsProjectionObject(player, fantasy_points)
+            sal_dk = player_projection.get_sal_dk()
+            sal_fd = player_projection.get_sal_fd()
+            player_stats_object = SalaryPlayerStatsProjectionObject(player, fantasy_points,
+                                                                    sal_dk=sal_dk, sal_fd=sal_fd)
 
             # create a SalaryPlayerObject for each player
             player = SalaryPlayerObject(max_games=1)  # 1 because we are going to set the projection
             player.player_id = player_stats_object.player_id
             player.player = player_stats_object.player
+            # SalaryPlayerObject has an internal list of 1 SalaryPlayerStatsProjectionObject,
+            # and that SalaryPlayerStatsProjectionObject has the actual DK + FD salary.
             player.player_stats_list.append(player_stats_object)
 
             # add it to the return list
@@ -1130,6 +1213,14 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         passed to this class. This method will update existing entries for players
         that already exist. THis method should *not* be called outside of this
         class.
+
+        the 'players' param is a list of SalaryPlayerObjects each of which
+        has an internal list of 1 SalaryPlayerStatsProjectionObject which contains
+        the projection, and site specific actual salaries (useful for displaying in admin).
+
+        this method also wipes all existing site specific actual salaries (DK, FD, ...) to None
+        with the expectation that they are about to be updated (and we dont want stale values lingering).
+
         :param players:
         :param position_average_list:
         :param sum_average_points:
@@ -1143,6 +1234,11 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         for sal_obj in Salary.objects.filter(pool=self.pool):
             old_sal = sal_obj.amount
             sal_obj.amount = min_salary
+
+            # zero out existing site actual salaries
+            sal_obj.sal_dk = None
+            sal_obj.sal_fd = None
+
             sal_obj.save()
             sal_obj.refresh_from_db()
             # print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
@@ -1204,7 +1300,10 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         self.update_progress(msg)  # send webhook with the same info
                         printed_players.append(player.player.srid)  # keep track so we dont double-send
 
+                    # look in each SalaryPlayerObject's list for the only SalaryPlayerStatsProjectionObject
+                    # and extract the projection + actual salary information
                     if player.player_stats_list[0].position in pos_arr:
+                        #
                         salary = self.get_salary_for_player(player.player)
                         if average_weighted_fantasy_points_for_pos == 0.0:
                             salary.amount = self.salary_conf.min_player_salary
@@ -1212,6 +1311,28 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             salary.amount = ((player.fantasy_weighted_average /
                                               average_weighted_fantasy_points_for_pos) * average_salary)
 
+                        # retrieve the DK + FD actual salaries for this players SalaryPlayerStatsProjectionObject
+                        proj_obj = player.player_stats_list[0]
+                        sal_dk = proj_obj.sal_dk
+                        sal_fd = proj_obj.sal_fd
+                        salary.sal_dk = sal_dk
+                        salary.sal_fd = sal_fd
+
+                        # apply randomization, if pool.random_percent_adjust is non-zero
+                        if self.pool.random_percent_adjust != 0.0:
+                            r_pct = self.pool.random_percent_adjust
+                            #
+                            decimal_places = 1000000
+                            r = Random()
+                            # divide by 100, because its entered as 1.75 for 1.75% on the admin
+                            plus_minus = int(r_pct * decimal_places) / 100
+                            random_pct = r.randrange(plus_minus * -1, plus_minus) / decimal_places
+                            random_amount = float(int(salary.amount * random_pct))      # its + or -, but truncate decimals
+                            salary.random_adjust_amount = random_amount
+                            print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
+                            salary.amount += salary.random_adjust_amount
+
+                        #
                         salary.amount = self.__round_salary(salary.amount)
                         if (salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
@@ -1402,7 +1523,7 @@ class SalaryPool2Csv(object):
     #         return value
 
     columns = ['id','last_name','first_name','price_draftboard','position',
-               'fppg','avg_fppg_for_position','num_games_included']
+               'fppg','avg_fppg_for_position','num_games_included', 'sal_dk', 'sal_fd', 'team', 'alias']
 
     def __init__(self, salary_pool_id, httpresponse=None):
         self.httpresponse = httpresponse # set streaming to True when returning this csv in an http response
@@ -1411,15 +1532,28 @@ class SalaryPool2Csv(object):
         self.csvfile = None
 
     def __writerow(self, writer, salary):
+
+        # hack to make FBs show up as RBs in the csv for readability.
+        position_name = salary.player.position.name
+        if position_name == 'FB' and self.pool.site_sport.name == 'nfl':
+            position_name = 'RB'
+
         writer.writerow([
-            salary.player.pk,           # 'id'
-            salary.player.last_name,    # 'last_name'
-            salary.player.first_name,   # 'first_name'
-            salary.amount,              # 'price_draftboard'
-            salary.player.position.name, # 'position'
+            salary.player.pk,               # 'id'
+            salary.player.last_name,        # 'last_name'
+            salary.player.first_name,       # 'first_name'
+            salary.amount,                  # 'price_draftboard'
+            position_name,    # 'position'
             salary.fppg,
             salary.avg_fppg_for_position,
             salary.num_games_included,
+
+            # new: include actual site salaries for major sites.
+            salary.sal_dk,
+            salary.sal_fd,
+
+            salary.player.team.name,
+            salary.player.team.alias,
         ])
 
     def generate(self):

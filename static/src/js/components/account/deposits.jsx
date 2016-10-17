@@ -3,13 +3,14 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { deposit } from '../../actions/payments';
-import { setupPaypalButton } from '../../lib/paypal/paypal';
+import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
-import { fetchPayPalClientTokenIfNeeded } from '../../actions/payments';
+import { verifyLocation, verifyIdentity } from '../../actions/user';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
-
+import Modal from '../modal/modal';
+import IdentityForm from './subcomponents/identity-form';
 const { Provider, connect } = ReactRedux;
 const depositOptions = ['25', '50', '100', '250', '500'];
 
@@ -18,15 +19,18 @@ function mapStateToProps(state) {
   return {
     user: state.user.info,
     payPalNonce: state.payments.payPalNonce,
+    payPalClientToken: state.payments.payPalClientToken,
     isDepositing: state.payments.isDepositing,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchPayPalClientTokenIfNeeded: () => dispatch(fetchPayPalClientTokenIfNeeded()),
     deposit: (nonce, amount) => dispatch(deposit(nonce, amount)),
-    setupPaypalButton,
+    setupBraintree: (callback) => setupBraintree(callback),
+    beginPaypalCheckout: (options) => beginPaypalCheckout(options),
+    verifyLocation: () => dispatch(verifyLocation()),
+    verifyIdentity: (postData) => dispatch(verifyIdentity(postData)),
   };
 }
 
@@ -38,23 +42,36 @@ const Deposits = React.createClass({
     deposit: React.PropTypes.func.isRequired,
     isDepositing: React.PropTypes.bool.isRequired,
     payPalNonce: React.PropTypes.string,
-    fetchPayPalClientTokenIfNeeded: React.PropTypes.func.isRequired,
-    setupPaypalButton: React.PropTypes.func.isRequired,
+    payPalClientToken: React.PropTypes.string,
+    setupBraintree: React.PropTypes.func.isRequired,
+    beginPaypalCheckout: React.PropTypes.func.isRequired,
+    verifyLocation: React.PropTypes.func.isRequired,
+    verifyIdentity: React.PropTypes.func.isRequired,
   },
 
 
   getInitialState() {
     return {
       amount: null,
+      paypalInstance: {},
+      paypalButtonEnabled: false,
     };
   },
 
 
   componentWillMount() {
+    // As soon as the compenent boots up, setup braintree.
+    // This will fetch the client token.
+    this.props.setupBraintree((paypalInstance) => {
+      this.setState({ paypalInstance });
+      this.enablePaypalButton();
+    });
+    // First check if the user's location is valid. they will be redirected if
+    // it isn't.
+    this.props.verifyLocation();
+    // Listen for a succesful deposit message.
+    // When we find out the deposit is a success, reset the form.
     PubSub.subscribe('account.depositSuccess', () => this.resetForm());
-    // Once we know it will mount, fetch a paypal client token from our server.
-    // We need this in order to get a nonce from the user.
-    this.props.fetchPayPalClientTokenIfNeeded();
   },
 
 
@@ -69,14 +86,35 @@ const Deposits = React.createClass({
   },
 
 
+  getButtonText() {
+    // We don't have a client token yet.
+    if (!this.props.payPalClientToken) {
+      return 'Initializing...';
+    }
+    // We are waiting on a response from our server.
+    if (this.props.isDepositing) {
+      return 'Depositing...';
+    }
+    // We have a deposit amount and can display it
+    if (this.state.amount) {
+      return `Deposit $${this.state.amount} with PayPal`;
+    }
+    // The form is in the starting state.
+    return 'Choose an Amount';
+  },
+
+
   doHaveNonce() {
     return !!this.props.payPalNonce;
   },
 
 
+  doHaveClientToken() {
+    return !!this.props.payPalClientToken;
+  },
+
+
   resetForm() {
-    // Remove Paypal button.
-    this.refs['paypal-container'].innerHTML = '';
     this.setState({ amount: '' });
     // Reset text input
     this.refs.textInput.value = '';
@@ -85,35 +123,55 @@ const Deposits = React.createClass({
     for (let i = 0; i < radios.length; ++i) {
       radios[i].checked = false;
     }
+    // Enable the paypal button click event.
+    this.enablePaypalButton();
   },
 
 
-  removeAllButLastElement(nodeList) {
-    if (nodeList.length > 1) {
-      for (let i = 0; i < nodeList.length - 1; i++) {
-        nodeList[i].remove();
-      }
+  enablePaypalButton() {
+    this.setState({ paypalButtonEnabled: true });
+  },
+
+
+  disablePaypalButton() {
+    this.setState({ paypalButtonEnabled: false });
+  },
+
+
+  handleButtonClick() {
+    if (this.state.paypalButtonEnabled) {
+      log.info('Initiating Paypal checkout.');
+      this.checkoutInit();
+    } else {
+      log.warn('Ignoring button click.');
     }
   },
 
 
-  addPaypalButton(amount) {
-    // remove any existing paypal buttons.
-    this.refs['paypal-container'].innerHTML = '';
-
-    // Note: this is a promise.
-    this.props.setupPaypalButton(
-      'paypal-container',
-      amount,
-      // onReady
-      () => {
-        // Because of the async nature of the paypal integration, sometimes if the user thrash
-        // clicks we end up with multiple buttons. Buttons are added at the end of the container, so
-        // we can just remove all but that last placed set.
-        this.removeAllButLastElement(document.querySelectorAll('#braintree-paypal-loggedin'));
-        this.removeAllButLastElement(document.querySelectorAll('#braintree-paypal-loggedout'));
-      }
-    );
+  /**
+   * Beging the paypal checkout process. This opens up a Paypal popup.
+   *
+   */
+  checkoutInit() {
+    // We have begun a checkout, disable the button. It will be re-enabled when
+    // the user closes the window. or the process fails.
+    this.disablePaypalButton();
+    this.props.beginPaypalCheckout({
+      paypalInstance: this.state.paypalInstance,
+      amount: this.state.amount,
+      onClosed: () => {
+        // The popup was closed, re-enable the button.
+        this.enablePaypalButton();
+      },
+      onPaymentMethodReceived: (nonce, amount) => {
+        // The user succesfullly completed the paypal checkout. Now we can send
+        // our authorization token to the server for the transaction to occur.
+        log.info('onPaymentMethodReceived()', nonce);
+        if (!this.props.isDepositing) {
+          this.props.deposit(nonce, amount);
+        }
+      },
+    });
   },
 
 
@@ -126,8 +184,7 @@ const Deposits = React.createClass({
     this.refs.textInput.value = event.target.value;
     // update state amount and add button
     this.setState(
-      { amount: event.target.value },
-      this.addPaypalButton(event.target.value)
+      { amount: event.target.value }
     );
   },
 
@@ -143,10 +200,10 @@ const Deposits = React.createClass({
       log.warn('not changing values, we already have a nonce for the current value.');
       return;
     }
+
     // update state amount and add button
     this.setState(
-      { amount: this.refs.textInput.value },
-      this.addPaypalButton(this.refs.textInput.value)
+      { amount: this.refs.textInput.value }
     );
   },
 
@@ -165,23 +222,10 @@ const Deposits = React.createClass({
   },
 
 
-  submitDeposit() {
-    event.preventDefault();
-    if (this.doHaveNonce() && !this.props.isDepositing) {
-      // gather post data
-      this.props.deposit(this.props.payPalNonce, this.state.amount);
-    } else {
-      log.warn('Click ignored. Either nonce is blank, or we are currently depositing.');
-    }
-  },
-
-
   render() {
+    const depositButtonClasses = classNames('button button--flat-alt1');
     // If we don't have a nonce, or if we have an outstanding deposit request, disable the button.
-    const depositButtonClassses = classNames(
-      'button button--flat-alt1',
-      { 'button--disabled': !this.doHaveNonce() || this.props.isDepositing }
-    );
+    const buttonIsDisabled = (this.doHaveNonce() || !this.state.amount || this.props.isDepositing);
 
     // Create the list of quick deposit amounts.
     const quckDeposits = depositOptions.map((amount) => {
@@ -203,7 +247,7 @@ const Deposits = React.createClass({
     });
 
     return (
-      <div>
+      <div className="cmp-account-deposits">
         <div className="form">
           <fieldset className="form__fieldset">
 
@@ -221,7 +265,7 @@ const Deposits = React.createClass({
                 <input
                   ref="textInput"
                   className="form-field__text-input"
-                  type="text"
+                  type="number"
                   name="deposit"
                   id="deposit"
                   placeholder="Enter a deposit amount"
@@ -236,9 +280,30 @@ const Deposits = React.createClass({
           </fieldset>
         </div>
 
-        <div id="paypal-container" ref="paypal-container"></div>
+        <div id="paypal-container" ref="paypal-container">
+          <button
+            disabled={buttonIsDisabled}
+            id="paypal-button"
+            ref="paypal-button"
+            data-amount={this.state.amount}
+            className={depositButtonClasses}
+            onClick={this.handleButtonClick}
+          >{ this.getButtonText() }</button>
+        </div>
 
-        <input onClick={this.submitDeposit} type="submit" className={depositButtonClassses} value="Deposit" />
+        <Modal
+          isOpen={false}
+          onClose={this.close}
+          className="cmp-modal-identity-form"
+          showCloseBtn={false}
+        >
+          <div className="cmp-modal__content">
+            <IdentityForm
+              verifyIdentity={this.props.verifyIdentity}
+            />
+          </div>
+        </Modal>
+
       </div>
     );
   },
@@ -259,4 +324,7 @@ renderComponent(
 );
 
 
+// Export the React component.
+module.exports = Deposits;
+// Export the store-injected ReactRedux component.
 export default DepositsConnected;

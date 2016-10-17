@@ -1,8 +1,16 @@
+import merge from 'lodash/merge';
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
+import Slider from 'react-slick';
 import { getDaysForMonth, weekdayNumToName } from '../../lib/time.js';
 import { dateNow } from '../../lib/utils';
 
+// assets
+require('../../../sass/lib/slick-carousel.scss');
+
+
+const LeftNavButton = (props) => (<div {...props}>&lt;</div>);
+const RightNavButton = (props) => (<div {...props}>&gt;</div>);
 
 const ResultsDaysSlider = React.createClass({
 
@@ -15,117 +23,54 @@ const ResultsDaysSlider = React.createClass({
 
   mixins: [PureRenderMixin],
 
-  componentDidMount() {
-    this.handleScrollToSelected();
+
+  getInitialState() {
+    return {
+      itemsList: this.getItemsList(),
+      settings: {
+        dots: false,
+        infinite: false,
+        prevArrow: <LeftNavButton />,
+        nextArrow: <RightNavButton />,
+        speed: 500,
+        initialSlide: this.props.day - 1,
+        slidesToShow: 7,
+        slidesToScroll: 7,
+        variableWidth: true,
+      },
+    };
   },
 
-  componentDidUpdate() {
-    this.handleScrollToSelected();
+  componentWillReceiveProps(nextProps) {
+    const state = merge({}, this.state);
+
+    state.itemsList = this.getItemsList();
+    state.settings.initialSlide = nextProps.day - 1;
+    this.setState(state);
+
+    this.refs.slider.slickGoTo(nextProps.day - 1);
   },
 
   getItemsList() {
-    return getDaysForMonth(this.props.year, this.props.month).map(d => ({
-      id: d.toString(),
-      daynum: d.getDate(),
-      weekday: weekdayNumToName(d.getDay() === 0 ? 6 : d.getDay() - 1),
-      selected: d.getDate() === this.props.day,
-    }));
+    const mapDay = (d, index) => {
+      const selected = d.getDate() === this.props.day && d.getMonth() === this.props.month - 1;
+
+      const foo = {
+        id: d.toString(),
+        index,
+        daynum: d.getDate(),
+        weekday: weekdayNumToName(d.getDay() === 0 ? 6 : d.getDay() - 1),
+        selected,
+      };
+
+      return foo;
+    };
+
+    return getDaysForMonth(this.props.year, this.props.month).map(mapDay);
   },
 
-  /**
-   * Returns current left position of the slider.
-   * @return {Number}
-   */
-  getCurrentScrollPosition() {
-    const content = this.refs.content;
-    let left = content.style.left;
-
-    if (left) {
-      left = parseInt(left, 10);
-    } else {
-      left = 0;
-    }
-
-    return left;
-  },
-
-  /**
-   * Calculates and returns the new left position of the slider.
-   * @param {Number} direction +1 or -1
-   * @return {Number}
-   */
-  getNextScrollPosition(direction) {
-    const scrollItems = this.refs.content.getElementsByClassName('item');
-
-    if (this.scrollItem === null) {
-      this.scrollItem = 0;
-    }
-
-    this.scrollItem += direction;
-
-    if (this.scrollItem < 0) {
-      // let { year, month } = this.props;
-
-      // if (--month === 0) {
-      //   month = 11;
-      //   year--;
-      // } else {
-      //   month--;
-      // }
-
-      // const day = getDaysForMonth(year, month).pop().getDate();
-      // this.props.onSelectDate(year, month, day);
-
-      this.scrollItem = 0;
-    }
-
-    if (this.scrollItem > scrollItems.length - 1) {
-      this.scrollItem = scrollItems.length - 1;
-    }
-
-    return -1 * scrollItems[this.scrollItem].offsetLeft;
-  },
-
-  handleSelectDate(day) {
-    this.props.onSelectDate(this.props.year, this.props.month, day);
-  },
-
-  handleScrollNext() {
-    const left = this.getNextScrollPosition(1);
-
-    const content = this.refs.content;
-    // const minLeft = 290 - content.scrollWidth;
-
-    // if (left < minLeft) {
-    //   left = minLeft;
-    //   this.getNextScrollPosition(-1);
-    // }
-
-    content.style.left = `${left}px`;
-  },
-
-  handleScrollPrev() {
-    const left = this.getNextScrollPosition(-1);
-
-    const content = this.refs.content;
-    // const minLeft = 290 - content.scrollWidth;
-    // if (left < minLeft) {
-    //   left = minLeft;
-    // }
-
-    content.style.left = `${left}px`;
-  },
-
-  /**
-   * Scrolls slider to selected date.
-   */
-  handleScrollToSelected() {
-    this.scrollItem = this.props.day - 2;
-    this.handleScrollNext();
-  },
-
-  render() {
-    const items = this.getItemsList().map(i => {
+  getItems() {
+    return this.state.itemsList.map(i => {
       const itemTime = (new Date(
         this.props.year,
         this.props.month - 1,
@@ -144,23 +89,32 @@ const ResultsDaysSlider = React.createClass({
         >
           {i.weekday}
           <span className="value">{i.daynum}</span>
+          <div className="separator"><span /></div>
         </div>,
-        <div className="separator" key={`${i.id}|s`}><span /></div>,
       ];
     }).reduce(
       // Just flatten the array on a single level. Not using lodash here,
       // because this may result in unexpected behavior depending on the
       // rendered React component internal representation.
       (accum, l) => accum.concat.apply(accum, l), []
-    ).slice(0, -1); // Remove last separator.
+    );
+  },
 
+  // changeHandler() {
+  //   // -1 for index vs day
+  //   this.refs.slider.slickGoTo(this.props.day - 1);
+  // },
+
+  handleSelectDate(day) {
+    this.props.onSelectDate(this.props.year, this.props.month, day);
+  },
+
+  render() {
     return (
       <div className="results-days-slider">
-        <div className="arrow-left" onClick={this.handleScrollPrev}>&lt;</div>
-        <div className="content-holder">
-          <div className="content" ref="content"> {items} </div>
-        </div>
-        <div className="arrow-right" onClick={this.handleScrollNext}>&gt;</div>
+        <Slider ref="slider" {...this.state.settings}>
+          {this.getItems()}
+        </Slider>
       </div>
     );
   },

@@ -16,7 +16,11 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
 )
-from account.permissions import IsNotAuthenticated
+from account.forms import LoginForm
+from account.permissions import (
+    IsNotAuthenticated,
+    HasIpAccess,
+)
 from account.serializers import (
     LoginSerializer,
     ForgotPasswordSerializer,
@@ -33,12 +37,12 @@ from account.serializers import (
     SavedCardDeleteSerializer,
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
+    TruliooVerifyUserSerializer,
 )
 import account.tasks
 from pp.classes import (
     CardData,
     PayPal,
-
     VZero,
     VZeroTransaction,
 )
@@ -58,7 +62,12 @@ from rest_framework.exceptions import APIException
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
+from account import const as _account_const
+from account.utils import create_user_log
 
+from trulioo.classes import (
+    Trulioo,
+)
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
@@ -451,7 +460,7 @@ def login(request, **kwargs):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('frontend:lobby'))
 
-    return auth_views.login(request)
+    return auth_views.login(request, authentication_form=LoginForm)
 
 
 class RegisterView(TemplateView):
@@ -912,7 +921,8 @@ class VZeroGetClientTokenView(APIView):
     retrieve a paypal vzero client token
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, HasIpAccess)
+
     serializer_classes = None
 
     def get(self, request, *args, **kwargs):
@@ -946,7 +956,8 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, HasIpAccess)
+
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -998,7 +1009,72 @@ class VZeroDepositView(APIView):
             ct = CashTransaction(self.request.user)
             ct.deposit_vzero(amount, transaction_id)
         except Exception:
-            raise APIException('Error adding funds to draftboard account. Please contact admin@draftboard.com')
+
+            raise APIException(
+                'Error adding funds to draftboard account. Please contact admin@draftboard.com')
+
+        create_user_log(
+            request=request,
+            type=_account_const.FUNDS,
+            action=_account_const.DEPOSIT,
+            metadata={
+                'detail': 'Funds deposited via PayPal.',
+                'amount': amount,
+                'transaction_data': transaction_data,
+            }
+        )
+
+        # return success response if everything went ok
+        return Response(status=200)
+
+class VerifyLocationAPIView(APIView):
+    """
+    A simple endpoint to run the HasIpAccess permission class.
+    If the user's IP acceptable, return 200. otherwise a 403.
+    """
+    permission_classes = (HasIpAccess,)
+
+    def get(self, request, *args, **kwargs):
+        return Response(data={"detail": "location verification passed"}, status=200,)
+
+class TruliooVerifyUserAPIView(APIView):
+    """
+    verify the user is real based on the information specified.
+    this will create a log of the trulioo transaction in the django admin
+
+    example POST param (JSON):
+
+        {"first":"FullSteve","last":"Stevenson","birth_day":1,"birth_month":1,"birth_year":1990,"postal_code":"11111"}
+
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = TruliooVerifyUserSerializer
+
+    def post(self, request, *args, **kwargs):
+        # use the serializer to validate the arguments
+        self.serializer_class(data=self.request.data).is_valid(raise_exception=True)
+        # get the django user
+        user = self.request.user
+
+        args = self.request.data
+        first = args.get('first')
+        last = args.get('last')
+        birth_day = args.get('birth_day')
+        birth_month = args.get('birth_month')
+        birth_year = args.get('birth_year')
+        postal_code = args.get('postal_code')
+
+        # use Trulioo class to verify the user
+        verified = False
+        try:
+            t = Trulioo()
+            verified = t.verify_minimal(first, last, birth_day, birth_month, birth_year, postal_code, user=user)
+        except Exception as e:
+            raise APIException(str(e))
+
+        if verified == False:
+            raise APIException('User verification was unsuccessful. Please contact support@draftboard.com')
 
         # return success response if everything went ok
         return Response(status=200)

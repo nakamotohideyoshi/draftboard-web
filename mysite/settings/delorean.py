@@ -2,14 +2,13 @@
 # settings.py for 'draftboard-dev' heroku app
 
 from dj_database_url import config as heroku_db_config
-from urllib.parse import urlparse
 from urllib import parse
 
 from .base import *
 
 # Constant for determining environment
-DOMAIN = 'draftboard-delorean.herokuapp.com'
-ALLOWED_HOSTS = ['.draftboard-delorean.herokuapp.com', '*.draftboard-delorean.herokuapp.com', ]
+DOMAIN = 'delorean.draftboard.com'
+ALLOWED_HOSTS = [DOMAIN]
 
 # Connect Heroku database
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
@@ -20,6 +19,10 @@ DATABASES = {
 }
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 3600
 
 # Heroku Redis - for api views/pages
 HEROKU_REDIS_URL = environ.get('REDIS_URL')
@@ -90,17 +93,17 @@ INSTALLED_APPS += (
 PUSHER_APP_ID = '159447'
 PUSHER_KEY = '32343d7634872062c03e'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
-PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config vars are strings!
+PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')  # heroku config vars are strings!
 
-#
+
 ##########################################################################
 #        paypal client_id, secret keys
 ##########################################################################
 PAYPAL_REST_API_BASE = environ.get('PAYPAL_REST_API_BASE')
-PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
-PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
+PAYPAL_CLIENT_ID = environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET = environ.get('PAYPAL_SECRET')
 
-#
+
 ##########################################################################
 # paypal vzero minimal deposit server access_token
 ##########################################################################

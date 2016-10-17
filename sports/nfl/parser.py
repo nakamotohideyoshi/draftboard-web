@@ -424,6 +424,9 @@ class GameBoxscoreParser(AbstractDataDenParseable):
     event = 'game'
 
     field_srid_game = 'id'
+    field_status = 'status'
+
+    status_halftime = 'halftime'
 
     def __init__(self):
         super().__init__()
@@ -474,7 +477,7 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         self.boxscore.quarter       = o.get('quarter', 0)
         self.boxscore.clock         = o.get('clock', '' )
         self.boxscore.coverage      = o.get('coverage', '')    # deprecated, but it will default to empty string
-        self.boxscore.status        = o.get('status', '')
+        self.boxscore.status        = o.get(self.field_status, '')
         self.boxscore.title         = o.get('title', '')
 
         self.boxscore.save()
@@ -485,7 +488,17 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         game.save()
 
     def send(self, *args, **kwargs):
+        is_halftime = self.o.get(self.field_status) == self.status_halftime
         data = self.get_send_data()
+
+        # halftime hack to ensure quarter is not left at '2' and is at least moved to '3' during halftime
+        try:
+            if is_halftime and int(data['quarter']) <= 2:
+                data['quarter'] = 3
+        except Exception as e:
+            # debug this because i want to know about problems with different scenarios
+            print(e)
+
         self.update_boxscore_data_in_game(data)
 
         # pusher it
@@ -636,25 +649,51 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         ns, parent_api = target
         db, obj_type = ns.split('.') # split into 'nflo' and 'home'/'away'
         if obj_type == self.fallback_obj_type and dataden.models.Trigger.objects.filter(db=db,
-                                                    collection__in=['home','away'], parent_api='pbp').count() == 0:
+                                            collection__in=['home','away'], parent_api='pbp').count() == 0:
+            #
+            print('fallback trigger type for updating boxscore')
             # if we enter here, we are likely running a replay, and we should use the 'play'
             # from parent api 'pbp' to update team scores. it has 'home_points' and 'away_points'
-            boxscore.home_score = o.get('home_points', 0.0)
-            boxscore.away_score = o.get('away_points', 0.0)
+
+            # set home_points if they exist
+            home_score = o.get('home_points')
+            if home_score is not None:
+                boxscore.home_score = home_score
+
+            # set away points if they exist
+            away_score = o.get('away_points')
+            if away_score is not None:
+                boxscore.away_score = away_score
 
         else:
             srid_team = o.get(self.field_srid_team)
             points = o.get(self.field_points)
+
+            is_home = True
             if srid_team == boxscore.srid_home:
                 # update the home team points
-                boxscore.home_score = points
+                if points is not None:
+                    print('updating boxscore is_home[%s] for '
+                          'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
+                    boxscore.home_score = points
             else:
                 # update the away team points
-                boxscore.away_score = points
+                is_home = False
+                if points is not None:
+                    print('updating boxscore is_home[%s] for '
+                          'team [%s] points [%s]' % (str(is_home), str(srid_team), str(points)))
+                    boxscore.away_score = points
+
         if boxscore.home_score is None:
+            print('boxscore.home_score was None so initialized to 0.0')
             boxscore.home_score = 0
         if boxscore.away_score is None:
+            print('boxscore.away_score was None so initialized to 0.0')
             boxscore.away_score = 0
+
+        # halftime hack to force the 'quarter' to be 3 (typically remains at 2) if status is 'halftime'
+        # if o.get('status') == 'halftime':
+        #     o['quarter'] = 3
 
         boxscore.save()
         #boxscore.refresh_from_db()

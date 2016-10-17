@@ -43,20 +43,23 @@ class SalaryInline(admin.TabularInline):
     can_delete = False
     extra = 0
     readonly_fields = (
+        'sal_dk',
+        'sal_fd',
         'player',
         'primary_roster',
-        'fppg_pos_weighted',
+        # 'fppg_pos_weighted',      # deprecated, doesnt apply to stats.com projections
         'fppg',
         'avg_fppg_for_position',
-        'num_games_included',
+        # 'num_games_included',     # deprecated, doesnt apply to stats.com projections
         'amount_unadjusted',
         'ownership_percentage',
 
+        'random_adjust_amount',
 
     )
     # + ('flagged','amount','amount_unadjusted','ownership_percentage')
 
-    exclude = ('player_id', 'player_type', 'player')
+    exclude = ('player_id', 'player_type', 'player', 'fppg_pos_weighted', 'num_games_included')
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster') # select_related('priced_product__product')
@@ -86,7 +89,7 @@ class PoolAdmin(admin.ModelAdmin):
         return format_html('<a href="{}" class="btn btn-success">{}</a>',
                             "/api/salary/export-pool-csv/%s/" % str(obj.pk), "Download .csv" )
 
-    def generate_salaries(self, request, queryset):
+    def OLD_generate_salaries(self, request, queryset):
         if len(queryset) > 1:
             self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
@@ -128,12 +131,12 @@ class PoolAdmin(admin.ModelAdmin):
         else:
             return [inline(self.model, self.admin_site) for inline in self.inlines]
 
-    def generate_salaries_and_adjust_for_ownership(self, *args, **kwargs):
-        """
-        condense the two actions into 1 step for ease.
-        """
-        self.generate_salaries(*args, **kwargs)
-        self.apply_ownership_adjustment(*args, **kwargs)
+    # def generate_salaries_and_adjust_for_ownership(self, *args, **kwargs):
+    #     """
+    #     condense the two actions into 1 step for ease.
+    #     """
+    #     self.generate_salaries(*args, **kwargs)
+    #     self.apply_ownership_adjustment(*args, **kwargs)
 
     def reset_ownership_adjustment(self, request, queryset):
         """
@@ -147,56 +150,50 @@ class PoolAdmin(admin.ModelAdmin):
                 opa = OwnershipPercentageAdjuster(pool)
                 opa.reset()
 
-    def generate_salaries_using_statscom(self, request, queryset):
+    def generate_salaries_using_STATScom_Projections(self, request, queryset):
+        """
+        admin action to generate salaries for the selected pool based on stats.com fantasy projections
+
+        :param request:
+        :param queryset:
+        :return:
+        """
+
         if len(queryset) > 1:
             self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
+            # should be a list of 1 item.
             for pool in queryset:
 
                 sport = pool.site_sport.name
-                if sport != 'nfl':
-                    self.message_user(request, 'NFL is currently the only enabled sport for generating salaries this way.')
+                if sport == 'nfl':
+                    # use STATS.com fantasy projections api as the basis for draftboard player salaries
+                    task_result = generate_salaries_from_statscom_projections_nfl.delay()
+
+                # elif sport == 'nba':
+                #     pass
+
+                else:
+                    msg = '[%s] is unimplemented server-side. DID NOT GENERATE SALARIES for %s!' % (sport, sport)
+                    self.message_user(request, msg)
                     return
 
-                # get stats.com nfl player projections
-                # from statscom.classes import FantasyProjectionsNFL
-                # api = FantasyProjectionsNFL()
-                # # projections = api.get_projections(week=1)
-                # player_projections = api.get_player_projections(week=1)
-                #
-                # # try to feed a spoofed PlayerStats class into SalaryGenerator
-                # from random import Random
-                # from sports.nfl.models import Player
-                # from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
-                # from salary.models import SalaryConfig, Pool
-                # Pool.objects.all().count()
-                # pool = Pool.objects.get(site_sport__name='nfl')
-                # r = Random()
-                # # player_projections = []
-                # # positions = ['QB','RB','FB','WR','TE']
-                # # all_players = Player.objects.filter(position__name__in=positions)
-                # # print('%s players in %s for positions %s' % (str(all_players.count()), str(type(Player)), str(positions)))
-                # # for p in all_players:
-                # #    player_projections.append(PlayerProjection(p, r.randint(0,50)))
-                # #
-                # salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
-                #                                                   slack_updates=True)
-                # salary_generator.generate_salaries()
-
-                task_result = generate_salaries_from_statscom_projections_nfl.delay()
-                # get() blocks the view from returning until the task finishes
+                # get() is blocking and waits for task to finish
                 task_result.get()
 
+                # task finished. presumably salaries have been updated based on latest projections
                 messages.success(request, 'updated salaries')
 
     #
     # admin actions in dropdown
     actions = [
-        generate_salaries_using_statscom,
-        generate_salaries,
+        generate_salaries_using_STATScom_Projections,
+
         apply_ownership_adjustment,
         reset_ownership_adjustment,
-        generate_salaries_and_adjust_for_ownership,
+
+        OLD_generate_salaries,
+        # generate_salaries_and_adjust_for_ownership,
     ]
     list_filter = ['salary__flagged', 'salary__primary_roster']
 
@@ -204,7 +201,7 @@ class PoolAdmin(admin.ModelAdmin):
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
 
     list_display    = ['player','amount','flagged','pool',
-                       'primary_roster', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included']
+                       'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included']
     list_editable   = ['amount', 'flagged']
     model           = Salary
     list_filter     = [ 'primary_roster', 'flagged', 'pool']

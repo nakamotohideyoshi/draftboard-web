@@ -14,6 +14,17 @@ import draftgroup.classes
 from statscom.models import (
     PlayerLookup,
 )
+from util.slack import Webhook
+
+class ProjectionsWeekWebhook(Webhook):
+
+    # its a piece of the full url from something like this:
+    # https://hooks.slack.com/services/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
+    identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.username = 'current-projections-week'
 
 class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
     """
@@ -191,29 +202,43 @@ class Stats(object):
             self.sport_players = self.get_player_model_class().objects.filter()
         return self.sport_players
 
-    def find_player(self, first_name, last_name):
+    def find_player(self, first_name, last_name, pid):
+        """
+        may return None if a draftboard player with the same First & Last name cant be found
+        AND a player with this first name & last name & player id (third party player id -- a 'pid' ) cant be found.
+
+        :param first_name:
+        :param last_name:
+        :param pid: third-party service player id.
+        :return:
+        """
         model_class = self.get_player_model_class()
         try:
             return self.get_sport_players().get(first_name=first_name, last_name=last_name)
+
         except (model_class.MultipleObjectsReturned, model_class.DoesNotExist) as e:
-            # we matched more than 1 player or we didnt match any players
-
             # check the lookup table
-            return self.find_player_in_lookup_table(first_name, last_name)
+            return self.find_player_in_lookup_table(first_name, last_name, pid)
 
-        # except model_class.DoesNotExist:
-        #     # we didnt match any players!
-        #     return None
+        #raise Exception('statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
 
-    def find_player_in_lookup_table(self, first_name, last_name):
-        """ uses the PlayerLookup table to find the named player -- creates an instance if they dont exist """
+    def find_player_in_lookup_table(self, first_name, last_name, pid):
+        """
+        uses the PlayerLookup table to find the named player -- creates an instance if they dont exist
+
+        returns None if no player could be looked up in /admin/statscom/playerlookup/
+        """
+
         try:
-            player_lookup = PlayerLookup.objects.get(first_name=first_name, last_name=last_name)
+            player_lookup = PlayerLookup.objects.get(first_name=first_name, last_name=last_name, pid=pid)
             return player_lookup.player # may return None if admin has not set it yet
-        except PlayerLookup.DoesNotExist:
-            # create their entry
-            player_lookup = PlayerLookup.objects.create(first_name=first_name, last_name=last_name)
 
+        except PlayerLookup.DoesNotExist:
+            # create their entry, but theres nothing to return, because a newly created object wont be linked
+            # to an actual SR player yet!
+            player_lookup = PlayerLookup.objects.create(first_name=first_name, last_name=last_name, pid=pid)
+
+        #
         return None
 
 class DailyGamesMLB(Stats):
@@ -330,8 +355,8 @@ class FantasyProjections(Stats):
     def __init__(self, sport):
         super().__init__(sport)
 
-    def build_player_projection(self, player, fantasy_points):
-        return self.player_projection_class(player, fantasy_points)
+    def build_player_projection(self, player, fantasy_points, sal_dk=None, sal_fd=None):
+        return self.player_projection_class(player, fantasy_points, sal_dk=sal_dk, sal_fd=sal_fd)
 
 class FantasyProjectionsMLB(FantasyProjections):
 
@@ -478,6 +503,7 @@ class FantasyProjectionsNFL(FantasyProjections):
     field_position = 'position'
 
     field_points = 'points'
+    field_salary = 'salary'
 
     field_player = 'player'
     field_first_name = 'firstName'
@@ -486,7 +512,12 @@ class FantasyProjectionsNFL(FantasyProjections):
 
     field_name = 'name'
 
-    default_site = 'draftkings'
+    site_dk = 'draftkings'
+    site_fd = 'fanduel'
+
+    # the sites projections to use as primary datapoint for draftboard.
+    # it should be the site that closest matches our actual scoring.
+    default_site = site_dk
 
     def __init__(self):
         super().__init__('nfl')
@@ -516,19 +547,25 @@ class FantasyProjectionsNFL(FantasyProjections):
         data = self.get_projections(week=week)
         offensive_projections = data.get(self.field_offensive_projections)
         player_projections = []
+        no_lookups = []
         for proj in offensive_projections:
             # get the players position
             position = proj.get(self.field_position)
 
             # lookup the player in our database by matching the full name
             player_data = proj.get(self.field_player)
+            pid = player_data.get(self.field_player_id)
             first_name = player_data.get(self.field_first_name)
             last_name = player_data.get(self.field_last_name)
 
             # look up this third party api player in our own db
-            player = self.find_player(first_name, last_name)
+            player = self.find_player(first_name, last_name, pid)
             if player is None:
-                print("YUH OH WE DIDNT FIND -> %s" % (str(first_name + ' ' + last_name)))
+                player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
+                                                str(first_name + ' ' + last_name), str(position))
+                no_lookups.append(player_string)
+                err_msg = 'COULDNT LOOKUP -> %s' % player_string
+                print(err_msg)
                 continue
 
             #
@@ -537,14 +574,54 @@ class FantasyProjectionsNFL(FantasyProjections):
                 raise Exception('field not found: %s' % self.field_fantasy_projections)
 
             # iterate the list of sites which we have projections for until we find the one we want
+            fantasy_projections_copy = fantasy_projections.copy()
             for site in fantasy_projections:
                 if self.default_site in site.get(self.field_name).lower():
                     # append a new a salary.classes.PlayerProjection to our return list and break
                     fantasy_points = site.get(self.field_points)
-                    player_projections.append(self.build_player_projection(player, fantasy_points))
+
+                    # try to get the sites own salary for the player for the major sites.
+                    sal_dk = self.get_site_player_salary(fantasy_projections_copy, self.site_dk)
+                    sal_fd = self.get_site_player_salary(fantasy_projections_copy, self.site_fd)
+
+                    player_projections.append(self.build_player_projection(player, fantasy_points,
+                                                                    sal_dk=sal_dk, sal_fd=sal_fd))
                     break
+
+        # send slack webhook with the players we couldnt link
+        num_players_without_lookup = len(no_lookups)
+        if num_players_without_lookup > 0:
+            webhook = ProjectionsWeekWebhook()
+            webhook.send('check draftboard.com/admin/statscom/playerlookup/ '
+                         'and link [%s] players!' % str(num_players_without_lookup))
+
         #
         return player_projections
+
+    def get_site_player_salary(self, fantasy_projections, site):
+        """
+        this method should be able to retrieve the site specific
+        salary from the list of site projections objects if
+        the 'site' param is contained within each site items name property.
+
+        :param site: a string, ie: 'draftkings'
+        :return: float - the projected salary
+        """
+
+        projected_player_salary = None
+
+        for site_proj in fantasy_projections:
+            site_fullname = site_proj.get(self.field_name, '')
+
+            if site_fullname is None:
+                continue
+
+            if site in site_fullname:
+                projected_player_salary = site_proj.get(self.field_salary)
+                # break out of loop, in order to return first match
+                break
+
+        return projected_player_salary
 
 class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i might add...
     """ temp helper class to dump out projections and match up with our own players """

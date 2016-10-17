@@ -2,6 +2,7 @@ import Field from '../../../lib/live-animations/nfl/NFLField';
 import NFLLivePlayAnimation from '../../../lib/live-animations/nfl/NFLLivePlayAnimation';
 import NFLPlayRecapVO from '../../../lib/live-animations/nfl/NFLPlayRecapVO';
 import { generateBlockNameWithModifiers } from '../../../lib/utils/bem';
+import Raven from 'raven-js';
 import React from 'react';
 import log from '../../../lib/logging';
 import {
@@ -50,23 +51,45 @@ export default React.createClass({
   simulate() {
     const { event } = this.props;
 
-    const curAnimation = new NFLLivePlayAnimation();
+    let curAnimation = new NFLLivePlayAnimation();
+
     curAnimation.play(new NFLPlayRecapVO(event), this.field).then(() => {
-      // show the results, remove the animation
-      store.dispatch(showAnimationEventResults(event));
+      curAnimation = null;
+      this.field.removeAll();
+      logComponent.debug('liveNFLPlay.simulate complete');
 
-      // remove the event
-      setTimeout(() => {
-        store.dispatch(removeCurrentEvent());
-      }, 4000);
-
-      // // enter the next item in the queue once everything is done
-      setTimeout(() => {
-        store.dispatch(shiftOldestEvent());
-      }, 6000);
+      this.afterEvent(event);
     }).catch(error => {
+      // Log the request error to Sentry with some info.
+      Raven.captureMessage(
+        'Live animation failed',
+        { extra: {
+          event,
+          curAnimation,
+        },
+      });
+
+      curAnimation = null;
+      this.field.removeAll();
       logComponent.error('LiveNFLField.curAnimation error', error);
+
+      this.afterEvent(event);
     });
+  },
+
+  afterEvent(event) {
+    // show the results, remove the animation
+    store.dispatch(showAnimationEventResults(event));
+
+    // remove the event
+    setTimeout(() => {
+      store.dispatch(removeCurrentEvent());
+    }, 4000);
+
+    // // enter the next item in the queue once everything is done
+    setTimeout(() => {
+      store.dispatch(shiftOldestEvent());
+    }, 6000);
   },
 
   render() {

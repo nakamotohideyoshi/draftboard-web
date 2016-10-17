@@ -37,6 +37,7 @@ app = Celery('mysite')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
+#
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
 broker_url = settings.CACHES['default']['LOCATION']
@@ -67,6 +68,13 @@ app.conf.update(
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
             'schedule': crontab(minute=0, hour='17'),  # ~ noon
+        },
+
+        #
+        #
+        'notify_withdraws' : {
+            'task' : 'cash.withdraw.tasks.notify_recent_withdraws',
+            'schedule' : crontab(minute=0, hour='17'), # ~ noon
         },
 
         #
@@ -113,7 +121,7 @@ app.conf.update(
         # checks all sports all sports
         'generate_contest_pool_contests': {
             'task': 'contest.tasks.spawn_contest_pool_contests',
-            'schedule': timedelta(seconds=60),  # every 60 seconds
+            'schedule': timedelta(seconds=30),  # every 60 seconds
             # 'args'      : ('nba',),
         },
 
@@ -150,27 +158,31 @@ app.conf.update(
         ########################################################################
         # generate salaries each day at 8am (est)
         ########################################################################
-        'nba_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('nba',),
-        },
-        'nhl_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('nhl',),
-        },
-        'mlb_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('mlb',),
-        },
+        #
+        # DEPRECATED - we will now be running salaries by hand using stats.com projections.
+        #            - or you can run salaries the using the admin panel for doing so the old way if you have to.
+        #
+        # 'nba_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('nba',),
+        # },
+        # 'nhl_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('nhl',),
+        # },
+        # 'mlb_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('mlb',),
+        # },
         # nfl done on thursdays only
-        'nfl_generate_salaries': {
-            'task': 'salary.tasks.generate_salaries_for_sport',
-            'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
-            'args': ('nfl',),
-        },
+        # 'nfl_generate_salaries': {
+        #     'task': 'salary.tasks.generate_salaries_for_sport',
+        #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'args': ('nfl',),
+        # },
 
         #
         # update injury information for the sports
@@ -201,20 +213,24 @@ app.conf.update(
             'schedule': crontab(hour='9'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('nba',),
         },
+
         'nhl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='9', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('nhl',),
         },
+
         'nfl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='9', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('nfl',),
         },
+
         'mlb_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='9', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
             'args': ('mlb',),
+
         },
 
         #
@@ -249,7 +265,6 @@ app.conf.update(
             'schedule': timedelta(minutes=1),
             'args': ('nfl',),
         }
-
     },
 
     CELERY_ENABLE_UTC=True,

@@ -18,3 +18,5 @@ class PlayerLookup(AbstractNflPlayerLookup):
 
     class Meta:
         abstract = False
+
+        ordering = ('last_name', 'first_name', 'created')

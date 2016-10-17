@@ -5,27 +5,18 @@ from cash.models import CashAmount
 import ticket.models
 from .models import GeneratorSettings, PrizeStructure, Rank
 
-#
-############################################################
-# below is cocde to write a script to install the
-# basic  HEADSUP, CASH PrizeStructures... TODO
-############################################################
-# from django.db import models, migrations
-# from django.contrib.contenttypes.models import ContentType
-# import ticket.models   # we just need this for ticket.models.DEFAULT_TICKET_VALUES
-# from django.apps import apps
-# from django.contrib.contenttypes.management import update_contenttypes
-
+# 10, 20, 100, 200 player structures templates
 ten_entry_template          = [ 10,  [ (1,4),(1,3),(1,2) ]]
 twenty_entry_template       = [ 20,  [ (1,7),(1,4.5),(1,3),(1,2),(1,1.5) ]]
 onehundred_entry_template   = [ 100, [ (1,12),(1,10),(1,8),(1,6),(2,5),(2,4),(2,3),(5,2.5),(5,2),(5,1.5) ]]
 twohundred_entry_template   = [ 200, [ (1,16),(1,12),(1,10),(2,8),(3,6),(4,5),(4,4),(4,3),(10,2.5),(10,2),(10,1.5) ]]
 
+# these prize structures get created by running the create_templates() method
 templates = [
     ten_entry_template,
-    twenty_entry_template,
-    onehundred_entry_template,
-    twohundred_entry_template,
+    #twenty_entry_template,
+    #onehundred_entry_template,
+    #twohundred_entry_template,
 ]
 
 def create(buyin, entries, payouts):

@@ -115,8 +115,7 @@ const shouldFetchDraftGroupFP = (state, id) => {
     });
   }
 
-  if (liveDraftGroups[id].start > dateNow()) reasons.push('draft group has not started');
-  else if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) reasons.push('has not expired');
+  if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) reasons.push('has not expired');
 
   if (reasons.length > 0) {
     logAction.debug('shouldFetchDraftGroupFP - returned false', reasons);

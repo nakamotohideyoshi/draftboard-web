@@ -1,121 +1,139 @@
+import Raven from 'raven-js';
 import braintree from 'braintree-web';
 import { fetchPayPalClientTokenIfNeeded } from '../../actions/payments';
 import store from '../../store';
 import log from '../logging';
 import actionTypes from '../../action-types';
 import { addMessage } from '../../actions/message-actions';
+import merge from 'lodash/merge';
 
 
 /**
  * Use the braintree library to setup a paypal button.
  * Once it is ready, onPaymentMethodReceived will be called.
+ * The following params are passed through as a single `args` object, then
+ * merged with a default set.
  *
- * @param  {[type]} id                       =             'paypal-container'              [description]
- * @param  {[type]} amount                   the dollar amount of the transaction
- * @param  {[type]} onCancelled              =             onCancelledDefault              [description]
- * @param  {[type]} onReady                  =             onReadyDefault                  [description]
- * @param  {[type]} onUnsupported            =             onUnsupportedDefault            [description]
- * @param  {[type]} onAuthorizationDismissed =             onAuthorizationDismissedDefault [description]
- * @return {[type]}                          [description]
+ * @param  {Object} paypalButton = DOM elment of the PayPal button.
+ * @param  {Int} amount = the dollar amount of the transaction.
+ * @param  {Function} onClosed = Callback for when the user closes the popup.
+ * @param  {Function} onReady = Callback for when the button is initialized.
+ * @param  {Function} onError = Callback for when an error has occurred.
+ * @param  {Function} onPaymentMethodReceived = Callback for when a nonce is received.
+ * @return {Promise}
  */
-export const setupPaypalButton = (
-  id = 'paypal-container',
-  amount,
-  onReady = () => {log.info('no onReady callback provided.');},
-  onCancelled = () => {log.info('no onCancelled callback provided.');},
-  onUnsupported = () => {log.info('no onUnsupported callback provided.');},
-  onAuthorizationDismissed = () => {log.info('no onAuthorizationDismissed callback provided.');},
-  onPaymentMethodReceived = () => {log.info('no onPaymentMethodReceived callback provided.');}
-) => {
+export function beginPaypalCheckout(args = {}) {
+  // Default set of callback arguments.
+  const defaultArgs = {
+    onReady: (integration) => {
+      log.info('PayPal ready.', integration);
+    },
+    onPaymentMethodReceived: (obj) => {
+      log.info('onPaymentMethodReceived response:', obj);
+    },
+    onError: (err) => {
+      Raven.captureException(err);
+      log.error(err);
+      // Show error banner to user.
+      return store.dispatch(addMessage({
+        level: 'warning',
+        header: 'Deposit Failed',
+        content: err.details,
+      }));
+    },
+    onClosed: (err) => {
+      log.info('paypal done.', err);
+    },
+  };
+
+
+  // Merge the provided and defaults.
+  const options = merge({}, defaultArgs, args);
+  log.info(`Fetching a nonce for $${options.amount}`);
+
+  // Because tokenization opens a popup, this has to be called as a result of
+  // customer action, like clicking a button—you cannot call this at any time.
+  options.paypalInstance.tokenize({
+    flow: 'checkout', // Required
+    amount: options.amount, // Required
+    currency: 'USD', // Required
+    locale: 'en_US',
+    enableShippingAddress: false,
+    intent: 'authorize',
+    shippingAddressEditable: false,
+  }, (tokenizeErr, payload) => {
+    // Stop if there was an error.
+    if (tokenizeErr) {
+      switch (tokenizeErr.code) {
+        case 'PAYPAL_POPUP_CLOSED':
+          log.info('PayPal popup closed.', tokenizeErr);
+          options.onClosed();
+          break;
+        default:
+          options.onError(tokenizeErr);
+          options.onClosed();
+      }
+      return;
+    }
+
+    // Tokenization succeeded!
+    // Send tokenizationPayload.nonce to server
+    options.onPaymentMethodReceived(payload.nonce, options.amount);
+    // Dispatch an action to save the nonce in our datastore.
+    return store.dispatch({
+      type: actionTypes.PAYPAL_NONCE_RECEIVED,
+      nonce: payload.nonce,
+    });
+  });
+}
+
+
+export const setupBraintree = (callback) => {
   log.info('Initializing Braintree...');
 
-  // Default callback actions to take.
-  //
-  // We have a set of default actions that do some default things, as well as invoking any
-  // passed-in callback functions.
-  const onReadyDefault = (integration) => {
-    log.info('Paypal integration ready.', integration);
-    onReady(integration);
-  };
-
-  const onCancelledDefault = () => {
-    log.warn('paypal checkout was cancelled by user.');
-
-    store.dispatch({
-      type: actionTypes.PAYPAL_CANCELLED,
-    });
-
-    store.dispatch(addMessage({
-      header: 'Deposit Cancelled',
-      level: 'warning',
-      content: 'No funds have been deposited. Sign into PayPal again to proceed.',
-      id: 'paypalCancelledByUser',
-    }));
-
-    onCancelled();
-  };
-
-  const onUnsupportedDefault = () => {
-    log.warn('paypal checkout was cancelled due to an unsupported browser.');
-
-    store.dispatch(addMessage({
-      header: 'Browser Unsupported',
-      level: 'warning',
-      content: 'Your browser is not supported by PayPal.',
-    }));
-
-    onUnsupported();
-  };
-
-  const onAuthorizationDismissedDefault = () => {
-    log.info('paypal checkout popup was closed.');
-    onAuthorizationDismissed();
-  };
-
-  const onPaymentMethodReceivedDefault = (obj) => {
-    log.info('onPaymentMethodReceived response:', obj);
-
-    store.dispatch({
-      type: actionTypes.PAYPAL_NONCE_RECEIVED,
-      nonce: obj.nonce,
-    });
-
-    onPaymentMethodReceived(obj);
-  };
-
-
-  // Setup the darn button already!
+  // Set up the button!
   return store.dispatch(
-  // If we don't have a client token already (we likely do), fetch one.
+    // If we don't have a client token already (we likely do), fetch one.
     fetchPayPalClientTokenIfNeeded())
     // Once we have a client token, we can use the braintree sdk to add a button
     // to the DOM id we provided.
     .then(() => {
       log.info('Client token obtained, setting up braintree checkout.');
       const appState = store.getState();
-      log.info(`Setting up Paypal button for $${amount}`);
 
-      // Do braintree's setup stuff.
-      braintree.setup(appState.payments.payPalClientToken, 'custom', {
-        // Paypal checkout options:
-        // https://developers.braintreepayments.com/reference/client-reference/javascript/v2/paypal#options
-        paypal: {
-          // headless: true,
-          container: id,
-          singleUse: true,
-          intent: 'authorize',
-          submit_for_settlement: true,
-          amount,
-          currency: 'USD',
-          locale: 'en_us',
-          enableShippingAddress: false,
-          enableBillingAddress: false,
-          onCancelled: () => onCancelledDefault(),
-          onUnsupported: () => onUnsupportedDefault(),
-          onAuthorizationDismissed: () => onAuthorizationDismissedDefault(),
-        },
-        onPaymentMethodReceived: (obj) => onPaymentMethodReceivedDefault(obj),
-        onReady: (integration) => onReadyDefault(integration),
+      // Create a Client component
+      braintree.client.create({
+        authorization: appState.payments.payPalClientToken,
+      }, (clientErr, clientInstance) => {
+        // Stop if there was a problem creating the client.
+        // This could happen if there is a network error or if the authorization
+        // is invalid.
+        if (clientErr) {
+          // Capture the error and display a user message.
+          Raven.captureException(clientErr);
+          return store.dispatch(addMessage({
+            level: 'warning',
+            header: 'PayPal Initiation Failed',
+            content: clientErr,
+          }));
+        }
+
+        // Create PayPal component
+        braintree.paypal.create({
+          client: clientInstance,
+        }, (paypalErr, paypalInstance) => {
+          // Stop if there was a problem creating PayPal.
+          // This could happen if there was a network error or if it's incorrectly
+          // configured.
+          if (paypalErr) {
+            log.error('Error creating PayPal:', paypalErr);
+
+            return;
+          }
+
+          // Let the dispatcher know that the button is ready.
+          callback(paypalInstance);
+        });
       });
     }
   );

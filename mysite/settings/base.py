@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'lobby',
     'statscom',                 # STATS.com api parsers, models, projections, etc...
     'swish',                    # Swish Analytics
+    'trulioo',
 
     'rest_framework_swagger',
 )
@@ -297,6 +298,14 @@ STATSCOM_KEYS = {
     'mlb' : {
         'api_key' : 'vqcfvb8vz9m732hqm5saxv3g',
         'secret'  : 'kywJJpqs6a',
+    },
+    'nba' : {
+        'api_key' : 'vz2jhrxzm9pxnnf8ek6d4p5j',
+        'secret'  : 'fMZCuGgUNy',
+    },
+    'nhl' : {
+        'api_key' : 'yubvm7f4gzxve5h3mh2qzgsb',
+        'secret'  : 'xQJ2CTWzP8',
     }
 }
 
@@ -385,6 +394,46 @@ LOGGING = {
         },
     },
 }
+
+# GETIPNET settings
+# ----------------------------------------------------------
+
+GETIPNET_DEFAULT_SUBDOMAIN = "check"
+GETIPNET_SUBDOMAIN = "runfdv4kure0vjqfmdl8hba"
+GETIPNET_CONTACT = "inlanger@gmail.com"
+GETIPNET_NORMAL = 0.99
+
+# GEOIP settings
+# ----------------------------------------------------------
+
+GEOIP_PATH = path.join(BASE_DIR, '../geoip')
+BLOCKED_COUNTRIES_CODES = []
+BLOCKED_STATES = [
+    'TX',
+    'IL',
+    'GA',
+    'VA',
+    'WA',
+    'AZ',
+    'IN',
+    'AL',
+    'LA',
+    'IA',
+    'AK',
+    'NV',
+    'ID',
+    'HI',
+    'MT',
+    'DE',
+    'ND',
+]
+
+
+# Trulioo creds
+TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
+TRULIOO_USER = 'Draftboard_Demo_API'  # 'Draftboard_Demo_Portal'
+TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'
+
 
 # ANALYTICS settings
 # ----------------------------------------------------------

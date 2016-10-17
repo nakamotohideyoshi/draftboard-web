@@ -60,4 +60,11 @@ export default class Stage {
       this.el.removeChild(this.el.lastChild);
     }
   }
+
+  /**
+   * Returns all children currently present on the stage.
+   */
+  children() {
+    return this.el.children;
+  }
 }

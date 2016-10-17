@@ -1,6 +1,5 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import difference from 'lodash/difference';
 import merge from 'lodash/merge';
 import union from 'lodash/union';
 
@@ -34,12 +33,12 @@ module.exports = (state = initialState, action = {}) => {
         },
       });
 
-    case ActionTypes.EVENT_DIFFERENCE_PLAYERS_PLAYING:
-      return update(state, {
-        $merge: {
-          playersPlaying: difference(state.playersPlaying, action.players),
-        },
-      });
+    case ActionTypes.EVENT_REMOVE_PLAYERS_PLAYING: {
+      const newState = merge({}, state);
+      newState.playersPlaying = [];
+
+      return newState;
+    }
 
     case ActionTypes.EVENT__SET_CURRENT: {
       const newState = merge({}, state);

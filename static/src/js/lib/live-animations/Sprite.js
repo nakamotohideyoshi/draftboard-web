@@ -14,15 +14,18 @@ export default class Sprite {
    * Returns the x, y coordinates of the frame
    */
   getFrameRect(frame, sheetWidth, sheetHeight, frameWidth, frameHeight) {
-    const numCols = sheetWidth / frameWidth;
-    const col = frame % numCols;
-    const row = Math.ceil(frame / numCols);
+    const numCols = Math.ceil(sheetWidth / frameWidth);
+    let col = frame % numCols;
+    col = col === 0 ? 140 : col;
+    const row = Math.max(1, Math.ceil(frame / numCols));
 
     return {
       x: (col * frameWidth) - frameWidth,
       y: (row * frameHeight) - frameHeight,
       width: frameWidth,
       height: frameHeight,
+      col,
+      row,
     };
   }
 
@@ -49,16 +52,9 @@ export default class Sprite {
     context.translate(flip ? this.canvas.width : 0, 0);
     context.scale(flip ? -1 : 1, 1);
 
-    return new Promise((resolve) => {
-      this.animate(frameRate, () => {
-        this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
-        if (++curFrame < targetFrame) {
-          return true;
-        }
-
-        resolve();
-        return false;
-      });
+    return this.animate(frameRate, () => {
+      this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
+      return ++curFrame < targetFrame;
     });
   }
 
@@ -66,29 +62,34 @@ export default class Sprite {
    * Throttles an animation callback at a specified FPS.
    * @param {number}      The target frame rate.
    * @param {function}    The callback to trigger at the specified FPS.
+   * @return {Promise}    Resolved when the callback returns false.
    */
   animate(fps, fn) {
     const fpsInterval = 1000 / fps;
     let then = window.performance.now();
     let now = then;
     let elapsed = 0;
-    let isPlaying = true;
+    let hasNextFrame = true;
 
-    const tick = () => {
-      now = window.performance.now();
-      elapsed = now - then;
+    return new Promise(resolve => {
+      const tick = () => {
+        now = window.performance.now();
+        elapsed = now - then;
 
-      if (elapsed > fpsInterval) {
-        then = now - (elapsed % fpsInterval);
-        isPlaying = fn();
-      }
+        if (elapsed > fpsInterval) {
+          then = now - (elapsed % fpsInterval);
+          hasNextFrame = fn();
+        }
 
-      if (isPlaying) {
-        window.requestAnimationFrame(tick);
-      }
-    };
+        if (hasNextFrame) {
+          window.requestAnimationFrame(tick);
+        } else {
+          resolve();
+        }
+      };
 
-    tick();
+      tick();
+    });
   }
 
   /**

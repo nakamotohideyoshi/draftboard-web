@@ -2,7 +2,12 @@
 # models.py
 
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_in
+from account.utils import create_user_log
+from account import const as _account_const
+
 
 class Information(models.Model):
     """
@@ -79,6 +84,36 @@ class SavedCardDetails(models.Model):
 
     class Meta:
         # make sure a user cant have multiple similar saved cards
-        unique_together = ('user','token')
+        unique_together = ('user', 'token')
 
 
+class UserLog(models.Model):
+    """
+    Store user actions for easy access
+
+    Log types and actions are found in account/const.py
+    """
+    type = models.SmallIntegerField(choices=_account_const.TYPES)
+    ip = models.CharField(max_length=15)
+    user = models.ForeignKey(User, related_name='logs')
+    action = models.SmallIntegerField(choices=_account_const.ACTIONS)
+    timestamp = models.DateTimeField(auto_now=True)
+    metadata = JSONField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'User Log'
+        verbose_name_plural = 'User Logs'
+        ordering = ['-timestamp']
+
+
+def create_log_entry_when_user_logs_in(sender, user, request, **kwargs):
+    """
+    Whenever a user logs in, create a UserLog entry.
+    """
+    create_user_log(
+        request,
+        _account_const.AUTHENTICATION,
+        _account_const.LOGIN
+    )
+# Attach the signal user_logged_in signal.
+user_logged_in.connect(create_log_entry_when_user_logs_in)

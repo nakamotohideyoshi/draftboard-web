@@ -22,6 +22,15 @@ module.exports = (markup) => {
     console.warn('Warning: The `Image` method is being mocked from test-dom.js.');
   };
 
+  // per https://github.com/akiran/react-slick/issues/93
+  window.matchMedia = window.matchMedia || function matchMedia() {
+    return {
+      matches: false,
+      addListener: () => ({}),
+      removeListener: () => ({}),
+    };
+  };
+
 
   // ... add whatever browser globals your tests might need ...
   global.window.dfs = {
@@ -29,7 +38,7 @@ module.exports = (markup) => {
       pusher_key: 'NONE',
       pusher_channel_prefix: 'test',
     },
-    logLevel: 'warn',
+    // logLevel: 'warn',
     replayerTimeDelta: 0,
     playerImagesBaseUrl: 'http://localhost',
   };

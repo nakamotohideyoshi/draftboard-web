@@ -7,7 +7,6 @@ from django.utils import timezone
 from datetime import datetime, date, time, timedelta
 import json
 import celery
-from datetime import datetime
 from rest_framework import status
 from rest_framework.response import Response
 from debreach.decorators import random_comment_exempt
@@ -21,6 +20,8 @@ from rest_framework.exceptions import (
     NotFound,
     APIException,
 )
+from account.permissions import HasIpAccess
+from account import const as _account_const
 from contest.serializers import (
     ContestSerializer,
     UpcomingEntrySerializer,
@@ -33,7 +34,7 @@ from contest.serializers import (
     RemoveAndRefundEntrySerializer,
     RemoveAndRefundEntryStatusSerializer,
     UserLineupHistorySerializer,
-    #PlayHistoryLineupSerializer,
+    # PlayHistoryLineupSerializer,
     RankedEntrySerializer,
     ContestPoolSerializer,
 )
@@ -78,25 +79,32 @@ from contest.forms import ContestForm, ContestFormAdd
 from django.db.models import Count
 from mysite.celery_app import TaskHelper
 from util.dfsdate import DfsDate
+from account import const as _account_const
+from account.utils import create_user_log
 
 # test the generic add view
+
+
 class ContestCreate(CreateView):
-    model       = Contest
-    form_class  = ContestFormAdd
+    model = Contest
+    form_class = ContestFormAdd
     #fields      = ['name','ends_tonight','start']
 
 # testing the generic edit view
+
+
 class ContestUpdate(UpdateView):
-    model       = Contest
-    form_class  = ContestForm
+    model = Contest
+    form_class = ContestForm
     #fields      = ['name','start']
+
 
 class SingleContestAPIView(generics.GenericAPIView):
     """
     get the information related to a specific Contest
     """
 
-    serializer_class        = ContestSerializer
+    serializer_class = ContestSerializer
 
     def get_object(self, pk):
         try:
@@ -108,7 +116,7 @@ class SingleContestAPIView(generics.GenericAPIView):
         """
         given the GET param 'contest_id', get the contest
         """
-        serialized_data = ContestSerializer( self.get_object(contest_id), many=False ).data
+        serialized_data = ContestSerializer(self.get_object(contest_id), many=False).data
         return Response(serialized_data)
 
 
@@ -145,16 +153,16 @@ class LobbyAPIView(generics.ListAPIView):
         Return a QuerySet from the LobbyContestPool model.
         """
         return LobbyContestPool.objects.select_related(
-                'site_sport', 'draft_group', 'prize_structure'
-            ).prefetch_related('prize_structure__ranks', 'prize_structure__generator').all()
+            'site_sport', 'draft_group', 'prize_structure'
+        ).prefetch_related('prize_structure__ranks', 'prize_structure__generator').all()
 
 
 class UserEntryAPIView(generics.ListAPIView):
 
-    contest_model           = None # child class must set this, see UserUpcomingAPIView for example
+    contest_model = None  # child class must set this, see UserUpcomingAPIView for example
 
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = ContestSerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ContestSerializer
 
     def get_entries(self, user, contests):
         """
@@ -165,7 +173,8 @@ class UserEntryAPIView(generics.ListAPIView):
 
     def get_contests(self, user):
         if self.contest_model is None:
-            raise Exception(self.__class__.__name__ + 'get_queryset() - contest_model must be set in inheriting class')
+            raise Exception(self.__class__.__name__ +
+                            'get_queryset() - contest_model must be set in inheriting class')
 
         # get a list of our entries to every possible distinct contest
         # timer = SimpleTimer()
@@ -182,18 +191,20 @@ class UserEntryAPIView(generics.ListAPIView):
         # distinct_entry_contests = Entry.objects.filter(lineup__user=self.request.user,
         #                                     contest__in=contests).distinct('contest__id')
         contests = self.get_contests(self.request.user)
-        distinct_entry_contests = self.get_entries(self.request.user, contests).distinct('contest__id')
-        data =  [ x.contest for x in distinct_entry_contests ]
+        distinct_entry_contests = self.get_entries(
+            self.request.user, contests).distinct('contest__id')
+        data = [x.contest for x in distinct_entry_contests]
         # timer.stop() - takes about 40 milliseconds for small datasets: ie: 100 entries
         return data
+
 
 class CurrentEntryAPIView(generics.ListAPIView):
     """
     Get the User's current entries (the Entries they own in live/upcoming contests)
     """
 
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = CurrentEntrySerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CurrentEntrySerializer
 
     def get_entries(self, user, contests):
         """
@@ -218,12 +229,13 @@ class CurrentEntryAPIView(generics.ListAPIView):
         contests = self.get_contests(self.request.user)
         return self.get_entries(self.request.user, contests)
 
+
 class UserUpcomingContestPoolAPIView(UserEntryAPIView):
     """
     a user's registered-in ContestPools in the future
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = UpcomingEntrySerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UpcomingEntrySerializer
 
     def get_entries(self, user):
         """
@@ -240,13 +252,14 @@ class UserUpcomingContestPoolAPIView(UserEntryAPIView):
         """
         return self.get_entries(self.request.user)
 
+
 class UserUpcomingContestPoolAndLiveContestEntriesAPIView(UserEntryAPIView):
     """
     a user's Entries which are registered-in ContestPools in the future,
     as well as Entries in live Contests
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = UpcomingEntrySerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UpcomingEntrySerializer
 
     def get_entries(self, user):
         """
@@ -262,11 +275,13 @@ class UserUpcomingContestPoolAndLiveContestEntriesAPIView(UserEntryAPIView):
         """
         return self.get_entries(self.request.user)
 
+
 class UserLiveAPIView(UserEntryAPIView):
     """
     A User's live Contests
     """
     contest_model = LiveContest
+
 
 class UserHistoryAPIView(generics.GenericAPIView):
     """
@@ -283,8 +298,8 @@ class UserHistoryAPIView(generics.GenericAPIView):
 
     """
 
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = CurrentEntrySerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CurrentEntrySerializer
 
     def get_user_for_id(self, user_id=None):
         """
@@ -303,7 +318,7 @@ class UserHistoryAPIView(generics.GenericAPIView):
         user = self.request.user
 
         admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
-        admin_specified_user = self.get_user_for_id( admin_specified_user_id )
+        admin_specified_user = self.get_user_for_id(admin_specified_user_id)
         if user.is_superuser and admin_specified_user is not None:
             # override the user whos transactions we will look at
             user = admin_specified_user
@@ -316,7 +331,7 @@ class UserHistoryAPIView(generics.GenericAPIView):
             #
             # get the last 100 entries
             entries = HistoryEntry.objects.filter().order_by('-created')[:100]
-            return self.get_entries_response( entries )
+            return self.get_entries_response(entries)
 
         else:
             if start_ts == None:
@@ -341,20 +356,21 @@ class UserHistoryAPIView(generics.GenericAPIView):
                             }
                         }
                     })
-            entries = self.get_entries_in_range( user, int(start_ts), int(end_ts) )
-            return self.get_entries_response( entries )
+            entries = self.get_entries_in_range(user, int(start_ts), int(end_ts))
+            return self.get_entries_response(entries)
 
     def get_entries_in_range(self, user, start_ts, end_ts):
-        start   = datetime.utcfromtimestamp( start_ts )
-        end     = datetime.utcfromtimestamp( end_ts )
+        start = datetime.utcfromtimestamp(start_ts)
+        end = datetime.utcfromtimestamp(end_ts)
         entries = Entry.objects.filter(contest__start__range=(start, end))
         return entries
         # serialized_entries = self.serializer_class( entries, many=True )
         # return Response(serialized_entries.data, status=status.HTTP_200_OK)
 
     def get_entries_response(self, entries):
-        serialized_entries = self.serializer_class( entries, many=True )
+        serialized_entries = self.serializer_class(entries, many=True)
         return Response(serialized_entries.data, status=status.HTTP_200_OK)
+
 
 class AllLineupsView(View):
     """
@@ -363,13 +379,13 @@ class AllLineupsView(View):
 
     @random_comment_exempt
     def get(self, request, contest_id):
-        clm = ContestLineupManager( contest_id = contest_id )
+        clm = ContestLineupManager(contest_id=contest_id)
         if 'json' in request.GET:
             #print ('json please!' )
-            return HttpResponse( json.dumps( clm.dev_get_all_lineups( contest_id ) ) )
+            return HttpResponse(json.dumps(clm.dev_get_all_lineups(contest_id)))
         else:
             #clm = ContestLineupManager( contest_id = contest_id )
-            #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
+            # return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
             return HttpResponse(clm.get_http_payload(), content_type='application/octet-stream')
 
 class SingleLineupView(View):
@@ -380,10 +396,11 @@ class SingleLineupView(View):
     """
 
     def get(self, request, contest_id, lineup_id):
-        clm = ContestLineupManager( contest_id = contest_id )
-        lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
+        clm = ContestLineupManager(contest_id=contest_id)
+        lineup_data = clm.get_lineup_data(user=request.user, lineup_id=lineup_id)
 
-        return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
+        return HttpResponse(json.dumps(lineup_data), content_type="application/json")
+
 
 class SingleContestLineupView(View):
     """
@@ -396,12 +413,12 @@ class SingleContestLineupView(View):
         entries = Entry.objects.filter(lineup__pk=lineup_id).exclude(contest__pk=None)
         if entries.count() == 0:
             no_return_data = []
-            return HttpResponse( json.dumps(no_return_data), content_type="application/json" )
+            return HttpResponse(json.dumps(no_return_data), content_type="application/json")
         else:
             contest = entries[0].contest
-            clm = ContestLineupManager( contest_id=contest.pk )
-            lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
-            return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
+            clm = ContestLineupManager(contest_id=contest.pk)
+            lineup_data = clm.get_lineup_data(user=request.user, lineup_id=lineup_id)
+            return HttpResponse(json.dumps(lineup_data), content_type="application/json")
 
 
 class RegisteredUsersAPIView(generics.ListAPIView):
@@ -427,39 +444,41 @@ class ContestRanksAPIView(generics.GenericAPIView):
         """
         get the contest.models.Entry objects, ordered by their rank, for a given contest pk
         """
-        entries = Entry.objects.filter( contest__pk=contest_id ).order_by('final_rank')
+        entries = Entry.objects.filter(contest__pk=contest_id).order_by('final_rank')
         return entries
 
     def get(self, request, contest_id, format=None):
         """
         get the registered user information
         """
-        serialized_data = self.serializer_class( self.get_object(contest_id), many=True ).data
+        serialized_data = self.serializer_class(self.get_object(contest_id), many=True).data
         return Response(serialized_data)
+
 
 class EnterLineupAPIView(generics.CreateAPIView):
     """
     enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = EnterLineupSerializer
+    log_action = _account_const.CONTEST_ENTERED
+    permission_classes = (IsAuthenticated, HasIpAccess)
+    serializer_class = EnterLineupSerializer
 
     def post(self, request, format=None):
-        lineup_id       = request.data.get('lineup')
-        contest_pool_id      = request.data.get('contest_pool')
+        lineup_id = request.data.get('lineup')
+        contest_pool_id = request.data.get('contest_pool')
 
         # ensure the ContestPool exists
         try:
-            contest_pool = ContestPool.objects.get( pk=contest_pool_id )
+            contest_pool = ContestPool.objects.get(pk=contest_pool_id)
         except ContestPool.DoesNotExist:
-            #return Response( 'ContestPool does not exist', status=status.HTTP_403_FORBIDDEN )
+            # return Response( 'ContestPool does not exist', status=status.HTTP_403_FORBIDDEN )
             raise APIException('ContestPool does not exist')
 
         # ensure the lineup is valid for this user
         try:
-            lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
+            lineup = Lineup.objects.get(pk=lineup_id, user=request.user)
         except Lineup.DoesNotExist:
-            #return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+            # return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
             raise APIException('Lineup does not exist')
 
         # check if this user can enter this skill level
@@ -476,10 +495,25 @@ class EnterLineupAPIView(generics.CreateAPIView):
         except Exception as e:
             raise APIException(e)
         task_helper = TaskHelper(buyin_task, task_result.id)
-        #print('task_helper.get_data()', task_helper.get_data())
+        # print('task_helper.get_data()', task_helper.get_data())
         data = task_helper.get_data()
-        data['buyin_task_id'] = task_result.id # dont break what was there by adding this extra field
+        # dont break what was there by adding this extra field
+        data['buyin_task_id'] = task_result.id
+
+        # Create a user log entry.
+        create_user_log(
+            request=request,
+            type=_account_const.CONTEST,
+            action=_account_const.CONTEST_ENTERED,
+            metadata={
+                'detail': 'Contest Entered.',
+                'contest_pool': contest_pool_id,
+                'lineup': lineup_id,
+            }
+        )
+
         return Response(data, status=status.HTTP_200_OK)
+
 
 class PayoutsAPIView(generics.ListAPIView):
     """
@@ -487,8 +521,8 @@ class PayoutsAPIView(generics.ListAPIView):
 
     may return an empty array if no payouts have happened
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = PayoutSerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = PayoutSerializer
 
     def get_queryset(self):
         """
@@ -497,17 +531,18 @@ class PayoutsAPIView(generics.ListAPIView):
         contest_id = self.kwargs['contest_id']
         return Payout.objects.filter(entry__contest__pk=contest_id).order_by('rank')
 
+
 class EditEntryLineupAPIView(APIView):
     """
     edit an existing lineup in a contest
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = EditEntryLineupSerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EditEntryLineupSerializer
 
     def post(self, request, format=None):
-        entry_id    = request.data.get('entry')
-        players     = request.data.get('players', [])
-        name        = request.data.get('name','')
+        entry_id = request.data.get('entry')
+        players = request.data.get('players', [])
+        name = request.data.get('name', '')
 
         #
         # validate the parameters passed in here.
@@ -529,13 +564,14 @@ class EditEntryLineupAPIView(APIView):
         task_helper = TaskHelper(edit_entry, task_result.id)
         return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
 
+
 class RemoveAndRefundEntryAPIView(APIView):
     """
     removes a contest Entry and refunds the user.
     """
 
-    permission_classes  = (IsAuthenticated, )
-    serializer_class    = RemoveAndRefundEntrySerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = RemoveAndRefundEntrySerializer
 
     def post(self, request, entry_id, format=None):
         # entry_id = request.data.get('entry')
@@ -563,38 +599,46 @@ class RemoveAndRefundEntryAPIView(APIView):
         # get() blocks the view from returning until the task finishes
         task_result.get()
         task_helper = TaskHelper(unregister_entry_task, task_result.id)
+
+        create_user_log(
+            request=request,
+            type=_account_const.CONTEST,
+            action=_account_const.CONTEST_DEREGISTERED,
+            metadata={
+                'detail': 'Contest entry was deregistered.',
+                'entry': entry_id,
+            }
+        )
+
         return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
+
 
 class UserPlayHistoryAPIView(APIView):
     """
     get the entry history for a user lineups on a day
     """
 
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = UserLineupHistorySerializer
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserLineupHistorySerializer
 
-    def get(self, request, year, month, day, format=None):
+    def get_history_data(self, year, month, day):
         """
-        Given the 'task' parameter, return the status of the task (ie: the buyin)
-
-        :param request:
-        :param format:
-        :return:
+        get the historical lineup data
         """
         #print( year, month, day)
-        rng     = DfsDate.get_current_dfs_date_range()
-        start   = rng[0].replace( int(year), int(month), int(day) )
-        end     = start + timedelta(days=1)
+        rng = DfsDate.get_current_dfs_date_range()
+        start = rng[0].replace(int(year), int(month), int(day))
+        end = start + timedelta(days=1)
         #print('range(%s, %s)' % (start, end))
 
         # get a list of the lineups in historical entries for the day
-        history_entries = ClosedEntry.objects.filter( user=self.request.user,
-                                                       contest__start__range=(start, end) )
-        payouts = Payout.objects.filter( entry__in=history_entries)
-        distinct_lineup_ids = [ e.lineup.pk for e in history_entries ]
+        history_entries = ClosedEntry.objects.filter(user=self.request.user,
+                                                     contest__start__range=(start, end))
+        payouts = Payout.objects.filter(entry__in=history_entries)
+        distinct_lineup_ids = [e.lineup.pk for e in history_entries]
         lineup_map = {}
         for entry in history_entries:
-            lineup_map[ entry.lineup.pk ] = entry.lineup
+            lineup_map[entry.lineup.pk] = entry.lineup
 
         #
         # sum the values for each lineup (and all its entries for paid contests)
@@ -613,7 +657,73 @@ class UserPlayHistoryAPIView(APIView):
                     pass
                 # print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
                 possible += history_entry.contest.prize_structure.generator.first_place
-                contest_map[ history_entry.contest.pk ] = history_entry.contest
+                contest_map[history_entry.contest.pk] = history_entry.contest
+
+        overall = {
+            "buyins": '%.2f' % total_buyins,
+            "entries": num_entries,
+            "winnings": '%.2f' % winnings,
+            "possible": '%.2f' % possible,
+            "contests": len(contest_map.values()),
+        }
+
+        data = {
+            'lineups': self.serializer_class(list(lineup_map.values()), many=True).data,
+            'overall': overall,
+        }
+
+        return data
+
+    def get(self, request, year, month, day, format=None):
+        """
+
+        """
+        data = self.get_history_data(year, month, day)
+        return Response(data, status=status.HTTP_200_OK)
+
+class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
+    """
+    inherits UserPlayHistoryAPIView for the get_history_data() method.
+
+    get the entry history & the Current lineups for a user on a day.
+    """
+
+    def get_current_data(self):
+        """
+        get the Current lineup data
+        """
+
+        # get a list of the lineups in live entries for the day
+        current_entries = CurrentEntry.objects.filter(user=self.request.user)
+
+        # TODO below
+        payouts = Payout.objects.filter( entry__in=current_entries)
+        distinct_lineup_ids = [ e.lineup.pk for e in current_entries ]
+        lineup_map = {}
+        for entry in current_entries:
+            lineup_map[ entry.lineup.pk ] = entry.lineup
+
+        #
+        # sum the values for each lineup (and all its entries for paid contests)
+        total_buyins = 0
+        num_entries = 0
+        winnings = 0
+        possible = 0
+        contest_map = {}
+        for lineup in list(lineup_map.values()):     # for each distinct lineup
+            for current_entry in current_entries.filter(lineup=lineup):
+                if current_entry.contest is None:
+                    # this means the lineup is not yet live. skip it.
+                    continue
+                total_buyins += current_entry.contest.buyin
+                num_entries += 1
+                try:
+                    winnings += payouts.get(entry=current_entry).amount
+                except Payout.DoesNotExist:
+                    pass
+                # print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
+                possible += current_entry.contest.prize_structure.generator.first_place
+                contest_map[ current_entry.contest.pk ] = current_entry.contest
 
         overall = {
             "buyins"    : '%.2f' % total_buyins,
@@ -628,4 +738,28 @@ class UserPlayHistoryAPIView(APIView):
             'overall'   : overall,
         }
 
+        return data
+
+    def get(self, request, year, month, day, format=None):
+        """
+        Given the 'task' parameter, return the status of the task (ie: the buyin)
+
+        :param request:
+        :param format:
+        :return:
+        """
+
+        # build the historical lineup data
+        history_data = self.get_history_data(year, month, day)
+
+        # build the data for any lineups that are currently live
+        current_data = self.get_current_data()
+
+        # pack it into this dict and return it
+        data = {
+            'history'   : history_data,
+            'current'   : current_data,
+        }
+
+        # return http response with the data
         return Response(data, status=status.HTTP_200_OK)

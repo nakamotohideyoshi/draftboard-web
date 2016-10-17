@@ -1,18 +1,19 @@
 import LiveAnimation from '../LiveAnimation';
+import TweenLite from 'gsap';
 
-/**
-* ...
-*/
 export default class OutroAnimation extends LiveAnimation {
 
   play(recap, field) {
-    // TODO: Fade off all clips...
     return new Promise((resolve) => {
-      // DEBUG: Wait a second and then KO all the clips without a fade.
-      setTimeout(() => {
-        field.removeAll();
-        resolve();
-      }, 1500);
+      TweenLite.to(field.children(), 0.5, {
+        delay: 0.5,
+        opacity: 0,
+        ease: 'Sine.easeOut',
+        onComplete: () => {
+          field.removeAll();
+          resolve();
+        },
+      });
     });
   }
 }
