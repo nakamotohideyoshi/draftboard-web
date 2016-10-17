@@ -264,6 +264,10 @@ app.conf.update(
             'task': 'swish.tasks.update_injury_feed',
             'schedule': timedelta(minutes=1),
             'args': ('nfl',),
+        },
+        'inactive_users': {
+            'task': 'account.tasks.check_inactive_users',
+            'schedule': crontab(minute=0, hour='17'),  # ~ noon
         }
     },
 

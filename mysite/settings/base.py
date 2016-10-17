@@ -433,3 +433,7 @@ BLOCKED_STATES = [
 TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
 TRULIOO_USER = 'Draftboard_Demo_API'  # 'Draftboard_Demo_Portal'
 TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'
+
+
+#Inactive users
+INACTIVE_USERS_EMAILS = []
