@@ -120,3 +120,9 @@ SLACK_UPDATES = False
 slack_updates = environ.get('SLACK_UPDATES', None)
 if slack_updates is not None and 't' in str(slack_updates).lower():
     SLACK_UPDATES = True
+
+# Inactive users
+INACTIVE_USERS_EMAILS = [
+    'pedro@runitonce.com',
+    'dan@runitonce.com',
+]

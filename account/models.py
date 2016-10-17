@@ -25,6 +25,8 @@ class Information(models.Model):
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=6, null=False, default='')
     dob             = models.DateField( default=None,  null=True)
+    inactive        = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Information'
 
