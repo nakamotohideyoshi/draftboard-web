@@ -162,6 +162,7 @@ class PlayerStats( sports.models.PlayerStats ):
 
     class Meta:
         abstract = True
+        unique_together = ('srid_player', 'srid_game')
 
     def save(self, *args, **kwargs):
         # perform score update
@@ -215,6 +216,10 @@ class PlayerStatsHitter(PlayerStats):
     lob = models.IntegerField(default=0, null=False) # left on base
     xbh = models.IntegerField(default=0, null=False) # extra base hits
 
+    class Meta:
+        abstract = False
+        unique_together = ('srid_player', 'srid_game')
+
 class PlayerStatsPitcher(PlayerStats):
     #
     # this is for the /api/sports/player/history/mlb/{days}/ api.
@@ -251,6 +256,10 @@ class PlayerStatsPitcher(PlayerStats):
     cg      = models.BooleanField(default=False, null=False) # complete game
     cgso    = models.BooleanField(default=False, null=False) # complete game shut out
     nono    = models.BooleanField(default=False, null=False) # no hitter (cg and no hits)
+
+    class Meta:
+        abstract = False
+        unique_together = ('srid_player', 'srid_game')
 
 class RealTimeAtBat(models.Model):   # django.contrib.contenttypes.xxxx where generic has been moved here
     """

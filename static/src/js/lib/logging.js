@@ -20,9 +20,6 @@ const getDefaultLevel = () => {
   return 'ERROR';
 };
 
-// Are we in the live section? It's not very helpful to see redux logs there so we use this to
-// filter them out.
-const isLivePage = window.location.pathname.substring(0, 6) === '/live/';
 // Is our environment set to test? We use this so redux logger actions are hidden
 // when running tests.
 const isTestingEnv = process.env.NODE_ENV === 'test';
@@ -42,16 +39,23 @@ if (['trace', 'debug', 'info', 'warn', 'error'].indexOf(window.dfs.logLevel) > -
 
   // don't persist! we do that in python so we can clear js localStorage yet still log
   log.setLevel(logLevel, false);
+  log.getLogger('action').setLevel(logLevel);
+  log.getLogger('app').setLevel(logLevel);  // normally DEBUG
+  log.getLogger('app-state-store').setLevel(logLevel);
+  log.getLogger('component').setLevel(logLevel);
+  log.getLogger('lib').setLevel(logLevel);
+  log.getLogger('selector').setLevel(logLevel);
+} else {
+  // default custom loggers to production level, change when debugging locally
+  // search for `getLogger` on this page to learn more https://www.npmjs.com/package/loglevel
+  log.getLogger('action').setLevel('SILENT');
+  log.getLogger('app').setLevel('DEBUG');  // normally DEBUG
+  log.getLogger('app-state-store').setLevel('SILENT');
+  log.getLogger('component').setLevel('SILENT');
+  log.getLogger('lib').setLevel('SILENT');
+  log.getLogger('selector').setLevel('SILENT');
 }
 
-// default custom loggers to production level, change when debugging locally
-// search for `getLogger` on this page to learn more https://www.npmjs.com/package/loglevel
-log.getLogger('action').setLevel('SILENT');
-log.getLogger('app').setLevel('DEBUG');  // normally DEBUG
-log.getLogger('app-state-store').setLevel('SILENT');
-log.getLogger('component').setLevel('SILENT');
-log.getLogger('lib').setLevel('SILENT');
-log.getLogger('selector').setLevel('SILENT');
 
 // by default, export the log object to work with
 export default log;
@@ -64,6 +68,12 @@ export const reduxLoggerLevel = log.levels.TRACE;
 // configure redux-logging to show messages about reducer state
 // show for TRACE, DEBUG, INFO, WARN levels
 export const logger = createLogger({
-  predicate: () => !isLivePage && !isTestingEnv,
+  predicate: () => !isTestingEnv,
   collapsed: true,
 });
+
+// give access to the logger so you can make more granular after load
+// example, write in console: logging.log.getLogger('action').setLevel('SILENT')
+window.logging = {
+  log,
+};

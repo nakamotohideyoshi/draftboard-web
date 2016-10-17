@@ -34,13 +34,11 @@ const NavScoreboardGame = React.createClass({
       game.boxscore.quarter !== '' &&
       !isDateInTheFuture(game.start)
     ) {
-      const boxScore = game.boxscore;
-
       return (
         <div className="scores">
-          { boxScore.away_score }
+          { game.away_score }
           <br />
-          { boxScore.home_score }
+          { game.home_score }
         </div>
       );
     }

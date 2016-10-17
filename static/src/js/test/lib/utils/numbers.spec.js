@@ -20,8 +20,14 @@ describe('utils.numbers.humanizeFP', () => {
     expect(humanizeFP(1.02)).to.equal('1.02');
   });
 
+  it('should return tenths if FP is decimal', () => {
+    expect(humanizeFP(1.10)).to.equal('1.1');
+  });
+
   it('should return +- if showPlusMinus is true', () => {
     expect(humanizeFP(1, true)).to.equal('+1');
-    expect(humanizeFP(-1, true)).to.equal('-1');
+
+    // make sure there's an extra space in there, silly font
+    expect(humanizeFP(-1, true)).to.equal('- 1');
   });
 });

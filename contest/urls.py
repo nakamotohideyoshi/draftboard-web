@@ -21,6 +21,7 @@ from contest.views import (
     EditEntryLineupAPIView,
     RemoveAndRefundEntryAPIView,
     UserPlayHistoryAPIView,
+    UserPlayHistoryWithCurrentAPIView,
     ContestRanksAPIView,
     UserUpcomingContestPoolAndLiveContestEntriesAPIView,
 )
@@ -41,7 +42,7 @@ urlpatterns = [
 
     #
     # edit entry (ie: edit a lineup that is associated in a contest)
-    url(r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
+    # url(r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id
@@ -97,6 +98,10 @@ urlpatterns = [
     # has some contest information, and final rank. plus overall stats for the day.
     url(r'^play-history/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)/$',
         UserPlayHistoryAPIView.as_view()),
+
+    # retrieves the historical & live lineups (primarily for frontend results section)
+    url(r'^play-history-with-current/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)/$',
+        UserPlayHistoryWithCurrentAPIView.as_view()),
 
     #
     # get the usernames for all users who have lineups in the contest

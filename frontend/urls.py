@@ -102,4 +102,9 @@ urlpatterns = [
         name='terms-conditions'
     ),
 
+    url(
+        r'^restricted-location/$',
+        views.FrontendRestrictedLocationTemplateView.as_view(),
+        name='restricted-location'
+    ),
 ]

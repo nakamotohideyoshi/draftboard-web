@@ -28,8 +28,8 @@ const setCurrentAnimation = (value) => ({
   value,
 });
 
-const differencePlayersPlaying = (players) => ({
-  type: ActionTypes.EVENT_DIFFERENCE_PLAYERS_PLAYING,
+const removePlayersPlaying = (players) => ({
+  type: ActionTypes.EVENT_REMOVE_PLAYERS_PLAYING,
   players,
 });
 
@@ -103,7 +103,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
     points: null,
   };
 
-  calls.push(dispatch(differencePlayersPlaying(relevantPlayersInEvent)));
+  calls.push(dispatch(removePlayersPlaying(relevantPlayersInEvent)));
 
   switch (animationEvent.sport) {
     case 'mlb': {

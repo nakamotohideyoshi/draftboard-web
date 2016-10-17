@@ -1,10 +1,8 @@
 import LiveAnimation from '../LiveAnimation';
 import NFLPlayRecapVO from './NFLPlayRecapVO';
 import PassArrow from './graphics/PassArrow';
+import TweenLite from 'gsap';
 
-/**
- * ...
- */
 export default class PassArrowAnimation extends LiveAnimation {
 
   /**
@@ -15,8 +13,8 @@ export default class PassArrowAnimation extends LiveAnimation {
     // Set a min and max arc. The arc's height is also going to be
     // limited by the width/height of the containing SVG (defined
     // inside of the PassArrow class.)
-    const maxArc = 250;
-    const minArc = 10;
+    const maxArc = 240;
+    const minArc = 5;
     return Math.max(minArc, Math.min(maxArc, maxArc * recap.passDistance()));
   }
 
@@ -32,6 +30,21 @@ export default class PassArrowAnimation extends LiveAnimation {
     return recap.startingYardLine() - recap.passDistance();
   }
 
+  /**
+   * Returns the duration of the pass animation in seconds
+   * based on the distance of the pass.
+   * @return {number}
+   */
+  getPassDuration(recap) {
+    if (recap.passDistance() <= 0.2) {
+      return 0.25;
+    } else if (recap.passDistance() <= 0.4) {
+      return 0.8;
+    }
+
+    return 1.2;
+  }
+
   play(recap, field) {
     const arrowStart = field.getYardLine();
     const arrowEnd = this.getReceptionYardLine(recap);
@@ -42,6 +55,13 @@ export default class PassArrowAnimation extends LiveAnimation {
 
     field.addChild(arrow.el, 0, 0, 30);
 
-    return super.play(recap, field);
+    return new Promise(resolve => {
+      arrow.progress = 0;
+      TweenLite.to(arrow, this.getPassDuration(recap), {
+        progress: 1,
+        ease: 'none',
+        onComplete: () => resolve(),
+      });
+    });
   }
 }

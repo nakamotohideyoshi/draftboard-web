@@ -55,9 +55,19 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
     #
     #  playback_mode is like "play-until-end" or "paused"
-    list_display = ['replay', 'load_status', 'fill_contest_status',
-                    'playback_status', 'playback_mode', 'start',
-                    'current', 'target', 'snapshot_datetime', 'playback_info' ]
+    list_display = [
+        'replay',
+        # 'load_status',
+        # 'fill_contest_status',
+        'playback_status',
+        'start',
+        # 'playback_mode',
+        # 'current',
+        # 'snapshot_datetime',
+        'playback_info',
+        # 'target'
+    ]
+
     exclude = ('loader_task_id','fill_contests_task_id','playback_task_id')
 
     # use the fields which we are explicity stating in the Meta class
@@ -65,10 +75,7 @@ class TimeMachineAdmin(admin.ModelAdmin):
         #
         ('Replay Settings', {
             'fields': (
-                'replay',
-                'playback_mode',
                 'start',
-                'target',
             )
         }),
 
@@ -79,9 +86,11 @@ class TimeMachineAdmin(admin.ModelAdmin):
         ('ignore these fields', {
             'classes' : ('collapse',),
             'fields': (
-
+                'replay',
                 'current',
                 'snapshot_datetime',
+                'playback_mode',
+                'target',
             )
         }),
     )
