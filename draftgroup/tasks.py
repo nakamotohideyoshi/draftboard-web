@@ -4,7 +4,6 @@ from mysite.celery_app import app
 from django.core.cache import cache
 from django.utils import timezone
 import contest.models
-from contest.tasks import track_contests
 
 LOCK_EXPIRE = 60 # Lock expires in 5 minutes
 SHARED_LOCK_NAME = "draftgroup_task__on_game_closed"
@@ -74,6 +73,7 @@ def __on_game_closed( draft_group ):
         Contest = contest.models.Contest
         contests = Contest.objects.filter( draft_group=draft_group ).exclude( status__in=Contest.STATUS_HISTORY )
         num_updated = contests.update( status=Contest.COMPLETED )
+        from contest.tasks import track_contests
         track_contests.delay(contests)
         print( str(num_updated), 'contests updated to status[%s]' % Contest.COMPLETED )
 
