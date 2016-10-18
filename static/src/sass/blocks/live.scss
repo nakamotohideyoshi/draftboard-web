@@ -65,6 +65,12 @@ $block: '.live';
         background-size: cover;
       }
     }
+
+    &-nfl {
+      #{$block}__venues {
+        padding-bottom: 130px;
+      }
+    }
   }
 
   // vertically center the stats of the venue
@@ -91,7 +97,7 @@ $block: '.live';
 
   &__venue-nfl {
     width: 100%;
-    min-height: 215px;  // same height has pitch-zone, since it's absolute
+    min-height: 135px;
     position: relative;
   }
 }
