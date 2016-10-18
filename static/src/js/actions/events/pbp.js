@@ -397,6 +397,9 @@ const getNFLData = (message, gameId, game) => {
   };
   // let extraData;
 
+  // set big play to be > 20 yards or touchdown
+  data.isBigPlay = data.yardlineEnd - data.yardlineStart > 0.2 || touchdown === true;
+
   switch (type) {
     case 'pass': {
       /* eslint-disable camelcase */
