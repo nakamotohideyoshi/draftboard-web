@@ -1,7 +1,5 @@
 from .base import *
 from subprocess import check_output
-import os
-import raven
 
 
 # Constant for determining environment
@@ -89,8 +87,14 @@ LOGGING['loggers'].update({
 
 # Sentry
 RAVEN_CONFIG = {
-    'dsn': 'https://63ada1e7af394a87b8c7101b3747063f:7821555e82e0411ab3a3c26badff502c@sentry.io/41102',
+    'dsn': 'https://bbae8e8654e34a80b02999b5ade6fd81:77f1b701685044fb9b20d31aa135ce63@sentry.io/72241',
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     # 'release': raven.fetch_git_sha(os.path.dirname(__file__)),
 }
+
+
+# # TODO:  These are production creds, remove htem before committing zach!!
+# TRULIOO_USER = 'Draftboard_API'
+# TRULIOO_PASSWORD = 'b8)8=799yf&#jN,'
+# TRULIOO_DEMO_MODE = False

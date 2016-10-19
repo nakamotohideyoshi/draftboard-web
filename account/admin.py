@@ -1,14 +1,19 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-
-from account.models import Information, EmailNotification, UserLog
+from account.models import Information, EmailNotification, UserLog, Identity
 from cash.admin import CashBalanceAdminInline, CashTransactionDetailAdminInline
 
 
 class InformationAdminInline(admin.TabularInline):
     model = Information
-    list_display = ['user','fullname','address1','address2','city','state','zipcode','dob']
+    list_display = ['first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
+                    'postal_code', 'created']
+
+
+class IdentityAdminInline(admin.TabularInline):
+    model = Identity
+    list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
 
 
 class UserLogAdminInline(admin.TabularInline):
@@ -37,6 +42,7 @@ class MyUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets
     inlines = [
         InformationAdminInline,
+        IdentityAdminInline,
         CashBalanceAdminInline,
         CashTransactionDetailAdminInline,
         UserLogAdminInline,
@@ -51,4 +57,3 @@ class UserLogAdmin(admin.ModelAdmin):
     search_fields = ['ip', 'user__email', 'user__first_name', 'user__last_name',
                      'metadata']
     list_filter = ['action', 'type', 'timestamp']
-

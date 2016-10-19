@@ -6,7 +6,7 @@ from raven.contrib.django.raven_compat.models import client
 import logging
 from account import const as _account_const
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 def create_user_log(request=None, type=None, action=None, metadata={}):
@@ -71,13 +71,30 @@ class CheckUserAccess(object):
         create_user_log(self.request, _account_const.LOCATION_VERIFY, action, metadata)
 
     def is_on_local_network(self):
+        try:
+            no_dots = self.ip.replace('.', '')
+            ip_first_five_int = int(no_dots[0:5])
+        except:
+            logger.warn('Invalid IP address error - %s' % self.ip)
+            client.captureMessage("Invalid IP address error - %s" % self.ip)
+            return False
+
         # Check if the user is on the local network. If they are, log it.
+        # Check for 192.168 addresses.
         if (self.ip[:8] == '192.168.'):
             self.create_log(
                 _account_const.IP_CHECK_LOCAL,
                 {'result': 'Access Granted: User is on local network.'}
             )
             return True
+        # Check for 172.16.0.0 -- 172.31.255.255
+        elif ip_first_five_int >= 17216 and ip_first_five_int <= 17231:
+            self.create_log(
+                _account_const.IP_CHECK_LOCAL,
+                {'result': 'Access Granted: User is on local network.'}
+            )
+            return True
+
         return False
 
     def check_ip(self, flag="m", subdomain=settings.GETIPNET_SUBDOMAIN):
@@ -98,12 +115,20 @@ class CheckUserAccess(object):
             return result, msg
         # in case of out of limit
         elif response.status_code == 429:
-            print(self.check_ip(subdomain=settings.GETIPNET_DEFAULT_SUBDOMAIN))
+            logger.error("getipintel.net 429 response: %s" % response.reason)
             return self.check_ip(subdomain=settings.GETIPNET_DEFAULT_SUBDOMAIN)
         # service not working
         else:
-            logger.error("Unexpected getipintel.net response: %s" % str(response))
+            logger.error("Unexpected getipintel.net response: %s" % response.reason)
+            print(vars(response))
+            client.context.merge({'extra': {
+                'reason': response.reason,
+                'status_code': response.status_code,
+                'ip': self.ip,
+                'user': self.user.username,
+            }})
             client.captureMessage("Unexpected getipintel.net response: %s" % str(response))
+            client.context.clear()
             return True, ''
 
     @property
@@ -122,8 +147,8 @@ class CheckUserAccess(object):
             return result, msg
         except AddressNotFoundError:
             self.create_log(
-                _account_const.IP_CHECK_FAILED_COUNTRY,
-                {'result': 'Access Denied: IP not found in country db'}
+                _account_const.IP_CHECK_UNKNOWN,
+                {'result': 'Access Granted: IP not found in country db'}
             )
             return True, ''
 
@@ -142,8 +167,8 @@ class CheckUserAccess(object):
             return result, msg
         except AddressNotFoundError:
             self.create_log(
-                _account_const.IP_CHECK_FAILED_STATE,
-                {'result': 'Access Denied: IP not found in state db'}
+                _account_const.IP_CHECK_UNKNOWN,
+                {'result': 'Access Granted: IP not found in state db'}
             )
             return True, ''
 
@@ -156,10 +181,12 @@ class CheckUserAccess(object):
         # do it one by one because it doesn't make a sense to check ip if country
         # or city already blocked
         access, msg = self.check_location_country
+        print('%s - %s' % ('check_location_country', access))
         if not access:
             return access, msg
 
         access, msg = self.check_location_state
+        print('%s - %s' % ('check_location_state', access))
         if not access:
             return access, msg
 

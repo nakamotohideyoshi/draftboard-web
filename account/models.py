@@ -122,3 +122,25 @@ def create_log_entry_when_user_logs_in(sender, user, request, **kwargs):
     )
 # Attach the signal user_logged_in signal.
 user_logged_in.connect(create_log_entry_when_user_logs_in)
+
+
+class Identity(models.Model):
+    """
+    Stores Trulioo identity information. We need to store this in order to check if someone has
+    already 'claimed' an identity. Trulioo provides no mechanism for us to check with their service.
+    """
+    user = models.OneToOneField(User, primary_key=True)
+    first_name = models.CharField(max_length=100, null=False)
+    last_name = models.CharField(max_length=100, null=False)
+    # I know it seems dumb to store a date like this, but Trulioo accepts them
+    # each as different fields, so I'd rather not have to convert in & out of
+    # a dateField.
+    birth_day = models.PositiveSmallIntegerField(null=False)
+    birth_month = models.PositiveSmallIntegerField(null=False)
+    birth_year = models.PositiveSmallIntegerField(null=False)
+    # Trulioo calls it a postal code, but it's actually a ZIP code
+    postal_code = models.CharField(max_length=16, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Trulioo User Identity'
