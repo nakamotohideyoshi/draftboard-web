@@ -24,6 +24,10 @@ class HasIpAccess(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
+        # TODO: Figuring out best way to add default permissions, until then let all users
+        # use the site.
+        return True
+
         checker = CheckUserAccess(request)
         access, message = checker.check_access
 
