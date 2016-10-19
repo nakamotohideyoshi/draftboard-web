@@ -386,11 +386,11 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
         'mysite': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
     },
 }
@@ -400,7 +400,7 @@ LOGGING = {
 
 GETIPNET_DEFAULT_SUBDOMAIN = "check"
 GETIPNET_SUBDOMAIN = "runfdv4kure0vjqfmdl8hba"
-GETIPNET_CONTACT = "inlanger@gmail.com"
+GETIPNET_CONTACT = "devs@draftboard.com"
 GETIPNET_NORMAL = 0.99
 
 # GEOIP settings

@@ -2,12 +2,15 @@ import actionTypes from '../action-types';
 import merge from 'lodash/merge';
 
 const initialState = {
+  user: {
+    isFetching: false,
+    isIdentityVerified: false,
+  },
   username: window.dfs.user.username,
   identityFormErrors: {},
   identityFormIsSending: false,
   info: {
     isFetching: false,
-    isIdentityVerified: false,
   },
   infoFormErrors: {},
   infoFormSaved: false,
@@ -28,6 +31,30 @@ const initialState = {
 
 module.exports = (state = initialState, action) => {
   switch (action.type) {
+    // Fetch user (username, cash balance, identity, etc.)
+    case actionTypes.FETCH_USER: {
+      return merge({}, state, {
+        user: {
+          isFetching: true,
+        },
+      });
+    }
+
+    case actionTypes.FETCH_USER__FAIL: {
+      return merge({}, state, {
+        user: {
+          isFetching: false,
+        },
+      });
+    }
+
+    case actionTypes.FETCH_USER__SUCCESS: {
+      const newState = merge({}, state);
+      newState.user = action.response;
+      newState.user.isFetching = false;
+      return newState;
+    }
+
 
     // Fetch user info (name, address, dob)
     case actionTypes.FETCH_USER_INFO_SUCCESS: {

@@ -36,6 +36,7 @@ const IdentityForm = React.createClass({
       birth_month: this.refs.birth_month.value,
       birth_year: this.refs.birth_year.value,
       postal_code: this.refs.postal_code.value,
+      ssn: this.refs.ssn.value,
     });
   },
 
@@ -155,6 +156,19 @@ const IdentityForm = React.createClass({
               />
 
               {this.renderErrors(this.props.errors.postal_code)}
+            </div>
+
+            <div className="form-field">
+              <label className="form-field__label" htmlFor="ssn">Social Security Number</label>
+              <input
+                ref="ssn"
+                className="form-field__text-input"
+                type="text"
+                name="ssn"
+                required
+              />
+
+              {this.renderErrors(this.props.errors.ssn)}
             </div>
 
             <div className="form-controls">

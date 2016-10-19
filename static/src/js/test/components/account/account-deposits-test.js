@@ -20,6 +20,7 @@ describe('<Deposits /> Component', () => {
     beginPaypalCheckout: () => true,
     verifyLocation: () => true,
     verifyIdentity: () => true,
+    fetchUser: () => true,
   };
   let wrapper = null;
 
@@ -45,9 +46,8 @@ describe('<Deposits /> Component', () => {
   });
 
 
-  it('should enable paypal button only if nonce, amount and !isDepositing are present', () => {
-    // set a nonce.
-    wrapper.setProps({ payPalNonce: 'we have a nonce :)' });
+  it('should enable paypal button only if no nonce, amount and !isDepositing are present', () => {
+    // starts off disabled.
     assert.isTrue(
       wrapper.ref('paypal-button').prop('disabled'),
       'Paypal button is wrongly enabled.'
@@ -65,6 +65,13 @@ describe('<Deposits /> Component', () => {
     assert.isTrue(
       wrapper.ref('paypal-button').prop('disabled'),
       'Paypal button not disabling when a deposit is taking place.'
+    );
+
+    // Should disable if a nonce is present
+    wrapper.setProps({ payPalNonce: 'we have a nonce :)' });
+    assert.isTrue(
+      wrapper.ref('paypal-button').prop('disabled'),
+      'Paypal button is wrongly enabled. If we have recieved a nonce, it should be disabled.'
     );
   });
 });

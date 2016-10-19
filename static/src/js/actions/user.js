@@ -14,6 +14,21 @@ let { API_DOMAIN = '' } = process.env;
 if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
 
 
+/**
+ * Get Basic User Information.
+ */
+export const fetchUser = () => ({
+  [CALL_API]: {
+    types: [
+      actionTypes.FETCH_USER,
+      actionTypes.FETCH_USER__SUCCESS,
+      actionTypes.FETCH_USER__FAIL,
+    ],
+    endpoint: '/api/account/user/',
+  },
+});
+
+
 function fetchUserInfoSuccess(body) {
   return {
     type: actionTypes.FETCH_USER_INFO_SUCCESS,
@@ -28,6 +43,10 @@ function fetchUserInfoFail(ex) {
   };
 }
 
+
+/**
+ * Fetch user information -  address, DOB, name.
+ */
 export function fetchUserInfo() {
   return (dispatch) => {
     request
@@ -387,6 +406,8 @@ export function verifyIdentity(postData) {
           }
         );
       }
+
+      dispatch(fetchUser());
 
       // if it was a success...
       dispatch({
