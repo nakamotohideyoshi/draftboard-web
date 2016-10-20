@@ -544,16 +544,16 @@ class SalaryGenerator(FppgGenerator):
         """
 
         for salary in Salary.objects.filter(pool=pool):
-            print('pos min override check: %s' % str(salary))
+            # print('pos min override check: %s' % str(salary))
             sport = self.pool.site_sport.name
             if sport == 'nfl':
                 qb = 6000.0
                 if salary.primary_roster.name == 'QB' and salary.amount < qb:
                     salary.amount = qb
                     salary.save()
-                    print('   *changed %s' % str(salary))
-                else:
-                    print('    unchanged %s' % str(salary))
+                #     print('   *changed %s' % str(salary))
+                # else:
+                #     print('    unchanged %s' % str(salary))
 
             elif sport == 'nba':
                 pass
@@ -803,10 +803,9 @@ class SalaryGenerator(FppgGenerator):
     @atomic
     def helper_update_salaries(self, players, position_average_list, sum_average_points):
         """
-        Helper method in charge of creating salary entries for players for the pool
-        passed to this class. This method will update existing entries for players
-        that already exist. THis method should *not* be called outside of this
-        class.
+        calculates the amount of salary that should be spent on each RosterSpot
+        that IS primary position.
+
         :param players:
         :param position_average_list:
         :param sum_average_points:
@@ -1108,7 +1107,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
         for key in position_average_list:
             position_average_list[key].update_average()
-            # print("\n"+str(position_average_list[key]))
+            print("\n"+str(position_average_list[key]))
         return position_average_list
 
     def helper_apply_weight_and_flag(self, players):
@@ -1271,7 +1270,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                 average_salary = (((sum / ((float)(count))) / sum_average_points)
                                   * ((float)(self.salary_conf.max_team_salary)))
                 average_salary = self.__round_salary(average_salary)
-                # print( roster_spot.name+" average salary "+ str(average_salary))
+                print( roster_spot.name+" average salary "+ str(average_salary))
 
                 #
                 # Get the average weighted fantasy points for the specific positions
@@ -1329,7 +1328,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             random_pct = r.randrange(plus_minus * -1, plus_minus) / decimal_places
                             random_amount = float(int(salary.amount * random_pct))      # its + or -, but truncate decimals
                             salary.random_adjust_amount = random_amount
-                            print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
+                            #print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
                             salary.amount += salary.random_adjust_amount
 
                         #

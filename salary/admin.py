@@ -80,7 +80,7 @@ class SalaryConfigAdmin(admin.ModelAdmin):
 
 @admin.register(Pool)
 class PoolAdmin(admin.ModelAdmin):
-    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'download_csv', 'created']
+    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'download_csv']
     model = Pool
     exclude = ('generate_salary_task_id',)
     inlines = [SalaryInline,]
