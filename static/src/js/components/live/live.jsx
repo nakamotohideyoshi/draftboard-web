@@ -1,5 +1,6 @@
 import LiveAnimationArea from './live-animation-area';
 import LiveChooseLineup from './live-choose-lineup';
+import LiveBigPlays from './live-big-plays';
 import LiveContestsPane from './live-contests-pane';
 import LiveContestsToggle from './live-contests-toggle';
 import LiveCountdown from './live-countdown';
@@ -13,6 +14,7 @@ import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
+import { bigPlaysSelector } from '../../selectors/live-big-plays';
 import { bindActionCreators } from 'redux';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
@@ -56,6 +58,7 @@ const mapDispatchToProps = (dispatch) => ({
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
+  bigPlaysQueue: bigPlaysSelector(state),
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   contest: watchingContestSelector(state),
@@ -72,6 +75,7 @@ export const Live = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
+    bigPlaysQueue: React.PropTypes.array.isRequired,
     contest: React.PropTypes.object.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
     relevantGamesPlayers: React.PropTypes.object.isRequired,
@@ -171,6 +175,7 @@ export const Live = React.createClass({
   render() {
     const {
       actions,
+      bigPlaysQueue,
       contest,
       draftGroupTiming,
       myLineupInfo,
@@ -241,6 +246,7 @@ export const Live = React.createClass({
     }
 
     // defining optional component pieces
+    let liveBigPlaysDom;
     let liveStandingsPane;
     let liveContestsToggle = (<LiveContestsToggle />);
     let opponentLineupComponent;
@@ -283,6 +289,8 @@ export const Live = React.createClass({
     modifiers.push(venuesPosition);
     const classNames = generateBlockNameWithModifiers(block, modifiers);
 
+    if (bigPlaysQueue.length > 0) liveBigPlaysDom = (<LiveBigPlays queue={bigPlaysQueue} />);
+
     return (
       <div className={classNames}>
         <LiveLineup
@@ -315,10 +323,13 @@ export const Live = React.createClass({
         {liveContestsToggle}
 
         {liveStandingsPane}
+
+        {liveBigPlaysDom}
       </div>
     );
   },
 });
+
 
 // Wrap the component to inject dispatch and selected state into it.
 export const LiveConnected = connect(

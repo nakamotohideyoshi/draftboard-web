@@ -1,6 +1,6 @@
 #
 # views.py
-
+from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework import status
@@ -47,7 +47,7 @@ from pp.classes import (
     VZeroTransaction,
 )
 from pp.serializers import (
-    VZeroShippingSerializer,
+    # VZeroShippingSerializer,
     VZeroDepositSerializer,
 )
 from cash.classes import (
@@ -64,10 +64,13 @@ from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from account import const as _account_const
 from account.utils import create_user_log
-
 from trulioo.classes import (
     Trulioo,
 )
+import logging
+
+logger = logging.getLogger('django')
+
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
@@ -922,23 +925,12 @@ class VZeroGetClientTokenView(APIView):
     """
 
     permission_classes = (IsAuthenticated, HasIpAccess)
-
     serializer_classes = None
 
     def get(self, request, *args, **kwargs):
-        # do we need the user?
-        #user = self.request.user
-
-        # TODO - check if its anonymous user(?)
         vzero = VZero()
         client_token = vzero.get_client_token()
-
-        return Response(
-            {
-                'client_token': client_token
-            },
-            status=200
-        )
+        return Response({'client_token': client_token}, status=200)
 
 
 class VZeroDepositView(APIView):
@@ -957,22 +949,21 @@ class VZeroDepositView(APIView):
     """
 
     permission_classes = (IsAuthenticated, HasIpAccess)
-
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
         # get the django user
-        user = self.request.user
+        # user = self.request.user
 
-        shipping_data = {
-            'first_name': user.information.fullname,
-            'last_name': user.information.fullname,
-            'street_address': user.information.address1,
-            'extended_address': user.information.address2,
-            'locality': user.information.city,
-            'region': user.information.state,
-            'postal_code': user.information.zipcode
-        }
+        # shipping_data = {
+        #     'first_name': user.information.fullname,
+        #     'last_name': user.information.fullname,
+        #     'street_address': user.information.address1,
+        #     'extended_address': user.information.address2,
+        #     'locality': user.information.city,
+        #     'region': user.information.state,
+        #     'postal_code': user.information.zipcode
+        # }
 
         # validate the validity of the params
         serializer = self.serializer_class(data=self.request.data)
@@ -987,18 +978,17 @@ class VZeroDepositView(APIView):
         # using the information (payment_method_nonce, amount, shipping info)
         # make the deposit using the VZero object to create the transaction (sale)
         transaction = VZeroTransaction()
-        transaction.update_data(shipping_data=shipping_data, transaction_data=transaction_data)
+        transaction.update_data(shipping_data={}, transaction_data=transaction_data)
 
         vzero = VZero()
         try:
             transaction_id = vzero.create_transaction(transaction)
-        except VZero.VZeroException as e:
-            # print('e:',e)
-            # print('str(e):',str(e))
-            raise APIException(str(e))
-
-        except Exception:
-            raise APIException('vzero create transaction error')
+        # except VZero.VZeroException as e:
+        except Exception as e:
+            # Throw Paypal exceptions back through the API, log & report the details
+            logger.error("VZeroDepositView() user: %s - %s" % (request.user.username, str(e)))
+            client.captureException()
+            raise APIException({'detail': "vzero create transaction error"})
 
         # TODO add a transaction type (?)
 
@@ -1009,9 +999,8 @@ class VZeroDepositView(APIView):
             ct = CashTransaction(self.request.user)
             ct.deposit_vzero(amount, transaction_id)
         except Exception:
-
-            raise APIException(
-                'Error adding funds to draftboard account. Please contact admin@draftboard.com')
+            raise APIException({'detail': """
+                Error adding funds to draftboard account. Please contact admin@draftboard.com"""})
 
         create_user_log(
             request=request,
@@ -1027,6 +1016,7 @@ class VZeroDepositView(APIView):
         # return success response if everything went ok
         return Response(status=200)
 
+
 class VerifyLocationAPIView(APIView):
     """
     A simple endpoint to run the HasIpAccess permission class.
@@ -1037,6 +1027,7 @@ class VerifyLocationAPIView(APIView):
     def get(self, request, *args, **kwargs):
         return Response(data={"detail": "location verification passed"}, status=200,)
 
+
 class TruliooVerifyUserAPIView(APIView):
     """
     verify the user is real based on the information specified.
@@ -1044,7 +1035,8 @@ class TruliooVerifyUserAPIView(APIView):
 
     example POST param (JSON):
 
-        {"first":"FullSteve","last":"Stevenson","birth_day":1,"birth_month":1,"birth_year":1990,"postal_code":"11111"}
+        {"first":"FullSteve","last":"Stevenson","birth_day":1,"birth_month":1,"birth_year":1990,
+            "postal_code":"11111"}
 
     """
 
@@ -1069,12 +1061,14 @@ class TruliooVerifyUserAPIView(APIView):
         verified = False
         try:
             t = Trulioo()
-            verified = t.verify_minimal(first, last, birth_day, birth_month, birth_year, postal_code, user=user)
+            verified = t.verify_minimal(first, last, birth_day, birth_month,
+                                        birth_year, postal_code, user=user)
         except Exception as e:
             raise APIException(str(e))
 
-        if verified == False:
-            raise APIException('User verification was unsuccessful. Please contact support@draftboard.com')
+        if verified is False:
+            raise APIException(
+                'User verification was unsuccessful. Please contact support@draftboard.com')
 
         # return success response if everything went ok
         return Response(status=200)

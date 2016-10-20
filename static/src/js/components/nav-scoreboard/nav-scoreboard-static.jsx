@@ -4,7 +4,6 @@ import size from 'lodash/size';
 
 import NavScoreboardFilters from './nav-scoreboard-filters';
 import NavScoreboardGamesList from './nav-scoreboard-games-list';
-import NavScoreboardLineupsList from './nav-scoreboard-lineups-list';
 import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info';
 import NavScoreboardLogo from './nav-scoreboard-logo';
 import NavScoreboardMenu from './nav-scoreboard-menu';
@@ -13,7 +12,7 @@ import NavScoreboardSeparator from './nav-scoreboard-separator';
 import NavScoreboardSlider from './nav-scoreboard-slider';
 import NavScoreboardUserInfo from './nav-scoreboard-user-info';
 
-import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const';
+import { TYPE_SELECT_GAMES } from './nav-scoreboard-const';
 
 /*
  * The overarching component for the scoreboard spanning the top of the site.
@@ -25,7 +24,6 @@ const NavScoreboardStatic = React.createClass({
   propTypes: {
     user: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
-    myCurrentLineupsSelector: React.PropTypes.object.isRequired,
     cashBalance: React.PropTypes.oneOfType([
       React.PropTypes.string,
       React.PropTypes.number,
@@ -71,16 +69,6 @@ const NavScoreboardStatic = React.createClass({
       }
     });
 
-    // add in lineups if user is logged in
-    if (this.props.user.username !== '') {
-      options.push({
-        option: 'MY LINEUPS',
-        type: TYPE_SELECT_LINEUPS,
-        key: 'LINEUPS',
-        count: size(this.props.myCurrentLineupsSelector),
-      });
-    }
-
     return options;
   },
 
@@ -99,11 +87,7 @@ const NavScoreboardStatic = React.createClass({
    * Render slider contents based on selected filter.
    */
   renderSliderContent() {
-    if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      if (Object.keys(this.props.myCurrentLineupsSelector).length === 0) return null;
-
-      return <NavScoreboardLineupsList lineups={this.props.myCurrentLineupsSelector} />;
-    } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
+    if (this.state.selectedType === TYPE_SELECT_GAMES) {
       if (!this.props.sportsSelector[this.state.selectedKey].gameIds) return null;
 
       return (
