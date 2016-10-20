@@ -870,20 +870,29 @@ class PayoutResponse(object):
     wrapper for extracting information from the response JSON of the Payout.payout() method
 
     example data:
-        {"batch_header": {"payout_batch_id": "P7RQ3D5274JEG", "batch_status": "SUCCESS",
-                              "time_created": "2016-08-05T20:52:43Z", "time_completed": "2016-08-05T20:52:47Z",
-                              "sender_batch_header": {"email_subject": "Your draftboard.com cashout"},
-                              "amount": {"currency": "USD", "value": "20.0"},
-                              "fees": {"currency": "USD", "value": "0.4"}}, "items": [
-            {"payout_item_id": "3YFMJGAD4VYVW", "transaction_id": "1AC51241YM081982B",
-             "transaction_status": "UNCLAIMED", "payout_item_fee": {"currency": "USD", "value": "0.4"},
-             "payout_batch_id": "P7RQ3D5274JEG", "payout_item": {"amount": {"currency": "USD", "value": "20.0"},
-                                                                 "note": "Thanks for playing on draftboard.com!",
-                                                                 "receiver": "valid@email.com",
-                                                                 "recipient_type": "EMAIL",
-                                                                 "sender_item_id": "201403140001"},
-             "time_processed": "2016-08-05T20:52:46Z",
-             "errors": {"name": "RECEIVER_UNCONFIRMED", "message": "Receiver is unconfirmed",
+        { "batch_header": {
+              "payout_batch_id": "P7RQ3D5274JEG",
+              "batch_status": "SUCCESS",
+              "time_created": "2016-08-05T20:52:43Z",
+              "time_completed": "2016-08-05T20:52:47Z",
+              "sender_batch_header":  {"email_subject": "Your draftboard.com cashout"},
+              "amount": {"currency": "USD", "value": "20.0"},
+              "fees": {"currency": "USD", "value": "0.4"}},
+              "items": [
+                {"payout_item_id": "3YFMJGAD4VYVW",
+                "transaction_id": "1AC51241YM081982B",
+                 "transaction_status": "UNCLAIMED",
+                 "payout_item_fee": {"currency": "USD", "value": "0.4"},
+                 "payout_batch_id": "P7RQ3D5274JEG",
+                 "payout_item":
+                    { "amount": {"currency": "USD", "value": "20.0"},
+                      "note": "Thanks for playing on draftboard.com!",
+                      "receiver": "valid@email.com",
+                      "recipient_type": "EMAIL",
+                      "sender_item_id": "201403140001"
+                    },
+                "time_processed": "2016-08-05T20:52:46Z",
+                "errors": {"name": "RECEIVER_UNCONFIRMED", "message": "Receiver is unconfirmed",
                         "information_link": "https://developer.paypal.com/webapps/developer/docs/api/#RECEIVER_UNCONFIRMED"},
              "links": [{"href": "https://api.sandbox.paypal.com/v1/payments/payouts-item/3YFMJGAD4VYVW", "rel": "item",
                         "method": "GET"}]}], "links": [
@@ -925,6 +934,7 @@ class PayoutResponse(object):
         num_items = len(items)
         if num_items != 1:
             err_msg = 'expected one item, but got %s' % str(num_items)
+            print(str(self.data))
             raise self.TransactionItemDoesNotExist(err_msg)
 
         # return the only item in the list
