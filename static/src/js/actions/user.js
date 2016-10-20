@@ -6,6 +6,8 @@ import request from 'superagent';
 import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
 import { addMessage } from './message-actions';
+import { getJsonResponse } from '../lib/utils/response-types';
+
 
 // custom API domain for local dev testing
 let { API_DOMAIN = '' } = process.env;
@@ -388,7 +390,7 @@ export function verifyIdentity(postData) {
       // If the response was not in the success (2xx) range...
       if (!response.ok) {
         // Extract the text and dispatch some actions.
-        return response.json().then(
+        return getJsonResponse(response).then(
           json => {
             dispatch(addMessage({
               header: 'Unable to verify your identity.',

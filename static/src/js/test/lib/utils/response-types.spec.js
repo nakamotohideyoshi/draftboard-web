@@ -105,3 +105,45 @@ describe('utils.responseTypes.isRawTextError', () => {
     assert.isTrue(responseTypes.isRawTextError(rawTextError));
   });
 });
+
+
+describe('utils.getJsonResponse', () => {
+  const jsonData = JSON.parse(JSON.stringify('{"detail": "hello world!"}'));
+  const textData = 'hello text world!';
+
+  it('should handle json responses', () => {
+    // Stub out a fake json response.
+    const jsonRes = new Response(jsonData, {
+      status: 200,
+      headers: {
+        'Content-type': 'application/json',
+      },
+    });
+
+    const stubbedJsonFetch = () => Promise.resolve(jsonRes);
+
+    return stubbedJsonFetch('/fake-url/').then((response) => {
+      return responseTypes.getJsonResponse(response).then((json) => {
+        return assert.equal(json.detail, 'hello world!');
+      });
+    });
+  });
+
+  it('should handle text responses', () => {
+    // Stub out a fake text response.
+    const textRes = new Response(textData, {
+      status: 200,
+      headers: {
+        'Content-type': 'application/text',
+      },
+    });
+
+    const stubbedTextFetch = () => Promise.resolve(textRes);
+
+    return stubbedTextFetch('/fake-url/').then((response) => {
+      return responseTypes.getJsonResponse(response).then((json) => {
+        return assert.equal(json.detail, 'hello text world!');
+      });
+    });
+  });
+});
