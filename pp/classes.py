@@ -132,11 +132,13 @@ class VZeroTransaction(object):
             "shipping": None,                                       # TODO - validate its been set
 
             "options": {
+                "submit_for_settlement": True,
                 "paypal": {
-                    #"custom_field": #optional "PayPal custom field",
+                    # "custom_field": #optional "PayPal custom field",
                     #
                     # "Description for PayPal email receipt"
                     "description": self.default_paypal_email_receipt,
+                    # Immediately capture the transaction.
                 },
             }
         }
@@ -246,7 +248,7 @@ class VZero(object):
             #
             # success
             # TODO remove this debugging print eventually !
-            #print('paypal vzero result.message:', str(result.message))
+            # print('paypal vzero result.message:', str(result.message))
             print("paypal vzero transaction | Success ID: %s" % str(result.transaction.id))
             return result.transaction.id
 
@@ -802,7 +804,7 @@ class Payout(object):
         #
         # login
         if self.session is None:
-            auth_response = self.auth()
+            self.auth()
 
         if self.model_instance.paypal_transaction:
             # if it exists, we need to check it we ever paid this transaction out !
@@ -812,7 +814,7 @@ class Payout(object):
                 tid = self.model_instance.paypal_transaction
                 msg = 'transaction has already been processed! paypal_transaction: ' + str(tid)
                 print(msg)
-                #raise Exception( msg )
+                # raise Exception( msg )
                 return
 
         #
@@ -842,9 +844,9 @@ class Payout(object):
         # }'
         post_data = {
             "sender_batch_header": {
-                #"sender_batch_id"   : "%s" % self.sender_batch_id,
+                # "sender_batch_id"   : "%s" % self.sender_batch_id,
                 "email_subject": "Your draftboard.com cashout",
-                #"recipient_type"    : "EMAIL"
+                # "recipient_type"    : "EMAIL"
             },
             "items": [
                 {
@@ -860,7 +862,7 @@ class Payout(object):
                 }
             ]
         }
-        #j = json.loads( json.dumps( post_data ) )
+        # j = json.loads( json.dumps( post_data ) )
         self.r_payout = self.session.post(self.api_payout,
                                           headers=headers,
                                           data=json.dumps(post_data))

@@ -987,8 +987,8 @@ class VZeroDepositView(APIView):
         except Exception as e:
             # Throw Paypal exceptions back through the API, log & report the details
             logger.error("VZeroDepositView() user: %s - %s" % (request.user.username, str(e)))
-            raise APIException({'detail': "vzero create transaction error"})
             client.captureException()
+            raise APIException({'detail': "vzero create transaction error"})
 
         # TODO add a transaction type (?)
 
