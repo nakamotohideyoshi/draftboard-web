@@ -72,7 +72,7 @@ export const PusherData = React.createClass({
       pusher: Pusher,
 
       // whether or not we are on the live page (determines what data to load)
-      isLivePage: window.location.pathname.substring(0, 6) === '/live/',
+      isPageNeedingPbp: ['/live/', '/resul'].indexOf(window.location.pathname.substring(0, 6)) > -1,
     };
   },
 
@@ -91,7 +91,7 @@ export const PusherData = React.createClass({
         this.setState({ loadedBoxscores: true });
       }
 
-      if (this.state.isLivePage === true) {
+      if (this.state.isPageNeedingPbp === true) {
         // set sport specific sockets
         let oldSports = this.props.watching.sport || [];
         let newSports = nextProps.watching.sport || [];
