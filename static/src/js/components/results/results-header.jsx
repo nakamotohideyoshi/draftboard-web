@@ -1,3 +1,4 @@
+import { dateNow } from '../../lib/utils';
 import moment from 'moment';
 import React from 'react';
 import ResultsDaysSlider from './results-days-slider.jsx';
@@ -10,6 +11,8 @@ const ResultsHeader = React.createClass({
     year: React.PropTypes.number.isRequired,
     month: React.PropTypes.number.isRequired,
     day: React.PropTypes.number.isRequired,
+    isWatchingLive: React.PropTypes.bool.isRequired,
+    watchLiveLineups: React.PropTypes.func,
     onSelectDate: React.PropTypes.func,
   },
 
@@ -25,35 +28,87 @@ const ResultsHeader = React.createClass({
     });
   },
 
+  returnToYesterday() {
+    let theDate = new Date(dateNow());
+
+    let delta = 1;  // days
+
+    // We change results, draft groups, everything over at 10AM UTC, so
+    // until then show the yesterdays results.
+    if (theDate.getUTCHours() < 10) {
+      delta = 2;
+    }
+    theDate.setDate(theDate.getDate() - delta);
+
+    theDate = moment(theDate);
+
+    this.props.onSelectDate(
+      parseInt(theDate.format('YYYY'), 10),
+      parseInt(theDate.format('M'), 10),
+      parseInt(theDate.format('D'), 10)
+    );
+  },
+
   render() {
-    const { year, month, day, onSelectDate } = this.props;
+    const { year, month, day, isWatchingLive, onSelectDate, watchLiveLineups } = this.props;
 
-    return (
-      <div className="results-page--header">
-        <div className="title">
-          <div className="text">Active & upcoming lineups</div>
-          <div className="date">{this.getTitle()}</div>
-        </div>
+    let lineupType = 'Live Lineups';
+    let datePicker;
+    let daySlider;
 
+    let ctaLive = (
+      <div className="watch-live-lineups" onClick={this.returnToYesterday}>
+        See Past Lineups
+      </div>
+    );
+
+    if (isWatchingLive === false) {
+      lineupType = 'Past Lineups';
+
+      daySlider = (
         <ResultsDaysSlider
           year={year}
           month={month}
           day={day}
           onSelectDate={onSelectDate}
         />
+      );
+
+      datePicker = (
         <ResultsDatePicker
           year={year}
           month={month}
           day={day}
           onSelectDate={onSelectDate}
         />
+      );
+
+      ctaLive = (
+        <div className="watch-live-lineups" onClick={watchLiveLineups}>
+          Watch Live Lineups
+        </div>
+      );
+    }
+
+    return (
+      <div className="results-page--header">
+        <div className="title">
+          <div className="text">{lineupType}</div>
+          <div className="date">{this.getTitle()}</div>
+        </div>
+
+        {daySlider}
+        {datePicker}
 
         <div className="search">
           <div className="icon"></div>
         </div>
-        <a href="/contests/" className="draft-a-team">
-          Draft a team
-        </a>
+        <div className="cta">
+          {ctaLive}
+          <a href="/contests/" className="draft-a-team">
+            Draft a team
+          </a>
+        </div>
       </div>
     );
   },

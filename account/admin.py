@@ -1,14 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-
 from account.models import Information, EmailNotification, UserLog
 from cash.admin import CashBalanceAdminInline, CashTransactionDetailAdminInline
 
 
 class InformationAdminInline(admin.TabularInline):
     model = Information
-    list_display = ['user','fullname','address1','address2','city','state','zipcode','dob']
+    list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
 
 
 class UserLogAdminInline(admin.TabularInline):
@@ -47,8 +46,6 @@ admin.site.register(User, MyUserAdmin)
 
 @admin.register(UserLog)
 class UserLogAdmin(admin.ModelAdmin):
-    list_display = ['user', 'ip', 'action', 'type', 'timestamp']
-    search_fields = ['ip', 'user__email', 'user__first_name', 'user__last_name',
-                     'metadata']
-    list_filter = ['action', 'type', 'timestamp']
-
+    list_display = ['user', 'ip', 'type', 'action', 'timestamp']
+    search_fields = ['ip', 'user__username']
+    list_filter = ['timestamp', 'type']

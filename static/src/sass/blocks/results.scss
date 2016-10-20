@@ -150,9 +150,13 @@ $results-selected-text-color: #2bb677;
       text-align: center;
     }
 
-    .draft-a-team {
-      display: inline-block;
+    .cta {
       position: absolute;
+    }
+
+    .draft-a-team,
+    .watch-live-lineups {
+      display: inline-block;
       color: #46485d;
       font-size: 9.5px;
       border: solid 1px $results-selected-text-color;
@@ -165,6 +169,10 @@ $results-selected-text-color: #2bb677;
       &:hover {
         text-decoration: underline;
       }
+    }
+
+    .watch-live-lineups {
+      margin-right: 10px;
     }
   }
 
@@ -767,7 +775,7 @@ $results-selected-text-color: #2bb677;
     &--header {
       padding: 0 28px;
 
-      .draft-a-team {
+      .cta {
         right: 28px;
       }
     }
@@ -783,7 +791,7 @@ $results-selected-text-color: #2bb677;
     &--header {
       padding: 0 88px;
 
-      .draft-a-team {
+      .cta {
         right: 100px;
       }
     }
@@ -811,7 +819,7 @@ $results-selected-text-color: #2bb677;
         margin-left: 60px;
       }
 
-      .draft-a-team {
+      .cta {
         top: 58px;
       }
     }
@@ -864,7 +872,7 @@ $results-selected-text-color: #2bb677;
         padding-top: 18px;
       }
 
-      .draft-a-team {
+      .cta {
         right: 5%;
         top: 20px;
       }

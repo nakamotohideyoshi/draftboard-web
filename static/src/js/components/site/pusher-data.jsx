@@ -70,6 +70,9 @@ export const PusherData = React.createClass({
       loadedForSport: false,
       // pusher is a singleton, keep it accessible within the component
       pusher: Pusher,
+
+      // whether or not we are on the live page (determines what data to load)
+      isPageNeedingPbp: ['/live/', '/resul'].indexOf(window.location.pathname.substring(0, 6)) > -1,
     };
   },
 
@@ -88,19 +91,21 @@ export const PusherData = React.createClass({
         this.setState({ loadedBoxscores: true });
       }
 
-      // set sport specific sockets
-      let oldSports = this.props.watching.sport || [];
-      let newSports = nextProps.watching.sport || [];
-      if (typeof oldSports === 'string') oldSports = [oldSports];
-      if (typeof newSports === 'string') newSports = [newSports];
+      if (this.state.isPageNeedingPbp === true) {
+        // set sport specific sockets
+        let oldSports = this.props.watching.sport || [];
+        let newSports = nextProps.watching.sport || [];
+        if (typeof oldSports === 'string') oldSports = [oldSports];
+        if (typeof newSports === 'string') newSports = [newSports];
 
-      // onload set sport
-      if (!this.state.loadedForSport && newSports.length > 0) {
-        this.subscribeToSportSockets(newSports);
-      // switch sports
-      } else if (isEqual(newSports.sort(), oldSports.sort()) === false) {
-        this.unsubscribeToSportSockets(oldSports);
-        this.subscribeToSportSockets(newSports);
+        // onload set sport
+        if (!this.state.loadedForSport && newSports.length > 0) {
+          this.subscribeToSportSockets(newSports);
+        // switch sports
+        } else if (isEqual(newSports.sort(), oldSports.sort()) === false) {
+          this.unsubscribeToSportSockets(oldSports);
+          this.subscribeToSportSockets(newSports);
+        }
       }
     }
   },

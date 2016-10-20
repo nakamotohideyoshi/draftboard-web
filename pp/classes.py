@@ -14,6 +14,7 @@ from pp.models import (
 import braintree
 import cash
 
+
 class VZeroShipping(object):
 
     class ValidationError(Exception):
@@ -85,6 +86,7 @@ class VZeroShipping(object):
         vzero_shipping_serializer.is_valid(raise_exception=True)
         self.update_data(vzero_shipping_serializer.data)
 
+
 class VZeroTransaction(object):
 
     class ValidationError(Exception):
@@ -120,7 +122,7 @@ class VZeroTransaction(object):
             "amount": None,                                        # TODO - this will need to be set
             "merchant_account_id": self.default_currency,           # defaults to "USD"
             "payment_method_nonce": None,                          # TODO - will need to set
-            "order_id": self.order_id, # 'test_duplicate_order_id', # self.order_id,
+            "order_id": self.order_id,  # 'test_duplicate_order_id', # self.order_id,
             "descriptor": {
                 #
                 # Descriptor displayed in customer CC statements. [22 char max]
@@ -130,11 +132,13 @@ class VZeroTransaction(object):
             "shipping": None,                                       # TODO - validate its been set
 
             "options": {
+                "submit_for_settlement": True,
                 "paypal": {
-                    #"custom_field": #optional "PayPal custom field",
+                    # "custom_field": #optional "PayPal custom field",
                     #
                     # "Description for PayPal email receipt"
                     "description": self.default_paypal_email_receipt,
+                    # Immediately capture the transaction.
                 },
             }
         }
@@ -159,7 +163,7 @@ class VZeroTransaction(object):
         self.update_field(self.field_payment_method_nonce,
                           data.get(self.field_payment_method_nonce))
 
-    def update_data(self, shipping_data, transaction_data):
+    def update_data(self, transaction_data, shipping_data={}):
         # update the shipping data
         self.update_shipping_data(shipping_data)
 
@@ -169,9 +173,11 @@ class VZeroTransaction(object):
         # raise exceptions if any required fields are not set
         self.validate()
 
+
 class VZero(object):
 
-    class VZeroException(Exception): pass
+    class VZeroException(Exception):
+        pass
 
     access_token = settings.VZERO_ACCESS_TOKEN
 
@@ -242,7 +248,7 @@ class VZero(object):
             #
             # success
             # TODO remove this debugging print eventually !
-            #print('paypal vzero result.message:', str(result.message))
+            # print('paypal vzero result.message:', str(result.message))
             print("paypal vzero transaction | Success ID: %s" % str(result.transaction.id))
             return result.transaction.id
 
@@ -726,7 +732,8 @@ class PayPal(object):
         self.r_list_cards = self.session.get(url, headers=self.get_headers())
         return self.get_http_response_dict(self.session, self.r_list_cards)
 
-class Payout( object ):
+
+class Payout(object):
 
     WITHDRAW_STATUS_PROCESSED = cash.withdraw.constants.WithdrawStatusConstants.Processed.value
 
@@ -747,7 +754,8 @@ class Payout( object ):
     api_payout = api + '/v1/payments/payouts?sync_mode=true'
 
     def __init__(self, model_instance):
-        self.STATUS_SUCCESS = cash.withdraw.models.WithdrawStatus.objects.get(pk=self.WITHDRAW_STATUS_PROCESSED)
+        self.STATUS_SUCCESS = cash.withdraw.models.WithdrawStatus.objects.get(
+            pk=self.WITHDRAW_STATUS_PROCESSED)
 
         self.model_instance = model_instance
 
@@ -761,23 +769,23 @@ class Payout( object ):
 
     def auth(self):
         headers = {
-            'Accept' : 'application/json',
-            'Accept-Language' : 'en_US'
+            'Accept': 'application/json',
+            'Accept-Language': 'en_US'
         }
         post_data = {
-            'grant_type' : 'client_credentials'
+            'grant_type': 'client_credentials'
         }
         self.session = requests.Session()
-        self.r_login = self.session.post( self.api_oauth_token,
-                                          headers=headers, data=post_data,
-                                          auth=(self.client_id, self.secret))
-        print( self.r_login.status_code )
-        print( self.api_oauth_token )
-        print( self.r_login.text )
+        self.r_login = self.session.post(self.api_oauth_token,
+                                         headers=headers, data=post_data,
+                                         auth=(self.client_id, self.secret))
+        print(self.r_login.status_code)
+        print(self.api_oauth_token)
+        print(self.r_login.text)
 
         self.model_instance.auth_status = str(self.r_login.status_code)
         self.model_instance.save()
-        return json.loads( self.r_login.text )
+        return json.loads(self.r_login.text)
 
     def payout(self):
         """
@@ -796,25 +804,25 @@ class Payout( object ):
         #
         # login
         if self.session is None:
-            auth_response = self.auth()
+            self.auth()
 
         if self.model_instance.paypal_transaction:
             # if it exists, we need to check it we ever paid this transaction out !
-            check_get_json = self.get( batch_id=self.model_instance.paypal_transaction, save=False )
+            check_get_json = self.get(batch_id=self.model_instance.paypal_transaction, save=False)
             batch_status = check_get_json.get('batch_header').get('batch_status')
             if batch_status in self.IN_PROGRESS_STATUSES:
                 tid = self.model_instance.paypal_transaction
                 msg = 'transaction has already been processed! paypal_transaction: ' + str(tid)
-                print( msg )
-                #raise Exception( msg )
+                print(msg)
+                # raise Exception( msg )
                 return
 
         #
         # issue the payout
-        j = json.loads( self.r_login.text )
+        j = json.loads(self.r_login.text)
         headers = {
-            'Content-Type'  : 'application/json',
-            'Authorization' : '%s %s' % (j.get('token_type'), j.get('access_token'))
+            'Content-Type': 'application/json',
+            'Authorization': '%s %s' % (j.get('token_type'), j.get('access_token'))
         }
         self.sender_batch_id = ''.join(random.choice(string.ascii_uppercase) for i in range(12))
         #     "sender_batch_header":{
@@ -835,35 +843,36 @@ class Payout( object ):
         #
         # }'
         post_data = {
-            "sender_batch_header" : {
-                #"sender_batch_id"   : "%s" % self.sender_batch_id,
-                "email_subject"     : "Your draftboard.com cashout",
-                #"recipient_type"    : "EMAIL"
+            "sender_batch_header": {
+                # "sender_batch_id"   : "%s" % self.sender_batch_id,
+                "email_subject": "Your draftboard.com cashout",
+                # "recipient_type"    : "EMAIL"
             },
-            "items" : [
+            "items": [
                 {
-                    "recipient_type" : "EMAIL",
-                    "amount" : {
-                        "value"     : "%s" % str( float( abs( self.model_instance.amount ) ) ),
-                        "currency"  : "USD"
+                    "recipient_type": "EMAIL",
+                    "amount": {
+                        "value": "%s" % str(float(abs(self.model_instance.amount))),
+                        "currency": "USD"
                     },
                     "receiver": "%s" % self.model_instance.email,
-                    "note"              : "Thanks for playing on draftboard.com!",
-                    "sender_item_id"    : "201403140001", # should probably be unique TODO
+                    "note": "Thanks for playing on draftboard.com!",
+                    "sender_item_id": "201403140001",  # should probably be unique TODO
 
                 }
             ]
         }
-        #j = json.loads( json.dumps( post_data ) )
-        self.r_payout = self.session.post( self.api_payout,
-                                           headers=headers,
-                                           data=json.dumps( post_data ) )
-        print( self.r_payout.status_code )
-        print( 'POST', self.api_payout )
-        print( self.r_payout.text )
-        data = json.loads( self.r_payout.text )
+        # j = json.loads( json.dumps( post_data ) )
+        self.r_payout = self.session.post(self.api_payout,
+                                          headers=headers,
+                                          data=json.dumps(post_data))
+        print(self.r_payout.status_code)
+        print('POST', self.api_payout)
+        print(self.r_payout.text)
+        data = json.loads(self.r_payout.text)
         print('response:', str(data))
         return data
+
 
 class PayoutResponse(object):
     """
@@ -902,15 +911,18 @@ class PayoutResponse(object):
 
     """
 
-    class TransactionItemDoesNotExist(Exception): pass
-    class TransactionStatusException(Exception): pass
+    class TransactionItemDoesNotExist(Exception):
+        pass
+
+    class TransactionStatusException(Exception):
+        pass
 
     # data fields
-    field_items         = 'items'
-    field_batch_header  = 'batch_header'
-    field_links         = 'links'
+    field_items = 'items'
+    field_batch_header = 'batch_header'
+    field_links = 'links'
 
-    field_errors   = 'errors'
+    field_errors = 'errors'
     field_payout_item_id = 'payout_item_id'
     field_transaction_id = 'transaction_id'
     field_transaction_status = 'transaction_status'
@@ -960,4 +972,3 @@ class PayoutResponse(object):
         transaction_status = self.get_item().get(self.field_transaction_status)
         print('transaction_status:', str(transaction_status))
         return transaction_status
-
