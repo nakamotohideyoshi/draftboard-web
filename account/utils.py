@@ -3,8 +3,9 @@ from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
 from geoip2.errors import AddressNotFoundError
 from raven.contrib.django.raven_compat.models import client
-import logging
+from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES)
 from account import const as _account_const
+import logging
 
 logger = logging.getLogger('django')
 
@@ -112,7 +113,7 @@ class CheckUserAccess(object):
         try:
             country = self.geo_ip.country(self.ip)
             result = True if country.get(
-                'country_code') not in settings.BLOCKED_COUNTRIES_CODES else False
+                'country_code') in LEGAL_COUNTRIES else False
             msg = '' if result else 'Country in blocked list'
             if not result:
                 self.create_log(
@@ -132,7 +133,7 @@ class CheckUserAccess(object):
     def check_location_state(self):
         try:
             state = self.geo_ip.city(self.ip)
-            result = True if state.get('region') not in settings.BLOCKED_STATES else False
+            result = True if state.get('region') not in BLOCKED_STATES else False
             msg = '' if result else 'Your state in blocked list'
             if not result:
                 self.create_log(

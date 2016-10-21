@@ -87,8 +87,6 @@ INSTALLED_APPS = (
     'braces',
     'django_extensions',  # shell_plus
 
-    # --- removed for testing only ---
-    # 'cachalot',  # caching models
     'pipeline',  # minifying/compressing static assets
 
     # draftboard specific apps below here #
@@ -250,6 +248,7 @@ DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
 DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from triggers
 
 # Mailchimp/Mandrill
+# TODO: Remove mandrill settings
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.mandrillapp.com'
 EMAIL_HOST_USER = 'devs@draftboard.com'
@@ -276,7 +275,8 @@ PUSHER_APP_ID = '179543'
 PUSHER_KEY = '5a4601521c1e2a3778aa'
 PUSHER_SECRET = '2c286ac8c239f8e73f00'
 PUSHER_CHANNEL_PREFIX = ''  # prepends any Pusher channel, useful for silo-ing calls per dev
-PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')  # if Pusher will actually send objects its told to send()
+# if Pusher will actually send objects its told to send()
+PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')
 
 # Paypal - test
 PAYPAL_REST_API_BASE = 'https://api.sandbox.paypal.com'
@@ -291,21 +291,21 @@ VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437aff
 # stats.com credentials for api usage
 STATSCOM_URL_BASE = 'http://api.stats.com/v1'
 STATSCOM_KEYS = {
-    'nfl' : {
-        'api_key' : 'ayecer82rvxzeu5pcea2a89p',
-        'secret'  : 'zj9pqF2882',
+    'nfl': {
+        'api_key': 'ayecer82rvxzeu5pcea2a89p',
+        'secret': 'zj9pqF2882',
     },
-    'mlb' : {
-        'api_key' : 'vqcfvb8vz9m732hqm5saxv3g',
-        'secret'  : 'kywJJpqs6a',
+    'mlb': {
+        'api_key': 'vqcfvb8vz9m732hqm5saxv3g',
+        'secret': 'kywJJpqs6a',
     },
-    'nba' : {
-        'api_key' : 'vz2jhrxzm9pxnnf8ek6d4p5j',
-        'secret'  : 'fMZCuGgUNy',
+    'nba': {
+        'api_key': 'vz2jhrxzm9pxnnf8ek6d4p5j',
+        'secret': 'fMZCuGgUNy',
     },
-    'nhl' : {
-        'api_key' : 'yubvm7f4gzxve5h3mh2qzgsb',
-        'secret'  : 'xQJ2CTWzP8',
+    'nhl': {
+        'api_key': 'yubvm7f4gzxve5h3mh2qzgsb',
+        'secret': 'xQJ2CTWzP8',
     }
 }
 
@@ -314,9 +314,6 @@ SWISH_API_KEY = 'e7ec4ca5fca54a01ac0038205b8235e9'
 
 # Third party settings
 # ----------------------------------------------------------
-
-# Cachalot cache
-CACHALOT_CACHE = 'cachalot'
 
 # JWT Settings
 JWT_AUTH = {
@@ -363,7 +360,6 @@ if USE_LOCKDOWN:
 
 # Django Logging
 # ----------------------------------------------------------
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -397,7 +393,6 @@ LOGGING = {
 
 # GETIPNET settings
 # ----------------------------------------------------------
-
 GETIPNET_DEFAULT_SUBDOMAIN = "check"
 GETIPNET_SUBDOMAIN = "runfdv4kure0vjqfmdl8hba"
 GETIPNET_CONTACT = "inlanger@gmail.com"
@@ -405,31 +400,10 @@ GETIPNET_NORMAL = 0.99
 
 # GEOIP settings
 # ----------------------------------------------------------
-
 GEOIP_PATH = path.join(BASE_DIR, '../geoip')
-BLOCKED_COUNTRIES_CODES = []
-BLOCKED_STATES = [
-    'TX',
-    'IL',
-    'GA',
-    'VA',
-    'WA',
-    'AZ',
-    'IN',
-    'AL',
-    'LA',
-    'IA',
-    'AK',
-    'NV',
-    'ID',
-    'HI',
-    'MT',
-    'DE',
-    'ND',
-]
 
-
-# Trulioo creds
+# Trulioo DEMO settings
+# ----------------------------------------------------------
 TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
 TRULIOO_USER = 'Draftboard_Demo_API'  # 'Draftboard_Demo_Portal'
 TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'
