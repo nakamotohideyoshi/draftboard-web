@@ -16,18 +16,6 @@ class IdentityAdminInline(admin.TabularInline):
     list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
 
 
-class UserLogAdminInline(admin.TabularInline):
-    model = UserLog
-    list_display = ['ip', 'action', 'type', 'timestamp', 'metadata']
-    readonly_fields = ('ip', 'action', 'type', 'timestamp', 'metadata')
-    can_delete = False
-    extra = 0
-    max_num = 10
-
-    def has_add_permission(self, request):
-        return False
-
-
 @admin.register(EmailNotification)
 class EmailNotificationAdmin(admin.ModelAdmin):
     list_display = [
@@ -45,7 +33,6 @@ class MyUserAdmin(UserAdmin):
         IdentityAdminInline,
         CashBalanceAdminInline,
         CashTransactionDetailAdminInline,
-        UserLogAdminInline,
     ]
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
