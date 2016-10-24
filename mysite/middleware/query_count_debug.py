@@ -2,7 +2,7 @@ from django.db import connection
 #from django.utils.log import getLogger   # -> this works in Django 1.8, but not so much in 1.9.7
 from logging import getLogger
 
-logger = getLogger(__name__)
+logger = getLogger('django')
 
 class QueryCountDebugMiddleware(object):
     """

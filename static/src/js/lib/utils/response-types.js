@@ -74,3 +74,22 @@ export function isListOfErrors(res) {
 export function isRawTextError(res) {
   return typeof(res.body) === 'string';
 }
+
+
+/**
+ * Unpack the body of a fetch response and format it as json. This is necessary because our API
+ * responses are in varied formats.
+ *
+ * @param  {Object} res A fetch response
+ * @return {Object}     An object literal, or the json response.
+ */
+export function getJsonResponse(res) {
+  // If it's jSON, unpack and return it.
+  if (res.headers.get('Content-Type') === 'application/json') {
+    return res.json();
+  }
+
+  // If it's text, unpack it and add the text as the 'detail' key of an object literal so it
+  // can be used as if it were a json response.
+  return res.text().then((text) => ({ detail: text }));
+}

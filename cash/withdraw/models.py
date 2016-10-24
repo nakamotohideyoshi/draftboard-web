@@ -3,7 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
 from django.utils import timezone
-from mysite.legal import state_choices          # list of tuples, ie: [('NH','NH'), ..., ]
+from mysite.legal import STATE_CHOICES          # list of tuples, ie: [('NH','NH'), ..., ]
 from cash.models import CashTransactionDetail
 from django.contrib.postgres.fields import JSONField
 
@@ -84,7 +84,7 @@ class CheckWithdraw(Withdraw):
     address1        = models.CharField(max_length=255, null=False, default='')
     address2        = models.CharField(max_length=255, null=False, default='')
     city            = models.CharField(max_length=64, null=False, default='')
-    state           = models.CharField(choices=state_choices, max_length=2,  default='')
+    state           = models.CharField(choices=STATE_CHOICES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=5, null=False, default='')
 
     @property
@@ -183,4 +183,3 @@ class PayoutTransaction(models.Model):
     withdraw_type = models.ForeignKey(ContentType)
     withdraw_id = models.PositiveIntegerField()
     withdraw = GenericForeignKey('withdraw_type', 'withdraw_id')
-

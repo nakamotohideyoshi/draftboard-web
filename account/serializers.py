@@ -2,6 +2,7 @@
 # serializers.py
 
 from re import search
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from account.models import (
@@ -10,10 +11,55 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
 )
+from cash.classes import CashTransaction
 from django.contrib.auth import get_user_model
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for general user information.
+    This is the response payload for /api/account/user/
+    """
+    identity_verified = serializers.SerializerMethodField()
+    cash_balance = serializers.SerializerMethodField()
+    cash_balance_formatted = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    def get_identity_verified(self, user):
+        # Has the user verified their identity with Trulioo? If they have there will be a
+        # user.identity model.
+        is_verified = False
+        try:
+            is_verified = (user.identity is not None)
+        except ObjectDoesNotExist:
+            pass
+        return is_verified
+
+    def get_cash_balance(self, user):
+        # Unformatted float (99997.4)
+        cash_transaction = CashTransaction(user)
+        return cash_transaction.get_balance_amount()
+
+    def get_cash_balance_formatted(self, user):
+        # A string formatted to 2 decimal places and a dollar sign ("$99,997.40")
+        cash_transaction = CashTransaction(user)
+
+        return "${:,.2f}".format(cash_transaction.get_balance_amount())
+
+    def get_permissions(self, user):
+        # A list of user permissions.
+        return {
+            'is_staff': user.is_staff
+        }
+
+    class Meta:
+        model = User
+        fields = (
+            "username", "email", "identity_verified", "cash_balance", "cash_balance_formatted",
+            "permissions")
+
+
+class UserCredentialsSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
@@ -27,6 +73,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+
+
+# This serializer was re-defined with the same name as the one above...
+# I don't think this one is needed but I'll keep it here just in case.
+#
+# class UserSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = User
+#         fields = ("email", "password")
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -49,7 +105,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         UserModel = get_user_model()
 
         if UserModel.objects.filter(email__iexact=value):
-            # notice how i don't say the email already exists, prevents people from hacking to find someone's email
+            # notice how i don't say the email already exists, prevents people from
+            # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
 
         return value
@@ -61,7 +118,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         UserModel = get_user_model()
 
         if UserModel.objects.filter(username__iexact=value):
-            # notice how i don't say the email already exists, prevents people from hacking to find someone's email
+            # notice how i don't say the email already exists, prevents people from
+            # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
 
         # TODO add in blacklist of usernames
@@ -82,7 +140,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('The two password fields didn\'t match.')
 
             if len(pw1) < 8:
-                raise serializers.ValidationError('The password must be a minimum 8 characters in length')
+                raise serializers.ValidationError(
+                    'The password must be a minimum 8 characters in length')
 
         elif 'password' in data or 'password_confirm' in data:
             raise serializers.ValidationError('You must submit matching passwords')
@@ -91,15 +150,10 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializerNoPassword(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('email',)
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("email", "password")
 
 
 class InformationSerializer(serializers.ModelSerializer):
@@ -114,6 +168,7 @@ class InformationSerializer(serializers.ModelSerializer):
 
 
 class EmailNotificationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = EmailNotification
         fields = ("id", "category", "name", "description", "deprecated")
@@ -128,6 +183,7 @@ class UserEmailNotificationSerializer(serializers.ModelSerializer):
 
 
 class UpdateUserEmailNotificationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = UserEmailNotification
         fields = ("id", "enabled")
@@ -146,16 +202,20 @@ class PasswordResetSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()
 
+
 class SavedCardSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = SavedCardDetails
-        fields = ('user','token','type','last_4','exp_month','exp_year','default')
+        fields = ('user', 'token', 'type', 'last_4', 'exp_month', 'exp_year', 'default')
+
 
 class SetSavedCardDefaultSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     # dont need default, because assume we are trying to set this one to the default
-    #default = serializers.BooleanField()
+    # default = serializers.BooleanField()
+
 
 class SavedCardAddSerializer(serializers.Serializer):
     type = serializers.CharField()
@@ -164,13 +224,16 @@ class SavedCardAddSerializer(serializers.Serializer):
     exp_year = serializers.CharField()
     cvv2 = serializers.CharField()
 
+
 class SavedCardDeleteSerializer(serializers.Serializer):
     token = serializers.CharField()
 
+
 class SavedCardPaymentSerializer(serializers.Serializer):
     token = serializers.CharField()
-    #amount = serializers.DecimalField(max_digits=9, decimal_places=2)
+    # amount = serializers.DecimalField(max_digits=9, decimal_places=2)
     amount = serializers.FloatField()
+
 
 class CreditCardPaymentSerializer(SavedCardAddSerializer):
     """
@@ -181,10 +244,13 @@ class CreditCardPaymentSerializer(SavedCardAddSerializer):
     last_name = serializers.CharField()
     amount = serializers.FloatField()
 
+
 class TruliooVerifyUserSerializer(serializers.Serializer):
-    first = serializers.CharField()
-    last = serializers.CharField()
-    birth_day = serializers.IntegerField()
-    birth_month = serializers.IntegerField()
-    birth_year = serializers.IntegerField()
-    postal_code = serializers.CharField()
+    first = serializers.CharField(max_length=100)
+    last = serializers.CharField(max_length=100)
+    birth_day = serializers.IntegerField(min_value=1, max_value=31)
+    birth_month = serializers.IntegerField(min_value=1, max_value=12)
+    birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
+    postal_code = serializers.CharField(max_length=16)
+    # This is 11 to allow the use of separator dashes.
+    ssn = serializers.CharField(max_length=11)
