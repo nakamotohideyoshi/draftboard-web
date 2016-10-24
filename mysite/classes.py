@@ -3,7 +3,7 @@ from mysite.exceptions import IncorrectVariableTypeException
 from django.conf import settings
 
 
-class AbstractManagerClass( object ):
+class AbstractManagerClass(object):
 
     def __init__(self):
         pass
@@ -26,6 +26,7 @@ class AbstractManagerClass( object ):
                 raise IncorrectVariableTypeException(
                     type(self).__name__,
                     'contest')
+
     @staticmethod
     def get_escrow_user():
         return User.objects.get(username=settings.USERNAME_ESCROW)
@@ -35,8 +36,7 @@ class AbstractManagerClass( object ):
         return User.objects.get(username=settings.USERNAME_DRAFTBOARD)
 
 
-
-class AbstractSiteUserClass( AbstractManagerClass ):
+class AbstractSiteUserClass(AbstractManagerClass):
 
     def __init__(self, user):
         """
@@ -48,10 +48,4 @@ class AbstractSiteUserClass( AbstractManagerClass ):
         # Validate that user and category are proper types
         self.validate_variable(User, user)
 
-
         self.user = user
-
-
-
-
-

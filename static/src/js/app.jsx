@@ -53,6 +53,8 @@ Raven.config(sentryDSN, {
     // Generic error code from errors outside the security sandbox
     // You can delete this if using raven.js > 1.0, which ignores these automatically.
     'Script error.',
+    // Generic failed fetch attempt
+    'Failed to fetch',
   ],
   ignoreUrls: [
     // Chrome extensions

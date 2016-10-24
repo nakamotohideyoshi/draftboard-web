@@ -1,8 +1,14 @@
-import ActionTypes from '../action-types';
+import actionTypes from '../action-types';
 import merge from 'lodash/merge';
 
 const initialState = {
+  user: {
+    isFetching: false,
+    isIdentityVerified: false,
+  },
   username: window.dfs.user.username,
+  identityFormErrors: {},
+  identityFormIsSending: false,
   info: {
     isFetching: false,
   },
@@ -25,9 +31,33 @@ const initialState = {
 
 module.exports = (state = initialState, action) => {
   switch (action.type) {
+    // Fetch user (username, cash balance, identity, etc.)
+    case actionTypes.FETCH_USER: {
+      return merge({}, state, {
+        user: {
+          isFetching: true,
+        },
+      });
+    }
+
+    case actionTypes.FETCH_USER__FAIL: {
+      return merge({}, state, {
+        user: {
+          isFetching: false,
+        },
+      });
+    }
+
+    case actionTypes.FETCH_USER__SUCCESS: {
+      const newState = merge({}, state);
+      newState.user = action.response;
+      newState.user.isFetching = false;
+      return newState;
+    }
+
 
     // Fetch user info (name, address, dob)
-    case ActionTypes.FETCH_USER_INFO_SUCCESS: {
+    case actionTypes.FETCH_USER_INFO_SUCCESS: {
       const newState = merge({}, state, {
         info: action.body,
       });
@@ -36,7 +66,7 @@ module.exports = (state = initialState, action) => {
     }
 
 
-    case ActionTypes.UPDATE_USER_INFO_SUCCESS: {
+    case actionTypes.UPDATE_USER_INFO_SUCCESS: {
       // TODO: update user with the response
       const newState = merge({}, state, {
         info: action.body,
@@ -46,7 +76,7 @@ module.exports = (state = initialState, action) => {
     }
 
 
-    case ActionTypes.UPDATE_USER_INFO_FAIL: {
+    case actionTypes.UPDATE_USER_INFO_FAIL: {
       const newState = merge({}, state, {});
       newState.infoFormErrors = action.body;
       return newState;
@@ -54,14 +84,14 @@ module.exports = (state = initialState, action) => {
 
 
     // Email Pass
-    case ActionTypes.UPDATE_USER_EMAIL_PASS_FAIL: {
+    case actionTypes.UPDATE_USER_EMAIL_PASS_FAIL: {
       const newState = merge({}, state, {});
       newState.emailPassFormErrors = action.body.errors || {};
       return newState;
     }
 
 
-    case ActionTypes.UPDATE_USER_EMAIL_PASS_SUCCESS: {
+    case actionTypes.UPDATE_USER_EMAIL_PASS_SUCCESS: {
       const newState = merge({}, state, { info: action.body });
       // Clear any existing errors.
       newState.emailPassFormErrors = {};
@@ -72,7 +102,7 @@ module.exports = (state = initialState, action) => {
     /**
      * User account cash balance actions.
      */
-    case ActionTypes.FETCHING_CASH_BALANCE:
+    case actionTypes.FETCHING_CASH_BALANCE:
       return merge({}, state, {
         cashBalance: {
           isFetching: true,
@@ -80,7 +110,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_CASH_BALANCE_SUCCESS:
+    case actionTypes.FETCH_CASH_BALANCE_SUCCESS:
       return merge({}, state, {
         cashBalance: {
           isFetching: false,
@@ -89,7 +119,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_CASH_BALANCE_FAIL:
+    case actionTypes.FETCH_CASH_BALANCE_FAIL:
       return merge({}, state, {
         cashBalance: {
           isFetching: false,
@@ -97,7 +127,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_EMAIL_NOTIFICATIONS:
+    case actionTypes.FETCH_EMAIL_NOTIFICATIONS:
       return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: true,
@@ -105,7 +135,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_EMAIL_NOTIFICATIONS_SUCCESS:
+    case actionTypes.FETCH_EMAIL_NOTIFICATIONS_SUCCESS:
       return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: false,
@@ -114,7 +144,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_EMAIL_NOTIFICATIONS_FAIL:
+    case actionTypes.FETCH_EMAIL_NOTIFICATIONS_FAIL:
       return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: false,
@@ -123,7 +153,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS:
+    case actionTypes.UPDATE_EMAIL_NOTIFICATIONS:
       return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: true,
@@ -131,7 +161,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS:
+    case actionTypes.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS:
       return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: false,
@@ -140,13 +170,43 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS_FAIL:
+    case actionTypes.UPDATE_EMAIL_NOTIFICATIONS_FAIL:
       return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: false,
           emailErrors: [action.err],
         },
       });
+
+
+    /**
+     * User Verification
+     */
+    case actionTypes.VERIFY_IDENTITY__SEND: {
+      const newState = merge({}, state, {
+        identityFormIsSending: true,
+      });
+      newState.identityFormErrors = {};
+      return newState;
+    }
+
+
+    case actionTypes.VERIFY_IDENTITY__SUCCESS: {
+      const newState = merge({}, state, {
+        identityFormIsSending: false,
+      });
+      newState.identityFormErrors = {};
+      return newState;
+    }
+
+
+    case actionTypes.VERIFY_IDENTITY__FAIL: {
+      const newState = merge({}, state, {
+        identityFormIsSending: false,
+      });
+      newState.identityFormErrors = action.response;
+      return newState;
+    }
 
 
     default:
