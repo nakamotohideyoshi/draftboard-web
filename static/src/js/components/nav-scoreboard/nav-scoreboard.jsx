@@ -79,7 +79,7 @@ const NavScoreboard = React.createClass({
    */
   startListening() {
     // start parity checks
-    window.setInterval(() => this.props.actions.fetchSportsIfNeeded(), 5000);
+    window.setInterval(() => this.props.actions.fetchSportsIfNeeded(), 30 * 1000);
 
     // remove expired objects within Redux if you aren't on the results page
     if (window.location.pathname.substring(0, 9) !== '/results/') {
