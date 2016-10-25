@@ -221,7 +221,7 @@ def flush_pyc():
 def generate_replayer():
     """
     fab [virtual_machine_type] generate_replayer --set start=2016-03-01,end=2016-03-02,[sport=mlb],[download=true]
-    fab local docker generate_replayer --set start=2016-05-22,end=2016-05-23,sport=nba
+    fab local docker generate_replayer --set start=2016-10-19,end=2016-10-20,sport=nba
 
     Command that generates a database dump consisting of data between two dates, and TimeMachine instances for every
     draft group between the two.
@@ -240,7 +240,7 @@ def generate_replayer():
     startFilename = 'start.dump'
     endFilename = 'end.dump'
 
-    if 'download' in env and env.nodownload is 'true':
+    if 'download' in env and env.download == 'true':
         # this key/value gives full access to s3, need to pare down to just the right bucket.
         AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
         AWS_SECRET_ACCESS_KEY = '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'
@@ -299,35 +299,37 @@ def generate_replayer():
         )
     )
 
+    # remove all scheduled tasks except for contest pools
+    operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+        psql_user,
+        temp_db
+    ))
+
+    # remove other sport replayer updates, time machines, if sport is chosen
+    if 'sport' in env and env.sport in ['mlb', 'nba', 'nhl', 'nfl']:
+        operations.local('%s psql -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
+            psql_user,
+            temp_db,
+            env.sport
+        ))
+        operations.local('%s psql -d %s -c "delete from replayer_timemachine;"' % (
+            psql_user,
+            temp_db
+        ))
+        operations.local('''
+            %s psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where
+            task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"
+        ''' % (
+            psql_user,
+            temp_db,
+            env.sport
+        ))
+
     # loop through applicable draft_group rows and create time_machine rows, based on start and end dates
     operations.local(
         'DJANGO_SETTINGS_MODULE="mysite.settings.local_replayer_generation" %s manage.py generate_timemachines %s %s' %
         (_python(), env.start, env.end)
     )
-
-    # # remove all scheduled tasks except for contest pools
-    # operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
-    #     psql_user,
-    #     temp_db
-    # ))
-
-    # # remove other sport replayer updates, time machines, if sport is chosen
-    # if 'sport' in env and env.sport in ['mlb', 'nba', 'nhl']:
-    #     operations.local('%s psql -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
-    #         psql_user,
-    #         temp_db,
-    #         env.sport
-    #     ))
-    #     operations.local('%s psql -d %s -c "delete from replayer_timemachine where replay not ILIKE \'%%%s%%\';"' % (
-    #         psql_user,
-    #         temp_db,
-    #         env.sport
-    #     ))
-    #     operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"' % (
-    #         psql_user,
-    #         temp_db,
-    #         env.sport
-    #     ))
 
     # export finished db
     _db_export(temp_db, '/tmp/replayer_generated.dump')
