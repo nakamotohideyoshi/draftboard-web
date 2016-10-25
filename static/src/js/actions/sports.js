@@ -469,7 +469,7 @@ const fetchTeams = (sport) => ({
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchGames = (state, sport, force) => {
-  logAction.trace('actions.shouldFetchGames');
+  logAction.trace('actions.shouldFetchGames', force);
 
   // ignore the expiration if forcing
   if (force === true) return true;
@@ -617,7 +617,7 @@ export const isGameReady = (state, dispatch, sport, gameId) => {
 
   // if no boxscore from the server, ask for it
   if (!games[gameId].hasOwnProperty('boxscore')) {
-    dispatch(fetchSportIfNeeded(sport, true));
+    dispatch(fetchSportIfNeeded(sport));
 
     logAction.debug('actions.isGameReady - boxscore does not exist', gameId);
     return false;

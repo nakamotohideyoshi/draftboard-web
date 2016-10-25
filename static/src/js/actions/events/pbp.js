@@ -331,7 +331,7 @@ const getNBAData = (message, gameId) => {
     description: pbp.description,
     eventPlayers: compileEventPlayers(message, 'nba'),
     gameId,
-    id: pbp.srid,
+    id: pbp.id,
     location: pbp.location__list,
     playersStats: stats,
     sport: 'nba',
@@ -461,10 +461,12 @@ const getNFLData = (message, gameId, game) => {
  * @param  {object} message The received event from Pusher
  */
 export const onPBPReceived = (message, sport) => (dispatch, getState) => {
-  logAction.debug('actions.onPBPReceived', message);
+  logAction.debug('actions.onPBPReceived', message, sport);
 
   const state = getState();
-  const gameId = message.pbp.srid_game;
+
+  let gameId = message.pbp.srid_game;
+  if (sport === 'nba') gameId = message.pbp.game__id;
 
   if (!isGameReady(state, dispatch, sport, gameId)) return false;
   if (!isMessageUsed(message, sport)) return false;
