@@ -2,20 +2,18 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
-from django.utils import timezone
 from mysite.legal import STATE_CHOICES          # list of tuples, ie: [('NH','NH'), ..., ]
 from cash.models import CashTransactionDetail
 from django.contrib.postgres.fields import JSONField
 
-import datetime
 
-class WithdrawStatus( models.Model ):
+class WithdrawStatus(models.Model):
     """
     The class that keeps a list of all the statuses
     their corresponding string representation.
     """
-    category    = models.CharField(max_length=100, null=False)
-    name        = models.CharField(max_length=100, null=False)
+    category = models.CharField(max_length=100, null=False)
+    name = models.CharField(max_length=100, null=False)
     description = models.CharField(max_length=255, null=False)
 
     class Meta:
@@ -24,19 +22,20 @@ class WithdrawStatus( models.Model ):
     def __str__(self):
         return '%s' % (self.category)
 
+
 class Withdraw(models.Model):
     """
     Abstract implementation fo the withdraw
     """
-    created                 = models.DateTimeField(auto_now_add=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, null=True)
     cash_transaction_detail = models.OneToOneField(CashTransactionDetail, null=False)
-    status                  = models.ForeignKey( WithdrawStatus, null=False )
-    status_updated          = models.DateTimeField(auto_now=True,
-                                    verbose_name='NetProfit @ Withdraw Time')
-    net_profit              = models.DecimalField(decimal_places=2, max_digits=7,
-                                    verbose_name='NetProfit @ Withdraw Time')
-    processed_at            = models.DateTimeField(null=True,
-                                    verbose_name='Proccessed At')
+    status = models.ForeignKey(WithdrawStatus, null=False)
+    status_updated = models.DateTimeField(auto_now=True,
+                                          verbose_name='NetProfit @ Withdraw Time')
+    net_profit = models.DecimalField(decimal_places=2, max_digits=7,
+                                     verbose_name='NetProfit @ Withdraw Time')
+    processed_at = models.DateTimeField(null=True,
+                                        verbose_name='Proccessed At')
 
     class Meta:
         abstract = True
@@ -45,7 +44,7 @@ class Withdraw(models.Model):
     # inheriting classes MUST override this method, because it will be used
     # in the admin panel where user's requests to withdraw money are displayed.
     def __str__(self):
-        raise Exception( self.__class__.__name__ + ' must be overridden in child class!' )
+        raise Exception(self.__class__.__name__ + ' must be overridden in child class!')
 
     # note: there is a template tag called 'timesince' & 'timeuntil' , just fyi
 
@@ -61,31 +60,33 @@ class Withdraw(models.Model):
     def amount(self):
         return self.cash_transaction_detail.amount
 
+
 class PayPalWithdraw(Withdraw):
-    email               = models.EmailField(null=False)
+    email = models.EmailField(null=False)
 
-    paypal_payout_item          = models.CharField(max_length=255, null=False, default='',
-                                        verbose_name='PayPal Payout Item ID')
-    paypal_transaction          = models.CharField(max_length=255, null=False, default='',
-                                        verbose_name='PayPal Transaction ID')
-    paypal_transaction_status   = models.CharField(max_length=255, null=False, default='',
-                                        verbose_name='PayPal Transaction Status')
+    paypal_payout_item = models.CharField(max_length=255, null=False, default='',
+                                          verbose_name='PayPal Payout Item ID')
+    paypal_transaction = models.CharField(max_length=255, null=False, default='',
+                                          verbose_name='PayPal Transaction ID')
+    paypal_transaction_status = models.CharField(max_length=255, null=False, default='',
+                                                 verbose_name='PayPal Transaction Status')
 
-    started_processing  = models.DateTimeField(null=True)
-    paypal_errors       = models.CharField(max_length=2048, default='')
+    started_processing = models.DateTimeField(null=True)
+    paypal_errors = models.CharField(max_length=2048, default='')
 
     def __str__(self):
         return '%s paypal-account-email[  %s  ]' % (self.__class__.__name__, self.email)
 
+
 class CheckWithdraw(Withdraw):
 
-    check_number    = models.IntegerField(null=True, unique=True, blank=True )
-    fullname        = models.CharField(max_length=100, null=False, default='')
-    address1        = models.CharField(max_length=255, null=False, default='')
-    address2        = models.CharField(max_length=255, null=False, default='')
-    city            = models.CharField(max_length=64, null=False, default='')
-    state           = models.CharField(choices=STATE_CHOICES, max_length=2,  default='')
-    zipcode         = models.CharField(max_length=5, null=False, default='')
+    check_number = models.IntegerField(null=True, unique=True, blank=True)
+    fullname = models.CharField(max_length=100, null=False, default='')
+    address1 = models.CharField(max_length=255, null=False, default='')
+    address2 = models.CharField(max_length=255, null=False, default='')
+    city = models.CharField(max_length=64, null=False, default='')
+    state = models.CharField(choices=STATE_CHOICES, max_length=2,  default='')
+    zipcode = models.CharField(max_length=5, null=False, default='')
 
     @property
     def address(self):
@@ -93,7 +94,9 @@ class CheckWithdraw(Withdraw):
                                            self.address2, self.city, self.state, self.zipcode)
 
     def __str__(self):
-        return '%s check-number[  %s  ]  mailing-address[  %s  ]' % (self.__class__.__name__, str(self.check_number), self.address )
+        return '%s check-number[  %s  ]  mailing-address[  %s  ]' % (
+                self.__class__.__name__, str(self.check_number), self.address)
+
 
 class ReviewPendingWithdraw(models.Model):
     """
@@ -102,30 +105,31 @@ class ReviewPendingWithdraw(models.Model):
     this model is AUTOMATICALLY created, so long as you have connected your model
     ie: post_save.connect( create_from_signal, sender=YourModelWithdraw )
 
-    you can access the basic properties of the base Withdraw class because of the @property tagged methods
+    you can access the basic properties of the base Withdraw class because of the @property tagged
+    methods
     """
 
-    content_type    = models.ForeignKey( ContentType )
-    object_id       = models.PositiveIntegerField()
-    content_object  = GenericForeignKey( 'content_type', 'object_id' )
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     #
     # this is the method that listens for PayPayl, Check withdraws and creates itself
     def create_from_signal(sender, **kwargs):
         if 'created' in kwargs and kwargs['created']:
             instance = kwargs['instance']
-            ctype = ContentType.objects.get_for_model( instance )
+            ctype = ContentType.objects.get_for_model(instance)
             pending_withdraw = ReviewPendingWithdraw.objects.get_or_create(content_type=ctype,
-                                                                           object_id=instance.id )
+                                                                           object_id=instance.id)
     #
     # register this RewviewPendingWithdraw to create a new one when these models are created
-    post_save.connect( create_from_signal, sender=PayPalWithdraw )
-    post_save.connect( create_from_signal, sender=CheckWithdraw )
+    post_save.connect(create_from_signal, sender=PayPalWithdraw)
+    post_save.connect(create_from_signal, sender=CheckWithdraw)
 
     @property
     def withdraw(self):
         the_model = self.content_type.model_class()
-        return the_model.objects.get( pk=self.object_id )
+        return the_model.objects.get(pk=self.object_id)
 
     @property
     def created(self):
@@ -143,16 +147,18 @@ class ReviewPendingWithdraw(models.Model):
     def status(self):
         return self.content_object.status.name
 
-class AutomaticWithdraw( models.Model ):
+
+class AutomaticWithdraw(models.Model):
     """
     a model for the cutoff where we will automatically process a withdraw (cashout)
     """
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True)
 
-    auto_payout_below 	 = models.DecimalField(decimal_places=2, max_digits=9)
+    auto_payout_below = models.DecimalField(decimal_places=2, max_digits=9)
 
-class PendingWithdrawMax( models.Model ):
+
+class PendingWithdrawMax(models.Model):
     """
     a model for the cutoff where we will automatically process a withdraw (cashout)
     """
@@ -161,6 +167,7 @@ class PendingWithdrawMax( models.Model ):
 
     max_pending = models.IntegerField(default=3, null=False)
 
+
 class CashoutWithdrawSetting(models.Model):
     """
     holds the min and max dollar amounts for individual cashout requests
@@ -168,8 +175,9 @@ class CashoutWithdrawSetting(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True)
 
-    max_withdraw_amount  = models.DecimalField(decimal_places=2, max_digits=9, default=10000.00)
-    min_withdraw_amount  = models.DecimalField(decimal_places=2, max_digits=9, default=5.00)
+    max_withdraw_amount = models.DecimalField(decimal_places=2, max_digits=9, default=10000.00)
+    min_withdraw_amount = models.DecimalField(decimal_places=2, max_digits=9, default=5.00)
+
 
 class PayoutTransaction(models.Model):
     """

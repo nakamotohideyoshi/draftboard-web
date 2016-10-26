@@ -1,31 +1,32 @@
 import requests
+from dateutil.relativedelta import relativedelta
+from datetime import date
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
 from geoip2.errors import AddressNotFoundError
 from raven.contrib.django.raven_compat.models import client
-from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES)
+from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
 from account import const as _account_const
 import logging
 
 logger = logging.getLogger('django')
 
 
-def create_user_log(request=None, type=None, action=None, metadata={}):
+def create_user_log(request=None, type=None, action=None, metadata={}, user=None):
     from .models import UserLog
     """
     Create a UserLog entry
     """
     # Make sure whatever we are doing doesn't die because of a UserLog failure.
     try:
-        if not request:
-            raise Exception('request is required')
         log_data = {}
         log_data['type'] = type
         log_data['action'] = action
         log_data['metadata'] = metadata
         log_data['ip'] = get_client_ip(request)
-        log_data['user'] = request.user
-        return UserLog.objects.create(**log_data)
+        log_data['user'] = user or request.user
+        UserLog.objects.create(**log_data)
 
     # If the log creation failed, capture the exception and log it to both
     # Sentry and the django logger.
@@ -51,6 +52,7 @@ class CheckUserAccess(object):
     ip = None
     user = None
     geo_ip = GeoIP2()
+    geo_ip_response = None
     request = None
 
     def __init__(self, request=None):
@@ -67,11 +69,24 @@ class CheckUserAccess(object):
         self.user = request.user
         self.request = request
 
+        # Make a query on the geoIP database.
+        if self.ip:
+            try:
+                self.geo_ip_response = self.geo_ip.city(self.ip)
+            except AddressNotFoundError:
+                self.geo_ip_response = None
+                self.create_log(
+                    _account_const.IP_CHECK_UNKNOWN,
+                    {'result': 'Access Granted: IP not found in city db'}
+                )
+
     def create_log(self, action, metadata):
         # Simple method to pass LOCATION_VERIFY actions onto the user logger.
-        create_user_log(self.request, _account_const.LOCATION_VERIFY, action, metadata)
+        create_user_log(request=self.request, type=_account_const.LOCATION_VERIFY, action=action,
+                        metadata=metadata)
 
     def is_on_local_network(self):
+        return False
         try:
             no_dots = self.ip.replace('.', '')
             ip_first_five_int = int(no_dots[0:5])
@@ -87,6 +102,7 @@ class CheckUserAccess(object):
                 _account_const.IP_CHECK_LOCAL,
                 {'result': 'Access Granted: User is on local network.'}
             )
+            logger.info('User is on local IP address - %s' % self.ip)
             return True
         # Check for 172.16.0.0 -- 172.31.255.255
         elif ip_first_five_int >= 17216 and ip_first_five_int <= 17231:
@@ -94,11 +110,12 @@ class CheckUserAccess(object):
                 _account_const.IP_CHECK_LOCAL,
                 {'result': 'Access Granted: User is on local network.'}
             )
+            logger.info('User is on local IP address - %s' % self.ip)
             return True
 
         return False
 
-    def check_ip(self, flag="m", subdomain=settings.GETIPNET_SUBDOMAIN):
+    def check_for_vpn(self, flag="m", subdomain=settings.GETIPNET_SUBDOMAIN):
         url = 'http://%s.getipintel.net/check.php?ip=%s&contact=%s&flags=%s'
         response = requests.get(
             url % (subdomain, self.ip, settings.GETIPNET_CONTACT, flag)
@@ -117,11 +134,10 @@ class CheckUserAccess(object):
         # in case of out of limit
         elif response.status_code == 429:
             logger.error("getipintel.net 429 response: %s" % response.reason)
-            return self.check_ip(subdomain=settings.GETIPNET_DEFAULT_SUBDOMAIN)
+            return True, response.reason
         # service not working
         else:
             logger.error("Unexpected getipintel.net response: %s" % response.reason)
-            print(vars(response))
             client.context.merge({'extra': {
                 'reason': response.reason,
                 'status_code': response.status_code,
@@ -135,15 +151,13 @@ class CheckUserAccess(object):
     @property
     def check_location_country(self):
         try:
-            country = self.geo_ip.country(self.ip)
-            result = True if country.get(
-                'country_code') in LEGAL_COUNTRIES else False
+            country = self.geo_ip_response.get('country_code')
+            result = True if country in LEGAL_COUNTRIES else False
             msg = '' if result else 'Country in blocked list'
             if not result:
                 self.create_log(
                     _account_const.IP_CHECK_FAILED_COUNTRY,
-                    {'result': 'Access Denied: Country %s in blocked list' %
-                        country.get('country_code')}
+                    {'result': 'Access Denied: Country %s in blocked list' % country}
                 )
             return result, msg
         except AddressNotFoundError:
@@ -156,13 +170,13 @@ class CheckUserAccess(object):
     @property
     def check_location_state(self):
         try:
-            state = self.geo_ip.city(self.ip)
-            result = True if state.get('region') not in BLOCKED_STATES else False
+            state = self.geo_ip_response.get('region')
+            result = True if state not in BLOCKED_STATES else False
             msg = '' if result else 'Your state in blocked list'
             if not result:
                 self.create_log(
                     _account_const.IP_CHECK_FAILED_STATE,
-                    {'result': 'Access Denied: State %s in blocked list' % state.get('region')}
+                    {'result': 'Access Denied: State %s in blocked list' % state}
                 )
 
             return result, msg
@@ -173,22 +187,64 @@ class CheckUserAccess(object):
             )
             return True, ''
 
+    def check_location_age(self, state=None):
+        # Check if they have a verified identity and that they are old enough to play in the state
+        # their IP address tells us they are in.
+        #
+        # If they don't have an identity, we don't care because that permission will be set on the
+        # view level.
+        try:
+            identity = self.user.identity
+            birthdate = date(identity.birth_year, identity.birth_month, identity.birth_day)
+            minimum_age = STATE_AGE_LIMITS.get(state)
+            logger.info('%s - %s' % (state, minimum_age))
+            # Add the legal age for the user's state to thier birthday. This tells us the date
+            # that they are allowed to begin uing the site.
+            # then make sure that date is in the past
+            relative = relativedelta(years=minimum_age)
+            if birthdate + relative >= date.today():
+                # The date this user turns legal is in the future.
+                return False, 'Minimum age for this location is not met.'
+
+            return True, 'Minimum age for this location is met.'
+
+        # They don't have a verified identity so we don't care right now.
+        except ObjectDoesNotExist:
+            return True, 'User has no identity, no age to check.'
+
+        except AddressNotFoundError:
+            self.create_log(
+                _account_const.IP_CHECK_UNKNOWN,
+                {'result': 'Access Granted: IP not found in country db'}
+            )
+            return True, ''
+
     @property
     def check_access(self):
         # If the user is on the local network, let them through.
         if self.is_on_local_network():
+            logger.warn('User is on the local network, skipping IP checks. user: %s' % self.user)
             return True, ''
+
+        if not self.geo_ip_response:
+            logger.warn('IP address not found in database: %s user: %s' % (self.ip, self.user))
+            return True, 'IP not found in database'
 
         # do it one by one because it doesn't make a sense to check ip if country
         # or city already blocked
         access, msg = self.check_location_country
-        print('%s - %s' % ('check_location_country', access))
+        logger.info('%s - %s - user: %s' % ('check_location_country', access, self.user))
         if not access:
             return access, msg
 
         access, msg = self.check_location_state
-        print('%s - %s' % ('check_location_state', access))
+        logger.info('%s - %s - user: %s' % ('check_location_state', access, self.user))
         if not access:
             return access, msg
 
-        return self.check_ip()
+        access, msg = self.check_location_age(state='CO')
+        logger.info('%s - %s - user: %s' % ('check_location_age', access, self.user))
+        if not access:
+            return access, msg
+
+        return self.check_for_vpn()

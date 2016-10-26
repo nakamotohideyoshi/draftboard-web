@@ -22,8 +22,8 @@ from account.views import (
     # PayPalSavedCardDeleteAPIView,
     # PayPalSavedCardListAPIView,
 )
-from .utils import CheckUserAccess
-# from account import const as _account_const
+from account.utils import CheckUserAccess
+from account.models import Identity
 
 
 class AccountsViewsTest(TestCase):
@@ -205,7 +205,6 @@ class AccountInformationTest(AbstractTest):
     def setUp(self):
         from django.conf import settings
         self.db = settings.DATABASES['default'].get('NAME')
-        print('account app db name: %s' % str(self.db))
         self.user = self.get_admin_user()
 
     def should_fail_validate_mailing_address(self, information):
@@ -301,7 +300,8 @@ class PayWithCreditCardAPITest(APITestCase, MasterAbstractTest, ForceAuthenticat
     pass  # TODO
 
 
-class AddSavedCardAPI_TestMissingInformation(APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+class AddSavedCardAPI_TestMissingInformation(
+        APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
 
     def setUp(self):
         # the view class
@@ -329,7 +329,8 @@ class AddSavedCardAPI_TestMissingInformation(APITestCaseMixin, MasterAbstractTes
         self.assertTrue(status.is_client_error(response.status_code))
 
 
-class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+class AddSavedCardAPI_TestEmptyPostParams(
+        APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
 
     def setUp(self):
         # the view class
@@ -346,7 +347,8 @@ class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, 
         # is_client_error() checks any 400 errors (401, 402, etc...)
         self.assertTrue(status.is_client_error(response.status_code))
 
-# class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+# class AddSavedCardAPI_TestEmptyPostParams(
+#   APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
 #
 #     def setUp(self):
 #         # the view class
@@ -391,7 +393,6 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         # Make sure the blocked state request fails.
         checker = CheckUserAccess(blocked_request)
         self.assertFalse(checker.check_location_state[0])
-        self.assertFalse(checker.check_ip()[0])
 
     def test_checker_ok(self):
         # A valid request
@@ -402,4 +403,40 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         checker = CheckUserAccess(valid_request)
         self.assertTrue(checker.check_location_country[0])
         self.assertTrue(checker.check_location_state[0])
-        self.assertTrue(checker.check_ip()[0])
+        self.assertTrue(checker.check_for_vpn()[0])
+
+    def test_check_invalid_location_age(self):
+        valid_request = self.factory.get('/', REMOTE_ADDR=self.available_ip)
+        # This user is too young to use the site.
+        Identity(
+            user=self.user,
+            first_name='test',
+            last_name='user',
+            birth_day=1,
+            birth_month=1,
+            birth_year=2015,
+            postal_code='80203',
+        )
+        valid_request.user = self.user
+
+        checker = CheckUserAccess(request=valid_request)
+        checker.check_location_age('CO')
+        self.assertFalse(checker.check_location_age('CO')[0])
+
+    def test_check_valid_location_age(self):
+        valid_request = self.factory.get('/', REMOTE_ADDR=self.available_ip)
+        # This user is old enough to use the site.
+        Identity(
+            user=self.user,
+            first_name='test',
+            last_name='user',
+            birth_day=1,
+            birth_month=1,
+            birth_year=1984,
+            postal_code='80203',
+        )
+        valid_request.user = self.user
+
+        checker = CheckUserAccess(request=valid_request)
+        checker.check_location_age('CO')
+        self.assertTrue(checker.check_location_age('CO')[0])
