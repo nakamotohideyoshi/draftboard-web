@@ -251,9 +251,9 @@ DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from trig
 
 # Mailchimp/Mandrill
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.mandrillapp.com'
-EMAIL_HOST_USER = 'devs@draftboard.com'
-EMAIL_HOST_PASSWORD = 'bfNdCw7LpBD4UUrYG91YVw'
+EMAIL_HOST = 'smtp.sparkpostmail.com'
+EMAIL_HOST_USER = 'SMTP_Injection'
+EMAIL_HOST_PASSWORD = '1ab47c61d2f7da062c67ceb9cb91b7b0099d3f3c'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'support@draftboard.com'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
