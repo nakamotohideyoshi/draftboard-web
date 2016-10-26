@@ -99,7 +99,7 @@ class UserLog(models.Model):
     Log types and actions are found in account/const.py
     """
     type = models.SmallIntegerField(choices=_account_const.TYPES)
-    ip = models.CharField(max_length=15)
+    ip = models.CharField(max_length=15, blank=True, null=True)
     user = models.ForeignKey(User, related_name='logs')
     action = models.SmallIntegerField(choices=_account_const.ACTIONS)
     timestamp = models.DateTimeField(auto_now=True)
@@ -111,14 +111,15 @@ class UserLog(models.Model):
         ordering = ['-timestamp']
 
 
-def create_log_entry_when_user_logs_in(sender, user, request, **kwargs):
+def create_log_entry_when_user_logs_in(sender, request, user, **kwargs):
     """
     Whenever a user logs in, create a UserLog entry.
     """
     create_user_log(
-        request,
-        _account_const.AUTHENTICATION,
-        _account_const.LOGIN
+        request=request,
+        user=user,
+        type=_account_const.AUTHENTICATION,
+        action=_account_const.LOGIN
     )
 # Attach the signal user_logged_in signal.
 user_logged_in.connect(create_log_entry_when_user_logs_in)

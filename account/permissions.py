@@ -32,14 +32,14 @@ class HasIpAccess(permissions.BasePermission):
         # use the site.
         return True
 
-        # checker = CheckUserAccess(request)
-        # access, message = checker.check_access
-        #
-        # # If our IP check has determined we don't have access, return a 403.
-        # if not access:
-        #     raise exceptions.PermissionDenied(detail='IP_CHECK_FAILED')
-        #
-        # return True
+        checker = CheckUserAccess(request)
+        access, message = checker.check_access
+
+        # If our IP check has determined we don't have access, return a 403.
+        if not access:
+            raise exceptions.PermissionDenied('IP_CHECK_FAILED')
+
+        return True
 
 
 class HasVerifiedIdentity(permissions.BasePermission):

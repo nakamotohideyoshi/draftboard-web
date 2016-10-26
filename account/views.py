@@ -1047,7 +1047,7 @@ class VerifyLocationAPIView(APIView):
     permission_classes = (HasIpAccess,)
 
     def get(self, request, *args, **kwargs):
-        return Response(data={"detail": "location verification passed"}, status=200,)
+        return Response(data={"detail": "location and age verification passed"}, status=200,)
 
 
 class TruliooVerifyUserAPIView(APIView):
