@@ -14,6 +14,7 @@ import django.db.utils
 from .tasks import (
     generate_salaries_for_sport,
     generate_salaries_from_statscom_projections_nfl,
+    generate_salaries_from_statscom_projections_nba,
 )
 import celery.states
 from django.utils.html import format_html
@@ -80,7 +81,7 @@ class SalaryConfigAdmin(admin.ModelAdmin):
 
 @admin.register(Pool)
 class PoolAdmin(admin.ModelAdmin):
-    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'download_csv', 'created']
+    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'download_csv']
     model = Pool
     exclude = ('generate_salary_task_id',)
     inlines = [SalaryInline,]
@@ -170,8 +171,8 @@ class PoolAdmin(admin.ModelAdmin):
                     # use STATS.com fantasy projections api as the basis for draftboard player salaries
                     task_result = generate_salaries_from_statscom_projections_nfl.delay()
 
-                # elif sport == 'nba':
-                #     pass
+                elif sport == 'nba':
+                    task_result = generate_salaries_from_statscom_projections_nba.delay()
 
                 else:
                     msg = '[%s] is unimplemented server-side. DID NOT GENERATE SALARIES for %s!' % (sport, sport)

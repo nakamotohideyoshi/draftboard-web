@@ -13,6 +13,8 @@ from django.core.cache import cache
 from hashlib import md5
 from statscom.classes import(
     FantasyProjectionsNFL,
+    FantasyProjectionsNBA,
+    FantasyProjectionsMLB,
     ProjectionsWeekWebhook,
 )
 from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
@@ -30,6 +32,7 @@ def check_current_projections_week(self):
 
 @app.task(bind=True)
 def generate_salaries_from_statscom_projections_nfl(self):
+    """ NFL """
     #from statscom.classes import FantasyProjectionsNFL
     api = FantasyProjectionsNFL()
     # projections = api.get_projections(week=1)
@@ -61,6 +64,40 @@ def generate_salaries_from_statscom_projections_nfl(self):
 
     else:
         err_msg = 'a task is already generating salaries for sport: nfl (stats.com)'
+        print(err_msg)
+        # raise Exception(err_msg)
+
+@app.task(bind=True)
+def generate_salaries_from_statscom_projections_nba(self):
+    """ NBA """
+    sport = 'nba'
+
+    api = FantasyProjectionsNBA()
+    player_projections = api.get_player_projections()
+
+    Pool.objects.all().count()
+    pool = Pool.objects.get(site_sport__name=sport)
+
+    sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
+    lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
+
+    # cache.add fails if the key already exists
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    # advantage of using add() for atomic locking
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            # start generating the salary pool, time consuming...
+            salary_generator = SalaryGeneratorFromProjections(player_projections,
+                                        PlayerProjection, pool, slack_updates=True)
+            salary_generator.generate_salaries()
+
+        finally:
+            release_lock()
+
+    else:
+        err_msg = 'a task is already generating salaries for sport: %s (stats.com)' % sport
         print(err_msg)
         # raise Exception(err_msg)
 
