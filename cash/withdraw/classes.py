@@ -448,7 +448,12 @@ class PayPalWithdraw(AbstractWithdraw):
         self.save_payout_history(self.withdraw_object, data)
 
         # depending on the paypal transaction status...
+        #error_str = ''
+        # try:
         errors = payout_response.get_errors()
+        # except Exception as e:
+        #     error_str(str(e))
+        #     print(error_str)
 
         self.withdraw_object.paypal_payout_item = payout_response.get_payout_item_id()
         self.withdraw_object.paypal_transaction = payout_response.get_transaction_id()
