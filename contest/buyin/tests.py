@@ -13,10 +13,7 @@ from dataden.util.timestamp import DfsDateTimeUtil
 from ..classes import ContestCreator
 from ..models import Contest
 from .classes import BuyinManager
-from contest.views import (
-    EnterLineupAPIView,
-    EnterLineupStatusAPIView,
-)
+from contest.views import EnterLineupAPIView
 from sports.classes import SiteSportManager
 from cash.classes import CashTransaction
 from contest import exceptions
@@ -31,7 +28,9 @@ from test.classes import BuildWorldMixin, ForceAuthenticateAndRequestMixin
 from rest_framework import status
 from rest_framework.response import Response
 
-#class BuyinTest(AbstractTest):
+# class BuyinTest(AbstractTest):
+
+
 class BuyinTest(AbstractTest):
     """
     create a basic contest, and use the BuyinManager to buy into it.
@@ -47,7 +46,7 @@ class BuyinTest(AbstractTest):
 
         # salary_generator = Dummy.generate_salaries()
         # self.salary_pool = salary_generator.pool
-        ####### start
+        # start
         #
         #
         self.verbose = True  # set to False to disable print statements
@@ -65,20 +64,22 @@ class BuyinTest(AbstractTest):
         self.dummy = Dummy(sport=self.sport)
         self.generator = self.dummy.generate()
         self.salary_pool = self.generator.pool
-        self.site_sport = self.dummy.site_sport # stash the site_sport for easy use
+        self.site_sport = self.dummy.site_sport  # stash the site_sport for easy use
 
-        self.site_sport_manager  = SiteSportManager()
-        self.game_model          = self.site_sport_manager.get_game_class(self.site_sport)  #ie: sports.nfl.models.Game
-        self.games               = self.game_model.objects.all() # there should be handful now, for today
+        self.site_sport_manager = SiteSportManager()
+        self.game_model = self.site_sport_manager.get_game_class(
+            self.site_sport)  # ie: sports.nfl.models.Game
+        self.games = self.game_model.objects.all()  # there should be handful now, for today
         if self.games.count() <= 0:
-            raise Exception('buyin.tests.BuyinTest - we meant to create games.... but none were created!')
-        ####### end
+            raise Exception(
+                'buyin.tests.BuyinTest - we meant to create games.... but none were created!')
+        # end
 
         # create a simple prize pool
         self.first = 100.0
         self.second = 50.0
         self.third = 25.0
-        self.buyin =10
+        self.buyin = 10
         cps = CashPrizeStructureCreator(name='test')
         cps.add(1, self.first)
         cps.add(2, self.second)
@@ -95,9 +96,9 @@ class BuyinTest(AbstractTest):
         # now = timezone.now()
         # start = DfsDateTimeUtil.create(now.date(), time(23,0))
         # end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
-        start   = self.games[0].start + timedelta(minutes=5)
-        end     = self.games[ self.games.count() - 1 ].start # set 'end' to start of last game
-        cc      = ContestCreator("test_contest", self.sport, self.prize_structure, start, end)
+        start = self.games[0].start + timedelta(minutes=5)
+        end = self.games[self.games.count() - 1].start  # set 'end' to start of last game
+        cc = ContestCreator("test_contest", self.sport, self.prize_structure, start, end)
         self.contest = cc.create()
         self.contest.status = Contest.RESERVABLE
         self.contest.save()
@@ -143,7 +144,7 @@ class BuyinTest(AbstractTest):
         lineup.user = self.user
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestIsNotAcceptingLineupsException,
-                  lambda: bm.buyin(self.contest, lineup))
+                          lambda: bm.buyin(self.contest, lineup))
 
     def test_lineup_share_draft_group(self):
         draftgroup2 = DraftGroup()
@@ -161,14 +162,14 @@ class BuyinTest(AbstractTest):
 
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestLineupMismatchedDraftGroupsException,
-                  lambda: bm.buyin(self.contest, lineup))
+                          lambda: bm.buyin(self.contest, lineup))
 
     def test_contest_full(self):
         self.contest.current_entries = 19
         self.contest.save()
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestIsFullException,
-                  lambda: bm.buyin(self.contest))
+                          lambda: bm.buyin(self.contest))
 
     # def test_contest_is_in_progress(self):
     #     self.contest.status = self.contest.INPROGRESS
@@ -205,7 +206,7 @@ class BuyinTest(AbstractTest):
 
         bm = BuyinManager(self.user)
         self.assertRaises(LineupDoesNotMatchUser,
-                  lambda: bm.buyin(self.contest, lineup))
+                          lambda: bm.buyin(self.contest, lineup))
 
     def test_user_submits_past_max_entries(self):
         self.contest.max_entries = 1
@@ -217,7 +218,7 @@ class BuyinTest(AbstractTest):
 
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestMaxEntriesReachedException,
-                  lambda: bm.buyin(self.contest))
+                          lambda: bm.buyin(self.contest))
 
 # class BuyinRaceTest(AbstractTest):
 #
@@ -280,6 +281,7 @@ class BuyinTest(AbstractTest):
 #
 #         self.assertEqual(70, ct.get_balance_amount())
 
+
 class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMixin):
     """
     creates the world (a contest with a draft_group)
@@ -326,48 +328,3 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
     # @override_settings(TEST_RUNNER=BuyinTest.CELERY_TEST_RUNNER,
     #                    CELERY_ALWAYS_EAGER=True,
     #                    CELERYD_CONCURRENCY=1)
-    def test_enter_valid_lineup_returns_buyin_task_id(self):
-        print("all contests:")
-        for c in Contest.objects.all():
-            print('    ', str(c))
-
-        data = {
-            'lineup'    : self.lineup.pk,
-            'contest'   : self.contest.pk,
-        }
-        response = self.force_authenticate_and_POST(self.user,
-                                                    EnterLineupAPIView,
-                                                    self.url,
-                                                    data )
-        # print('response', str(response.status_code), str(response.data))
-
-        # status.is_success() indicates a http response for 2xx
-        #
-        # ContestIsNotAcceptingLineupsException indicates
-        #   lineup is None or contest draft_group was none
-        self.assertTrue( status.is_success( response.status_code ) )
-        # make sure the  buyin task id field exists
-        self.assertTrue( 'buyin_task_id' in response.data.keys() )
-        # and make sure its not None
-        buyin_task_id = response.data.get('buyin_task_id')
-        self.assertIsNotNone( buyin_task_id )
-
-        #
-        # lookup the task by its id
-        enter_lineup_status_url = '/api/contest/enter-lineup-status/%s/' % buyin_task_id
-        data = { 'task_id' : buyin_task_id }
-        enter_lineup_status_response = self.force_authenticate_and_GET(self.user,
-                                                    EnterLineupStatusAPIView,
-                                                    enter_lineup_status_url , data, task_id=buyin_task_id )
-        # print('enter_lineup_status_response.status_code:',
-        #       str(enter_lineup_status_response.status_code) )
-        #
-        # celery is probably not running, so dont assume the success of this api
-        #self.assertTrue( status.is_success(enter_lineup_status_response.status_code) )
-        #print( 'enter-lineup-status response.data:', str(enter_lineup_status_response.data))
-        # make sure the status field exists
-        self.assertTrue( 'status' in enter_lineup_status_response.data.keys() )
-        buyin_status = enter_lineup_status_response.data.get('status')
-        self.assertIsNotNone( buyin_status )
-
-

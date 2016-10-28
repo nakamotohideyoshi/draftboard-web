@@ -48,7 +48,7 @@ CACHES = {
         'LOCATION': REDIS_CACHE_LOCATION,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {'max_connections': 5}
+            'CONNECTION_POOL_KWARGS': {'max_connections': 10}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000

@@ -1,6 +1,7 @@
 from .classes import AccountInformation
 from .exceptions import AccountInformationException
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission, User
 from django.test import Client
 from django.test import TestCase
 from django.test import RequestFactory
@@ -23,7 +24,8 @@ from account.views import (
     # PayPalSavedCardListAPIView,
 )
 from account.utils import CheckUserAccess
-from account.models import Identity
+from account.models import (Identity, Information)
+from django.contrib.contenttypes.models import ContentType
 
 
 class AccountsViewsTest(TestCase):
@@ -200,90 +202,6 @@ class RegisterAccountTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class AccountInformationTest(AbstractTest):
-
-    def setUp(self):
-        from django.conf import settings
-        self.db = settings.DATABASES['default'].get('NAME')
-        self.user = self.get_admin_user()
-
-    def should_fail_validate_mailing_address(self, information):
-        self.assertRaises(
-            AccountInformationException,
-            lambda: information.validate_mailing_address()
-        )
-
-    def test_validate_mailing_address_missing_all_fields(self):
-        information = AccountInformation(self.user)
-        self.should_fail_validate_mailing_address(information)
-
-        #
-        # Working Fields
-        information.set_fields(
-            fullname='Ryan',
-            address1='address1',
-            city='city',
-            state='NH',
-            zipcode='03820'
-        )
-        information.validate_mailing_address()
-
-        #
-        # missing fullname
-        information.set_fields(
-            fullname='',
-            address1='address1',
-            city='city',
-            state='NH',
-            zipcode='03820'
-        )
-        self.should_fail_validate_mailing_address(information)
-
-        #
-        # missing address1
-        information.set_fields(
-            fullname='Ryan',
-            address1='',
-            city='city',
-            state='NH',
-            zipcode='03820'
-        )
-        self.should_fail_validate_mailing_address(information)
-
-        #
-        # missing city
-        information.set_fields(
-            fullname='Ryan',
-            address1='address1',
-            city='',
-            state='NH',
-            zipcode='03820'
-        )
-        self.should_fail_validate_mailing_address(information)
-
-        #
-        # missing state
-        information.set_fields(
-            fullname='Ryan',
-            address1='address1',
-            city='city',
-            state='',
-            zipcode='03820'
-        )
-        self.should_fail_validate_mailing_address(information)
-
-        #
-        # missing zipcode
-        information.set_fields(
-            fullname='Ryan',
-            address1='address1',
-            city='city',
-            state='NH',
-            zipcode=''
-        )
-        self.should_fail_validate_mailing_address(information)
-
-
 class APITestCaseMixin(APITestCase):
     """
     provides print_response just while were setting up tests to help print the response
@@ -347,24 +265,6 @@ class AddSavedCardAPI_TestEmptyPostParams(
         # is_client_error() checks any 400 errors (401, 402, etc...)
         self.assertTrue(status.is_client_error(response.status_code))
 
-# class AddSavedCardAPI_TestEmptyPostParams(
-#   APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
-#
-#     def setUp(self):
-#         # the view class
-#         self.view = PayPalSavedCardAddAPIView
-#         # the url of the endpoint and a default user
-#         self.url = '/api/account/paypal/saved-card/add/'
-#         self.user = self.get_user_with_account_information('userWithInformation')
-#
-#     def test_1(self):
-#         data = {}
-#
-#         response = self.force_authenticate_and_POST(self.user, self.view, self.url, data )
-#         self.print_response(response)
-#         # is_client_error() checks any 400 errors (401, 402, etc...)
-#         self.assertTrue(status.is_client_error(response.status_code))
-
 
 class CheckUserAccessTest(TestCase, MasterAbstractTest):
 
@@ -406,7 +306,8 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         self.assertTrue(checker.check_for_vpn()[0])
 
     def test_check_invalid_location_age(self):
-        valid_request = self.factory.get('/', REMOTE_ADDR=self.available_ip)
+        # Test that a user NOT old enough cannnot access the site.
+        invalid_request = self.factory.get('/', REMOTE_ADDR=self.available_ip)
         # This user is too young to use the site.
         Identity(
             user=self.user,
@@ -417,13 +318,28 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
             birth_year=2015,
             postal_code='80203',
         )
-        valid_request.user = self.user
+        invalid_request.user = self.user
 
-        checker = CheckUserAccess(request=valid_request)
+        checker = CheckUserAccess(request=invalid_request)
         checker.check_location_age('CO')
         self.assertFalse(checker.check_location_age('CO')[0])
 
+        # give the user bypass permisison and make sure it works.
+        perm = Permission.objects.get(codename='can_bypass_age_check')
+        self.user.user_permissions.add(perm)
+        # clear the user's permission cache by re-fetching the user
+        self.user = User.objects.get(username=self.user)
+        # Re-set the user + checker
+        invalid_request.user = self.user
+        checker = CheckUserAccess(request=invalid_request)
+        checker.check_location_age('CO')
+        self.assertTrue(checker.check_location_age('CO')[0])
+        # Remove the permission
+        self.user.user_permissions.remove(perm)
+        self.user = User.objects.get(username=self.user)
+
     def test_check_valid_location_age(self):
+        # Test that a user old enough can access the site.
         valid_request = self.factory.get('/', REMOTE_ADDR=self.available_ip)
         # This user is old enough to use the site.
         Identity(
@@ -437,6 +353,18 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         )
         valid_request.user = self.user
 
+        checker = CheckUserAccess(request=valid_request)
+        checker.check_location_age('CO')
+        self.assertTrue(checker.check_location_age('CO')[0])
+
+        # give the user bypass permisison and make sure it works.
+        perm = Permission.objects.get(codename='can_bypass_age_check')
+        self.user.user_permissions.add(perm)
+        # clear the user's permission cache by re-fetching the user
+        self.user = User.objects.get(username=self.user)
+
+        # Re-set the user + checker
+        valid_request.user = self.user
         checker = CheckUserAccess(request=valid_request)
         checker.check_location_age('CO')
         self.assertTrue(checker.check_location_age('CO')[0])

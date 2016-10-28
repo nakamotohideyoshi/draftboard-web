@@ -1,34 +1,60 @@
-#
-# models.py
-
+from logging import getLogger
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.functional import cached_property
 from account.utils import create_user_log
 from account import const as _account_const
+from cash.classes import CashTransaction
+
+logger = getLogger('django')
 
 
 class Information(models.Model):
     """
-    Stores profile information about the user, like their mailing address, etc
+    Stores profile information about the user.
+    Since we're past the point of being able to create a custom User model by subclassing
+    AbstractUser, this is used to store user-related things like permissions and various properties.
     """
-
-    # TODO - finish adding the rest of available states
-    US_STATES = [('NH', 'NH'), ('CA', 'CA'), ('FL', 'FL')]
-
     user = models.OneToOneField(User, primary_key=True)
-
-    fullname = models.CharField(max_length=100, null=False, default='')
-    address1 = models.CharField(max_length=255, null=False, default='')
-    address2 = models.CharField(max_length=255, null=False, default='', blank=True)
-    city = models.CharField(max_length=64, null=False, default='')
-    state = models.CharField(choices=US_STATES, max_length=2,  default='')
-    zipcode = models.CharField(max_length=6, null=False, default='')
-    dob = models.DateField(default=None,  null=True)
 
     class Meta:
         verbose_name = 'Information'
+        verbose_name_plural = "information"
+        permissions = (
+            ("can_bypass_location_check", "Can bypass location check"),
+            ("can_bypass_age_check", "Can bypass age check"),
+            ("can_bypass_identity_verification", "Can bypass identity verification"),
+        )
+
+    @cached_property
+    def cash_balance(self):
+        """
+        Get the user's current cash balance.
+        """
+        cash_transaction = CashTransaction(self.user)
+        return cash_transaction.get_balance_amount()
+
+    @cached_property
+    def has_verified_identity(self):
+        """
+        Has the user verified their identity with Trulioo?
+        If so they will have a User.Identity model.
+        """
+        is_verified = False
+        try:
+            is_verified = (self.user.identity is not None)
+        except ObjectDoesNotExist:
+            pass
+        return is_verified
+
+    def delete(self):
+        """
+        Don't allow deleting of this model.
+        """
+        logger.warning('Deleting a User.information instance is not allowed.')
 
 
 class EmailNotification(models.Model):

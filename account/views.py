@@ -1,6 +1,5 @@
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -29,7 +28,6 @@ from account.serializers import (
     UserSerializer,
     UserCredentialsSerializer,
     UserSerializerNoPassword,
-    InformationSerializer,
     UserEmailNotificationSerializer,
     UpdateUserEmailNotificationSerializer,
     SavedCardSerializer,
@@ -186,7 +184,8 @@ class RegisterAccountAPIView(generics.CreateAPIView):
             user = User.objects.create(username=username, email=email)
             user.set_password(password)
             user.save()
-
+            # Make sure each user gets an information model.
+            Information.objects.create(user=user)
             newUser = authenticate(username=user.username, password=password)
             if newUser is not None:
                 authLogin(request, newUser)
@@ -241,65 +240,6 @@ class UserCredentialsAPIView(generics.GenericAPIView):
             return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class InformationAPIView (generics.GenericAPIView):
-    """
-    Allows the logged in user to modify their personal information.
-
-        * |api-text| :dfs:`account/information/`
-    """
-    # authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated,)
-    serializer_class = InformationSerializer
-
-    def get_object(self):
-        user = self.request.user
-
-        try:
-            info = Information.objects.get(user=user)
-        except Information.DoesNotExist:
-            #
-            # Creates the user information for the user to modify
-            # if it does not already exist in the database.
-            #
-            info = Information()
-            info.user = user
-            info.fullname = ""
-            info.address1 = ""
-            info.address2 = ""
-            info.city = ""
-            info.state = ""
-            info.zipcode = ""
-            info.dob = None
-            info.save()
-            info = Information.objects.filter(user=user)
-        return info
-
-    def get(self, request, format=None):
-        info = self.get_object()
-        serializer = InformationSerializer(info, many=False)
-
-        return Response(serializer.data)
-
-    def post(self, request, format=None):
-        info = self.get_object()
-        serializer = InformationSerializer(info, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class EmailNotificationAPIView (generics.ListCreateAPIView):
-#     """
-#     Allows the admin to modify and insert new Email Notifications
-#
-#         * |api-text| :dfs:`account/email/notification/`
-#     """
-#     authentication_classes = (SessionAuthentication, BasicAuthentication)
-#     permission_classes = (IsAdminUser,)
-#     serializer_class = EmailNotificationSerializer
-#     queryset = EmailNotification.objects.all()
 
 
 class UserEmailNotificationAPIView (generics.GenericAPIView):
@@ -375,99 +315,6 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
         return self.get(request)
-
-
-class WithdrawAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response(
-            status=409,
-            data={'errors': {
-                'ssn': {
-                    'title': 'SSN needed.',
-                    'description': """By law restrictions, if you are willing to withdraw
-                            more than $700, ssn is needed."""
-                }
-            }
-            }
-        )
-
-
-class DepositAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response(status=202)
-
-
-class PaymentsAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response([
-            {
-                'type': 'visa',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': False,
-                'id': 1,
-            },
-            {
-                'type': 'amex',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': True,
-                'id': 2,
-            },
-            {
-                'type': 'discover',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': False,
-                'id': 3,
-            },
-            {
-                'type': 'mastercard',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': False,
-                'id': 10,
-            }
-        ])
-
-
-class AddPaymentMethodAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response({
-            'type': 'mastercard',
-            'ending': 6612,
-            'expires': '11/2316',
-            'isDefault': False,
-            'id': 14,
-        })
-
-
-class RemovePaymentMethodAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def delete(self, request, *args, **kwargs):
-        return Response(status=204)
-
-
-class SetDefaultPaymentMethodAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response(status=201)
 
 
 def login(request, **kwargs):

@@ -79,14 +79,13 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-
-    # testing this out
-    # 'django_toolbar',
     'djcelery',
     'rest_framework',  # for api stuff
     'braces',
     'django_extensions',  # shell_plus
-
+    # TODO: Enable Cachalot... maybe.
+    # --- removed for testing only ---
+    # 'cachalot',  # caching models
     'pipeline',  # minifying/compressing static assets
 
     # draftboard specific apps below here #
@@ -314,6 +313,9 @@ SWISH_API_KEY = 'e7ec4ca5fca54a01ac0038205b8235e9'
 
 # Third party settings
 # ----------------------------------------------------------
+
+# Cachalot cache
+CACHALOT_CACHE = 'cachalot'
 
 # JWT Settings
 JWT_AUTH = {

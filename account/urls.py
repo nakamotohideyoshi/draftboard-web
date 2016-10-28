@@ -1,6 +1,3 @@
-#
-# account/urls.py
-
 from django.conf.urls import url
 from account.views import (
     AuthAPIView,
@@ -8,7 +5,6 @@ from account.views import (
     PasswordResetAPIView,
     RegisterAccountAPIView,
     UserAPIView,
-    InformationAPIView,
     UserCredentialsAPIView,
     UserEmailNotificationAPIView,
 )
@@ -42,8 +38,6 @@ urlpatterns = [
     url(r'^register/$', RegisterAccountAPIView.as_view()),
 
     url(r'^user/$', UserAPIView.as_view()),
-
-    url(r'^information/$', InformationAPIView.as_view()),
 
     url(r'^settings/$', UserCredentialsAPIView.as_view()),
 
