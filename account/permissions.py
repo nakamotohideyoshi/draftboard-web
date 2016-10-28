@@ -28,9 +28,11 @@ class HasIpAccess(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        # TODO: Figuring out best way to add default permissions, until then let all users
-        # use the site.
-        return True
+        # If the user has permission to bypass location checks, pass them.
+        if request.user.has_perm('account.can_bypass_location_check'):
+            logger.info(
+                'User: %s has bypassed the location check via permissions.' % request.user.username)
+            return True
 
         checker = CheckUserAccess(request)
         access, message = checker.check_access
@@ -48,9 +50,11 @@ class HasVerifiedIdentity(permissions.BasePermission):
     user.identity model.
     """
     def has_permission(self, request, view):
-        is_verified = False
-        try:
-            is_verified = (request.user.identity is not None)
-        except ObjectDoesNotExist:
-            pass
-        return is_verified
+        # If the user has permission to bypass location checks, pass them.
+        if request.user.has_perm('account.can_bypass_identity_verification'):
+            logger.info(
+                'User: %s has bypassed the identity check via permissions.' % request.user.username)
+            return True
+
+        # Check if their identity is verified.
+        return request.user.information.has_verified_identity

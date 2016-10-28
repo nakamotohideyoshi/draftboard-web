@@ -1,8 +1,8 @@
 from django.db import connection
-#from django.utils.log import getLogger   # -> this works in Django 1.8, but not so much in 1.9.7
 from logging import getLogger
 
 logger = getLogger('django')
+
 
 class QueryCountDebugMiddleware(object):
     """
@@ -11,6 +11,7 @@ class QueryCountDebugMiddleware(object):
     status code of 200). It does not currently support
     multi-db setups.
     """
+
     def process_response(self, request, response):
         if response.status_code == 200:
             total_time = 0

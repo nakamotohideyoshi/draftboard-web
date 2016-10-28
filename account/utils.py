@@ -86,7 +86,6 @@ class CheckUserAccess(object):
                         metadata=metadata)
 
     def is_on_local_network(self):
-        return False
         try:
             no_dots = self.ip.replace('.', '')
             ip_first_five_int = int(no_dots[0:5])
@@ -193,11 +192,15 @@ class CheckUserAccess(object):
         #
         # If they don't have an identity, we don't care because that permission will be set on the
         # view level.
+
+        # If the user has permission to bypass the age check, let them through.
+        if self.user.has_perm('account.can_bypass_age_check'):
+            logger.info('User: %s has bypassed the age check via permissions.' % self.user.username)
+            return True, ''
         try:
             identity = self.user.identity
             birthdate = date(identity.birth_year, identity.birth_month, identity.birth_day)
             minimum_age = STATE_AGE_LIMITS.get(state)
-            logger.info('%s - %s' % (state, minimum_age))
             # Add the legal age for the user's state to thier birthday. This tells us the date
             # that they are allowed to begin uing the site.
             # then make sure that date is in the past
@@ -222,9 +225,9 @@ class CheckUserAccess(object):
     @property
     def check_access(self):
         # If the user is on the local network, let them through.
-        if self.is_on_local_network():
-            logger.warn('User is on the local network, skipping IP checks. user: %s' % self.user)
-            return True, ''
+        # if self.is_on_local_network():
+        #     logger.warn('User is on the local network, skipping IP checks. user: %s' % self.user)
+        #     return True, ''
 
         if not self.geo_ip_response:
             logger.warn('IP address not found in database: %s user: %s' % (self.ip, self.user))

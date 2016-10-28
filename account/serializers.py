@@ -2,16 +2,13 @@
 # serializers.py
 
 from re import search
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from account.models import (
-    Information,
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
 )
-from cash.classes import CashTransaction
 from django.contrib.auth import get_user_model
 
 
@@ -26,30 +23,27 @@ class UserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
 
     def get_identity_verified(self, user):
-        # Has the user verified their identity with Trulioo? If they have there will be a
-        # user.identity model.
-        is_verified = False
-        try:
-            is_verified = (user.identity is not None)
-        except ObjectDoesNotExist:
-            pass
-        return is_verified
+        # Bypass this if they have the permission.
+        if user.has_perm('account.can_bypass_identity_verification'):
+            return True
+        # Has the user verified their identity with Trulioo?
+        return user.information.has_verified_identity
 
     def get_cash_balance(self, user):
-        # Unformatted float (99997.4)
-        cash_transaction = CashTransaction(user)
-        return cash_transaction.get_balance_amount()
+        return user.information.cash_balance
 
     def get_cash_balance_formatted(self, user):
         # A string formatted to 2 decimal places and a dollar sign ("$99,997.40")
-        cash_transaction = CashTransaction(user)
-
-        return "${:,.2f}".format(cash_transaction.get_balance_amount())
+        return "${:,.2f}".format(user.information.cash_balance)
 
     def get_permissions(self, user):
         # A list of user permissions.
         return {
-            'is_staff': user.is_staff
+            'is_staff': user.is_staff,
+            'can_bypass_location_check': user.has_perm('account.can_bypass_location_check'),
+            'can_bypass_age_check': user.has_perm('account.can_bypass_age_check'),
+            'can_bypass_identity_verification': user.has_perm(
+                                                'account.can_bypass_identity_verification')
         }
 
     class Meta:
@@ -154,17 +148,6 @@ class UserSerializerNoPassword(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email',)
-
-
-class InformationSerializer(serializers.ModelSerializer):
-    email = serializers.SerializerMethodField()
-
-    def get_email(self, information):
-        return information.user.email
-
-    class Meta:
-        model = Information
-        fields = ("dob", "email", "fullname", "address1", "address2", "city", "state", "zipcode")
 
 
 class EmailNotificationSerializer(serializers.ModelSerializer):
