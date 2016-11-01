@@ -18,10 +18,14 @@ from celery.schedules import crontab
 from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
+from django.core.cache import caches
+from logging import getLogger
 import celery.states
 import os
 import redis
 import time
+
+logger = getLogger('django')
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
@@ -40,17 +44,12 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 #
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
-broker_url = settings.CACHES['default']['LOCATION']
+broker_url = caches['celery']._server
+logger.info('Celery starting using broker_url:', broker_url)
 
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    # CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
-    # CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
-    # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
-    # BROKER_URL = 'redis://localhost:6379/0',
-    # CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
-    # BROKER_URL = settings.CACHES['default']['LOCATION'],
     CELERY_RESULT_BACKEND=broker_url,
     BROKER_URL=broker_url,
 
@@ -72,9 +71,9 @@ app.conf.update(
 
         #
         #
-        'notify_withdraws' : {
-            'task' : 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule' : crontab(minute=0, hour='17'), # ~ noon
+        'notify_withdraws': {
+            'task': 'cash.withdraw.tasks.notify_recent_withdraws',
+            'schedule': crontab(minute=0, hour='17'),  # ~ noon
         },
 
         #
@@ -160,7 +159,8 @@ app.conf.update(
         ########################################################################
         #
         # DEPRECATED - we will now be running salaries by hand using stats.com projections.
-        #            - or you can run salaries the using the admin panel for doing so the old way if you have to.
+        #            - or you can run salaries the using the admin panel for doing so the old way
+        #               if you have to.
         #
         # 'nba_generate_salaries': {
         #     'task': 'salary.tasks.generate_salaries_for_sport',
@@ -180,7 +180,8 @@ app.conf.update(
         # nfl done on thursdays only
         # 'nfl_generate_salaries': {
         #     'task': 'salary.tasks.generate_salaries_for_sport',
-        #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),
         #     'args': ('nfl',),
         # },
 

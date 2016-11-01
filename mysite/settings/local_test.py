@@ -18,13 +18,14 @@ PASSWORD_HASHERS = (
 
 
 # docker redis locations
-REDIS_CELERY_LOCATION = 'redis://redis:6379/0'
-REDIS_CACHE_LOCATION = 'redis://redis:6379/1'
+# REDIS_CELERY_LOCATION = 'redis://redis:6379/0'
+# REDIS_CACHE_LOCATION = 'redis://redis:6379/1'
 
 
 # update CACHES from local settings
-CACHES['default']['LOCATION'] = REDIS_CACHE_LOCATION
-CACHES['django_templates']['LOCATION'] = REDIS_CACHE_LOCATION
+# CACHES['default']['LOCATION'] = REDIS_CACHE_LOCATION
+# CACHES['celery']['LOCATION'] = REDIS_CELERY_LOCATION
+# CACHES['django_templates']['LOCATION'] = REDIS_CACHE_LOCATION
 
 
 # This should be the name of your settings file and a _ after
