@@ -665,7 +665,7 @@ class FantasyProjectionsNBA(FantasyProjections):
                     # iterate the list of sites which we have projections for until we find the one we want
                     fantasy_projections_copy = fantasy_projections.copy()
                     for site in fantasy_projections:
-                        if self.default_site in site.get(self.field_name).lower():
+                        if self.default_site in site.get(self.field_name, '').lower():
                             # append a new a salary.classes.PlayerProjection to our return list and break
                             fantasy_points = site.get(self.field_points)
 
@@ -848,7 +848,7 @@ class FantasyProjectionsNFL(FantasyProjections):
             # iterate the list of sites which we have projections for until we find the one we want
             fantasy_projections_copy = fantasy_projections.copy()
             for site in fantasy_projections:
-                if self.default_site in site.get(self.field_name).lower():
+                if self.default_site in site.get(self.field_name, '').lower():
                     # append a new a salary.classes.PlayerProjection to our return list and break
                     fantasy_points = site.get(self.field_points)
 
