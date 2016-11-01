@@ -1,20 +1,22 @@
-#
-# classes.py
-
 import time
 import hashlib
 import json
 import requests
 import csv
+import urllib.parse
+import datetime
 from django.conf import settings
 from salary.classes import PlayerProjection
 from sports.classes import SiteSportManager
-from util.utctime import UtcTime
 import draftgroup.classes
 from statscom.models import (
     PlayerLookup,
 )
 from util.slack import Webhook
+from logging import getLogger
+
+logger = getLogger('django')
+
 
 class ProjectionsWeekWebhook(Webhook):
 
@@ -26,6 +28,7 @@ class ProjectionsWeekWebhook(Webhook):
         super().__init__(*args, **kwargs)
         self.username = 'current-projections-week'
 
+
 class ApiFailureWebhook(Webhook):
     """
     webhook to send to slack if we get an http status >= 400 from the stats.com api
@@ -35,6 +38,7 @@ class ApiFailureWebhook(Webhook):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.username = 'api-error-response'
+
 
 class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
     """
@@ -50,6 +54,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         # internally calls super().update(player_srid, *args, **kwargs)
         pass
 
+
 class ResponseDataParser(object):
     """
     most of the response data's outter wrapper is boiler plate.
@@ -57,7 +62,8 @@ class ResponseDataParser(object):
     this extracts the data we want
     """
 
-    class UnexpectedApiResults(Exception): pass
+    class UnexpectedApiResults(Exception):
+        pass
 
     # boilerplate fields of stats.com api responses
     field_api_results = 'apiResults'
@@ -79,7 +85,8 @@ class ResponseDataParser(object):
 
     def get_data(self):
         """
-        returns the data objects after stripping off the boiler plate wrapper common to stats.com apis.
+        returns the data objects after stripping off the boiler plate wrapper common to stats.com
+        apis.
 
         note: this method returns inner data from the data, not the data passed in.
         """
@@ -87,19 +94,23 @@ class ResponseDataParser(object):
         api_results = self.data.get(self.field_api_results)
         num_results = len(api_results)
         if num_results != self.default_api_results:
-            err_msg = 'got %s %s, expected %s' % (str(num_results), self.field_api_results, self.default_api_results)
+            err_msg = 'got %s %s, expected %s' % (
+                str(num_results), self.field_api_results, self.default_api_results)
+            logger.error(err_msg)
             raise self.UnexpectedApiResults(err_msg)
         result = api_results[self.default_api_result_index]
         league = result.get(self.field_league)
-        print('league.keys()', str(league.keys()))
+        # logger.info('league.keys()', str(league.keys()))
         return league
+
 
 class Stats(object):
     """
     this class is for calling the STATS.com api and getting back its raw responses as JSON
     """
 
-    class MissingApiKeySettings(Exception): pass
+    class MissingApiKeySettings(Exception):
+        pass
 
     # the amount of seconds to wait to retry if the api rate limited us
     # and gave us an http status 403: "<h1>Developer Over Qps</h1>"
@@ -129,7 +140,7 @@ class Stats(object):
     def __init__(self, sport):
         self.sport = sport
         self.player_model_class = None
-        self.sport_players = None # set on the first call to self.get_player_model_class()
+        self.sport_players = None  # set on the first call to self.get_player_model_class()
 
         # get and validate the api_key and secret token exist for this sport
         self.keys = self.stats_keys.get(self.sport)
@@ -142,7 +153,7 @@ class Stats(object):
 
         # set up a session object to do the actual http calls
         self.session = requests.Session()
-        self.r = None # we will always save the last response here
+        self.r = None  # we will always save the last response here
         self.data = None
 
     def get_url_auth_params(self):
@@ -161,8 +172,9 @@ class Stats(object):
         build and return the 'sig' param which is a sha256 hash
         of the api_key + secret + unix timestamp.
         """
-        sig = hashlib.sha256((self.api_key + self.secret + str(int(time.time()))).encode()).hexdigest()
-        #print('stats.com api sig=%s' % str(sig))
+        sig = hashlib.sha256((self.api_key + self.secret +
+                              str(int(time.time()))).encode()).hexdigest()
+        # logger.info('stats.com api sig=%s' % str(sig))
         return sig
 
     def get_response_format(self):
@@ -191,10 +203,11 @@ class Stats(object):
             err_msg += '\n\n Body of http response: %s' % str(r.text)
             err_msg += '\n\n Its possible we were rate limited. (ie: "Developer Over Qps")'
             err_msg += '\n\n If so, you may need to increase the current value of statscom.classes.Stats objects ' \
-                       '"rate_limit_delay_seconds" which is currently [%s] seconds' % str(self.rate_limit_delay_seconds)
+                       '"rate_limit_delay_seconds" which is currently [%s] seconds' % str(
+                           self.rate_limit_delay_seconds)
             w.send(err_msg)
 
-    def api(self, endpoint, format=None, verbose=True):
+    def api(self, endpoint, format=None, verbose=True, params={}):
         """
         makes the http request and returns the contents as json
 
@@ -203,11 +216,14 @@ class Stats(object):
         :return: the data from the api call
         """
         url = self.get_url(endpoint)
+        if params:
+            # Add any parameters that were provided.
+            url += '&' + urllib.parse.urlencode(params)
 
         # sleep for a short time before making api request to avoid getting rate limited
         time.sleep(self.rate_limit_delay_seconds)
         self.r = self.session.get(url)
-        print('http %s %s' % (str(self.r.status_code), url))
+        logger.info('http %s %s' % (str(self.r.status_code), url))
 
         # check for http >= 400 status code! (bad) and sent note to slack if it happened
         self.notify_slack_on_http_4xx(self.r)
@@ -216,11 +232,11 @@ class Stats(object):
 
         # check if there is an error
         msg = self.data.get(self.field_message)
-        print('self.data "%s" -> %s' % (self.field_message, str(msg)))
+        logger.info('self.data "%s" -> %s' % (self.field_message, str(msg)))
 
         # if no self.parser_class is set, return the entire json response
         if self.parser_class is None:
-            print('parser_class was None. returning raw response json')
+            logger.info('parser_class was None. returning raw response json')
             return self.data
 
         # use the self.parser_class
@@ -253,34 +269,38 @@ class Stats(object):
         try:
             return self.get_sport_players().get(first_name=first_name, last_name=last_name)
 
-        except (model_class.MultipleObjectsReturned, model_class.DoesNotExist) as e:
+        except (model_class.MultipleObjectsReturned, model_class.DoesNotExist):
             # check the lookup table
             return self.find_player_in_lookup_table(first_name, last_name, pid)
 
-        #raise Exception('statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
+        # raise Exception('statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
 
     def find_player_in_lookup_table(self, first_name, last_name, pid):
         """
-        uses the PlayerLookup table to find the named player -- creates an instance if they dont exist
+        uses the PlayerLookup table to find the named player -- creates an instance if they dont
+        exist
 
         returns None if no player could be looked up in /admin/statscom/playerlookup/
         """
 
         try:
-            player_lookup = PlayerLookup.objects.get(first_name=first_name, last_name=last_name, pid=pid)
-            return player_lookup.player # may return None if admin has not set it yet
+            player_lookup = PlayerLookup.objects.get(
+                first_name=first_name, last_name=last_name, pid=pid)
+            return player_lookup.player  # may return None if admin has not set it yet
 
         except PlayerLookup.DoesNotExist:
-            # create their entry, but theres nothing to return, because a newly created object wont be linked
-            # to an actual SR player yet!
-            player_lookup = PlayerLookup.objects.create(first_name=first_name, last_name=last_name, pid=pid)
+            # create their entry, but theres nothing to return, because a newly created object wont
+            # be linked to an actual SR player yet!
+            player_lookup = PlayerLookup.objects.create(
+                first_name=first_name, last_name=last_name, pid=pid)
 
         #
         return None
 
+
 class DailyGamesNBA(Stats):
     """
-    retrieve the information for events on the current day.
+    retrieve the information for NBA game events.
     """
 
     endpoint_daily_games = '/stats/basketball/nba/events/'
@@ -290,9 +310,17 @@ class DailyGamesNBA(Stats):
 
     def get_games(self):
         """
-        calls the api to get the current days games
+        calls the api to get the current day's games.
         """
         return self.api(self.endpoint_daily_games)
+
+    def get_tomorrows_games(self):
+        """
+        Calls the stats api to get tomorrow's games. format: (YYYY-MM-DD)
+        """
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        return self.api(self.endpoint_daily_games, params={'date': tomorrow.strftime('%Y-%m-%d')})
 
     def get_event_ids(self, data=None):
         """
@@ -306,18 +334,20 @@ class DailyGamesNBA(Stats):
         """
 
         if data is None:
-            data = self.get_games()
+            # Get TOMORROW'S games.
+            data = self.get_tomorrows_games()
 
         season = data.get('season')
-        #season.keys()
+        # season.keys()
         event_type_list = season.get('eventType')
-        #len(event_type_list)
+        # len(event_type_list)
         event = event_type_list[0]
-        #event.keys()
+        # event.keys()
         events = event.get('events')
 
         # return a list of the eventIds
-        return [ game.get('eventId') for game in events ]
+        return [game.get('eventId') for game in events]
+
 
 class DailyGamesMLB(Stats):
 
@@ -332,6 +362,7 @@ class DailyGamesMLB(Stats):
         """
         return self.api(self.endpoint_daily_games)
 
+
 class PlayersParser(ResponseDataParser):
 
     field_players = 'players'
@@ -339,8 +370,9 @@ class PlayersParser(ResponseDataParser):
     def get_data(self):
         data = super().get_data()
         players = data.get(self.field_players, [])
-        print('%s players' % (str(len(players)))) # TODO remove debug
+        logger.info('%s players' % (str(len(players))))  # TODO remove debug
         return players
+
 
 class PlayersNBA(Stats):
 
@@ -406,7 +438,7 @@ class PlayersNBA(Stats):
         self.init_players()
 
         player_data = self.players.get(stats_id)
-        # print('get_player_for_id(%s) returned: %s' % (str(stats_id), str(player_data)))
+        # logger.info('get_player_for_id(%s) returned: %s' % (str(stats_id), str(player_data)))
         return player_data
 
     def init_players(self):
@@ -424,6 +456,7 @@ class PlayersNBA(Stats):
             for player in self.data:
                 self.players[player.get('playerId')] = player
 
+
 class PlayersMLB(Stats):
 
     parser_class = PlayersParser
@@ -436,9 +469,11 @@ class PlayersMLB(Stats):
         # calling the api will set the entire response of JSON data to the internal self.data
         return self.api(self.endpoint)
 
+
 class ProjectionsParser(ResponseDataParser):
 
-    class ProjectionsNotFound(Exception): pass
+    class ProjectionsNotFound(Exception):
+        pass
 
     field_season = 'season'
     field_event_type = 'eventType'
@@ -459,6 +494,7 @@ class ProjectionsParser(ResponseDataParser):
         fantasy_projections = event_type_item.get(self.field_fantasy_projections, {})
         # teams = fantasy_projections.get(self.field_teams) # mlb only !
         return fantasy_projections
+
 
 class FantasyProjections(Stats):
 
@@ -485,18 +521,20 @@ class FantasyProjections(Stats):
     default_site = site_dk
 
     def __init__(self, sport):
-        #print(sport)
+        # logger.info(sport)
         super().__init__(sport)
 
     def build_player_projection(self, player, fantasy_points, sal_dk=None, sal_fd=None):
         return self.player_projection_class(player, fantasy_points, sal_dk=sal_dk, sal_fd=sal_fd)
+
 
 class PlayerNBA:
     """
     data class for extracting data from the player objects found in the participants api
     """
 
-    class NoPositionFound(Exception): pass
+    class NoPositionFound(Exception):
+        pass
 
     field_positions = 'positions'
     field_abbreviation = 'abbreviation'
@@ -518,7 +556,7 @@ class PlayerNBA:
         if positions is None or positions == []:
             err_msg = 'the value of field[%s] returned None or empty list. ' \
                       'Here is the raw data: %s' % (str(self.field_positions), str(self.data))
-            print(err_msg)
+            logger.info(err_msg)
             raise self.NoPositionFound(err_msg)
 
         # return the first abbreviation found in the list
@@ -533,6 +571,7 @@ class PlayerNBA:
 
     def get_id(self):
         return self.data.get(self.field_player_id)
+
 
 class FantasyProjectionsNBA(FantasyProjections):
     """
@@ -564,11 +603,11 @@ class FantasyProjectionsNBA(FantasyProjections):
         if event_ids is None:
             # get the daily event ids
             event_ids = DailyGamesNBA().get_event_ids()
-            print('   DailyGamesNBA().get_event_ids() -> %s' % str(event_ids))
+            logger.info('   DailyGamesNBA().get_event_ids() -> %s' % str(event_ids))
 
         if isinstance(event_ids, int):
             # create a list of the single event id
-            event_ids = [ event_ids ]
+            event_ids = [event_ids]
 
         # init the return list
         player_projections = []
@@ -604,7 +643,6 @@ class FantasyProjectionsNBA(FantasyProjections):
         :param event_id: a single event_id
         """
 
-
         # init the return list
         player_projections = []
 
@@ -617,25 +655,25 @@ class FantasyProjectionsNBA(FantasyProjections):
 
         # retrieve the projections for this event
         data = self.get_projections(event_id)
-        #data.keys()
+        # data.keys()
         teams = data.get('teams')
-        #len(teams)
+        # len(teams)
         for t in teams:
-            #print(t.keys())
+            # logger.info(t.keys())
             all_player_projections = t.get('players')
             for player_projection in all_player_projections:
                 # for nba, players do not have names in the projection data!
                 # we have to look them up by id using the PlayersNBA instance.
-                #print('    x player_projection:' + str(player_projection)[:50]) # debug the first 50 chars
+                # logger.info('    x player_projection:' + str(player_projection)[:50]) # debug the first 50 chars
                 # get the player data via their id
                 pid = player_projection.get(self.field_player_id)
                 player_data = self.players.get_player_for_id(pid)
                 if player_data is None:
-                    print('(skipping player projection) STATS.com playerId [%s] not found in PlayerNBA data! '
+                    logger.info('(skipping player projection) STATS.com playerId [%s] not found in PlayerNBA data! '
                           'Heres the projection that made us fail: %s' % (str(pid), str(player_projection)))
                     continue
 
-                #print('    ... player_data: %s' % str(player_data)[:50])
+                # logger.info('    ... player_data: %s' % str(player_data)[:50])
 
                 # try to get the fantasy projection list (of each site projection)
                 fantasy_projections = player_projection.get(self.field_fantasy_projections)
@@ -656,26 +694,30 @@ class FantasyProjectionsNBA(FantasyProjections):
                 # if player couldnt be found, debug message, and continue loop
                 if player is None:
                     player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
-                                        str(first_name + ' ' + last_name), str(position))
+                                                                         str(first_name + ' ' + last_name), str(position))
                     no_lookups.append(player_string)
                     err_msg = 'COULDNT LOOKUP -> %s' % player_string
-                    print(err_msg)
+                    logger.warn(err_msg)
 
                 else:
-                    # iterate the list of sites which we have projections for until we find the one we want
+                    # iterate the list of sites which we have projections for until we find
+                    # the one we want
                     fantasy_projections_copy = fantasy_projections.copy()
                     for site in fantasy_projections:
                         if self.default_site in site.get(self.field_name, '').lower():
-                            # append a new a salary.classes.PlayerProjection to our return list and break
+                            # append a new a salary.classes.PlayerProjection to our return list and
+                            # break
                             fantasy_points = site.get(self.field_points)
 
                             # try to get the sites own salary for the player for the major sites.
-                            sal_dk = self.get_site_player_salary(fantasy_projections_copy, self.site_dk)
-                            sal_fd = self.get_site_player_salary(fantasy_projections_copy, self.site_fd)
+                            sal_dk = self.get_site_player_salary(
+                                fantasy_projections_copy, self.site_dk)
+                            sal_fd = self.get_site_player_salary(
+                                fantasy_projections_copy, self.site_fd)
 
                             player_projections.append(self.build_player_projection(player, fantasy_points,
-                                                                            sal_dk=sal_dk, sal_fd=sal_fd))
-                            break # is it possible its never found?
+                                                                                   sal_dk=sal_dk, sal_fd=sal_fd))
+                            break  # is it possible its never found?
 
         #
         return player_projections, no_lookups
@@ -707,6 +749,7 @@ class FantasyProjectionsNBA(FantasyProjections):
 
         return projected_player_salary
 
+
 class FantasyProjectionsMLB(FantasyProjections):
 
     # the game's eventid must be appended to this endpoint
@@ -729,6 +772,7 @@ class FantasyProjectionsMLB(FantasyProjections):
         """
         endpoint = self.endpoint_fantasy_projections + str(eventid)
         return self.api(endpoint)
+
 
 class PlayerProjectionNFL(object):
     """ data parser/wrapper class for offensive nfl player projections """
@@ -772,10 +816,11 @@ class PlayerProjectionNFL(object):
     def __init__(self, data):
         self.data = data
 
+
 class FantasyProjectionsNFL(FantasyProjections):
 
     endpoint_current_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
-    endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/' # append week number
+    endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'  # append week number
 
     field_offensive_projections = 'offensiveProjections'
     field_defensive_projections = 'defensiveProjections'
@@ -834,10 +879,10 @@ class FantasyProjectionsNFL(FantasyProjections):
             player = self.find_player(first_name, last_name, pid)
             if player is None:
                 player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
-                                                str(first_name + ' ' + last_name), str(position))
+                                                                     str(first_name + ' ' + last_name), str(position))
                 no_lookups.append(player_string)
                 err_msg = 'COULDNT LOOKUP -> %s' % player_string
-                print(err_msg)
+                logger.warn(err_msg)
                 continue
 
             #
@@ -857,7 +902,7 @@ class FantasyProjectionsNFL(FantasyProjections):
                     sal_fd = self.get_site_player_salary(fantasy_projections_copy, self.site_fd)
 
                     player_projections.append(self.build_player_projection(player, fantasy_points,
-                                                                    sal_dk=sal_dk, sal_fd=sal_fd))
+                                                                           sal_dk=sal_dk, sal_fd=sal_fd))
                     break
 
         # send slack webhook with the players we couldnt link
@@ -895,7 +940,8 @@ class FantasyProjectionsNFL(FantasyProjections):
 
         return projected_player_salary
 
-class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i might add...
+
+class NFLPlayerProjectionCsv(PlayerProjectionNFL):  # particularly for NFL i might add...
     """ temp helper class to dump out projections and match up with our own players """
 
     field_fantasy_projections = 'fantasyProjections'
@@ -951,7 +997,7 @@ class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i migh
             self.writerow(writer, proj)
 
         # TODO debug
-        print('all possible categories seen:', str(self.all_fields.keys()))
+        logger.info('all possible categories seen:', str(self.all_fields.keys()))
 
         if f is not None:
             # close the file if we used an actual file
@@ -982,7 +1028,7 @@ class NFLPlayerProjectionCsv(PlayerProjectionNFL): # particularly for NFL i migh
             #    you ALSO have to change the order of the next line of code!!!
             values = [pid, fullname, fn, ln, position]
 
-            #### debug, i want to see all possible projected category names
+            # debug, i want to see all possible projected category names
             for cat in proj.keys():
                 self.add_seen_category(cat)
 
