@@ -416,3 +416,7 @@ TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
 TRULIOO_USER = 'Draftboard_Demo_API'
 TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
 TRULIOO_DEMO_MODE = True
+
+RAVEN_CONFIG = {
+    'dsn': environ.get('SENTRY_DSN')
+}
