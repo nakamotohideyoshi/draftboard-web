@@ -24,8 +24,25 @@ import celery.states
 import os
 import redis
 import time
+from raven import Client
+from raven.contrib.celery import register_signal, register_logger_signal
 
 logger = getLogger('django')
+
+# Setup Sentry error logging.
+client = Client(settings.RAVEN_CONFIG['dsn'])
+# register a custom filter to filter out duplicate logs
+register_logger_signal(client)
+# The register_logger_signal function can also take an optional argument
+# `loglevel` which is the level used for the handler created.
+# Defaults to `logging.ERROR`
+register_logger_signal(client)
+# hook into the Celery error handler
+register_signal(client)
+# The register_signal function can also take an optional argument
+# `ignore_expected` which causes exception classes specified in Task.throws
+# to be ignored
+register_signal(client)
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)

@@ -1,24 +1,27 @@
 from __future__ import absolute_import
-
-#
-# salary/tasks.py
-
-from mysite.celery_app import app, locking
-from .models import Pool
-from .classes import SalaryGenerator, PlayerFppgGenerator
+from raven.contrib.django.raven_compat.models import client
+from mysite.celery_app import app
 import sports.classes
 from django.conf import settings
 from celery import task
 from django.core.cache import cache
 from hashlib import md5
-from statscom.classes import(
+from statscom.classes import (
     FantasyProjectionsNFL,
     FantasyProjectionsNBA,
-    FantasyProjectionsMLB,
     ProjectionsWeekWebhook,
 )
-from salary.classes import SalaryGenerator, SalaryPlayerStatsObject, SalaryPlayerObject, SalaryGeneratorFromProjections, PlayerProjection
-from salary.models import SalaryConfig, Pool
+from salary.classes import (
+    SalaryGeneratorFromProjections,
+    SalaryGenerator,
+    PlayerProjection,
+    PlayerFppgGenerator,
+)
+from salary.models import Pool
+from logging import getLogger
+
+logger = getLogger('django')
+
 
 @app.task(bind=True)
 def check_current_projections_week(self):
@@ -30,19 +33,21 @@ def check_current_projections_week(self):
     webhook = ProjectionsWeekWebhook()
     webhook.send(str(week))
 
+
 @app.task(bind=True)
 def generate_salaries_from_statscom_projections_nfl(self):
     """ NFL """
-    #from statscom.classes import FantasyProjectionsNFL
+    # from statscom.classes import FantasyProjectionsNFL
     api = FantasyProjectionsNFL()
     # projections = api.get_projections(week=1)
-    #player_projections = api.get_player_projections(week=1)
+    # player_projections = api.get_player_projections(week=1)
     player_projections = api.get_player_projections()
 
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name='nfl')
-    #salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool, slack_updates=True)
-    #salary_generator.generate_salaries()
+    # salary_generator = SalaryGeneratorFromProjections(
+    #   player_projections, PlayerProjection, pool, slack_updates=True)
+    # salary_generator.generate_salaries()
 
     sport_md5 = md5(str('nfl').encode('utf-8')).hexdigest()
     lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
@@ -55,8 +60,8 @@ def generate_salaries_from_statscom_projections_nfl(self):
     if acquire_lock():
         try:
             # start generating the salary pool, time consuming...
-            salary_generator = SalaryGeneratorFromProjections(player_projections, PlayerProjection, pool,
-                                                              slack_updates=True)
+            salary_generator = SalaryGeneratorFromProjections(
+                player_projections, PlayerProjection, pool, slack_updates=True)
             salary_generator.generate_salaries()
 
         finally:
@@ -67,9 +72,11 @@ def generate_salaries_from_statscom_projections_nfl(self):
         print(err_msg)
         # raise Exception(err_msg)
 
+
 @app.task(bind=True)
 def generate_salaries_from_statscom_projections_nba(self):
     """ NBA """
+    logger.info('action: generate_salaries_from_statscom_projections_nba')
     sport = 'nba'
 
     api = FantasyProjectionsNBA()
@@ -81,6 +88,7 @@ def generate_salaries_from_statscom_projections_nba(self):
     sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
     lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
 
+    logger.info('action: generate_salaries_from_statscom_projections_nba - acquiring lock')
     # cache.add fails if the key already exists
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
     # advantage of using add() for atomic locking
@@ -89,19 +97,25 @@ def generate_salaries_from_statscom_projections_nba(self):
     if acquire_lock():
         try:
             # start generating the salary pool, time consuming...
-            salary_generator = SalaryGeneratorFromProjections(player_projections,
-                                        PlayerProjection, pool, slack_updates=True)
+            salary_generator = SalaryGeneratorFromProjections(
+                player_projections, PlayerProjection, pool, slack_updates=True)
             salary_generator.generate_salaries()
-
+        except Exception as e:
+            logger.error(e)
+            client.captureException()
         finally:
+            logger.info('action: generate_salaries_from_statscom_projections_nba - releasing lock')
             release_lock()
 
     else:
-        err_msg = 'a task is already generating salaries for sport: %s (stats.com)' % sport
-        print(err_msg)
-        # raise Exception(err_msg)
+        msg = (
+            'action: generate_salaries_from_statscom_projections_nba - a task is already'
+            'generating salaries for sport: %s (stats.com)' % sport)
+        logger.error(msg)
+        client.captureMessage(msg)
 
-LOCK_EXPIRE = 60 * 10 # Lock expires in 10 minutes
+LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+
 
 @app.task(bind=True)
 def generate_salaries_for_sport(self, sport):
@@ -139,6 +153,7 @@ def generate_salaries_for_sport(self, sport):
 #     # sg.generate_salaries()
 #     sport = pool.site_sport.name
 #     generate_salaries_for_sport.delay(sport)
+
 
 @app.task
 def generate_season_fppgs(sport=None):
