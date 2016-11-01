@@ -26,29 +26,44 @@ SECURE_HSTS_SECONDS = 3600
 
 # Heroku Redis - for api views/pages
 HEROKU_REDIS_URL = environ.get('REDIS_URL')
-heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
+heroku_REDIS_URL = parse.urlparse(HEROKU_REDIS_URL)
 # since we should have a heroku redis instance for production, override the default api cache name
 API_CACHE_NAME = 'api'
 
 # RedisCloud redis - used primarily for live stats
 REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
-redis_url = parse.urlparse(REDISCLOUD_URL)
+REDIS_URL = parse.urlparse(REDISCLOUD_URL)
 
 CACHES = {
+    # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/0' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {'max_connections': 10}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-
-    # separate one to invalidate all of cachalot if need be
-    "cachalot": {
+    # Celery cache
+    'celery': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/1' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+    },
+    # separate one to invalidate all of cachalot if need be
+    'cachalot': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/2' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -57,7 +72,10 @@ CACHES = {
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/3' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -66,9 +84,10 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (heroku_redis_url.password,
-                                             heroku_redis_url.hostname,
-                                             heroku_redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/4' % (
+            heroku_REDIS_URL.password,
+            heroku_REDIS_URL.hostname,
+            heroku_REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },

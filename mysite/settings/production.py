@@ -10,9 +10,14 @@ ALLOWED_HOSTS = [DOMAIN, 'draftboard-prod.herokuapp.com']
 DEBUG = False
 
 # Connect Heroku database
-# Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
-# and Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our Premium 2 database.
-# 4 workers * up to 10 dynos * 10 connections = 400
+"""
+Based on: https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-o
+f-active-connections
+
+And Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our
+Premium 2 database.
+4 workers * up to 10 dynos * 10 connections = 400
+"""
 # TODO django16 upgrade to persistent connections
 DATABASES = {
     'default': heroku_db_config()
@@ -29,19 +34,21 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # set this if all subdomains are under HT
 
 # Heroku Redis - for api views/pages
 HEROKU_REDIS_URL = environ.get('REDIS_URL')
-heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
 # since we should have a heroku redis instance for production, override the default api cache name
 API_CACHE_NAME = 'api'
 
 # RedisCloud redis - used primarily for live stats
 REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
-redis_url = parse.urlparse(REDISCLOUD_URL)
+REDIS_URL = parse.urlparse(REDISCLOUD_URL)
 
 CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/0' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 10}
@@ -49,31 +56,43 @@ CACHES = {
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-
+    # Celery cache
+    'celery': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/1' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+    },
     # separate one to invalidate all of cachalot if need be
     'cachalot': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/2' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
-
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/3' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
-
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (heroku_redis_url.password,
-                                             heroku_redis_url.hostname,
-                                             heroku_redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/4' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
