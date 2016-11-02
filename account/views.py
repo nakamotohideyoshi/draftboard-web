@@ -1,3 +1,5 @@
+import datetime
+import calendar
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +9,8 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import FormView
+
 from account.models import (
     Information,
     EmailNotification,
@@ -14,7 +18,10 @@ from account.models import (
     SavedCardDetails,
     Identity,
 )
-from account.forms import LoginForm
+from account.forms import (
+    LoginForm,
+    SelfExclusionForm
+)
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
@@ -51,6 +58,8 @@ from pp.serializers import (
 from cash.classes import (
     CashTransaction,
 )
+from contest.models import CurrentEntry
+from contest.refund.tasks import unregister_entry_task
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import views as auth_views
@@ -1011,3 +1020,37 @@ class TruliooVerifyUserAPIView(APIView):
 
         # return success response if everything went ok
         return Response(data={"detail": "Identity Verified"}, status=200)
+
+
+def add_months(sourcedate, months):
+    month = sourcedate.month - 1 + months
+    year = int(sourcedate.year + month / 12 )
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year,month)[1])
+    return datetime.date(year,month,day)
+
+
+class ExclusionFormView(FormView):
+    template_name = 'frontend/self-exclusion.html'
+    form_class = SelfExclusionForm
+    success_url = '/'
+    months = [3, 6, 9, 12]
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data()
+        date = datetime.date.today()
+        for month in self.months:
+            kwargs['%s_month' % month] = add_months(date, month)
+        return kwargs
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.request.user.information
+        return kwargs
+
+    def form_valid(self, form):
+        information = form.save()
+        entries = CurrentEntry.objects.filter(user=information.user)
+        for entry in entries:
+            unregister_entry_task.delay(entry)
+        return super().form_valid(form)
