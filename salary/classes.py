@@ -510,7 +510,7 @@ class SalaryGenerator(FppgGenerator):
             season__season_type__in=self.season_types)
 
         players = self.helper_get_player_stats(trailing_games=self.salary_conf.trailing_games)
-        #self.excluded_players = self.get_salary_player_stats_objects(self.excluded_player_stats)
+        # self.excluded_players = self.get_salary_player_stats_objects(self.excluded_player_stats)
 
         #
         # Get the average score per position so we know
@@ -552,8 +552,8 @@ class SalaryGenerator(FppgGenerator):
         overrides to 'min_player_salary' for specific RosterSpot(s)
 
         this should only be used to raise the minimum for specific positions.
-        the salary amount set in the SalaryConfig.min_player_salary should be the lowest for the sport
-        and will be used for any specific spots we dont specifically code in this method.
+        the salary amount set in the SalaryConfig.min_player_salary should be the lowest for the
+        sport and will be used for any specific spots we dont specifically code in this method.
 
         :param pool:
         :return:
@@ -1048,12 +1048,14 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         where we use the projection instead of the calculated fppg
         but we still return a list of SalaryPlayerObject(s)
 
-        this method updates the players actual DK & FD salary in the salarys player model if possible!
+        this method updates the players actual DK & FD salary in the salarys player model if
+        possible!
 
         returns a list of SalaryPlayerObject objects
 
-        note: each SalaryPlayerObject has .player_stats_list which is a list of SalaryPlayerStatsObject,
-              which is basically a wrapper for a sports.<sport>.models.PlayerStats model!
+        note: each SalaryPlayerObject has .player_stats_list which is a list of
+        SalaryPlayerStatsObject, which is basically a wrapper for a
+        sports.<sport>.models.PlayerStats model!
         """
         salary_player_stats = []
         for player_projection in self.player_projections:
