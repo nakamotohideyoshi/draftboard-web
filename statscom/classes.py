@@ -623,6 +623,12 @@ class FantasyProjectionsNBA(FantasyProjections):
             player_projection_list, no_lookups_list = self.__get_player_projections(event_id)
             player_projections.extend(player_projection_list)
             no_lookups.extend(no_lookups_list)
+            logger.info('Event.id: %s' % event_id)
+            logger.info('player_projections: %s' % player_projections)
+            logger.info(player_projections)
+            logger.info('======================')
+            for proj in player_projections:
+                logger.info('   %s' % proj)
 
         # send slack webhook with the players we couldnt link
         num_players_without_lookup = len(no_lookups)
@@ -659,9 +665,10 @@ class FantasyProjectionsNBA(FantasyProjections):
         teams = data.get('teams')
         # len(teams)
         for t in teams:
-            # logger.info(t.keys())
+            logger.info(t.keys())
             all_player_projections = t.get('players')
             for player_projection in all_player_projections:
+                logger.info('== PLAYER ==')
                 # for nba, players do not have names in the projection data!
                 # we have to look them up by id using the PlayersNBA instance.
                 # logger.info('    x player_projection:' + str(player_projection)[:50]) # debug the first 50 chars
@@ -673,13 +680,17 @@ class FantasyProjectionsNBA(FantasyProjections):
                           'Heres the projection that made us fail: %s' % (str(pid), str(player_projection)))
                     continue
 
-                # logger.info('    ... player_data: %s' % str(player_data)[:50])
+                logger.info('    player_data: %s' % player_data)
+                logger.info('    player_projection: %s' % player_projection)
 
                 # try to get the fantasy projection list (of each site projection)
                 fantasy_projections = player_projection.get(self.field_fantasy_projections)
+                logger.info('   fantasy_projections: %s' % fantasy_projections)
                 if len(fantasy_projections) == 0:
-                    raise Exception('no projections found for field[%s] '
-                                    'player[%s]' % (self.field_fantasy_projections, str(player_data)))
+                    msg = '    No projections found for field[%s]  player[%s]' % (
+                        self.field_fantasy_projections, str(player_data))
+                    logger.warn(msg)
+                    raise Exception(msg)
 
                 # get an instance of this data class to help extract
                 # the values we need to look this player up
@@ -693,13 +704,14 @@ class FantasyProjectionsNBA(FantasyProjections):
                 player = self.find_player(first_name, last_name, pid)
                 # if player couldnt be found, debug message, and continue loop
                 if player is None:
-                    player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
+                    player_string = '    pid[%s] player[%s] position[%s]' % (str(pid),
                                                                          str(first_name + ' ' + last_name), str(position))
                     no_lookups.append(player_string)
-                    err_msg = 'COULDNT LOOKUP -> %s' % player_string
+                    err_msg = '    COULDNT LOOKUP -> %s' % player_string
                     logger.warn(err_msg)
 
                 else:
+                    logger.info('    Player found: %s %s' % (first_name, last_name))
                     # iterate the list of sites which we have projections for until we find
                     # the one we want
                     fantasy_projections_copy = fantasy_projections.copy()
@@ -708,6 +720,7 @@ class FantasyProjectionsNBA(FantasyProjections):
                             # append a new a salary.classes.PlayerProjection to our return list and
                             # break
                             fantasy_points = site.get(self.field_points)
+                            logger.info('    Site Projection found! %s ' % site)
 
                             # try to get the sites own salary for the player for the major sites.
                             sal_dk = self.get_site_player_salary(
@@ -718,7 +731,12 @@ class FantasyProjectionsNBA(FantasyProjections):
                             player_projections.append(self.build_player_projection(player, fantasy_points,
                                                                                    sal_dk=sal_dk, sal_fd=sal_fd))
                             break  # is it possible its never found?
+                        else:
+                            logger.info('    %s not found in %s' % (self.default_site, site.get(self.field_name, '').lower()))
+                            logger.info(site)
 
+        logger.info('============= player_projections ===================')
+        logger.info(player_projections)
         #
         return player_projections, no_lookups
 
