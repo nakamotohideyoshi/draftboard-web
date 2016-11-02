@@ -239,6 +239,6 @@ class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAd
                 'ctypes': sports.classes.SiteSportManager().get_player_classes()
             }
         }
-    except django.db.utils.OperationalError:
+    except (django.db.utils.OperationalError, django.db.utils.ProgrammingError):
         # relation "django_content_type" does not exist
         print('relation "django_content_type" does not exist - this should only happen on the first migrate!')
