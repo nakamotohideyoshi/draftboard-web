@@ -1,0 +1,69 @@
+{% extends "frontend/base__company.html" %}
+
+{% block title %}Draftboard &mdash; Terms &amp; Conditions{% endblock title %}
+
+{% block body-copy-modifier %}terms-conditions{% endblock %}
+
+{% block content %}
+    <div id="self-exclusion">
+        <h2 class="text-center">
+            SELF-EXCLUSION REQUEST
+        </h2>
+
+        <hr class="body-copy__h1-divider"/>
+
+        <div class="p_container">
+            <p>
+                Please enter your full name and select the time period for your requested
+                self-exclusion period. Once confirmed, your self-exclusion will be in effect
+                for the entire duration of the self exclusion period you've chosen.
+            </p>
+        </div>
+
+        <p>
+            <strong>Full name as it appears on your legal documents</strong>
+        </p>
+
+        <div>
+            <form action="." method="POST">
+                {{ form.errors }}
+                <div class="line-block">
+                    <label for="se_first_name"><sup>FIRST NAME</sup></label>
+                    {% csrf_token %}
+                    <input id="se_first_name" type="text" value="{{ request.user.first_name }}" required></div>
+                <div class="line-block">
+                    <label for="se_middle_name"><sup>MIDDEL NAME (OPTIONAL)</sup></label>
+                    <input type="text" id="se_middle_name"></div>
+                <div class="line-block">
+                    <label for="se_last_name"><sup>LAST NAME</sup></label>
+                    <input type="text" id="se_last_name" value="{{ request.user.last_name }}" required></div>
+                <p class="se_term">
+                    <strong>
+                        Self Exclusion Term (3 month minimum)
+                    </strong>
+                </p>
+                <div class="block-block">
+                    <label for="se_term"><sup>EXCLUSION TERM</sup></label>
+                    <select id="se_term" name="exclude_date" required>
+                        <option value="{{ 3_month|date:'m/d/Y' }}">Three Months</option>
+                        <option value="{{ 6_month|date:'m/d/Y' }}">Six Months</option>
+                        <option value="{{ 9_month|date:'m/d/Y' }}">Nine Months</option>
+                        <option value="{{ 12_month|date:'m/d/Y' }}">Twelve Months</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit">SUBMIT</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="p_container">
+            <p>
+                If you have any questions or would like more guidance please <span class="change_color"><strong>contact customer support</strong></span>
+                for further assistance.
+            </p>
+        </div>
+
+    </div>
+
+{% endblock content %}
