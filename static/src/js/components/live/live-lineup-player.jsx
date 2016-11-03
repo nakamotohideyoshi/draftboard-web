@@ -1,5 +1,4 @@
 import extend from 'lodash/extend';
-import GameTime from '../site/game-time';
 import LiveLineupPlayerEventInfo from './lineup-player/live-lineup-player-event-info';
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LiveMlbLineupPlayerWatch from './mlb/live-mlb-lineup-player-watch';
@@ -28,12 +27,10 @@ const LiveLineupPlayer = React.createClass({
     draftGroupStarted: React.PropTypes.bool.isRequired,
     eventDescription: React.PropTypes.object.isRequired,
     gameStats: React.PropTypes.object.isRequired,
-    game: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
     playerType: React.PropTypes.string.isRequired,
     isWatching: React.PropTypes.bool.isRequired,
     multipartEvent: React.PropTypes.object.isRequired,
-    openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
     playerImagesBaseUrl: React.PropTypes.string.isRequired,
     setWatchingPlayer: React.PropTypes.func.isRequired,
@@ -67,14 +64,8 @@ const LiveLineupPlayer = React.createClass({
    */
   renderGameStats() {
     const values = this.props.gameStats;
-    const { game, player } = this.props;
-    const { sport } = game;
+    const { sport, player } = this.props;
     let whichStats = {};
-
-    const gameTimeProps = {
-      game,
-      modifiers: ['live-lineup-player'],
-    };
 
     switch (sport) {
       case 'nfl': {
@@ -88,6 +79,13 @@ const LiveLineupPlayer = React.createClass({
     }
 
     const { types, names } = whichStats;
+    let percentOwned;
+
+    if ('ownershipPercent' in player) {
+      percentOwned = (
+        <div className="hover-stats__ownership">{player.ownershipPercent}%</div>
+      );
+    }
 
     const renderedStats = types.map((statType, index) => (
       <li key={statType} className="live-lineup-player__hover-stat">
@@ -97,12 +95,12 @@ const LiveLineupPlayer = React.createClass({
     ));
 
     return (
-      <div key="6" className="live-lineup-player__hover-stats" onClick={this.props.openPlayerPane}>
+      <div key="6" className="live-lineup-player__hover-stats">
         <div className="hover-stats__title">
           <h4 className="hover-stats__name">
             {player.name}
           </h4>
-          <GameTime {...gameTimeProps} />
+          {percentOwned}
         </div>
         <ul className="live-lineup-player__hover-stats-list">
           {renderedStats}
@@ -112,7 +110,7 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderPhotoAndHover() {
-    const { player, openPlayerPane, sport, whichSide } = this.props;
+    const { player, sport, whichSide } = this.props;
 
     // use different colors for which side client is viewing
     let colors = ['46495e', '34B4CC', '2871AC'];
@@ -121,7 +119,7 @@ const LiveLineupPlayer = React.createClass({
     }
 
     return (
-      <div key="1" className="live-lineup-player__headshot-gamestats" onClick={openPlayerPane}>
+      <div key="1" className="live-lineup-player__headshot-gamestats">
         <PlayerPmrHeadshotComponent
           colors={colors}
           decimalRemaining={player.timeRemaining.decimal}
@@ -205,7 +203,7 @@ const LiveLineupPlayer = React.createClass({
           <div className="live-lineup-player__position">
             {player.position}
           </div>
-          <div key="1" className="live-lineup-player__headshot-gamestats" onClick={this.props.openPlayerPane}>
+          <div key="1" className="live-lineup-player__headshot-gamestats">
             <PlayerPmrHeadshotComponent
               modifiers={['upcoming', `sport-${this.props.sport}`]}
               pmrColors={['46495e', '34B4CC', '2871AC']}

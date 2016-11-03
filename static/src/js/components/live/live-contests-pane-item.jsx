@@ -1,5 +1,9 @@
 import React from 'react';
 import { humanizeCurrency } from '../../lib/utils/currency';
+import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
+
+// assets
+require('../../../sass/blocks/live/live-contests-pane-item.scss');
 
 
 /**
@@ -8,8 +12,12 @@ import { humanizeCurrency } from '../../lib/utils/currency';
 const LiveContestsPaneItem = React.createClass({
 
   propTypes: {
+    backToContestsPane: React.PropTypes.func.isRequired,
     contest: React.PropTypes.object.isRequired,
+    contestsSize: React.PropTypes.number.isRequired,
+    index: React.PropTypes.number.isRequired,
     onItemClick: React.PropTypes.func.isRequired,
+    modifiers: React.PropTypes.array.isRequired,
   },
 
   /**
@@ -20,45 +28,46 @@ const LiveContestsPaneItem = React.createClass({
   },
 
   render() {
-    const contest = this.props.contest;
-    let moneyLineClass = 'live-moneyline';
-
-    if (contest.percentageCanWin <= contest.myPercentagePosition) {
-      moneyLineClass += ' live-moneyline--is-losing';
-    }
-
+    const { contest, modifiers, contestsSize } = this.props;
+    const block = 'live-contests-pane-item';
+    const classNames = generateBlockNameWithModifiers(block, modifiers);
     const winnings = contest.potentialWinnings;
-    let winningsClass = 'winnings';
-    if (winnings !== 0) {
-      winningsClass += ' active';
+    let earnings = '';
+
+    let { index } = this.props;
+    if (index.toString().length === 1) index = `0${index}`;
+
+    // if user is making money, show them how much
+    if (winnings > 0) {
+      earnings = (
+        <div className={`${block}__has-earnings`}>
+          &nbsp;-&nbsp;<div className={`${block}__earnings`}>{humanizeCurrency(winnings)}</div>
+        </div>
+      );
     }
 
-    // flip to be to the right
-    const myPercentagePosition = 100 - contest.myPercentagePosition;
+    let backToContestsDom;
+    if (contestsSize > 1 && modifiers.indexOf('active') > -1) {
+      backToContestsDom = (
+        <div className={`${block}__back-to-contests`} onClick={this.props.backToContestsPane}>
+          <svg viewBox="0 0 16 16" className={`${block}__close-contest`}>
+            <line x1="0" y1="0" x2="16" y2="16" />
+            <line x1="0" y1="16" x2="16" y2="0" />
+          </svg>
+        </div>
+      );
+    }
 
     return (
-      <li className="live-contests-pane__contest" key={ contest.id }>
-        <div className="live-contests-pane__name">{ contest.name }</div>
-        <div className="live-contests-pane__place">
-          <span className="live-contests-pane__place--mine">{ contest.myEntryRank }</span> of { contest.entriesCount }
+      <li className={classNames}>
+        <div className={`${block}__view`} onClick={this._onClick}>
+          <div className={`${block}__divider`} />
+          <div className={`${block}__rank`}>{index}</div>
+          <div className={`${block}__name`}>{contest.name}</div>
+          <div className={`${block}__place`}>{contest.myEntryRank} of {contest.entriesCount}</div>
+          {earnings}
         </div>
-        <div className="live-contests-pane__stats">
-          <span className="fees">{ humanizeCurrency(contest.buyin) }</span>
-          {" "} / {" "}
-          <span className={winningsClass}>{ humanizeCurrency(winnings) }</span>
-        </div>
-
-        <section className={ moneyLineClass }>
-          <div className="live-moneyline__pmr-line">
-            <div className="live-moneyline__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
-            <div
-              className="live-moneyline__current-position"
-              style={{ left: `${myPercentagePosition}%` }}
-            ></div>
-          </div>
-        </section>
-
-        <div className="live-contest-cta" onClick={this._onClick}>View contest</div>
+        {backToContestsDom}
       </li>
     );
   },

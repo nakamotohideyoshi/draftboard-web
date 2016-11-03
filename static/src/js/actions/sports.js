@@ -423,7 +423,7 @@ const fetchGames = (sport) => ({
       ActionTypes.RECEIVE_GAMES,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
     endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
     requestFields: { sport },
     callback: (json) => receiveGames(sport, json || {}),
@@ -517,7 +517,7 @@ const shouldFetchTeams = (state, sport) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
-  logAction.trace('actions.fetchGamesIfNeeded');
+  logAction.trace('actions.fetchGamesIfNeeded', sport);
 
   if (shouldFetchGames(getState(), sport, force) === false) {
     return Promise.resolve('Games already exists');
@@ -547,7 +547,7 @@ export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
-  logAction.trace('actions.fetchSportIfNeeded');
+  logAction.trace('actions.fetchSportIfNeeded', sport);
 
   dispatch(fetchTeamsIfNeeded(sport));
   dispatch(fetchGamesIfNeeded(sport, force));

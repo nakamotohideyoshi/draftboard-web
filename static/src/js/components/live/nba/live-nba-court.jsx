@@ -3,6 +3,9 @@ import React from 'react';
 import LiveNBACourtShooter from './live-nba-court-shooter';
 
 
+// assets
+require('../../../../sass/blocks/live/nba/live-nba-court.scss');
+
 /**
  * The court in the middle of the page
  */
@@ -16,7 +19,7 @@ const LiveNBACourt = (props) => {
   );
 
   return (
-    <section className="live__court live-nba-court">
+    <section className="live-nba-court">
       { currentEvent }
     </section>
   );
