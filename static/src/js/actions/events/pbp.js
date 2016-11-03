@@ -1,14 +1,15 @@
+// import merge from 'lodash/merge';
 import filter from 'lodash/filter';
 import log from '../../lib/logging';
 import map from 'lodash/map';
-// import merge from 'lodash/merge';
 import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
 import { addEventAndStartQueue } from '../events';
+import { addOrdinal } from '../../lib/utils/numbers';
+import { dateNow } from '../../lib/utils';
 import { humanizeFP } from '../../lib/utils/numbers';
 import { SPORT_CONST, isGameReady } from '../sports';
 import { trackUnexpected } from '../track-exceptions';
-import { dateNow } from '../../lib/utils';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -21,7 +22,7 @@ const logAction = log.getLogger('action');
  * @return {array}          List of players
  */
 const compileEventPlayers = (message, sport) => {
-  logAction.trace('actions.compileEventPlayers');
+  logAction.trace('actions.compileEventPlayers', sport);
 
   switch (sport) {
     case 'mlb': {
@@ -38,7 +39,7 @@ const compileEventPlayers = (message, sport) => {
       return eventPlayers;
     }
     case 'nba':
-      return map(message.statistics__list, event => event.player);
+      return map(message.pbp.statistics__list, event => event.player);
     case 'nfl': {
       const eventPlayers = [];
       const statsList = message.pbp.statistics || {};
@@ -198,31 +199,16 @@ export const stringifyAtBat = (pitchCount) => {
  */
 export const stringifyMLBWhen = (inning, half) => {
   const when = (half === 'B') ? 'Bottom' : 'Top';
-  const inningInt = parseInt(inning, 10) || 0;
 
-  if (isNaN(inningInt)) return false;
-  if (inningInt <= 0) return false;
+  const inningWIthOrdinal = addOrdinal(inning);
 
-  let ordinal = '';
-  switch (inningInt) {
-    case 1:
-      ordinal = 'st';
-      break;
-    case 2:
-      ordinal = 'nd';
-      break;
-    case 3:
-      ordinal = 'rd';
-      break;
-    default:
-      ordinal = 'th';
-  }
+  if (inningWIthOrdinal === false) return false;
 
   if (half) {
-    return `${when} of ${inningInt}${ordinal}`;
+    return `${when} of ${inningWIthOrdinal}`;
   }
 
-  return `${inningInt}${ordinal}`;
+  return inningWIthOrdinal;
 };
 
 /**
@@ -304,7 +290,7 @@ const getMLBData = (message, gameId, boxscore) => {
       startingBase: runner.start,
       outcomeFp: humanizeFP(runner.oid_fp, true) || null,
     })),
-    playersStats: stats,
+    playersStats: stats || [],
     sport: 'mlb',
     sridAtBat: srid_at_bat,
     when: {
@@ -333,7 +319,7 @@ const getNBAData = (message, gameId) => {
     gameId,
     id: pbp.id,
     location: pbp.location__list,
-    playersStats: stats,
+    playersStats: stats || [],
     sport: 'nba',
     when: pbp.clock,
   };
@@ -383,7 +369,7 @@ const getNFLData = (message, gameId, game) => {
     fumbles,
     gameId,
     id: dateNow(),  // since we don't pass through an ID, use timestamp
-    playersStats: message.stats,
+    playersStats: message.stats || [],
     sport: 'nfl',
     side: 'middle',  // hardcoding start position, vertically, to the middle
     touchdown,

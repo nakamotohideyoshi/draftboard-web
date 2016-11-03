@@ -2,7 +2,7 @@ import { connect } from 'react-redux';
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
 import LiveNFLField from './nfl/live-nfl-field';
-import LiveNBACourt from './live-nba-court';
+import LiveNBACourt from './nba/live-nba-court';
 
 
 /*
@@ -78,7 +78,7 @@ export const LiveAnimationArea = (props) => {
   }
 
   return (
-    <div className={`live__venue-${sport}`}>
+    <div className={`live__venue live__venue-${sport}`}>
       {venues}
     </div>
   );
