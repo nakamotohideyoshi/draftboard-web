@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
+from django.contrib.auth.views import logout
 
 from account.models import (
     Information,
@@ -1053,4 +1054,5 @@ class ExclusionFormView(FormView):
         entries = CurrentEntry.objects.filter(user=information.user)
         for entry in entries:
             unregister_entry_task.delay(entry)
+            logout(self.request)
         return super().form_valid(form)
