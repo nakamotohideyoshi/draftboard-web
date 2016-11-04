@@ -299,7 +299,7 @@ export const calculateTimeRemaining = (sport, game) => {
     case 'nfl':
     default: {
       // if the game hasn't started but we have boxscore, return with full minutes
-      if (boxScore.quarter === '') {
+      if (boxScore.quarter === '' || !('clock' in boxScore)) {
         return sportConst.gameDuration;
       }
 
