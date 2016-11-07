@@ -24,3 +24,6 @@ class StatPoint(models.Model):
 
     class Meta:
         unique_together = ('score_system', 'stat')
+
+    def __str__(self):
+        return '%s=%s' % (self.stat, self.value)

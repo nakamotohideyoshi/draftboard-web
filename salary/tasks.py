@@ -46,7 +46,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name='nfl')
     # salary_generator = SalaryGeneratorFromProjections(
-    #   player_projections, PlayerProjection, pool, slack_updates=True)
+    #   player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
     # salary_generator.generate_salaries()
 
     sport_md5 = md5(str('nfl').encode('utf-8')).hexdigest()
@@ -61,7 +61,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
         try:
             # start generating the salary pool, time consuming...
             salary_generator = SalaryGeneratorFromProjections(
-                player_projections, PlayerProjection, pool, slack_updates=True)
+                player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
             salary_generator.generate_salaries()
 
         finally:
@@ -75,13 +75,21 @@ def generate_salaries_from_statscom_projections_nfl(self):
 
 @app.task(bind=True)
 def generate_salaries_from_statscom_projections_nba(self):
-    """ NBA """
+    """
+    NBA
+
+     This task is kicked off from the django admin panel by pressing the
+     'Generate Salaries using STATS.com projections` button here: /admin/salary/pool/
+
+     First it runs FantasyProjectionsNBA to fetch all of tomorrow's NBA game projections from STATS.com,
+     then generates salaries based on those projections in SalaryGeneratorFromProjections.
+    """
     logger.info('action: generate_salaries_from_statscom_projections_nba')
     sport = 'nba'
 
     api = FantasyProjectionsNBA()
     player_projections = api.get_player_projections()
-
+    logger.info('FINAL player_projections count: %s' % len(player_projections))
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name=sport)
 
@@ -98,7 +106,7 @@ def generate_salaries_from_statscom_projections_nba(self):
         try:
             # start generating the salary pool, time consuming...
             salary_generator = SalaryGeneratorFromProjections(
-                player_projections, PlayerProjection, pool, slack_updates=True)
+                player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
             salary_generator.generate_salaries()
         except Exception as e:
             logger.error(e)
