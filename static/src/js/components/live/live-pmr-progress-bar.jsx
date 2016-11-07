@@ -1,5 +1,4 @@
 import React from 'react';
-import round from 'lodash/round';
 
 import { percentageHexColor } from '../../lib/utils/colors';
 import { describeArc } from '../../lib/utils/shapes';
@@ -16,7 +15,7 @@ const LivePMRProgressBar = (props) => {
 
   const decimalDone = 1 - decimalRemaining;
   const [backgroundHex, hexStart, hexEnd] = colors;
-  const strokeWidth = round(svgWidth * strokeDecimal, 1);
+  const strokeWidth = Math.floor(svgWidth * strokeDecimal);
   const svgMidpoint = svgWidth / 2;
   const radius = (svgWidth - strokeWidth) / 2;
 
@@ -39,7 +38,9 @@ const LivePMRProgressBar = (props) => {
     strokeWidth,
   };
 
-  const remainingD = describeArc(0, 0, radius, 0, decimalRemaining * 360);
+  // const remainingD = describeArc(0, 0, radius, 0, decimalRemaining * 360);
+  // someday if we need a background circle behind what's left
+  // <path fill="none" stroke={`#${backgroundHex}`} strokeWidth={progressArc.strokeWidth} d={remainingD}></path>
 
   return (
     <svg className="pmr" viewBox={svgProps.viewBox}>
@@ -63,7 +64,6 @@ const LivePMRProgressBar = (props) => {
         <mask id={`gradientMask-${id}`}>
           <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
         </mask>
-        <path fill="none" stroke={`#${backgroundHex}`} strokeWidth={progressArc.strokeWidth} d={remainingD}></path>
         <g mask={`url(#gradientMask-${id})`}>
           <rect
             x={-svgMidpoint}

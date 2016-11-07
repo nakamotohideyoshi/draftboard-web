@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 
 import { LiveAnimationArea } from '../../../components/live/live-animation-area.jsx';
 import LiveMLBStadium from '../../../components/live/mlb/live-mlb-stadium.jsx';
-import LiveNBACourt from '../../../components/live/live-nba-court.jsx';
+import LiveNBACourt from '../../../components/live/nba/live-nba-court.jsx';
 
 
 /**

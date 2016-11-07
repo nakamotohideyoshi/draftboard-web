@@ -1,5 +1,6 @@
 # bkup files you forgot to erase that start with 'bkup-'
 bkup-*
+bkup/*
 
 # OS-specific - .DS_Store is an OSX file system thing
 .DS_Store

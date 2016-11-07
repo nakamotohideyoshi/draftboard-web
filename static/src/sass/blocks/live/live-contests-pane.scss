@@ -1,0 +1,14 @@
+$block: '.live-contests-pane';
+
+#{$block} {
+  list-style: none;
+  position: absolute;
+  right: 20px;
+  text-align: right;
+  top: 100px;
+
+  // move off screen
+  &--opponent-mode {
+    right: -200px;
+  }
+}

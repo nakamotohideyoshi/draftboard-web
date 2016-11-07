@@ -64,7 +64,7 @@ django-extensions==1.5.9
 ipython==4.0.3
 
 # Sentry dependency
-raven==5.1.1
+raven==5.31.0
 
 # Paths
 Unipath==1.1

@@ -92,9 +92,6 @@ $block: '.live-lineup-player';
 
   // dumbed down version for countdown
   &--upcoming {
-    #{$block}__circle {
-      cursor: auto;
-    }
     #{$block}__only-name {
       color: #6d718a;
       display: inline-block;
@@ -139,7 +136,6 @@ $block: '.live-lineup-player';
   }
 
   &__headshot-gamestats {
-    cursor: pointer;
     position: relative;
   }
 
@@ -221,6 +217,15 @@ $block: '.live-lineup-player';
       }
     }
 
+    .hover-stats__ownership {
+      color: #9ea1b1;
+      display: inline-block;
+      font-size: 9px;
+      left: 10px;
+      position: relative;
+      top: -1px;
+    }
+
     .hover-stats__amount {
       font-family: $font-oswald;
       font-size: 10px;
@@ -286,5 +291,18 @@ $block: '.live-lineup-player';
     text-transform: uppercase;
     font-weight: 400;
     z-index: 50;
+  }
+}
+
+
+@media (min-height: 1100px) and (max-height: 1299px) {
+  #{$block} {
+     transform: scale(1.25);
+  }
+}
+
+@media (min-height: 1300px) {
+  #{$block} {
+     transform: scale(1.5);
   }
 }
