@@ -8,7 +8,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        #todo add uuid migration
         ('account', '0009_auto_20161028_0029'),
     ]
 
