@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,7 +7,10 @@ from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.views.generic.base import TemplateView
+from django.http import Http404
+from braces.views import LoginRequiredMixin
 from account.models import (
     Information,
     EmailNotification,
@@ -1011,3 +1015,25 @@ class TruliooVerifyUserAPIView(APIView):
 
         # return success response if everything went ok
         return Response(data={"detail": "Identity Verified"}, status=200)
+
+
+class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
+    """
+    A view that, if you have access, sets a cookie to let you view other Run It Once sites in development.
+    """
+    template_name = 'frontend/access_subdomains.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        If user is logged in, redirect them to their feed
+        """
+        response = super(AccessSubdomainsTemplateView, self).render_to_response(context, **response_kwargs)
+
+        if not self.request.user.has_perm('sites.access_subdomains'):
+            raise Http404
+
+        days_expire = 7
+        max_age = days_expire * 24 * 60 * 60
+        expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
+        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN, secure=None)
+        return response

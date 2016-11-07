@@ -6,6 +6,7 @@ from account.views import (
     login,
     RegisterView,
     schema_view,
+    AccessSubdomainsTemplateView,
 )
 
 
@@ -28,4 +29,5 @@ urlpatterns = [
 
     # TODO swagger docs should not be on production
     url(r'^docs/', schema_view),
+    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(), name='site-subdomains-access'),
 ]

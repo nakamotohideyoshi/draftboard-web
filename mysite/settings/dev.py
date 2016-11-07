@@ -124,3 +124,7 @@ VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 #                                           MONGO_SERVER_ADDRESS,
 #                                           MONGO_PORT,
 #                                           MONGO_AUTH_DB)
+
+MIDDLEWARE_CLASSES += (
+    'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
+)

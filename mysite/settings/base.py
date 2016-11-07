@@ -420,3 +420,6 @@ TRULIOO_DEMO_MODE = True
 RAVEN_CONFIG = {
     'dsn': environ.get('SENTRY_DSN')
 }
+
+# access domain
+COOKIE_ACCESS_DOMAIN = '*.draftboard.com'
