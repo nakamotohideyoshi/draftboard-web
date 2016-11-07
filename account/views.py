@@ -1035,5 +1035,5 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         days_expire = 7
         max_age = days_expire * 24 * 60 * 60
         expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
-        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN, secure=None)
+        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
         return response
