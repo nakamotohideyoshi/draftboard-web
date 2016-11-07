@@ -422,4 +422,4 @@ RAVEN_CONFIG = {
 }
 
 # access domain
-COOKIE_ACCESS_DOMAIN = '*.draftboard.com'
+COOKIE_ACCESS_DOMAIN = '.draftboard.com'
