@@ -2,26 +2,10 @@ import LiveLoading from './live-loading';
 import moment from 'moment';
 import React from 'react';
 import uniq from 'lodash/uniq';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
-import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups.js';
-import { updateWatchingAndPath } from '../../actions/watching.js';
 
 // assets
 require('../../../sass/blocks/live/live-choose-lineup.scss');
 
-
-/*
- * Map Redux actions to React component properties
- * @param  {function} dispatch The dispatch method to pass actions into
- * @return {object}            All of the methods to map to the component, wrapped in 'action' key
- */
-const mapDispatchToProps = (dispatch) => ({
-  actions: bindActionCreators({
-    fetchCurrentLineupsAndRelated,
-    updateWatchingAndPath,
-  }, dispatch),
-});
 
 /**
  * User can select sport + lineup on load
@@ -29,8 +13,8 @@ const mapDispatchToProps = (dispatch) => ({
 export const LiveChooseLineup = React.createClass({
 
   propTypes: {
-    actions: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired,
+    selectLineup: React.PropTypes.func.isRequired,
     lineupsLoaded: React.PropTypes.bool.isRequired,
   },
 
@@ -44,7 +28,7 @@ export const LiveChooseLineup = React.createClass({
   componentWillMount() {
     // if there's only one lineup, then just go to it
     if (this.props.lineups.length === 1) {
-      this.selectLineup(this.props.lineups[0]);
+      this.props.selectLineup(this.props.lineups[0]);
     } else {
       this.setSingleSport();
     }
@@ -54,7 +38,7 @@ export const LiveChooseLineup = React.createClass({
     // if there's only one lineup, then just go to it
     const newSize = this.props.lineups.length;
     if (newSize !== prevProps.lineups.length && newSize === 1) {
-      this.selectLineup(this.props.lineups[0]);
+      this.props.selectLineup(this.props.lineups[0]);
     }
   },
 
@@ -74,16 +58,8 @@ export const LiveChooseLineup = React.createClass({
     this.setState({ selectedSport: sport });
   },
 
-  selectLineup(lineup) {
-    const path = `/live/${lineup.sport}/lineups/${lineup.id}/`;
-    const changedFields = {
-      draftGroupId: lineup.draftGroup,
-      myLineupId: lineup.id,
-      sport: lineup.sport,
-    };
-
-    this.props.actions.updateWatchingAndPath(path, changedFields);
-    this.props.actions.fetchCurrentLineupsAndRelated(true);
+  _onClick(lineup) {
+    this.props.selectLineup(lineup);
   },
 
   sportLineups() {
@@ -133,7 +109,7 @@ export const LiveChooseLineup = React.createClass({
         <li
           key={lineup.id}
           className={`${block}__option`}
-          onClick={this.selectLineup.bind(this, lineup)}
+          onClick={this.props.selectLineup.bind(this, lineup)}
         >
           <h4 className={`${block}__name`}>{lineup.name}</h4>
           <div className={`${block}__info`}>
@@ -172,8 +148,4 @@ export const LiveChooseLineup = React.createClass({
   },
 });
 
-// Wrap the component to inject dispatch and selected state into it.
-export default connect(
-  () => ({}),
-  mapDispatchToProps
-)(LiveChooseLineup);
+export default LiveChooseLineup;

@@ -1,0 +1,113 @@
+@import "../../variables.scss";
+
+$block: '.live-standing';
+
+
+#{$block} {
+  background: rgba(51, 56, 70, 0.96);
+  width: 266px;
+
+  &__info {
+    height: 34px;
+    overflow: hidden;
+  }
+
+  &__place,
+  &__earning,
+  &__place-and-earning,
+  &__pmr,
+  &__username,
+  &__fp {
+    display: inline-block;
+  }
+
+  &__place-and-earning {
+    background: #282d3b;
+    position: relative;
+
+    &:after {
+      background: #282d3b;
+      content: '';
+      position: absolute;
+      right: -16%;
+      top: -20%;
+      height: 120%;
+      width: 14px;
+      transform: rotate(15deg);
+      z-index: 0;
+    }
+  }
+
+  &__place,
+  &__earning {
+    font-family: $font-oswald;
+    line-height: 34px;
+  }
+
+  &__place {
+    color: #fff;
+    font-size: 10px;
+    padding: 0 4px 0 6px;
+  }
+
+  &__earning {
+    color: #25c462;
+    font-size: 11px;
+    padding: 0 6px 0 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__pmr {
+    padding: 0 8px 0 16px;
+
+    .pmr {
+      height: 18px;
+      width: 18px;
+      vertical-align: middle;
+    }
+  }
+
+  &__username {
+    color: #fff;
+    font-family: $font-open-sans;
+    font-size: 10px;
+  }
+
+  &__fp {
+    color: #fff;
+    font-family: $font-oswald;
+    font-size: 11px;
+    position: absolute;
+    right: 18px;
+    top: 11px;
+  }
+
+  &__cta {
+    background: #1b2133;
+    color: #7a7d8b;
+    font-family: $font-open-sans;
+    font-size: 8px;
+    letter-spacing: 2px;
+    line-height: 1.8;
+    position: relative;
+    text-align: center;
+    width: 100%;
+
+    // bottom arrow
+    &:after {
+      top: 100%;
+      left: 50%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+      border-color: rgba(27, 33, 51, 0);
+      border-top-color: #1b2133;
+      border-width: 6px;
+      margin-left: -6px;
+    }
+  }
+}

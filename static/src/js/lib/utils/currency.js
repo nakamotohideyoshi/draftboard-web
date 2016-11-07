@@ -23,7 +23,7 @@ export const humanizeCurrency = (amount, noCentsOnWholeAmount = true) => {
   // so we can have null passed through
   if (typeof amount !== 'number') return amount;
 
-  if (parseInt(amount, 10) === 0) return '$0';
+  if (amount <= 0 && parseInt(amount, 10) === 0) return '$0';
   if (noCentsOnWholeAmount && amount % 1 === 0) return `$${parseInt(amount, 10)}`;
 
   const amountRoundedToHundredth = (parseInt(amount * 100, 10) / 100).toFixed(2);

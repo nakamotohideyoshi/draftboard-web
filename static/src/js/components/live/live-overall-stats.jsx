@@ -1,11 +1,16 @@
-import LiveOverallStatsBg from './live-overall-stats-bg';
 import Odometer from '../site/odometer';
+import moment from 'moment';
 import ordinal from '../../lib/ordinal.js';
 import React from 'react';
+import merge from 'lodash/merge';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { humanizeCurrency } from '../../lib/utils/currency';
 import { percentageHexColor } from '../../lib/utils/colors';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { updateWatchingAndPath } from '../../actions/watching.js';
+
 
 // assets
 require('../../../sass/blocks/live/live-overall-stats.scss');
@@ -14,20 +19,59 @@ require('../../../sass/blocks/live/live-overall-stats.scss');
 const BLOCK = 'live-overall-stats';
 
 
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    updateWatchingAndPath,
+  }, dispatch),
+});
+
 /**
  * Reusable PMR progress bar using SVG
  */
-const LiveOverallStats = React.createClass({
+export const LiveOverallStats = React.createClass({
 
   propTypes: {
+    actions: React.PropTypes.object.isRequired,
     fp: React.PropTypes.number.isRequired,
     id: React.PropTypes.number.isRequired,
+    lineups: React.PropTypes.array.isRequired,
     modifiers: React.PropTypes.array.isRequired,
     name: React.PropTypes.string.isRequired,
     potentialWinnings: React.PropTypes.number.isRequired,
     rank: React.PropTypes.number,
+    selectLineup: React.PropTypes.func.isRequired,
     timeRemaining: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
+    watching: React.PropTypes.object.isRequired,
+  },
+
+  getInitialState() {
+    return {
+      lineupsListOpen: false,
+    };
+  },
+
+  backToContests() {
+    const { actions, watching } = this.props;
+    const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${watching.contestId}/`;
+    const changedFields = {
+      opponentLineupId: null,
+    };
+
+    actions.updateWatchingAndPath(path, changedFields);
+  },
+
+  toggleLineupList() {
+    const state = merge(this.state);
+
+    state.lineupsListOpen = (state.lineupsListOpen === false);
+
+    this.setState(state);
   },
 
   renderOverallPMR() {
@@ -72,7 +116,7 @@ const LiveOverallStats = React.createClass({
     if (decimalDone !== 1) {
       const dottedRemainingArc = {
         strokeWidth: strokeWidth + 3,
-        d: describeArc(0, 0, radius, 0, decimalDone * 360),
+        d: describeArc(0, 0, radius, 0, decimalDone * 360),  // starts at 1 degree to have dots start there
       };
 
       const endpointCoord = polarToCartesian(0, 0, radius, decimalDone * 360);
@@ -150,11 +194,7 @@ const LiveOverallStats = React.createClass({
 
     return (
       <div className={`${BLOCK}__pmr-circle`}>
-        <LiveOverallStatsBg
-          decimalRemaining={timeRemaining.decimal}
-          diameter={220}
-        />
-        <svg className={`${BLOCK}__svg-arcs`} viewBox="0 0 280 280" width="220">
+        <svg className={`${BLOCK}__svg-arcs`} viewBox="0 0 280 280" width="248">
           <defs>
             <linearGradient
               id={`cl1-lineup-${id}`}
@@ -205,15 +245,78 @@ const LiveOverallStats = React.createClass({
     );
   },
 
+  renderLineups() {
+    const { id } = this.props;
+
+    return this.props.lineups.filter(
+      lineup => lineup.id !== id
+    ).map((lineup) => (
+      <li
+        key={lineup.id}
+        className={`${BLOCK}__lineup-option`}
+        onClick={this.props.selectLineup.bind(null, lineup)}
+      >
+        {lineup.name || moment(lineup.start).format('MMM Do, h:mma')}
+      </li>
+    ));
+  },
+
   render() {
-    const { fp, modifiers, name, timeRemaining } = this.props;
+    const { fp, modifiers, name, whichSide, timeRemaining } = this.props;
+    const { lineupsListOpen } = this.state;
+
+    let lineupListOpenClass;
+    let lineupInfo;
+
+    if (lineupsListOpen === true) lineupListOpenClass = `${BLOCK}__lineup--open`;
+
+    if (whichSide === 'mine') {
+      lineupInfo = (
+        <div className={`${BLOCK}__lineup ${lineupListOpenClass}`}>
+          <h1 className={`${BLOCK}__name ${lineupListOpenClass}`} onClick={this.toggleLineupList}>
+            {name}
+
+            <svg
+              className={`${BLOCK}__down-arrow icon icon-arrow down-arrow-icon`}
+              height="7"
+              onClick={this.handleScrollRight}
+              viewBox="0 0 16 16"
+              width="7"
+            >
+              <g>
+                <line strokeWidth="2.5" x1="10.3" y1="2.3" x2="4.5" y2="8.1" />
+                <line strokeWidth="2.5" x1="3.6" y1="7.3" x2="10.1" y2="13.8" />
+              </g>
+            </svg>
+          </h1>
+
+          <ul className={`${BLOCK}__choose-lineup`}>
+            {this.renderLineups()}
+          </ul>
+        </div>
+      );
+    } else {
+      lineupInfo = (
+        <div className={`${BLOCK}__lineup ${lineupListOpenClass}`}>
+          <h1 className={`${BLOCK}__name ${lineupListOpenClass}`} onClick={this.backToContests}>
+            {name}
+
+            <svg
+              viewBox="0 0 16 16"
+              className={`${BLOCK}__close-opponent`}
+              width="7"
+            >
+              <line x1="0" y1="0" x2="16" y2="16" />
+              <line x1="0" y1="16" x2="16" y2="0" />
+            </svg>
+          </h1>
+        </div>
+      );
+    }
 
     return (
       <section className={generateBlockNameWithModifiers(BLOCK, modifiers)}>
-        <h1 className={`${BLOCK}__name`}>
-          {name}
-        </h1>
-
+        {lineupInfo}
         {this.renderPotentialWinnings()}
 
         <div className={`${BLOCK}__circle-stats-container`}>
@@ -242,4 +345,9 @@ const LiveOverallStats = React.createClass({
   },
 });
 
-export default LiveOverallStats;
+
+// Wrap the component to inject dispatch and selected state into it.
+export const LiveOverallStatsConnected = connect(
+  () => ({}),
+  mapDispatchToProps
+)(LiveOverallStats);

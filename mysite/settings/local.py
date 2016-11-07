@@ -2,7 +2,7 @@ from .base import *
 from subprocess import check_output
 import os
 import raven
-
+from urllib import parse
 
 # Constant for determining environment
 DOMAIN = 'localhost'
@@ -38,14 +38,20 @@ DATABASES = {
     }
 }
 
-# Use the default redis location in base.py
-REDIS_CACHE_LOCATION = REDISCLOUD_URL
+# Use the local Docker redis location in place of redis cloud.
+REDISCLOUD_URL = 'redis://redis:6379/'
+REDIS_URL = parse.urlparse(REDISCLOUD_URL)
 
 # Run the command `redis-server` in another window to start up caching.
+# Notice that none of these entries have passwords, because the local docker
+# instance does not have one.
 CACHES = {
+    # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_CACHE_LOCATION,
+        'LOCATION': 'redis://%s:%s/0' % (
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 10}
@@ -53,20 +59,39 @@ CACHES = {
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-
+    # Celery cache
+    'celery': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://%s:%s/1' % (
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+    },
     # separate one to invalidate all of cachalot if need be
     'cachalot': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_CACHE_LOCATION,
+        'LOCATION': 'redis://%s:%s/2' % (
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
-
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_CACHE_LOCATION,
+        'LOCATION': 'redis://%s:%s/3' % (
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    },
+    # api view cache
+    API_CACHE_NAME: {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://%s:%s/4' % (
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -79,7 +104,8 @@ CACHES = {
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True
 
 # Add query counting per request locally
-MIDDLEWARE_CLASSES = ('mysite.middleware.query_count_debug.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+MIDDLEWARE_CLASSES = (
+    'mysite.middleware.query_count_debug.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 LOGGING['loggers'].update({
     'mysite.middleware.query_count_debug.QueryCountDebugMiddleware': {
         'handlers': ['console'],
@@ -91,3 +117,6 @@ LOGGING['loggers'].update({
 RAVEN_CONFIG = {
     'dsn': 'https://bbae8e8654e34a80b02999b5ade6fd81:77f1b701685044fb9b20d31aa135ce63@sentry.io/72241',
 }
+MIDDLEWARE_CLASSES += (
+    'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
+)

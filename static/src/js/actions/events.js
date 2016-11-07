@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { updateGameTeam, updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
 import { updateLiveMode } from './watching';
+import { sportsSelector } from '../selectors/sports';
 import {
   removeEventMultipart,
   storeEventMultipart,
@@ -113,6 +114,11 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
 
   calls.push(dispatch(removePlayersPlaying(relevantPlayersInEvent)));
 
+  // add to big plays, if relevant
+  if (relevantPlayersInEvent.length > 0 || animationEvent.isBigPlay) {
+    calls.push(dispatch(addEventToBigPlays(animationEvent)));
+  }
+
   switch (animationEvent.sport) {
     case 'mlb': {
       const { sridAtBat } = animationEvent;
@@ -189,23 +195,17 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const watching = state.watching;
   const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
+  const sports = sportsSelector(state);
 
   const { eventPlayers, playersStats, sport } = message;
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
-  // // if there are no more relevant players, just update stats
-  // if (relevantPlayersInEvent.length === 0) {
-  //   const calls = [];
-
-  //   if (sport === 'nfl') {
-  //     // add to big plays, if applicable
-  //     if (message.isBigPlay) calls.push(dispatch(addEventToBigPlays(message)));
-  //   }
-
-  //   calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
-
-  //   return Promise.all(calls);
-  // }
+  // if there are no more relevant players, just update stats
+  if (relevantPlayersInEvent.length === 0) {
+    const calls = [];
+    calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
+    return Promise.all(calls);
+  }
 
   if (relevantPlayersInEvent.length > 0) {
     logAction.debug('showGameEvent has relevant player(s)', relevantPlayersInEvent);
@@ -216,6 +216,14 @@ export const showGameEvent = (message) => (dispatch, getState) => {
     relevantPlayersInEvent,
     whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
   });
+
+  // add in game information for big plays
+  const game = sports.games[message.gameId];
+  const homeScore = game.home_score;
+  const awayScore = game.away_score;
+  animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
+  animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
+  animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
 
   switch (sport) {
     case 'mlb': {

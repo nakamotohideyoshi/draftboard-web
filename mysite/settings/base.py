@@ -230,7 +230,7 @@ TEST_SETUP = None
 # defaults to false, though we made turn this on in production.py
 SLACK_UPDATES = False
 
-REDISCLOUD_URL = 'redis://127.0.0.1:6379'  # for live stats, defaults to local vagrant
+REDISCLOUD_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 HEROKU_REDIS_URL = REDISCLOUD_URL  # for caching pages/views, same place locally
 
 # defaults to use the default cache, but
@@ -382,11 +382,17 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {
+        # A catch-all logger.
+        '': {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
-        'mysite': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'celery': {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
@@ -410,3 +416,10 @@ TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
 TRULIOO_USER = 'Draftboard_Demo_API'
 TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
 TRULIOO_DEMO_MODE = True
+
+RAVEN_CONFIG = {
+    'dsn': environ.get('SENTRY_DSN')
+}
+
+# access domain
+COOKIE_ACCESS_DOMAIN = '*.draftboard.com'

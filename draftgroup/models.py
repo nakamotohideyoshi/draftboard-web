@@ -1,16 +1,13 @@
-#
-# draftgroup/models.py
-
 from django.utils import timezone
 from django.db import models
 import salary.models
 import draftgroup.classes
-from  django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 import contest.models
 
-class DraftGroup( models.Model ):
+
+class DraftGroup(models.Model):
     """
     The "master" id table for a group of draftable players on a day.
     """
@@ -20,36 +17,50 @@ class DraftGroup( models.Model ):
     # it may end up being something like "Early", "Late", "All Day", etc... for partial-day groups
     DEFAULT_CATEGORY = ''
 
-    #dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
-    created     = models.DateTimeField(auto_now_add=True)
+    # dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
+    created = models.DateTimeField(auto_now_add=True)
 
-    salary_pool = models.ForeignKey(salary.models.Pool,
-                    verbose_name='the Salary Pool is the set of active player salaries for a sport')
+    salary_pool = models.ForeignKey(
+        salary.models.Pool,
+        verbose_name='the Salary Pool is the set of active player salaries for a sport')
 
-    start       = models.DateTimeField(null=False,
-                        help_text='the DateTime for the earliest possible players in the group.')
-    end         = models.DateTimeField(null=False,
-                        help_text='the DateTime on, or after which no players from games are included')
+    start = models.DateTimeField(
+        null=False,
+        help_text='the DateTime for the earliest possible players in the group.')
 
-    num_games   = models.IntegerField(null=False, default=0,
-                        help_text="the number of live games this draft group spans")
+    end = models.DateTimeField(
+        null=False,
+        help_text='the DateTime on, or after which no players from games are included')
 
-    category    = models.CharField(max_length=32, null=True,
-                        help_text='currently unused - originally intended as a grouping like "Early", "Late", or "Turbo"')
+    num_games = models.IntegerField(
+        null=False,
+        default=0,
+        help_text="the number of live games this draft group spans")
 
-    closed      = models.DateTimeField(blank=True, null=True,
-                        help_text='the time at which all live games in the draft group were closed out and stats were finalized by the provider')
+    category = models.CharField(
+        max_length=32,
+        null=True,
+        help_text='currently unused - originally intended as a grouping like "Early", "Late", or '
+        '"Turbo"')
 
-    fantasy_points_finalized = models.DateTimeField(blank=True, null=True,
-                        help_text='if set, this is the time the "final_fantasy_points" '
-                                  'for each draftgroup player was updated')
+    closed = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text='the time at which all live games in the draft group were closed out and stats '
+        'were finalized by the provider')
+
+    fantasy_points_finalized = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text='if set, this is the time the "final_fantasy_points" for each draftgroup player '
+        'was updated')
 
     def get_games(self):
         """
         return the underlying sport.<sport>.Game objects this draft group was created with
         """
         dgm = draftgroup.classes.DraftGroupManager()
-        return dgm.get_games( self )
+        return dgm.get_games(self)
 
     def is_started(self):
         """
@@ -63,6 +74,7 @@ class DraftGroup( models.Model ):
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)
 
+
 class UpcomingDraftGroup(DraftGroup):
     """
     PROXY model for Upcoming DraftGroups ... and rest API use.
@@ -70,18 +82,20 @@ class UpcomingDraftGroup(DraftGroup):
     """
     class UpcomingDraftGroupManager(models.Manager):
         #
+
         def get_queryset(self):
             # get the distinct DraftGroup(s) only upcoming contests
             distinct_contest_draft_groups = contest.models.UpcomingContestPool.objects.filter(
-                                                draft_group__isnull=False).distinct('draft_group')
+                draft_group__isnull=False).distinct('draft_group')
             # build a list of the (distinct) draft_group.pk's
-            draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups ]
+            draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups]
             return super().get_queryset().filter(pk__in=draft_group_ids)
 
     objects = UpcomingDraftGroupManager()
 
     class Meta:
         proxy = True
+
 
 class CurrentDraftGroup(DraftGroup):
     """
@@ -90,10 +104,11 @@ class CurrentDraftGroup(DraftGroup):
     """
     class CurrentDraftGroupManager(models.Manager):
         # just get the draftgroups from the LobbyContests which has Live and Upcoming contests
+
         def get_queryset(self):
             # get the distinct DraftGroup(s) associated with contest currently in the lobby
             distinct_contest_draft_groups = contest.models.CurrentContest.objects.filter(
-                                                draft_group__isnull=False).distinct('draft_group')
+                draft_group__isnull=False).distinct('draft_group')
             # build a list of the (distinct) draft_group.pk's
             draft_group_ids = []
             for c in distinct_contest_draft_groups:
@@ -108,40 +123,42 @@ class CurrentDraftGroup(DraftGroup):
     class Meta:
         proxy = True
 
-class GameTeam( models.Model ):
+
+class GameTeam(models.Model):
     """
     Keep track of the Teams in the Games from which we've
     created the draft group.
 
     Most just a historical thing , or potentially for debugging later on
     """
-    created     = models.DateTimeField(auto_now_add=True, null=False)
+    created = models.DateTimeField(auto_now_add=True, null=False)
 
-    draft_group = models.ForeignKey( DraftGroup, null=False )
+    draft_group = models.ForeignKey(DraftGroup, null=False)
 
     # the start time of the game when the draftgroup was created!
-    start  = models.DateTimeField(null=False)
-    game_srid   = models.CharField(max_length=64, null=False)
-    team_srid   = models.CharField(max_length=64, null=False)
-    alias       = models.CharField(max_length=64, null=False)
+    start = models.DateTimeField(null=False)
+    game_srid = models.CharField(max_length=64, null=False)
+    team_srid = models.CharField(max_length=64, null=False)
+    alias = models.CharField(max_length=64, null=False)
 
-class Player( models.Model ):
+
+class Player(models.Model):
     """
     A player is associated with a DraftGroup and a salary.models.Salary
     """
-    created     = models.DateTimeField(auto_now_add=True, null=False)
-    draft_group = models.ForeignKey( DraftGroup, null=False,
-                    verbose_name='the DraftGroup this player is a member of', related_name='players')
+    created = models.DateTimeField(auto_now_add=True, null=False)
+    draft_group = models.ForeignKey(DraftGroup, null=False,
+                                    verbose_name='the DraftGroup this player is a member of', related_name='players')
 
     salary_player = models.ForeignKey(salary.models.Salary, null=False,
-                    verbose_name='points to the player salary object, which has fantasy salary information')
+                                      verbose_name='points to the player salary object, which has fantasy salary information')
 
-    salary      = models.FloatField(default=0, null=False,
-                    help_text='the amount of salary for the player at the this draft group was created')
+    salary = models.FloatField(default=0, null=False,
+                               help_text='the amount of salary for the player at the this draft group was created')
     start = models.DateTimeField(null=False)
 
     final_fantasy_points = models.FloatField(default=0, null=False,
-                                help_text='the payout-time fantasy points of this player')
+                                             help_text='the payout-time fantasy points of this player')
 
     #let it be null if the info is unknown,# #
     # # and we can set it to various thing depending on whether the information
@@ -195,7 +212,8 @@ class Player( models.Model ):
 
     class Meta:
         # each player should only exist once in each group!
-        unique_together = ('draft_group','salary_player')
+        unique_together = ('draft_group', 'salary_player')
+
 
 class AbstractPlayerLookup(models.Model):
     """
@@ -207,7 +225,8 @@ class AbstractPlayerLookup(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     # the GFK to the sports.<SPORT>.Player instance
-    player_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_player_lookup')
+    player_type = models.ForeignKey(
+        ContentType, related_name='%(app_label)s_%(class)s_player_lookup')
     player_id = models.PositiveIntegerField()
     player = GenericForeignKey('player_type', 'player_id')
 
@@ -216,6 +235,7 @@ class AbstractPlayerLookup(models.Model):
 
     class Meta:
         abstract = True
+
 
 class AbstractNflPlayerLookup(models.Model):
     """
@@ -238,6 +258,7 @@ class AbstractNflPlayerLookup(models.Model):
 
     class Meta:
         abstract = True
+
 
 class AbstractUpdate(models.Model):
     """
@@ -267,11 +288,12 @@ class AbstractUpdate(models.Model):
     class Meta:
         abstract = True
 
+
 class PlayerUpdate(AbstractUpdate):
-    NEWS    = 'news'
-    INJURY  = 'injury'
-    LINEUP  = 'lineup'
-    START   = 'start'
+    NEWS = 'news'
+    INJURY = 'injury'
+    LINEUP = 'lineup'
+    START = 'start'
 
     CATEGORIES = [
         (NEWS, 'News'),
@@ -282,13 +304,13 @@ class PlayerUpdate(AbstractUpdate):
 
     #created = models.DateTimeField(auto_now_add=True)
 
-    #update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
+    # update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
 
     draft_groups = models.ManyToManyField(DraftGroup)
 
     # draft_group = models.ForeignKey(DraftGroup, null=False, related_name='player_updates')
     player_srid = models.CharField(max_length=64, null=False)
-    player_id   = models.IntegerField(null=False, default=0)
+    player_id = models.IntegerField(null=False, default=0)
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
@@ -301,29 +323,29 @@ class PlayerUpdate(AbstractUpdate):
     def __str__(self):
         return 'pk:%s | %s | %s' % (str(self.pk), self.player_srid, self.category)
 
+
 class GameUpdate(AbstractUpdate):
-    NEWS    = 'news'
-    LINEUP  = 'lineup'
+    NEWS = 'news'
+    LINEUP = 'lineup'
 
     CATEGORIES = [
         (NEWS, 'News'),
         (LINEUP, 'Lineup'),
     ]
 
-    #created = models.DateTimeField(auto_now_add=True)
+    # created = models.DateTimeField(auto_now_add=True)
 
-    #update_id = models.CharField(max_length=128, null=True)
+    # update_id = models.CharField(max_length=128, null=True)
 
     draft_groups = models.ManyToManyField(DraftGroup)
 
     game_srid = models.CharField(max_length=64, null=False)
-    game_id   = models.IntegerField(null=False, default=0)
+    game_id = models.IntegerField(null=False, default=0)
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
-    #type = models.CharField(max_length=128, null=False, default='')
-    #value = models.CharField(max_length=1024*8, null=False, default='')
+    # type = models.CharField(max_length=128, null=False, default='')
+    # value = models.CharField(max_length=1024*8, null=False, default='')
 
     class Meta:
         abstract = False
-

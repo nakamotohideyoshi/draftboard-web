@@ -35,6 +35,7 @@ const PlayerPmrHeadshotComponent = (props) => {
           colors={colors}
           decimalRemaining={decimalRemaining}
           id={uniquePmrId}
+          strokeDecimal={0.05}
           svgWidth={width}
         />
       </div>

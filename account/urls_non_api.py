@@ -8,6 +8,7 @@ from account.views import (
     RegisterView,
     schema_view,
     ExclusionFormView,
+    AccessSubdomainsTemplateView,
 )
 
 
@@ -28,6 +29,7 @@ urlpatterns = [
     # frontend templates, will eventually be separated out
     url(r'', include('frontend.urls', namespace='frontend')),
     url(r'^self-exclusion/$', ExclusionFormView.as_view(), name='self-exclusion'),
+    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(), name='site-subdomains-access'),
     # TODO swagger docs should not be on production
     url(r'^docs/', schema_view),
 ]
