@@ -122,7 +122,7 @@ class UserLog(models.Model):
     """
     Store user actions for easy access
 
-    Log types and actions are found in account/const.py
+    Log types and actions are found in account/constants.py
     """
     type = models.SmallIntegerField(choices=_account_const.TYPES)
     ip = models.CharField(max_length=15, blank=True, null=True)

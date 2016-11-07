@@ -68,7 +68,7 @@ class SalaryInline(admin.TabularInline):
 
     def get_queryset(self, request):
         # select_related('priced_product__product')
-        return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster')
+        return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster').order_by('-amount')
 
     def player(self, obj):
         return obj.player

@@ -152,6 +152,9 @@ class PlayerProjection(object):
     run projections thru the SalaryGeneratorFromProjections.
     """
 
+    def __str__(self):
+        return '%s, %s points' % (self.get_player(), self.get_fantasy_points())
+
     def __init__(self, player, fantasy_points=0.0, sal_dk=None, sal_fd=None):
         self.player = player
         self.fantasy_points = fantasy_points
@@ -444,6 +447,7 @@ class FppgGenerator(object):
 class SalaryGenerator(FppgGenerator):
     """
     This class is responsible for generating the salaries for a given sport.
+    This is only used if you are doing the OLD way of generating salaries via `salary.admin.OLD_generate_salaries`.
     """
 
     DEFAULT_SEASON_TYPES = ['reg', 'pst']

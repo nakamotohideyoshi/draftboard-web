@@ -89,7 +89,7 @@ def generate_salaries_from_statscom_projections_nba(self):
 
     api = FantasyProjectionsNBA()
     player_projections = api.get_player_projections()
-
+    logger.info('FINAL player_projections count: %s' % len(player_projections))
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name=sport)
 
