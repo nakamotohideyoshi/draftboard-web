@@ -10,7 +10,7 @@ from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
 from account import const as _account_const
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('account.utils')
 
 
 def create_user_log(request=None, type=None, action=None, metadata={}, user=None):

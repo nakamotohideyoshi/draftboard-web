@@ -1,7 +1,8 @@
 from .local import *
 
-# This has issues with atomic transactions, maybe we can sort it out at some point.
+print('Using `local_test.py` settings file.')
 
+# This has issues with atomic transactions, maybe we can sort it out at some point.
 # Default to a tmp sqlite3 db in memory#
 # DATABASES = {
 #     "default": {
@@ -28,5 +29,10 @@ PASSWORD_HASHERS = (
 # CACHES['django_templates']['LOCATION'] = REDIS_CACHE_LOCATION
 
 
-# This should be the name of your settings file and a _ after
+# Change the pusher channel so we don't interfere with any legit events.
 PUSHER_CHANNEL_PREFIX = 'local_test_'
+
+# Have celery run in a sort of "async" mode.
+# http://docs.celeryproject.org/projects/django-celery/en/2.4/cookbook/unit-testing.html
+CELERY_ALWAYS_EAGER = True
+CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'

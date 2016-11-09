@@ -1,5 +1,5 @@
 from logging import getLogger
-logger = getLogger('django')
+logger = getLogger('statscom.player')
 
 
 def get_fantasy_point_projection_from_stats_projection(stat_points, stats_projections, stat_map=None):

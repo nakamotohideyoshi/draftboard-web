@@ -21,7 +21,7 @@ from salary.classes import (
 )
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('salary.admin')
 
 
 # @admin.register(TrailingGameWeight)
@@ -190,9 +190,9 @@ class PoolAdmin(admin.ModelAdmin):
                     task_result = generate_salaries_from_statscom_projections_nba.delay()
 
                 else:
-                    logger.error('Queing NBA stats projection task.')
                     msg = '[%s] is unimplemented server-side. DID NOT GENERATE SALARIES for %s!' % (
                         sport, sport)
+                    logger.error(msg)
                     client.captureMessage(msg)
                     self.message_user(request, msg)
                     return

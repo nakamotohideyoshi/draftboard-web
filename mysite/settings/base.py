@@ -70,6 +70,26 @@ TIME_INPUT_FORMATS = [
 ]
 
 # Django installs
+
+MIDDLEWARE_CLASSES = (
+    # CSRF token masking
+    'debreach.middleware.CSRFCryptMiddleware',
+
+    # GZIP and security protection for it
+    'django.middleware.gzip.GZipMiddleware',
+    'debreach.middleware.RandomCommentMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+# django (>= 1.9) template settings
 INSTALLED_APPS = (
     # django defaults
     'django.contrib.admin',
@@ -87,7 +107,6 @@ INSTALLED_APPS = (
     # --- removed for testing only ---
     # 'cachalot',  # caching models
     'pipeline',  # minifying/compressing static assets
-
     # draftboard specific apps below here #
     'account',
     'dfslog',
@@ -132,26 +151,6 @@ INSTALLED_APPS = (
 
     'rest_framework_swagger',
 )
-
-MIDDLEWARE_CLASSES = (
-    # CSRF token masking
-    'debreach.middleware.CSRFCryptMiddleware',
-
-    # GZIP and security protection for it
-    'django.middleware.gzip.GZipMiddleware',
-    'debreach.middleware.RandomCommentMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
-
-# django (>= 1.9) template settings
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     'DIRS': [
@@ -367,10 +366,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s - %(message)s'
+            'format': '%(levelname)s %(asctime)s %(pathname)s:%(lineno)s - %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(pathname)s:%(lineno)s - %(message)s'
         },
     },
     'handlers': {
@@ -385,16 +384,16 @@ LOGGING = {
         # A catch-all logger.
         '': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         'celery': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
     },
 }

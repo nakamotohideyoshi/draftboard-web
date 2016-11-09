@@ -28,7 +28,7 @@ from contest.classes import RecentPlayerOwnership
 from util.slack import Webhook
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('salary.classes')
 
 
 class SalaryProgressWebhook(Webhook):

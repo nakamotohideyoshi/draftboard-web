@@ -41,19 +41,19 @@ class DraftGroup(models.Model):
         max_length=32,
         null=True,
         help_text='currently unused - originally intended as a grouping like "Early", "Late", or '
-        '"Turbo"')
+                  '"Turbo"')
 
     closed = models.DateTimeField(
         blank=True,
         null=True,
         help_text='the time at which all live games in the draft group were closed out and stats '
-        'were finalized by the provider')
+                  'were finalized by the provider')
 
     fantasy_points_finalized = models.DateTimeField(
         blank=True,
         null=True,
         help_text='if set, this is the time the "final_fantasy_points" for each draftgroup player '
-        'was updated')
+                  'was updated')
 
     def get_games(self):
         """
@@ -78,11 +78,9 @@ class DraftGroup(models.Model):
 class UpcomingDraftGroup(DraftGroup):
     """
     PROXY model for Upcoming DraftGroups ... and rest API use.
-
     """
-    class UpcomingDraftGroupManager(models.Manager):
-        #
 
+    class UpcomingDraftGroupManager(models.Manager):
         def get_queryset(self):
             # get the distinct DraftGroup(s) only upcoming contests
             distinct_contest_draft_groups = contest.models.UpcomingContestPool.objects.filter(
@@ -100,8 +98,8 @@ class UpcomingDraftGroup(DraftGroup):
 class CurrentDraftGroup(DraftGroup):
     """
     PROXY model for Upcoming & Live DraftGroups ... and rest API use.
-
     """
+
     class CurrentDraftGroupManager(models.Manager):
         # just get the draftgroups from the LobbyContests which has Live and Upcoming contests
 
@@ -132,9 +130,7 @@ class GameTeam(models.Model):
     Most just a historical thing , or potentially for debugging later on
     """
     created = models.DateTimeField(auto_now_add=True, null=False)
-
     draft_group = models.ForeignKey(DraftGroup, null=False)
-
     # the start time of the game when the draftgroup was created!
     start = models.DateTimeField(null=False)
     game_srid = models.CharField(max_length=64, null=False)
@@ -146,21 +142,33 @@ class Player(models.Model):
     """
     A player is associated with a DraftGroup and a salary.models.Salary
     """
-    created = models.DateTimeField(auto_now_add=True, null=False)
-    draft_group = models.ForeignKey(DraftGroup, null=False,
-                                    verbose_name='the DraftGroup this player is a member of', related_name='players')
-
-    salary_player = models.ForeignKey(salary.models.Salary, null=False,
-                                      verbose_name='points to the player salary object, which has fantasy salary information')
-
-    salary = models.FloatField(default=0, null=False,
-                               help_text='the amount of salary for the player at the this draft group was created')
+    created = models.DateTimeField(
+        auto_now_add=True,
+        null=False
+    )
+    draft_group = models.ForeignKey(
+        DraftGroup,
+        null=False,
+        verbose_name='the DraftGroup this player is a member of', related_name='players'
+    )
+    salary_player = models.ForeignKey(
+        salary.models.Salary,
+        null=False,
+        verbose_name='points to the player salary object, which has fantasy salary information'
+    )
+    salary = models.FloatField(
+        default=0,
+        null=False,
+        help_text='the amount of salary for the player at the this draft group was created'
+    )
     start = models.DateTimeField(null=False)
+    final_fantasy_points = models.FloatField(
+        default=0,
+        null=False,
+        help_text='the payout-time fantasy points of this player'
+    )
 
-    final_fantasy_points = models.FloatField(default=0, null=False,
-                                             help_text='the payout-time fantasy points of this player')
-
-    #let it be null if the info is unknown,# #
+    # let it be null if the info is unknown,# #
     # # and we can set it to various thing depending on whether the information
     # # is known or not
     # # unofficial_status => 'us'
@@ -220,38 +228,32 @@ class AbstractPlayerLookup(models.Model):
     abstract model for other apps to use to create a table that
     links a Player to a third-party 'pid' (a player id)
     """
-
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-
+    # Since a player lookup can only have a generic relation with a <sport>.Player model, use this to
+    # limit it. This is mostly for use in the admin section.
+    model_limit = models.Q(app_label='nfl', model='player') | \
+                  models.Q(app_label='nba', model='player') | \
+                  models.Q(app_label='mlb', model='player') | \
+                  models.Q(app_label='nhl', model='player')
     # the GFK to the sports.<SPORT>.Player instance
     player_type = models.ForeignKey(
-        ContentType, related_name='%(app_label)s_%(class)s_player_lookup')
-    player_id = models.PositiveIntegerField()
-    player = GenericForeignKey('player_type', 'player_id')
-
+        ContentType,
+        related_name='%(app_label)s_%(class)s_player_lookup',
+        null=True,
+        blank=True,
+        limit_choices_to=model_limit
+    )
+    player_id = models.PositiveIntegerField(
+        null=True,
+        blank=True
+    )
+    player = GenericForeignKey(
+        'player_type',
+        'player_id',
+    )
     # the third-party service's id for this player
     pid = models.CharField(max_length=255, null=False)
-
-    class Meta:
-        abstract = True
-
-
-class AbstractNflPlayerLookup(models.Model):
-    """
-    abstract model for other apps to use to create a table that
-    links a Player to a third-party 'pid' (a player id)
-    """
-
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    # the player in our database - null until the admin hooks them up
-    player = models.ForeignKey('nfl.Player', null=True, blank=True)
-
-    # the third-party service's id for this player
-    pid = models.CharField(max_length=255, null=False, blank=True)
-
     # first and last name can be used to know who the player is
     first_name = models.CharField(max_length=255, null=False, blank=True)
     last_name = models.CharField(max_length=255, null=False, blank=True)
@@ -266,20 +268,14 @@ class AbstractUpdate(models.Model):
     which includes some common fields of updates
     that come from rotowire/espn/twitter/etc...
     """
-
     created = models.DateTimeField(auto_now_add=True)
-
     update_id = models.CharField(max_length=128, null=True)
-
     # this should be set to the time the source info claims it was posted/published
     updated_at = models.DateTimeField(null=False)
-
     type = models.CharField(max_length=128, null=False, default='')
     value = models.CharField(max_length=1024 * 8, null=False, default='')
-
     # swish status
     status = models.CharField(max_length=128, null=False, default='na')
-
     # a name, typically, for twitter this will be @their_twitter_name
     source_origin = models.CharField(max_length=255, null=True)
     # a url, of the original post, ie: for twitter, link straight to the tweet
@@ -302,7 +298,7 @@ class PlayerUpdate(AbstractUpdate):
         (START, 'Start'),
     ]
 
-    #created = models.DateTimeField(auto_now_add=True)
+    # created = models.DateTimeField(auto_now_add=True)
 
     # update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
 
@@ -314,8 +310,8 @@ class PlayerUpdate(AbstractUpdate):
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
-    #type = models.CharField(max_length=128, null=False, default='')
-    #value = models.CharField(max_length=1024*8, null=False, default='')
+    # type = models.CharField(max_length=128, null=False, default='')
+    # value = models.CharField(max_length=1024*8, null=False, default='')
 
     class Meta:
         abstract = False

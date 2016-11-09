@@ -6,6 +6,7 @@ import requests
 import csv
 import urllib.parse
 import datetime
+import pytz
 from django.conf import settings
 from salary.classes import PlayerProjection
 from scoring.models import StatPoint
@@ -19,8 +20,9 @@ from statscom.models import (
 from util.slack import Webhook
 from logging import getLogger
 
-logger = getLogger('django')
-
+logger = getLogger('statscom.classes')
+# For all scheduling purposes, EST is assumed
+tz = pytz.timezone('America/New_York')
 
 class ProjectionsWeekWebhook(Webhook):
 
@@ -203,13 +205,18 @@ class Stats(object):
         """
         if r.status_code >= 400:
             w = ApiFailureWebhook()
-            err_msg = 'STATS.com api gave us an http status code: %s' % (str(r.status_code))
+            err_msg = 'STATS.com api gave us an http status code: %s on the url: %s' % (r.status_code, r.url)
             err_msg += '\n\n Body of http response: %s' % str(r.text)
             err_msg += '\n\n Its possible we were rate limited. (ie: "Developer Over Qps")'
             err_msg += '\n\n If so, you may need to increase the current value of statscom.classes.Stats objects ' \
                        '"rate_limit_delay_seconds" which is currently [%s] seconds' % str(
                            self.rate_limit_delay_seconds)
             w.send(err_msg)
+            client.context.activate()
+            client.context.merge({'extra': {
+                'stats_api_request': vars(r),
+            }})
+            client.captureMessage(err_msg)
             raise Exception(err_msg)
 
     def api(self, endpoint, format=None, verbose=True, params={}):
@@ -320,14 +327,16 @@ class DailyGamesNBA(Stats):
         """
         calls the api to get the current day's games.
         """
+        logger.info('Fetching NBA games for: Today')
         return self.api(self.endpoint_daily_games)
 
     def get_tomorrows_games(self):
         """
         Calls the stats api to get tomorrow's games. format: (YYYY-MM-DD)
         """
-        today = datetime.date.today()
-        tomorrow = today + datetime.timedelta(days=1)
+        now = datetime.datetime.now(tz)
+        tomorrow = now + datetime.timedelta(days=1)
+        logger.info('Fetching NBA games for: %s' % tomorrow.strftime('%Y-%m-%d'))
         return self.api(self.endpoint_daily_games, params={'date': tomorrow.strftime('%Y-%m-%d')})
 
     def get_event_ids(self, data=None):
@@ -613,7 +622,7 @@ class FantasyProjectionsNBA(FantasyProjections):
         if event_ids is None:
             # get the daily event ids
             event_ids = DailyGamesNBA().get_event_ids()
-            logger.info('   DailyGamesNBA().get_event_ids() -> %s' % str(event_ids))
+            logger.info('DailyGamesNBA().get_event_ids() -> %s' % event_ids)
 
         if isinstance(event_ids, int):
             # create a list of the single event id
