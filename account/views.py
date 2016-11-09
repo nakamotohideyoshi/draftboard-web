@@ -73,7 +73,7 @@ from trulioo.classes import (
 )
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('account.views')
 
 
 @api_view()

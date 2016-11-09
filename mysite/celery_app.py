@@ -27,7 +27,7 @@ import time
 from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
 
-logger = getLogger('django')
+logger = getLogger('mysite.celery_app')
 
 # Setup Sentry error logging.
 client = Client(settings.RAVEN_CONFIG['dsn'])
@@ -79,13 +79,6 @@ app.conf.update(
     # CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
 
     CELERYBEAT_SCHEDULE={
-        #
-        #
-        'notify_withdraws': {
-            'task': 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule': crontab(minute=0, hour='17'),  # ~ noon
-        },
-
         #
         #
         'notify_withdraws': {

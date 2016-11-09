@@ -1,21 +1,16 @@
-#
-# admin.py
-
 from django.contrib import (
     admin,
     messages,
 )
 import statscom.models
 
+
 @admin.register(statscom.models.PlayerLookup)
 class PlayerLookupAdmin(admin.ModelAdmin):
-
-    # we want it to show all of them, always
-    list_max_show_all = 9999
-    list_per_page = 9999
-
-    list_display = ['created','updated','player','pid', 'first_name', 'last_name']
-    list_filter = ['created','updated','pid']
+    list_display = ['last_name', 'first_name', 'player', 'created', 'updated', 'pid', ]
+    list_filter = ['created', 'updated', ]
+    search_fields = ['first_name', 'last_name', 'pid']
+    # raw_id_fields = ('player_type',)
 
     def remove_selected_players(self, request, queryset):
         """
@@ -29,7 +24,7 @@ class PlayerLookupAdmin(admin.ModelAdmin):
         queryset.delete()
 
         # task finished. presumably salaries have been updated based on latest projections
-        msg = '%s player lookup entries removed.' % (str(num_players))
+        msg = '%s player lookup entries removed.' % (num_players)
         messages.success(request, msg)
 
     actions = [

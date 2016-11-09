@@ -9,7 +9,7 @@ from account.utils import create_user_log
 from account import const as _account_const
 from cash.classes import CashTransaction
 
-logger = getLogger('django')
+logger = getLogger('account.models')
 
 
 class Information(models.Model):

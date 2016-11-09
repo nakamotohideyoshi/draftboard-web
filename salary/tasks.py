@@ -20,7 +20,7 @@ from salary.classes import (
 from salary.models import Pool
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('salary.tasks')
 
 
 @app.task(bind=True)

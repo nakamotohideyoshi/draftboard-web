@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('util.slack')
 
 
 # exceptions
