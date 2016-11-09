@@ -20,6 +20,10 @@ services:
     expose:
       - "6379"
 
+  mongodb:
+    image: 'bitnami/mongodb:latest'
+    expose:
+      - "27017"
   # run `docker-compose up celery` to start the process
   # then `docker-compose scale celery=[x]` to add x number of processes!
   celery:
@@ -31,6 +35,7 @@ services:
     links:
       - postgres
       - redis
+      - mongodb
     volumes:
       - .:/code
     environment:
@@ -48,6 +53,7 @@ services:
     links:
       - postgres
       - redis
+      - mongodb
     ports:
       - "8000:8000"
     volumes:
