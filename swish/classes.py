@@ -132,20 +132,23 @@ class SwishAnalytics(object):
     class SwishApiException(Exception): pass
 
     # known swish status id(s) and their string names
+    STARTING, ACTIVE, PROBABLE, GAMETIME_DECISION, QUESTIONABLE, DOUBTFUL, OUT, DAY_TO_DAY, WEEK_TO_WEEK, \
+    MONTH_TO_MONTH, OUT_FOR_SEASON, WAIVED, TRADED = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14
+    # range(1, 15) but for some reason here no 12 didn't find any description in docs
     statuses = [
-        (1, 'starting'),
-        (2, 'active'),
-        (3, 'probable'),
-        (4, 'gametime-decision'),
-        (5, 'questionable'),
-        (6, 'doubtful'),
-        (7, 'out'),
-        (8, 'day-to-day'),
-        (9, 'week-to-week'),
-        (10, 'month-to-month'),
-        (11, 'out-for-season'),
-        (13, 'waived'),
-        (14, 'traded'),
+        (STARTING, 'starting'),
+        (ACTIVE, 'active'),
+        (PROBABLE, 'probable'),
+        (GAMETIME_DECISION, 'gametime-decision'),
+        (QUESTIONABLE, 'questionable'),
+        (DOUBTFUL, 'doubtful'),
+        (OUT, 'out'),
+        (DAY_TO_DAY, 'day-to-day'),
+        (WEEK_TO_WEEK, 'week-to-week'),
+        (MONTH_TO_MONTH, 'month-to-month'),
+        (OUT_FOR_SEASON, 'out-for-season'),
+        (WAIVED, 'waived'),
+        (TRADED, 'traded'),
     ]
 
     # we will save the api call response in this table
@@ -155,10 +158,19 @@ class SwishAnalytics(object):
     api_injuries = '/players/injuries'
     api_projections_game = '/players/fantasy'
     api_projections_season = '/players/fantasy/remaining'   # exists also: '/players/fantasy/season'
+    api_player_status = '/players/status'
 
     api_key = settings.SWISH_API_KEY
 
     sport = None
+
+    extra_player_fields = [
+        'rosterStatus',
+        'rosterStatusDescription',
+        'depthChartStatus',
+        'lastText',
+        'game',
+    ]
 
     def __init__(self):
         # create the Session object for performing the api calls
@@ -201,6 +213,17 @@ class SwishAnalytics(object):
         now = datetime.now()
         return str(now.date())
 
+    def get_player_extra_data(self, player_id, team):
+        url = '%s/%s%s?playerId=%s&team=%s&apikey=%s' % (self.api_base_url, self.sport,
+                                                         self.api_player_status, player_id, team, self.api_key)
+        response_data = self.call_api(url)
+        results = response_data.get('data', {}).get('results', [])
+        if results:
+            data = results[0]
+            return {x: data.get(x) for x in self.extra_player_fields}
+        else:
+            return {}
+
     def get_updates(self):
         formatted_date = self.get_formatted_date()
         url = '%s/%s%s?date=%s&apikey=%s' % (self.api_base_url, self.sport,
@@ -211,6 +234,10 @@ class SwishAnalytics(object):
         results = response_data.get('data',{}).get('results',[])
         self.updates = []
         for update_data in results:
+            status = update_data.get('swishStatusId')
+            if status == self.STARTING:
+                extra_data = self.get_player_extra_data(update_data.get('playerId'), update_data.get('teamId'))
+                update_data.update(extra_data)
             self.updates.append(UpdateData(update_data))
 
         print('%s UpdateData(s)' % str(len(self.updates)))

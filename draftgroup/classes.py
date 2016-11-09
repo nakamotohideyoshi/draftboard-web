@@ -567,20 +567,11 @@ class AbstractUpdateManager(object):
         update.category = category
         update.type = type
 
-        if update.updated_at is None or update.updated_at != updated_at:
-            update.updated_at = updated_at
-
-        if update.value is None or update.value != value:
-            update.value = value
-
-        if update.status is None or update.status != status:
-            update.status = status
-
-        if update.source_origin is None or update.source_origin != source_origin:
-            update.source_origin = source_origin
-
-        if update.url_origin is None or update.url_origin != url_origin:
-            update.url_origin = url_origin
+        fields = ['updated_at', 'value', 'status', 'source_origin', 'url_origin']
+        for f in fields:
+            old_value = getattr(update, f)
+            if old_value is None or old_value != eval(f):
+                setattr(update, f, eval(f))
 
         # for newly created Update models we need to
         # to associated any relevant draft_groups
