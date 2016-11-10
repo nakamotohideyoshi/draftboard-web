@@ -32,7 +32,6 @@ logger = getLogger('salary.classes')
 
 
 class SalaryProgressWebhook(Webhook):
-
     # rio slack - channel #stats-projections
     identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
 
@@ -50,7 +49,6 @@ class SalaryRounder(object):
 
 
 class OwnershipPercentageAdjuster(object):
-
     def __init__(self, pool):
         self.pool = pool
         self.default_ownership_percentage = self.pool.ownership_threshold_low_cutoff
@@ -118,7 +116,7 @@ class OwnershipPercentageAdjuster(object):
                 increments = (salary.ownership_percentage -
                               self.pool.ownership_threshold_high_cutoff)
                 high_sal_adjustment = (
-                    (increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
+                                          (increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
                 print('high sal adjustment:', high_sal_adjustment, str(salary))
                 salary.amount += self.rounder.round(high_sal_adjustment)
                 salary.save()
@@ -129,7 +127,7 @@ class OwnershipPercentageAdjuster(object):
                 increments = (self.pool.ownership_threshold_low_cutoff -
                               salary.ownership_percentage)
                 low_sal_adjustment = (
-                    (increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
+                                         (increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
                 print('low sal adjustment:', low_sal_adjustment, str(salary))
                 salary.amount -= self.rounder.round(low_sal_adjustment)
                 salary.save()
@@ -186,7 +184,7 @@ class SalaryPlayerStatsObject(object):
         # Makes sure the player_stats_object is an instance
         # of the subclass PlayerStats
         if self.type_checking_enabled:
-            if(not isinstance(player_stats_object, PlayerStats)):
+            if (not isinstance(player_stats_object, PlayerStats)):
                 raise IncorrectVariableTypeException(type(self).__name__, "player_stats_object")
 
         #
@@ -205,13 +203,13 @@ class SalaryPlayerStatsObject(object):
         #
         # Throw an exception if any of the important data types
         # are missing data.
-        if(self.first_name == None or
-                self.last_name == None or
-                self.game_id == None or
-                self.start == None or
-                self.fantasy_points == None or
-                self.position == None or
-                self.player == None):
+        if (self.first_name == None or
+                    self.last_name == None or
+                    self.game_id == None or
+                    self.start == None or
+                    self.fantasy_points == None or
+                    self.position == None or
+                    self.player == None):
             raise NullModelValuesException(type(self).__name__, "player_stats_object")
 
     def get_player_stats_instance(self):
@@ -277,8 +275,8 @@ class SalaryPlayerObject(object):
         self.flagged = False
 
     def __str__(self):
-        string_ret = str(self.player_id) + " w_points=" + str(self.fantasy_weighted_average) +\
-            " flagged=" + str(self.flagged) + ": \n"
+        string_ret = str(self.player_id) + " w_points=" + str(self.fantasy_weighted_average) + \
+                     " flagged=" + str(self.flagged) + ": \n"
         string_ret += '%s total playerstats instances\n' % str(len(self.player_stats_list))
         for player in self.player_stats_list:
             string_ret += "\t" + str(player) + "\n"
@@ -298,7 +296,6 @@ class SalaryPlayerObject(object):
 
 
 class SalaryPositionPointsAverageObject(object):
-
     def __init__(self, pos):
         self.pos = pos
         self.total_points = 0
@@ -313,7 +310,6 @@ class SalaryPositionPointsAverageObject(object):
 
 
 class SalaryRosterSpotObject(object):
-
     def __init__(self, name):
         self.name = name
         self.percentage_of_sum = 0.0
@@ -321,12 +317,11 @@ class SalaryRosterSpotObject(object):
         self.average_salary = 0.0
 
     def __str__(self):
-        return "Roster_Spot_Name:" + self.name + " average_salary:" + str(self.average_salary)\
+        return "Roster_Spot_Name:" + self.name + " average_salary:" + str(self.average_salary) \
                + " percentage_of_sum:" + str(self.percentage_of_sum)
 
 
 class FppgGenerator(object):
-
     type_checking_enabled = True
 
     def __init__(self, player_stats_classes):
@@ -393,12 +388,11 @@ class FppgGenerator(object):
         For each player in the PlayerStats table, get the games
         that are relevant.
 
-        :param player_stats_objects: default: None. overrides the PlayerStats objects used
         :return a list of SalaryPlayerObjects
 
         """
 
-        #print( 'self.player_stats_classes', str(self.player_stats_classes))
+        # print( 'self.player_stats_classes', str(self.player_stats_classes))
 
         #
         #
@@ -440,7 +434,8 @@ class SalaryGenerator(FppgGenerator):
 
     DEFAULT_SEASON_TYPES = ['reg', 'pst']
 
-    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=False, debug_srid='1616381c-d6ac-40b1-8c3f-c70d51bda098'):
+    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=False,
+                 debug_srid='1616381c-d6ac-40b1-8c3f-c70d51bda098'):
         """
 
         :return:
@@ -559,9 +554,9 @@ class SalaryGenerator(FppgGenerator):
                 if salary.primary_roster.name == 'QB' and salary.amount < qb:
                     salary.amount = qb
                     salary.save()
-                #     print('   *changed %s' % str(salary))
-                # else:
-                #     print('    unchanged %s' % str(salary))
+                    #     print('   *changed %s' % str(salary))
+                    # else:
+                    #     print('    unchanged %s' % str(salary))
 
             elif sport == 'nba':
                 pass
@@ -577,14 +572,13 @@ class SalaryGenerator(FppgGenerator):
         For each player in the PlayerStats table, get the games
         that are relevant.
 
-        :param player_stats_objects: default: None. overrides the PlayerStats objects used
         :return a list of SalaryPlayerObjects
 
         """
 
         #
         players = []
-        #excluded_players = []
+        # excluded_players = []
         for player_stats_class in self.player_stats_classes:
             reg_season_game_pks = [g.pk for g in self.regular_season_games]
 
@@ -605,7 +599,7 @@ class SalaryGenerator(FppgGenerator):
             # the players fantasy_points were 0.0, but for MLB and NHL we
             # do something more specific...
             all_player_stats = player_stats_class.objects.filter(game_id__in=reg_season_game_pks)
-            #excluded_players = []
+            # excluded_players = []
             if SiteSportManager.MLB in self.site_sport.name:
                 class_name = player_stats_class().__class__.__name__.lower()
 
@@ -646,7 +640,7 @@ class SalaryGenerator(FppgGenerator):
         # the algorithm -- that being the set of players who have
         # not played, or who have played but have 0.0 fantasy points.
         # lets store those players and give them a minimum salary later on.
-        #self.excluded_player_stats = excluded_players
+        # self.excluded_player_stats = excluded_players
 
         logger.info("helper_get_player_stats() # of players: %s" % len(players))
         return players
@@ -656,7 +650,7 @@ class SalaryGenerator(FppgGenerator):
         set the Salary objects 'amount' into the amount_unadjusted field
         for all players passed in via 'players' param
 
-        :param players:
+        :param pool:
         :return:
         """
         for sal_obj in Salary.objects.filter(pool=pool):
@@ -733,7 +727,7 @@ class SalaryGenerator(FppgGenerator):
 
             # if not a lot of games played
             if number_of_games < self.salary_conf.min_games_flag:
-                #print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
+                # print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
                 # if player has played in 0 thru the min_games_flag,
                 # dont use weights, and just average the points they do have and flag them.
                 if number_of_games > 0:
@@ -744,12 +738,13 @@ class SalaryGenerator(FppgGenerator):
 
             # else: if more than the min-required-games-played have been played
             else:
-                #print('MET required games: %s for %s' % (str(number_of_games), str(player)))
+                logger.debug('MET required games: %s for %s' % (number_of_games, player))
                 # check to makes sure the most recent game played has been less than
                 # days_since_last_game_flag days ago
                 delta = timezone.now() - player.player_stats_list[0].start
                 if delta.days > self.salary_conf.days_since_last_game_flag:
-                    #print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
+                    logger.debug(
+                        'days since last game: %s -- last game %s' % (delta.days, player.player_stats_list[0].start))
                     player.flagged = True
 
                 #
@@ -825,14 +820,14 @@ class SalaryGenerator(FppgGenerator):
 
         # initialize the salaries by setting everyone to the minimum
         min_salary = self.salary_conf.min_player_salary
-        #Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
-        #count = 0
+        # Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
+        # count = 0
         for sal_obj in Salary.objects.filter(pool=self.pool):
             old_sal = sal_obj.amount
             sal_obj.amount = min_salary
             sal_obj.save()
             sal_obj.refresh_from_db()
-            #print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
+            # print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
 
         printed_players = []
         roster_spots = RosterSpot.objects.filter(site_sport=self.site_sport)
@@ -862,7 +857,7 @@ class SalaryGenerator(FppgGenerator):
                 average_salary = (((sum / ((float)(count))) / sum_average_points)
                                   * ((float)(self.salary_conf.max_team_salary)))
                 average_salary = self.__round_salary(average_salary)
-                #print( roster_spot.name+" average salary "+ str(average_salary))
+                # print( roster_spot.name+" average salary "+ str(average_salary))
 
                 #
                 # Get the average weighted fantasy points for the specific positions
@@ -871,7 +866,7 @@ class SalaryGenerator(FppgGenerator):
                 sum = 0.0
                 average_weighted_fantasy_points_for_pos = 0.0
                 for player in players:
-                    if(player.player_stats_list[0].position in pos_arr):
+                    if (player.player_stats_list[0].position in pos_arr):
                         if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
                             sum += player.fantasy_weighted_average
                             count += 1
@@ -901,7 +896,7 @@ class SalaryGenerator(FppgGenerator):
                                               average_weighted_fantasy_points_for_pos) * average_salary)
 
                         salary.amount = self.__round_salary(salary.amount)
-                        if(salary.amount < self.salary_conf.min_player_salary):
+                        if (salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
                             logger.info(
                                 "Player %s's salary is below the minimum of %s" % (
@@ -1358,7 +1353,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             # its + or -, but truncate decimals
                             random_amount = float(int(salary.amount * random_pct))
                             salary.random_adjust_amount = random_amount
-                            #print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
+                            # print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
                             salary.amount += salary.random_adjust_amount
 
                         #
@@ -1401,8 +1396,8 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
             return Salary()
 
     def __round_salary(self, val):
-            # return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) *
-            # SalaryGenerator.ROUND_TO_NEAREST)
+        # return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) *
+        # SalaryGenerator.ROUND_TO_NEAREST)
         return self.rounder.round(val)
 
 
@@ -1474,8 +1469,8 @@ class PlayerFppgGenerator(FppgGenerator):
         #
         # sports with multiple PlayerStats classes require us to handle
         # the fppg calcs differently, ie: break up pitchers and hitters
-        #print('updating season_fppg - sport:', sport)
-        #print('... %s player_stats_classses -> %s' % (str(len(player_stats_classes)), str(player_stats_classes)))
+        # print('updating season_fppg - sport:', sport)
+        # print('... %s player_stats_classses -> %s' % (str(len(player_stats_classes)), str(player_stats_classes)))
         if len(player_stats_classes) == 1:
             #
             # sports like nfl, nhl, nba only have a single PlayerStats model
@@ -1544,7 +1539,6 @@ class PlayerFppgGenerator(FppgGenerator):
 
 
 class SalaryPool2Csv(object):
-
     # class Echo(object):
     #     """
     #     An object that implements just the write method of the file-like interface.
@@ -1572,11 +1566,11 @@ class SalaryPool2Csv(object):
             position_name = 'RB'
 
         writer.writerow([
-            salary.player.pk,               # 'id'
-            salary.player.last_name,        # 'last_name'
-            salary.player.first_name,       # 'first_name'
-            salary.amount,                  # 'price_draftboard'
-            position_name,    # 'position'
+            salary.player.pk,  # 'id'
+            salary.player.last_name,  # 'last_name'
+            salary.player.first_name,  # 'first_name'
+            salary.amount,  # 'price_draftboard'
+            position_name,  # 'position'
             salary.fppg,
             salary.avg_fppg_for_position,
             salary.num_games_included,
