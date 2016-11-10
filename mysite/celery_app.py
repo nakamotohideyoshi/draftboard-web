@@ -195,6 +195,15 @@ app.conf.update(
         #     'args': ('nfl',),
         # },
 
+        ########################################################################
+        # Fetch player stat projections from stats.com and generate salaries
+        ########################################################################
+        'nba_generate_salaries': {
+            'task': 'salary.tasks.generate_salaries_from_statscom_projections_nba',
+            'schedule': timedelta(minutes=30),
+        },
+
+
         #
         # update injury information for the sports
         'nba_injuries': {
@@ -459,7 +468,7 @@ class TaskHelper(object):
             #
             # return exception information here, including class name, and msg
             exception = {
-                'name': type(r).__name__,   # ie: 'Exception'
+                'name': type(r).__name__,  # ie: 'Exception'
                 'msg': str(r)
             }
 
@@ -485,6 +494,7 @@ class TaskHelper(object):
             'result': result,
         }
         return data
+
 
 #
 # BROKER_URL = 'amqp://guest:guest@localhost//'
