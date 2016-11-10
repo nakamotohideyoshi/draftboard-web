@@ -198,9 +198,9 @@ app.conf.update(
         ########################################################################
         # Fetch player stat projections from stats.com and generate salaries
         ########################################################################
-        'nba_generate_salaries': {
+        'nba_generate_salaries_from_statscom': {
             'task': 'salary.tasks.generate_salaries_from_statscom_projections_nba',
-            'schedule': timedelta(minutes=10),
+            'schedule': timedelta(minutes=15),
         },
 
 
