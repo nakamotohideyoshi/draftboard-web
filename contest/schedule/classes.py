@@ -816,7 +816,7 @@ class DefaultPrizeStructureManager(object):
                             prize_structure = ps
                             break  # we found it
                     if prize_structure is None:
-                        logger.error(
+                        logger.warn(
                             ("No PrizeStructure for buyin: %s payout_spots: %s. You can add them "
                                 "manually though!") % (buyin, payout_spots))
                         # raise Exception(err_msg)
