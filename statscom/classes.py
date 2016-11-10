@@ -705,15 +705,15 @@ class FantasyProjectionsNBA(FantasyProjections):
                 # logger.info('   player_data: %s', player_data )
                 if player_data is None:
                     logger.warn(
-                        "   (skipping player projection) STATS.com playerId [%s] not found in PlayerNBA data! "
+                        "(skipping player projection) STATS.com playerId [%s] not found in PlayerNBA data! "
                         "Here's the projection that made us fail: %s" % (str(pid), str(player_projection)))
                     continue
 
                 # try to get the fantasy projection list (of each site projection)
                 fantasy_projections = player_projection.get(self.field_fantasy_projections)
-                logger.debug('   fantasyProjections (site projections): %s' % fantasy_projections)
+                logger.debug('fantasyProjections (site projections): %s' % fantasy_projections)
                 if len(fantasy_projections) == 0:
-                    msg = '    No site projections found for field[%s]  player[%s]' % (
+                    msg = 'No site projections found for field[%s]  player[%s]' % (
                         self.field_fantasy_projections, str(player_data))
                     logger.warn(msg)
                     raise Exception(msg)
