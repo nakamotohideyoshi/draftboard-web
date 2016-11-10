@@ -153,25 +153,13 @@ class PlayerProjection(object):
     """
 
     def __str__(self):
-        return '%s, %s points' % (self.get_player(), self.get_fantasy_points())
+        return '%s, %s points' % (self.player, self.fantasy_points)
 
     def __init__(self, player, fantasy_points=0.0, sal_dk=None, sal_fd=None):
         self.player = player
         self.fantasy_points = fantasy_points
         self.sal_dk = sal_dk
         self.sal_fd = sal_fd
-
-    def get_player(self):
-        return self.player
-
-    def get_fantasy_points(self):
-        return self.fantasy_points
-
-    def get_sal_dk(self):
-        return self.sal_dk
-
-    def get_sal_fd(self):
-        return self.sal_fd
 
 
 class SalaryPlayerStatsObject(object):
@@ -660,6 +648,7 @@ class SalaryGenerator(FppgGenerator):
         # lets store those players and give them a minimum salary later on.
         #self.excluded_player_stats = excluded_players
 
+        logger.info("helper_get_player_stats() # of players: %s" % len(players))
         return players
 
     def update_unadjusted_salaries(self, pool):
@@ -898,7 +887,7 @@ class SalaryGenerator(FppgGenerator):
                     if player.player.srid == self.debug_srid and player.player.srid not in printed_players:
                         msg = str(player.player) + '\n'
                         msg += str(player)
-                        # print(msg)
+                        logger.info(msg)
                         self.update_progress(msg)  # send webhook with the same info
                         # keep track so we dont double-send
                         printed_players.append(player.player.srid)
@@ -914,7 +903,9 @@ class SalaryGenerator(FppgGenerator):
                         salary.amount = self.__round_salary(salary.amount)
                         if(salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
-
+                            logger.info(
+                                "Player %s's salary is below the minimum of %s" % (
+                                    player, self.salary_conf.min_player_salary))
                             # # this if statement can be hardcoded to override
                             # # the 'min_player_salary' per sport&position
                             # sport = self.pool.site_sport.name
@@ -1009,6 +1000,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
         # call overridden method instead of helper_get_player_stats() (it uses PlayerStats history)
         self.players = self.helper_get_player_stats()
+        logger.info('generate_salaries() for %s players' % len(self.players))
 
         # we could zero out all existing actual salaries right here to eliminate stale data,
         # but only players on the current day will be updated. this is likely the desired route.
@@ -1064,12 +1056,12 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         salary_player_stats = []
         for player_projection in self.player_projections:
             # get the sports.<sport>.models.Player model instance, and the fantasy_points (float)
-            player = player_projection.get_player()
-            fantasy_points = player_projection.get_fantasy_points()
+            player = player_projection.player
+            fantasy_points = player_projection.fantasy_points
 
             # create SalaryPlayerStatsProjectionObject
-            sal_dk = player_projection.get_sal_dk()
-            sal_fd = player_projection.get_sal_fd()
+            sal_dk = player_projection.sal_dk
+            sal_fd = player_projection.sal_fd
             player_stats_object = SalaryPlayerStatsProjectionObject(player, fantasy_points,
                                                                     sal_dk=sal_dk, sal_fd=sal_fd)
 
@@ -1258,11 +1250,16 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
         # initialize the salaries by setting everyone to the minimum
         min_salary = self.salary_conf.min_player_salary
+        all_pool_salaries = Salary.objects.filter(pool=self.pool)
         # Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
         # count = 0
-        for sal_obj in Salary.objects.filter(pool=self.pool):
-            old_sal = sal_obj.amount
-            sal_obj.amount = min_salary
+        logger.info("Resetting %s DK+FD salary projections to None" % len(all_pool_salaries))
+        for sal_obj in all_pool_salaries:
+            # DO NOT reset all player salaries to the minimum. If we do, and for whatever reason the
+            # generator fails to run, we are stuck with a bunch of players with minimum salaries for
+            # the next day's contests.
+            # old_sal = sal_obj.amount
+            # sal_obj.amount = min_salary
 
             # zero out existing site actual salaries
             sal_obj.sal_dk = None
