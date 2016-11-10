@@ -103,7 +103,7 @@ class PoolAdmin(admin.ModelAdmin):
                 request, 'You must select only one pool to generate salaries for at a time.')
         else:
             for pool in queryset:
-                #task = generate_salary.delay(pool)
+                # task = generate_salary.delay(pool)
                 task = generate_salaries_for_sport.delay(pool.site_sport.name)
                 pool.generate_salary_task_id = task.id
                 print("task.id " + task.id)
@@ -219,9 +219,9 @@ class PoolAdmin(admin.ModelAdmin):
 
 @admin.register(Salary)
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
-
     list_display = ['player', 'amount', 'flagged', 'pool',
-                    'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg', 'avg_fppg_for_position', 'num_games_included']
+                    'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg', 'avg_fppg_for_position',
+                    'num_games_included']
     list_editable = ['amount', 'flagged']
     model = Salary
     list_filter = ['primary_roster', 'flagged', 'pool']
