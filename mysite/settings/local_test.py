@@ -28,9 +28,13 @@ PASSWORD_HASHERS = (
 # CACHES['celery']['LOCATION'] = REDIS_CELERY_LOCATION
 # CACHES['django_templates']['LOCATION'] = REDIS_CACHE_LOCATION
 
+# Do not send pusher events when testing.
+PUSHER_ENABLED = False
 
-# Change the pusher channel so we don't interfere with any legit events.
+# In case we do send pusher events when testing, change the pusher channel so we don't
+# interfere with any legit events.
 PUSHER_CHANNEL_PREFIX = 'local_test_'
+
 
 # Have celery run in a sort of "async" mode.
 # http://docs.celeryproject.org/projects/django-celery/en/2.4/cookbook/unit-testing.html
