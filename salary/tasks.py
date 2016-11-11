@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from raven.contrib.django.raven_compat.models import client
 import sports.classes
 from django.conf import settings
-from celery import shared_task
+from mysite.celery_app import app
 from django.core.cache import cache
 from hashlib import md5
 from statscom.classes import (
@@ -22,7 +22,7 @@ from logging import getLogger
 logger = getLogger('salary.tasks')
 
 
-@shared_task
+@app.task(name='salary.tasks.check_current_projections_week')
 def check_current_projections_week(self):
     api = FantasyProjectionsNFL()
     data = api.get_projections()
@@ -33,7 +33,7 @@ def check_current_projections_week(self):
     webhook.send(str(week))
 
 
-@shared_task
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nfl')
 def generate_salaries_from_statscom_projections_nfl(self):
     """ NFL """
     # from statscom.classes import FantasyProjectionsNFL
@@ -72,7 +72,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
         # raise Exception(err_msg)
 
 
-@shared_task
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nba')
 def generate_salaries_from_statscom_projections_nba(self):
     """
     NBA
@@ -125,7 +125,7 @@ def generate_salaries_from_statscom_projections_nba(self):
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 
-@shared_task
+@app.task(name='salary.tasks.generate_salaries_for_sport')
 def generate_salaries_for_sport(self, sport):
     ssm = sports.classes.SiteSportManager()
     site_sport = ssm.get_site_sport(sport)
@@ -163,7 +163,7 @@ def generate_salaries_for_sport(self, sport):
 #     generate_salaries_for_sport.delay(sport)
 
 
-@shared_task
+@app.task(name='salary.tasks.generate_season_fppgs')
 def generate_season_fppgs(sport=None):
     """
     calculates and sets 'season_fppg' for all sports
