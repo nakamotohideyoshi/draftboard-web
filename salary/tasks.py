@@ -22,7 +22,7 @@ from logging import getLogger
 logger = getLogger('salary.tasks')
 
 
-@app.task(name='salary.tasks.check_current_projections_week')
+@app.task(name='salary.tasks.check_current_projections_week', bind=True)
 def check_current_projections_week(self):
     api = FantasyProjectionsNFL()
     data = api.get_projections()
@@ -33,7 +33,7 @@ def check_current_projections_week(self):
     webhook.send(str(week))
 
 
-@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nfl')
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nfl', bind=True)
 def generate_salaries_from_statscom_projections_nfl(self):
     """ NFL """
     # from statscom.classes import FantasyProjectionsNFL
@@ -72,7 +72,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
         # raise Exception(err_msg)
 
 
-@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nba')
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nba', bind=True)
 def generate_salaries_from_statscom_projections_nba(self):
     """
     NBA
@@ -125,7 +125,7 @@ def generate_salaries_from_statscom_projections_nba(self):
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 
-@app.task(name='salary.tasks.generate_salaries_for_sport')
+@app.task(name='salary.tasks.generate_salaries_for_sport', bind=True)
 def generate_salaries_for_sport(self, sport):
     ssm = sports.classes.SiteSportManager()
     site_sport = ssm.get_site_sport(sport)
@@ -177,4 +177,4 @@ def generate_season_fppgs(sport=None):
         # update specific sports season_fppg
         season_fppg_generator.update_sport(sport)
     else:
-        raise Exception('salary.tasks.generate_season_fppgs() - unknown sport[%s]' % str(sport))
+        raise Exception('salary.tasks.generate_season_fppgs() - unknown sport[%s]' % sport)
