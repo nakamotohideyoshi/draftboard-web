@@ -69,7 +69,7 @@ class DraftGroup(models.Model):
         return timezone.now() >= self.start
 
     def __str__(self):
-        return '%s id:%s' % (self.salary_pool.site_sport.name, str(self.pk))
+        return '%s id:%s' % (self.salary_pool.site_sport.name, self.pk)
 
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)
@@ -177,7 +177,7 @@ class Player(models.Model):
     # os = models.CharField(max_length=2048, null=True)
 
     def __str__(self):
-        return '%s $%.2f' % (str(self.player), self.salary)
+        return '%s $%.2f' % (self.player, self.salary)
 
     # we need to create the draft group player associated with a certain team
     game_team = models.ForeignKey(GameTeam, null=False)
@@ -230,12 +230,23 @@ class AbstractPlayerLookup(models.Model):
     """
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    sport = models.CharField(
+        max_length=8,
+        null=True,
+        blank=True,
+        choices=(
+            ('NBA', 'NBA'),
+            ('NHL', 'NHL'),
+            ('NFL', 'NFL'),
+            ('MLB', 'MLB'),
+        )
+    )
     # Since a player lookup can only have a generic relation with a <sport>.Player model, use this to
     # limit it. This is mostly for use in the admin section.
     model_limit = models.Q(app_label='nfl', model='player') | \
-                  models.Q(app_label='nba', model='player') | \
-                  models.Q(app_label='mlb', model='player') | \
-                  models.Q(app_label='nhl', model='player')
+        models.Q(app_label='nba', model='player') | \
+        models.Q(app_label='mlb', model='player') | \
+        models.Q(app_label='nhl', model='player')
     # the GFK to the sports.<SPORT>.Player instance
     player_type = models.ForeignKey(
         ContentType,
@@ -290,7 +301,6 @@ class PlayerUpdate(AbstractUpdate):
     INJURY = 'injury'
     LINEUP = 'lineup'
     START = 'start'
-
     CATEGORIES = [
         (NEWS, 'News'),
         (INJURY, 'Injury'),
@@ -298,50 +308,30 @@ class PlayerUpdate(AbstractUpdate):
         (START, 'Start'),
     ]
 
-    # created = models.DateTimeField(auto_now_add=True)
-
-    # update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
-
     draft_groups = models.ManyToManyField(DraftGroup)
-
-    # draft_group = models.ForeignKey(DraftGroup, null=False, related_name='player_updates')
     player_srid = models.CharField(max_length=64, null=False)
     player_id = models.IntegerField(null=False, default=0)
-
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
-
-    # type = models.CharField(max_length=128, null=False, default='')
-    # value = models.CharField(max_length=1024*8, null=False, default='')
 
     class Meta:
         abstract = False
 
     def __str__(self):
-        return 'pk:%s | %s | %s' % (str(self.pk), self.player_srid, self.category)
+        return 'pk:%s | %s | %s' % (self.pk, self.player_srid, self.category)
 
 
 class GameUpdate(AbstractUpdate):
     NEWS = 'news'
     LINEUP = 'lineup'
-
     CATEGORIES = [
         (NEWS, 'News'),
         (LINEUP, 'Lineup'),
     ]
 
-    # created = models.DateTimeField(auto_now_add=True)
-
-    # update_id = models.CharField(max_length=128, null=True)
-
     draft_groups = models.ManyToManyField(DraftGroup)
-
     game_srid = models.CharField(max_length=64, null=False)
     game_id = models.IntegerField(null=False, default=0)
-
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
-
-    # type = models.CharField(max_length=128, null=False, default='')
-    # value = models.CharField(max_length=1024*8, null=False, default='')
 
     class Meta:
         abstract = False

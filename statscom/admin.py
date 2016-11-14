@@ -8,10 +8,10 @@ import statscom.models
 @admin.register(statscom.models.PlayerLookup)
 class PlayerLookupAdmin(admin.ModelAdmin):
     list_display = ['last_name', 'first_name', 'player', 'created', 'updated', 'pid', ]
-    list_filter = ['created', 'updated', ]
+    list_filter = ['sport', 'created', 'updated', ]
     search_fields = ['first_name', 'last_name', 'pid']
-    # raw_id_fields = ('player_type',)
 
+    @staticmethod
     def remove_selected_players(self, request, queryset):
         """
         deletes the selected objects so the admin can cleanup this admin panel
