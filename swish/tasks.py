@@ -30,6 +30,7 @@ def update_injury_feed(self, sport):
             player_update_manager = PlayerUpdateManager(sport)
             swish = SwishNFL() # TODO other sports, not just NFL
             updates = swish.get_updates()
+            #todo remove
             posts.insert_many([x.data for x in updates])
             for u in updates:
                 try:
