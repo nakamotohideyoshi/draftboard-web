@@ -24,8 +24,8 @@ logger = getLogger('statscom.classes')
 # For all scheduling purposes, EST is assumed
 tz = pytz.timezone('America/New_York')
 
-class ProjectionsWeekWebhook(Webhook):
 
+class ProjectionsWeekWebhook(Webhook):
     # its a piece of the full url from something like this:
     # https://hooks.slack.com/services/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
     identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
@@ -210,7 +210,7 @@ class Stats(object):
             err_msg += '\n\n Its possible we were rate limited. (ie: "Developer Over Qps")'
             err_msg += '\n\n If so, you may need to increase the current value of statscom.classes.Stats objects ' \
                        '"rate_limit_delay_seconds" which is currently [%s] seconds' % str(
-                           self.rate_limit_delay_seconds)
+                self.rate_limit_delay_seconds)
             w.send(err_msg)
             client.context.activate()
             client.context.merge({'extra': {
@@ -287,7 +287,7 @@ class Stats(object):
             # check the lookup table
             return self.find_player_in_lookup_table(first_name, last_name, pid)
 
-        # raise Exception(
+            # raise Exception(
             # 'statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
 
     def find_player_in_lookup_table(self, first_name, last_name, pid):
@@ -297,19 +297,24 @@ class Stats(object):
 
         returns None if no player could be looked up in /admin/statscom/playerlookup/
         """
-
         try:
             player_lookup = PlayerLookup.objects.get(
                 first_name=first_name, last_name=last_name, pid=pid)
+            if not player_lookup.sport is self.sport.upper():
+                player_lookup.sport = self.sport.upper()
+                player_lookup.save()
             return player_lookup.player  # may return None if admin has not set it yet
 
         except PlayerLookup.DoesNotExist:
             # create their entry, but theres nothing to return, because a newly created object wont
             # be linked to an actual SR player yet!
-            player_lookup = PlayerLookup.objects.create(
-                first_name=first_name, last_name=last_name, pid=pid)
+            PlayerLookup.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                pid=pid,
+                sport=self.sport.upper(),
+            )
 
-        #
         return None
 
 
@@ -367,7 +372,6 @@ class DailyGamesNBA(Stats):
 
 
 class DailyGamesMLB(Stats):
-
     endpoint_daily_games = '/stats/baseball/mlb/box/'
 
     def __init__(self):
@@ -381,7 +385,6 @@ class DailyGamesMLB(Stats):
 
 
 class PlayersParser(ResponseDataParser):
-
     field_players = 'players'
 
     def get_data(self):
@@ -392,7 +395,6 @@ class PlayersParser(ResponseDataParser):
 
 
 class PlayersNBA(Stats):
-
     parser_class = PlayersParser
     endpoint = '/stats/basketball/nba/participants/'
 
@@ -475,7 +477,6 @@ class PlayersNBA(Stats):
 
 
 class PlayersMLB(Stats):
-
     parser_class = PlayersParser
     endpoint = '/stats/baseball/mlb/participants/'
 
@@ -488,7 +489,6 @@ class PlayersMLB(Stats):
 
 
 class ProjectionsParser(ResponseDataParser):
-
     class ProjectionsNotFound(Exception):
         pass
 
@@ -514,7 +514,6 @@ class ProjectionsParser(ResponseDataParser):
 
 
 class FantasyProjections(Stats):
-
     player_projection_class = PlayerProjection
 
     parser_class = ProjectionsParser
@@ -800,7 +799,6 @@ class FantasyProjectionsNBA(FantasyProjections):
 
 
 class FantasyProjectionsMLB(FantasyProjections):
-
     # the game's eventid must be appended to this endpoint
     endpoint_fantasy_projections = '/stats/baseball/mlb/fantasyProjections/'
 
@@ -867,7 +865,6 @@ class PlayerProjectionNFL(object):
 
 
 class FantasyProjectionsNFL(FantasyProjections):
-
     endpoint_current_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
     endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'  # append week number
 
@@ -999,7 +996,7 @@ class NFLPlayerProjectionCsv(PlayerProjectionNFL):  # particularly for NFL i mig
 
     field_player = 'player'
     field_player_id = 'playerId'
-    field_fullname = 'fullname'             # i made this one. it combines the first+last name
+    field_fullname = 'fullname'  # i made this one. it combines the first+last name
     field_first_name = 'firstName'
     field_last_name = 'lastName'
     field_position = 'position'
