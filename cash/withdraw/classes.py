@@ -498,12 +498,13 @@ class CheckWithdraw(AbstractWithdraw):
 
         #
         # sets the local variables in the withdraw object
-        self.withdraw_object.fullname   = account_information.information.fullname
-        self.withdraw_object.address1   = account_information.information.address1
-        self.withdraw_object.address2   = account_information.information.address2
-        self.withdraw_object.city       = account_information.information.city
-        self.withdraw_object.state      = account_information.information.state
-        self.withdraw_object.zipcode    = account_information.information.zipcode
+        self.withdraw_object.fullname = account_information.information.user.get_full_name()
+        # information model hasn't that fields any more
+        # self.withdraw_object.address1   = account_information.information.address1
+        # self.withdraw_object.address2   = account_information.information.address2
+        # self.withdraw_object.city       = account_information.information.city
+        # self.withdraw_object.state      = account_information.information.state
+        # self.withdraw_object.zipcode    = account_information.information.zipcode
 
     def payout(self):
         """

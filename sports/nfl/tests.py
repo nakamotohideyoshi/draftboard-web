@@ -1,6 +1,6 @@
 #
 # sports/nfl/test.py
-
+from mock import patch
 from django.utils import timezone
 from ast import literal_eval
 from test.classes import AbstractTest
@@ -36,6 +36,7 @@ import re
 class TeamHierarchyParserTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.parser = TeamHierarchy()
 
     def __parse_and_send(self, unwrapped_obj, target):
@@ -111,6 +112,7 @@ class TeamHierarchyParserTest(AbstractTest):
 class TestRushPlayManagerRegexScraping(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.play_type = 'rush'  # this would come in the SportRadar play data
 
     def test_rush_1(self):
@@ -176,6 +178,7 @@ class TestPassPlayManagerRegexScraping(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.play_type = 'pass' # this would come in the SportRadar play data
 
     def test_pass_1(self):
@@ -234,6 +237,7 @@ class TestPlayManager(AbstractTest):
     """ parse some information out of the human readable text description """
 
     def setUp(self):
+        super().setUp()
         # actual example from mongo of an NFL official feed play object (from the pbp feed)
         self.data = {
             "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkMGIxYWVhNzAtNmRhMC00YzZkLWIzZjUtMTUwZDVmZTczYWY2aWRkNTYzZjkzYy02ZjlmLTQ5MzEtOGNmYi1lNTRmZDlkNWZhMTc=",
@@ -339,6 +343,7 @@ class TestTeamBoxscoreParser(AbstractTest):
     """ tests the send() part only """
 
     def setUp(self):
+        super().setUp()
         self.parser = DataDenNfl()
 
     def __parse_and_send(self, unwrapped_obj, target):
@@ -463,6 +468,7 @@ class TestPlayParser(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.parser = PlayParser()
 
     def __parse_and_send(self, unwrapped_obj, target, tag=None):
@@ -880,6 +886,7 @@ class GameStatusChangedSignal(AbstractTest):
         return team
 
     def setUp(self):
+        super().setUp()
         self.SCHEDULED = 'scheduled' # the default game status
         self.COMPLETE  = 'complete'  # made up - does not actually reflect a real status, necessarily
 
@@ -950,6 +957,7 @@ class SeasonScheduleParserTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.sport = 'nflo'
         self.obj_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkNjU5ZDJiZDAtYzQzZS00YmIwLTg1MDMtOWQ1NzY5MTFkMDI5',
             'dd_updated__id': 1471578967708,
@@ -987,6 +995,7 @@ class GameScheduleParserTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.sport = 'nflo'
 
     # def setUp(self):
