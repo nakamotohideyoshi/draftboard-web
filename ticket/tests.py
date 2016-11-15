@@ -15,6 +15,7 @@ from .exceptions import (
 class TicketManagerTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.user = self.get_admin_user()
         #
         # Creates a ticket amount for testing

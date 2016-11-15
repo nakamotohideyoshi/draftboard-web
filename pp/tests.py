@@ -9,6 +9,7 @@ from pp.classes import (
 class VZeroTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.shipping_data = {
             "first_name": "Steve", "last_name": "Steverton", "street_address": "1 Steve St",
             "extended_address": "Suite 1", "locality": "Dover", "region": "NH",

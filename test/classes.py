@@ -1,16 +1,18 @@
 import django.test
 import threading
 from django.db import connections
+from mock import patch
 from prize.classes import CashPrizeStructureCreator
 from cash.classes import CashTransaction
 from test.models import (
     PlayerChild,
+    TeamChild,
     PlayerStatsChild,
     GameChild,
     Season as SeasonChild,
 )
 from django.utils import timezone
-from random import randint
+from random import randint, choice
 from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
 from salary.models import SalaryConfig, Pool, TrailingGameWeight, Salary
@@ -30,6 +32,7 @@ from scoring.classes import AbstractScoreSystem
 from scoring.models import ScoreSystem
 from django.contrib.auth.models import User
 from account.classes import AccountInformation
+from account.models import Information
 import datetime
 
 
@@ -124,7 +127,7 @@ class BuildWorldMixin(object):
         user = User.objects.create(username=username)
         user.set_password(self.DEFAULT_USER_PASSWORD)
         user.save()
-
+        Information.objects.create(user=user)
         ct = CashTransaction(user)
         ct.deposit(10000.00)
         return user
@@ -359,7 +362,8 @@ class TestSalaryScoreSystem(AbstractScoreSystem):
 
 class AbstractTest(django.test.TestCase, MasterAbstractTest):
     def setUp(self):
-        pass
+        self.patcher = patch('push.classes.AbstractPush.send', lambda *args, **kwargs: '')
+        self.patcher.start()
 
     def concurrent_test(self, times, test_func, *args, **kwargs):
         exceptions = []
@@ -385,7 +389,9 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
 
         return exceptions
 
-
+    def tearDown(self):
+        if hasattr(self, 'patcher'):
+            self.patcher.stop()
 # class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
 #     """
 #     WARNING: AbstractTestTransaction PRE-WIPES the test database when it runs!
@@ -527,14 +533,22 @@ class BuildWorldForTesting(object):
         players = []
         position1 = Position.objects.get(name="1")
         position2 = Position.objects.get(name="2")
-
-        for i in range(10, 20):
+        team1 = TeamChild.objects.create(name='test1', srid='test1')
+        team2 = TeamChild.objects.create(name='test2', srid='test2')
+        team3 = TeamChild.objects.create(name='test3', srid='test3')
+        for i in range(10,20):
             player = PlayerChild()
-            player.srid = "" + str(i)
-            player.first_name = "" + str(i)
-            player.last_name = "" + str(i)
+            player.srid = ""+str(i)
+            player.first_name = ""+str(i)
+            player.last_name = ""+str(i)
+            if i < 14:
+                player.team = team1
+            elif i > 13 and i < 17:
+                player.team = team2
+            else:
+                player.team = team3
             player.created = timezone.now()
-            if (i < 15):
+            if(i < 15):
                 player.position = position1
             else:
                 player.position = position2

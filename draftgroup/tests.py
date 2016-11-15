@@ -36,6 +36,7 @@ class PlayerUpdateManagerNoDraftGroups(PlayerUpdateManager):
 class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
 
     def setUp(self):
+        super().setUp()
         self.sport = 'test'
 
         # use the custom test-only subclass
@@ -70,7 +71,9 @@ class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
         category = 'injury'
         update_type = 'rotowire' # create a source
         value = 'Hes really good. We saw him in a game today, and he caught 13 TDs.'
-
+        status = 'active'
+        source_origin = '@RichCimini'
+        url_origin = 'https://twitter.com/RichCimini/status/796753219020005376'
         # have the PlayerUpdateManager return a PlayerUpdate model
         player_update_manager = self.manager_class(self.sport)
         update_model = player_update_manager.add(
@@ -79,6 +82,9 @@ class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
             category,
             update_type,
             value,
+            status,
+            source_origin,
+            url_origin,
             published_at=updated_at
         )
         self.assertIsNotNone(update_model)
@@ -179,6 +185,7 @@ class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
 class DraftGroupManagerCreateParams(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.site_sport, created = SiteSport.objects.get_or_create(name='nfl')
         self.start              = timezone.now()        # a (timezone aware) datetime object
         self.end                = timezone.now()        # a (timezone aware) datetime object
@@ -214,6 +221,7 @@ class DraftGroupManagerCreateParams(AbstractTest):
 class DraftGroupManagerNoSalaryPool(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.site_sport, created = SiteSport.objects.get_or_create(name='sitesporttest')
 
     def test_draft_group_manager_create_salary_pool_exception(self):
