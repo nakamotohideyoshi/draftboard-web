@@ -200,8 +200,13 @@ app.conf.update(
         ########################################################################
         'nba_generate_salaries_from_statscom': {
             'task': 'salary.tasks.generate_salaries_from_statscom_projections_nba',
-            'schedule': timedelta(minutes=15),
+            'schedule': timedelta(minutes=30),
         },
+
+        # 'nfl_generate_salaries_from_statscom': {
+        #     'task': 'salary.tasks.generate_salaries_from_statscom_projections_nfl',
+        #     'schedule': timedelta(minutes=30),
+        # },
 
 
         #

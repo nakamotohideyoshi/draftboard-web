@@ -286,6 +286,7 @@ class Stats(object):
             return self.get_sport_players().get(first_name=first_name, last_name=last_name)
 
         except (model_class.MultipleObjectsReturned, model_class.DoesNotExist):
+            logger.info('%s.player not found for %s %s' % (self.sport, first_name, last_name))
             # check the lookup table
             return self.find_player_in_lookup_table(first_name, last_name, pid)
 
@@ -300,14 +301,16 @@ class Stats(object):
         returns None if no player could be looked up in /admin/statscom/playerlookup/
         """
         try:
+            logger.debug('find_player_in_lookup_table %s %s' % (first_name, last_name))
             player_lookup = PlayerLookup.objects.get(
                 first_name=first_name, last_name=last_name, pid=pid)
-            if not player_lookup.sport is self.sport.upper():
+            if player_lookup.sport is not self.sport.upper():
                 player_lookup.sport = self.sport.upper()
                 player_lookup.save()
             return player_lookup.player  # may return None if admin has not set it yet
 
         except PlayerLookup.DoesNotExist:
+            logger.info('creating PlayerLookup for %s %s - pid:%s' % (first_name, last_name, pid))
             # create their entry, but theres nothing to return, because a newly created object wont
             # be linked to an actual SR player yet!
             PlayerLookup.objects.create(
@@ -735,7 +738,7 @@ class FantasyProjectionsNBA(FantasyProjections):
                         str(pid), str(first_name + ' ' + last_name), str(position))
                     no_lookups.append(player_string)
                     err_msg = 'COULD NOT LOOKUP -> %s' % player_string
-                    logger.warn(err_msg)
+                    logger.warning(err_msg)
 
                 else:
                     logger.debug('Player found: %s %s' % (first_name, last_name))
@@ -926,11 +929,9 @@ class FantasyProjectionsNFL(FantasyProjections):
             # look up this third party api player in our own db
             player = self.find_player(first_name, last_name, pid)
             if player is None:
-                player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
-                                                                     str(first_name + ' ' + last_name), str(position))
+                player_string = 'pid[%s] player[%s %s] position[%s]' % (pid, first_name, last_name, position)
                 no_lookups.append(player_string)
-                err_msg = 'COULDNT LOOKUP -> %s' % player_string
-                logger.warn(err_msg)
+                logger.warning("Couldn't lookup: %s" % player_string)
                 continue
 
             #
