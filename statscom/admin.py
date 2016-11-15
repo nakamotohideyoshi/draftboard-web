@@ -11,7 +11,6 @@ class PlayerLookupAdmin(admin.ModelAdmin):
     list_filter = ['sport', 'created', 'updated', ]
     search_fields = ['first_name', 'last_name', 'pid']
 
-    @staticmethod
     def remove_selected_players(self, request, queryset):
         """
         deletes the selected objects so the admin can cleanup this admin panel
@@ -24,7 +23,7 @@ class PlayerLookupAdmin(admin.ModelAdmin):
         queryset.delete()
 
         # task finished. presumably salaries have been updated based on latest projections
-        msg = '%s player lookup entries removed.' % (num_players)
+        msg = '%s player lookup entries removed.' % num_players
         messages.success(request, msg)
 
     actions = [
