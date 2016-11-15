@@ -205,17 +205,19 @@ class Stats(object):
         """
         if r.status_code >= 400:
             w = ApiFailureWebhook()
-            err_msg = 'STATS.com api gave us an http status code: %s on the url: %s' % (r.status_code, r.url)
-            err_msg += '\n\n Body of http response: %s' % str(r.text)
-            err_msg += '\n\n Its possible we were rate limited. (ie: "Developer Over Qps")'
-            err_msg += '\n\n If so, you may need to increase the current value of statscom.classes.Stats objects ' \
-                       '"rate_limit_delay_seconds" which is currently [%s] seconds' % str(
-                self.rate_limit_delay_seconds)
+            err_msg = 'STATS.com api gave us an http status code: %s - %s' % (r.status_code, r.text)
             w.send(err_msg)
             client.context.activate()
             client.context.merge({'extra': {
                 'stats_api_request': vars(r),
+                # This is formatted all dumb to sidestep Sentry's built-in filtering which filters out the url because
+                # it contains something it thinks is sensitive info (which technically it is but NBD in our case)
+                'request_url': "request_url: %s" % r.url,
+                'help': ("It's possible we were rate limited. (ie: 'Developer Over Qps') If so, you may need to "
+                         "increase the current value of statscom.classes.Stats objects rate_limit_delay_seconds which "
+                         "is currently [%s] seconds" % self.rate_limit_delay_seconds)
             }})
+
             client.captureMessage(err_msg)
             raise Exception(err_msg)
 
