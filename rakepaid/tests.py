@@ -12,6 +12,7 @@ class PlayerTierTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.user           = self.get_basic_user()
         self.statuses       = LoyaltyStatus.objects.all().order_by('rank')
         size = len(self.statuses)

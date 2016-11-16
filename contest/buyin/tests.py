@@ -10,7 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 from datetime import time
 from dataden.util.timestamp import DfsDateTimeUtil
-from ..classes import ContestCreator
+from ..classes import ContestCreator, ContestPoolCreator
 from ..models import Contest
 from .classes import BuyinManager
 from contest.views import EnterLineupAPIView
@@ -37,6 +37,7 @@ class BuyinTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         # ensure the default ticket
         TicketManager.create_default_ticket_amounts(verbose=False)
         # add funds to user
@@ -99,6 +100,19 @@ class BuyinTest(AbstractTest):
         start = self.games[0].start + timedelta(minutes=5)
         end = self.games[self.games.count() - 1].start  # set 'end' to start of last game
         cc = ContestCreator("test_contest", self.sport, self.prize_structure, start, end)
+        self.draft_group2 = DraftGroup()
+        self.draft_group2.salary_pool = self.salary_pool
+        self.draft_group2.start = start
+        self.draft_group2.end = end
+        self.draft_group2.save()
+
+        self.contest_pool, created = ContestPoolCreator(
+            self.sport,
+            self.prize_structure,
+            start,
+            (end-start).seconds*60,
+            self.draft_group2
+        ).get_or_create()
         self.contest = cc.create()
         self.contest.status = Contest.RESERVABLE
         self.contest.save()
@@ -121,7 +135,7 @@ class BuyinTest(AbstractTest):
 
     def test_simple_buyin(self):
         bm = BuyinManager(self.user)
-        bm.buyin(self.contest)
+        bm.buyin(self.contest_pool)
 
     def test_simple_ticket_buyin(self):
         tm = TicketManager(self.user)
@@ -134,42 +148,38 @@ class BuyinTest(AbstractTest):
             ta.save()
         tm.deposit(amount=self.buyin)
         bm = BuyinManager(self.user)
-        bm.buyin(self.contest)
+        bm.buyin(self.contest_pool)
         tm.ticket.refresh_from_db()
         self.assertEqual((tm.ticket.consume_transaction is not None), True)
 
     def test_lineup_no_contest_draft_group(self):
         lineup = Lineup()
-        lineup.draft_group = self.draft_group
+        lineup.draft_group = self.draft_group2
         lineup.user = self.user
+        lineup.save()
         bm = BuyinManager(self.user)
+        contest_pool = self.contest_pool
+        contest_pool.draft_group = None
+        contest_pool.save()
         self.assertRaises(exceptions.ContestIsNotAcceptingLineupsException,
-                          lambda: bm.buyin(self.contest, lineup))
+                          lambda: bm.buyin(contest_pool, lineup))
 
     def test_lineup_share_draft_group(self):
-        draftgroup2 = DraftGroup()
-        draftgroup2.salary_pool = self.salary_pool
-        draftgroup2.start = self.contest.start
-        draftgroup2.end = self.contest.end
-        draftgroup2.save()
-
         lineup = Lineup()
         lineup.draft_group = self.draft_group
         lineup.user = self.user
 
-        self.contest.draft_group = draftgroup2
-        self.contest.save()
-
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestLineupMismatchedDraftGroupsException,
-                          lambda: bm.buyin(self.contest, lineup))
+                          lambda: bm.buyin(self.contest_pool, lineup))
 
     def test_contest_full(self):
-        self.contest.current_entries = 19
-        self.contest.save()
+        self.contest_pool.current_entries = 19
+        self.contest_pool.entries = 1
+        self.contest_pool.save()
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestIsFullException,
-                          lambda: bm.buyin(self.contest))
+                          lambda: bm.buyin(self.contest_pool))
 
     # def test_contest_is_in_progress(self):
     #     self.contest.status = self.contest.INPROGRESS
@@ -198,27 +208,24 @@ class BuyinTest(AbstractTest):
 
     def test_user_owns_lineup(self):
         lineup = Lineup()
-        lineup.draft_group = self.draft_group
+        lineup.draft_group = self.draft_group2
         lineup.user = self.get_admin_user()
-
-        self.contest.draft_group = self.draft_group
-        self.contest.save()
 
         bm = BuyinManager(self.user)
         self.assertRaises(LineupDoesNotMatchUser,
-                          lambda: bm.buyin(self.contest, lineup))
+                          lambda: bm.buyin(self.contest_pool, lineup))
 
     def test_user_submits_past_max_entries(self):
-        self.contest.max_entries = 1
-        self.contest.entries = 3
-        self.contest.save()
+        self.contest_pool.max_entries = 1
+        self.contest_pool.entries = 3
+        self.contest_pool.save()
 
         bm = BuyinManager(self.user)
-        bm.buyin(self.contest)
+        bm.buyin(self.contest_pool)
 
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestMaxEntriesReachedException,
-                          lambda: bm.buyin(self.contest))
+                          lambda: bm.buyin(self.contest_pool))
 
 # class BuyinRaceTest(AbstractTest):
 #
@@ -299,6 +306,7 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
     """
 
     def setUp(self):
+        super().setUp()
         """
         1. builds the world
 

@@ -18,6 +18,7 @@ class TestSeasonScheduleParser(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.obj_str = """{'id': '350e419b-ffd6-49e3-957a-13626d94391f', 'games__list': {}, 'league__id': 'fd560107-a85b-4388-ab0d-655ad022aff7', '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWRmZDU2MDEwNy1hODViLTQzODgtYWIwZC02NTVhZDAyMmFmZjdpZDM1MGU0MTliLWZmZDYtNDllMy05NTdhLTEzNjI2ZDk0MzkxZg==', 'type': 'PST', 'parent_api__id': 'schedule', 'year': 2015.0, 'dd_updated__id': 1456973805211}"""
         self.season_parser = SeasonSchedule()
 
@@ -41,6 +42,7 @@ class TestGameScheduleParser(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.sport = 'nhl'
         self.season_str = """{'parent_api__id': 'schedule', 'league__id': 'fd560107-a85b-4388-ab0d-655ad022aff7', 'games__list': [{'game': '0a5e53db-e150-4fef-919d-c8ae5dc68453'}, {'game': '9cbfad48-cc50-47f4-86d5-5d03a496e856'}, {'game': 'af0d964a-8720-4880-8cff-54fc98840626'}, {'game': 'f9a0088c-fce4-41ea-8825-3711082e893e'}, {'game': '22129c34-bca0-48ab-a31e-df9b18ac178b'}, {'game': '2a874b94-43f2-492e-9ceb-38e9eb2c2261'}], 'dd_updated__id': 1456973782980, 'id': '9618b7b0-2a86-486d-b256-88748191f854', 'year': 2015.0, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWRmZDU2MDEwNy1hODViLTQzODgtYWIwZC02NTVhZDAyMmFmZjdpZDk2MThiN2IwLTJhODYtNDg2ZC1iMjU2LTg4NzQ4MTkxZjg1NA==', 'type': 'REG'}"""
         self.away_team_str = """{'parent_api__id': 'hierarchy', 'market': 'San Jose', 'league__id': 'fd560107-a85b-4388-ab0d-655ad022aff7', 'conference__id': '64901512-9ca9-4bea-aa80-16dbcbdae230', 'division__id': '17101b65-e8b9-4cda-a963-eea874aed81f', 'alias': 'SJ', 'venue': '1da65282-af4c-4b81-a9de-344b76bb20b0', 'id': '44155909-0f24-11e2-8525-18a905767e44', 'dd_updated__id': 1456973147878, 'name': 'Sharks', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkZmQ1NjAxMDctYTg1Yi00Mzg4LWFiMGQtNjU1YWQwMjJhZmY3Y29uZmVyZW5jZV9faWQ2NDkwMTUxMi05Y2E5LTRiZWEtYWE4MC0xNmRiY2JkYWUyMzBkaXZpc2lvbl9faWQxNzEwMWI2NS1lOGI5LTRjZGEtYTk2My1lZWE4NzRhZWQ4MWZpZDQ0MTU1OTA5LTBmMjQtMTFlMi04NTI1LTE4YTkwNTc2N2U0NA=='}"""
@@ -82,6 +84,7 @@ class TestEventPbp(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.obj_str = """{'o': {'parent_list__id': 'events__list', 'description': 'Kris Letang shot blocked by Tyler Seguin', 'id': '6c55cd4a-ceef-4a16-ad25-92295246e1b0', 'event_type': 'shotmissed', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDg2NDViYzQ0LWEyYmYtNDkyYi1hMGU3LTg1MDAyYWM2OTc4Y3BlcmlvZF9faWQ4NTY4OGVmZS0zN2YxLTRjOTMtYmE3MS00YzA1NmQ2MTk5NzJwYXJlbnRfbGlzdF9faWRldmVudHNfX2xpc3RpZDZjNTVjZDRhLWNlZWYtNGExNi1hZDI1LTkyMjk1MjQ2ZTFiMA==', 'zone': 'offensive', 'dd_updated__id': 1444379408289, 'statistics__list': {'block__list': {'player': '42ea7555-0f24-11e2-8525-18a905767e44', 'strength': 'even', 'team': '44157522-0f24-11e2-8525-18a905767e44'}, 'attemptblocked__list': {'player': '4342422b-0f24-11e2-8525-18a905767e44', 'strength': 'even', 'team': '4417b7d7-0f24-11e2-8525-18a905767e44'}}, 'parent_api__id': 'pbp', 'period__id': '85688efe-37f1-4c93-ba71-4c056d619972', 'clock': '5:47', 'attribution': '4417b7d7-0f24-11e2-8525-18a905767e44', 'updated': '2015-10-09T01:12:33+00:00', 'location__list': {'coord_x': 1683.0, 'coord_y': 282.0}, 'game__id': '8645bc44-a2bf-492b-a0e7-85002ac6978c'}, 'ns': 'nhl.event', 'ts': 1454659978}"""
         self.data = literal_eval(self.obj_str) # convert to dict
         self.oplog_obj = OpLogObj(self.data)

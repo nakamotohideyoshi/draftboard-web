@@ -31,6 +31,7 @@ from django.contrib.contenttypes.models import ContentType
 class AccountsViewsTest(TestCase):
 
     def setUp(self):
+        super().setUp()
         self.client = Client()
 
     def test_default_password_change_view_inaccessible(self):
@@ -222,6 +223,7 @@ class AddSavedCardAPI_TestMissingInformation(
         APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
 
     def setUp(self):
+        super().setUp()
         # the view class
         self.view = PayPalSavedCardAddAPIView
         # the url of the endpoint and a default user
@@ -251,6 +253,7 @@ class AddSavedCardAPI_TestEmptyPostParams(
         APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
 
     def setUp(self):
+        super().setUp()
         # the view class
         self.view = PayPalSavedCardAddAPIView
         # the url of the endpoint and a default user
@@ -269,6 +272,7 @@ class AddSavedCardAPI_TestEmptyPostParams(
 class CheckUserAccessTest(TestCase, MasterAbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
         self.blocked_ip = '66.228.119.72'
         self.blocked_ip_country = '194.44.221.54'
