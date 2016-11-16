@@ -20,61 +20,62 @@ from cash.models import CashAmount
 from ticket.models import TicketAmount
 from django.db.transaction import atomic
 
+
 class Generator(object):
     """
     Generate a prize structure, given some basic information about its size and prizepool, etc...
 
     """
+
     def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True, verbose=False):
-        self.buyin                  = buyin
-        self.first_place            = first_place
+        self.buyin = buyin
+        self.first_place = first_place
         if prize_pool % self.buyin != 0:
             raise InvalidBuyinAndPrizePoolException()
         if round_payouts < self.buyin or round_payouts % buyin != 0:
             raise InvalidArgumentException(type(self).__name__,
-                    'round_payouts must be greater than or equal to, and a also a multiple of the buyin')
-        self.round_payouts          = round_payouts
-        self.payout_spots           = payout_spots
-        self.prize_pool             = prize_pool
-        self.modified_prize_pool    = prize_pool
+                                           'round_payouts must be greater than or equal to, and a also a multiple of the buyin')
+        self.round_payouts = round_payouts
+        self.payout_spots = payout_spots
+        self.prize_pool = prize_pool
+        self.modified_prize_pool = prize_pool
 
-        self.exact                  = exact
+        self.exact = exact
 
-        self.multiplier             = 0
-        self.final_x                = 0.0
+        self.multiplier = 0
+        self.final_x = 0.0
         self.update_prize_pool()
 
         self.prize_list = None
         self.range_list = None
-        self.__build_prize_list()         # so every time we get it we dont have to build it
+        self.__build_prize_list()  # so every time we get it we dont have to build it
 
         if verbose:
             self.print_each_position()
 
     def update_prize_pool(self):
-        best_x          = None
+        best_x = None
         best_multiplier = None
         best_prize_pool = None
         top_range = 100
         for x in range(1, top_range):
-            x = x/top_range
+            x = x / top_range
             temp_prize_pool = self.get_sum_equation(x)
             if temp_prize_pool > self.prize_pool:
                 remainder = temp_prize_pool - self.prize_pool
                 if remainder == 0:
-                    best_x          = x
+                    best_x = x
                     best_multiplier = 0
                     best_prize_pool = self.prize_pool
                     break
-                if (remainder % self.buyin) == 0 :
+                if (remainder % self.buyin) == 0:
                     m = remainder / self.buyin
-                    if(best_x == None or best_multiplier > m):
-                        best_x          = x
+                    if (best_x == None or best_multiplier > m):
+                        best_x = x
                         best_multiplier = m
                         best_prize_pool = self.prize_pool + (self.buyin * best_multiplier)
 
-
-        if(best_x == None):
+        if (best_x == None):
             raise PrizeGenerationException()
 
         self.final_x = best_x
@@ -87,20 +88,20 @@ class Generator(object):
         :return:
         """
 
-        #print('__build_prize_list')
+        # print('__build_prize_list')
         self.prize_list = []
-        for i in range(1, self.payout_spots+1):
-            self.prize_list.append( (i, self.equation(i, self.final_x) ) )
+        for i in range(1, self.payout_spots + 1):
+            self.prize_list.append((i, self.equation(i, self.final_x)))
 
         if self.exact:
-            #print('exact')
+            # print('exact')
             # take buyins off the end until we have the original
             # prize pool specified (no added buyins from alogrithm)
             prize_list_with_extra_buyins = list(self.prize_list)
-            #print('prize_list_with_extra_buyins', prize_list_with_extra_buyins)
+            # print('prize_list_with_extra_buyins', prize_list_with_extra_buyins)
             self.prize_list = []
             original_prize_pool_remaining = self.prize_pool
-            #print('original_prize_pool_remaining', original_prize_pool_remaining)
+            # print('original_prize_pool_remaining', original_prize_pool_remaining)
             for rank, value in prize_list_with_extra_buyins:
                 if original_prize_pool_remaining <= 0:
                     break
@@ -108,26 +109,26 @@ class Generator(object):
                     original_prize_pool_remaining -= value
                     new_prize = value
                 else:
-                    new_prize = original_prize_pool_remaining # the difference
+                    new_prize = original_prize_pool_remaining  # the difference
                     original_prize_pool_remaining -= value
 
-                self.prize_list.append( (rank, new_prize) )
+                self.prize_list.append((rank, new_prize))
         else:
             print('not exact - prizes modified potentially')
             pass
 
         data = {}
-        #total = 0
+        # total = 0
         for prize in self.prize_list:
-            #total += prize[1]
+            # total += prize[1]
             try:
-                data[ prize[1] ].append( prize[0] )
+                data[prize[1]].append(prize[0])
             except KeyError:
-                data[ prize[1] ] = [ prize[0] ]
+                data[prize[1]] = [prize[0]]
 
         # print('total:', total)
-        ordered_data = OrderedDict( sorted(data.items(), key=lambda t: t[1]) )
-        self.range_list = list( ordered_data.items() )
+        ordered_data = OrderedDict(sorted(data.items(), key=lambda t: t[1]))
+        self.range_list = list(ordered_data.items())
 
     def get_buyin(self):
         """ return the 'buyin' seed value  """
@@ -167,16 +168,16 @@ class Generator(object):
 
     def get_sum_equation(self, x):
         sum = 0
-        for i in range(1, self.payout_spots+1):
+        for i in range(1, self.payout_spots + 1):
             sum += self.equation(i, x)
-        #print("x:"+str(x)+"  sum:"+str(sum))
+        # print("x:"+str(x)+"  sum:"+str(sum))
 
         return sum
 
-    def equation(self, i , x):
+    def equation(self, i, x):
         return self.roundup((self.first_place * (math.pow(i, -x))))
 
-    def roundup(self,x):
+    def roundup(self, x):
         return int(math.ceil(x / self.round_payouts)) * self.round_payouts
 
     def print_each_position(self):
@@ -186,12 +187,12 @@ class Generator(object):
 
 
         total = 0
-        for rank,value in self.get_prize_list():
+        for rank, value in self.get_prize_list():
             total += value
-            print( str(rank) + ':' + str(value) )
-        print('original prize pool       :'+str(self.prize_pool))
-        print("modified prize pool       :"+str(self.modified_prize_pool))
-        print("additional buyins required:"+str(self.multiplier))
+            print(str(rank) + ':' + str(value))
+        print('original prize pool       :' + str(self.prize_pool))
+        print("modified prize pool       :" + str(self.modified_prize_pool))
+        print("additional buyins required:" + str(self.multiplier))
         print('total after exact fix     :', total)
 
     def get_generator_settings_instance(self):
@@ -199,13 +200,14 @@ class Generator(object):
         Return a newly save()'ed GeneratorSettings model based on this Generator's settings
         """
         gs = GeneratorSettings()
-        gs.buyin            = self.get_buyin()
-        gs.first_place      = self.get_first_place()
-        gs.round_payouts    = self.get_round_payouts()
-        gs.payout_spots     = self.get_payout_spots()
-        gs.prize_pool       = self.get_prize_pool()
+        gs.buyin = self.get_buyin()
+        gs.first_place = self.get_first_place()
+        gs.round_payouts = self.get_round_payouts()
+        gs.payout_spots = self.get_payout_spots()
+        gs.prize_pool = self.get_prize_pool()
         gs.save()
         return gs
+
 
 class AbstractPrizeStructureCreator(object):
     """
@@ -217,17 +219,18 @@ class AbstractPrizeStructureCreator(object):
 
     """
 
-    class InvalidSettingsException(Exception): pass
+    class InvalidSettingsException(Exception):
+        pass
 
     DEFAULT_NAME = 'new prize structure'
 
     def __init__(self, amount_model, name='default'):
-        self.prize_structure        = None
-        self.buyin                  = None
-        self.prize_structure_model  = PrizeStructure
-        self.rank_model             = Rank
-        self.ranks                  = None  # list of the rank instances once generated
-        self.added_ranks            = []    # if ranks are added to this class, add them as (rank, value) tuples here
+        self.prize_structure = None
+        self.buyin = None
+        self.prize_structure_model = PrizeStructure
+        self.rank_model = Rank
+        self.ranks = None  # list of the rank instances once generated
+        self.added_ranks = []  # if ranks are added to this class, add them as (rank, value) tuples here
 
         if not amount_model:
             raise VariableNotSetException(type(self).__name__, 'amount_model')
@@ -235,23 +238,23 @@ class AbstractPrizeStructureCreator(object):
             raise IncorrectVariableTypeException(type(self).__name__, 'amount_model')
         self.amount_model = amount_model
 
-        self.name = self.get_unique_name( name ) # return a name based on the one specified that is unique
+        self.name = self.get_unique_name(name)  # return a name based on the one specified that is unique
 
     def get_unique_name(self, name):
         """
         If name is non-empty string, try to use it -- just add a number on it if it exists.
         """
         if name:
-            n_similar_names = len( self.prize_structure_model.objects.filter( name__istartswith=name ) )
+            n_similar_names = len(self.prize_structure_model.objects.filter(name__istartswith=name))
             if n_similar_names > 0:
                 return name + str(n_similar_names)
             return name
 
         else:
             # generate a random name
-            n_similar_names = len( self.prize_structure_model.objects.filter( name__istartswith=self.DEFAULT_NAME ) )
+            n_similar_names = len(self.prize_structure_model.objects.filter(name__istartswith=self.DEFAULT_NAME))
             if n_similar_names:
-                return '%s %s' % ( self.DEFAULT_NAME, str(n_similar_names) )
+                return '%s %s' % (self.DEFAULT_NAME, str(n_similar_names))
             return self.DEFAULT_NAME
 
     def set_buyin(self, value):
@@ -272,7 +275,7 @@ class AbstractPrizeStructureCreator(object):
         """
         if self.ranks:
             raise Exception('You can not add rank/values to this object, because it has already been created.')
-        self.added_ranks.append( (rank, value) )
+        self.added_ranks.append((rank, value))
 
     def __str__(self):
         """
@@ -283,7 +286,7 @@ class AbstractPrizeStructureCreator(object):
         #     s += '    %s\n' % str(self.prize_structure.generator_settings)
         for r in self.ranks:
             s += '    %s\n' % str(r)
-        return s.strip() # strip off leading & trailing whitespace/newlines
+        return s.strip()  # strip off leading & trailing whitespace/newlines
 
     @atomic
     def save(self):
@@ -298,8 +301,8 @@ class AbstractPrizeStructureCreator(object):
         """
 
         # create the PrizeStructure
-        self.prize_structure        = self.prize_structure_model()
-        self.prize_structure.name   = self.name
+        self.prize_structure = self.prize_structure_model()
+        self.prize_structure.name = self.name
         self.prize_structure.save()
 
         # create the ranks
@@ -308,25 +311,25 @@ class AbstractPrizeStructureCreator(object):
             self.ranks = []
         for rank_number, prize_value in self.added_ranks:
             # use the internal amount_model to get the right type of amount
-            r                   = self.rank_model()
-            r.prize_structure   = self.prize_structure
-            r.rank              = rank_number
-            r.amount            = self.get_amount_instance( prize_value )
+            r = self.rank_model()
+            r.prize_structure = self.prize_structure
+            r.rank = rank_number
+            r.amount = self.get_amount_instance(prize_value)
             r.save()
 
             # sum all the values
-            total_prize_value += float( r.value )
+            total_prize_value += float(r.value)
 
             # if that worked, add it to the list of rank instances
-            self.ranks.append( r )
+            self.ranks.append(r)
 
-        # try:
+            # try:
             settings = GeneratorSettings()
-            settings.buyin          = self.buyin
-            settings.first_place    = self.ranks[0].value
-            settings.round_payouts  = 0
-            settings.payout_spots   = len(self.ranks)
-            settings.prize_pool     = total_prize_value
+            settings.buyin = self.buyin
+            settings.first_place = self.ranks[0].value
+            settings.round_payouts = 0
+            settings.payout_spots = len(self.ranks)
+            settings.prize_pool = total_prize_value
             settings.save()
         # except:
         #     raise self.InvalidSettingsException('buy, first_place, payout_spots, or prize_pool not set, or calculated improperly')
@@ -343,10 +346,11 @@ class AbstractPrizeStructureCreator(object):
         NOTE: for Ticket related Amounts - you should get an existing and never create,
                 (so the TicketPrizeStructureCreator should override this method.)
         """
-        print( self.amount_model )
+        print(self.amount_model)
         amount_instance, created = self.amount_model.objects.get_or_create(amount=amount)
         # 'created' is a boolean which indicates if the object was created, or simply retrieved
         return amount_instance
+
 
 class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
     """
@@ -363,13 +367,13 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
         :param name:
         :return:
         """
-        super().__init__( CashAmount, name )
+        super().__init__(CashAmount, name)
 
-        self.generator          = generator     # an instance of the class
+        self.generator = generator  # an instance of the class
         if self.generator:
             self.buyin = generator.buyin
             for rank, value in self.generator.get_prize_list():
-                self.add( rank, value )
+                self.add(rank, value)
 
     def get_generator_settings(self):
         """
@@ -391,7 +395,7 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
         if self.generator and len(self.added_ranks) >= len(self.generator.get_prize_list()):
             raise Exception('You may not call add(rank,value) if the prize structure was created with a generator')
 
-        super().add( rank, value )
+        super().add(rank, value)
 
     @atomic
     def save(self):
@@ -414,7 +418,8 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
         s = super().__str__()
         if self.prize_structure.generator_settings:
             s += '\n    %s' % str(self.prize_structure.generator_settings)
-        return s # strip off leading & trailing whitespace/newlines
+        return s  # strip off leading & trailing whitespace/newlines
+
 
 class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
     """
@@ -429,16 +434,16 @@ class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
 
     """
 
-    #class InvalidFlatPrizeStructureException(Exception): pass
+    # class InvalidFlatPrizeStructureException(Exception): pass
 
     def __init__(self, buyin, amount_model_class, payout_value, number_of_prizes, name=''):
         super().__init__(amount_model_class, name=name)
 
         # set values
         self.set_buyin(buyin)
-        self.number_of_prizes   = number_of_prizes
-        self.payout_value       = payout_value                      # the value of each payout spot
-        self.prize_pool         = number_of_prizes * payout_value
+        self.number_of_prizes = number_of_prizes
+        self.payout_value = payout_value  # the value of each payout spot
+        self.prize_pool = number_of_prizes * payout_value
 
         # validate these settings will work
         self.validate_params()
@@ -466,12 +471,12 @@ class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
 
         # since it a flat structure, just add all the ranks
         for i in range(self.number_of_prizes):
-            self.add( i+1, self.payout_value )
+            self.add(i + 1, self.payout_value)
 
         # create the PrizeStructure
-        self.prize_structure            = self.prize_structure_model()
-        self.prize_structure.name       = self.name
-        self.prize_structure.generator  = self.create_flat_structure_generator_settings()
+        self.prize_structure = self.prize_structure_model()
+        self.prize_structure.name = self.name
+        self.prize_structure.generator = self.create_flat_structure_generator_settings()
         self.prize_structure.save()
 
         # create the ranks
@@ -479,13 +484,13 @@ class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
             self.ranks = []
         for rank_number, prize_value in self.added_ranks:
             # use the internal amount_model to get the right type of amount
-            r                   = self.rank_model()
-            r.prize_structure   = self.prize_structure
-            r.rank              = rank_number
-            r.amount            = self.get_amount_instance( prize_value )
+            r = self.rank_model()
+            r.prize_structure = self.prize_structure
+            r.rank = rank_number
+            r.amount = self.get_amount_instance(prize_value)
             r.save()
             # if that worked, add it to the list of rank instances
-            self.ranks.append( r )
+            self.ranks.append(r)
 
         return self.prize_structure
 
@@ -501,22 +506,24 @@ class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
         some of the values for this Flat prize structure
         """
         gs = GeneratorSettings()
-        gs.buyin            = self.buyin
-        gs.first_place      = self.payout_value
-        gs.round_payouts    = self.buyin                    # just use the buyin
-        gs.payout_spots     = self.number_of_prizes
-        gs.prize_pool       = self.payout_value * self.number_of_prizes
+        gs.buyin = self.buyin
+        gs.first_place = self.payout_value
+        gs.round_payouts = self.buyin  # just use the buyin
+        gs.payout_spots = self.number_of_prizes
+        gs.prize_pool = self.payout_value * self.number_of_prizes
         gs.save()
         return gs
 
-class TicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
-     """
-     Used to create a prize structure based on TicketAmount's
-     where all payout spots receive the same payout value!
-     """
 
-     def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
-         super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
+class TicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
+    """
+    Used to create a prize structure based on TicketAmount's
+    where all payout spots receive the same payout value!
+    """
+
+    def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
+        super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
+
 
 class FlatCashPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     """
@@ -526,6 +533,7 @@ class FlatCashPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
 
     def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
         super().__init__(buyin, CashAmount, ticket_value, number_of_prizes, name=name)
+
 
 class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     """
@@ -539,7 +547,7 @@ class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
         # we can infer the # of entries for FLAT ticket structures!
         self.entries = (self.payout_value * number_of_prizes) / 0.9
         if entries is not None:
-            self.entries = entries # not positive why we would want to force it
+            self.entries = entries  # not positive why we would want to force it
 
         # given a flat 10% rake across the board,
         # the number of prizes actually MUST be
@@ -569,7 +577,7 @@ class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
             raise BuyinNotLessThanEachTicketException(err_msg)
 
         try:
-            ta = TicketAmount.objects.get( amount=self.payout_value )
+            ta = TicketAmount.objects.get(amount=self.payout_value)
         except TicketAmount.DoesNotExist:
             raise NoMatchingTicketException(str(self.payout_value))
 
@@ -598,9 +606,9 @@ class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
         print all possible FlatTicketPrizeStructures where the
         total number of entries in each structure is <= 'max_entries'
         """
-        ticket_amounts = [ float(ta.amount) for ta in TicketAmount.objects.all() ]
+        ticket_amounts = [float(ta.amount) for ta in TicketAmount.objects.all()]
         buyin_amounts = list(ticket_amounts)
-        print( 'ticket_amounts %s' % str(ticket_amounts) )
+        print('ticket_amounts %s' % str(ticket_amounts))
 
         for buyin in buyin_amounts:
             print('$%s buyin' % str(buyin))
@@ -610,7 +618,7 @@ class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
                 print('    $%s ticket' % str(ticket))
                 entries = 5
                 while entries <= max_entries:
-                    prize_pool = entries * buyin * 0.9 # prizepool is # entries * buyin * (1.0 - rake)
+                    prize_pool = entries * buyin * 0.9  # prizepool is # entries * buyin * (1.0 - rake)
                     tickets = float(prize_pool) / float(ticket)
                     fraction = tickets % 1
                     if fraction < 0.0001:
