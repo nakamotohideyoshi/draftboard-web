@@ -346,7 +346,7 @@ class AbstractPrizeStructureCreator(object):
         NOTE: for Ticket related Amounts - you should get an existing and never create,
                 (so the TicketPrizeStructureCreator should override this method.)
         """
-        print(self.amount_model)
+        # print(self.amount_model)
         amount_instance, created = self.amount_model.objects.get_or_create(amount=amount)
         # 'created' is a boolean which indicates if the object was created, or simply retrieved
         return amount_instance

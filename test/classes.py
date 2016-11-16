@@ -441,7 +441,7 @@ def create_site_sports():
             # create it
             site_sport, created = SiteSport.objects.get_or_create(name=sport,
                                                                   current_season=current_season)
-        print('SiteSport [%s] just created -> %s' % (str(site_sport), str(created)))
+        # print('SiteSport [%s] just created -> %s' % (str(site_sport), str(created)))
 
 
 class BuildWorldForTesting(object):
