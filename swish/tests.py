@@ -19,7 +19,7 @@ from util.utctime import UtcTime
 class UpdateDataTest(AbstractTest):
 
     def setUp(self):
-        pass
+        super().setUp()
 
     def test_1(self):
         data_str = """{"id": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
@@ -41,7 +41,7 @@ class UpdateDataTest(AbstractTest):
 class SwishTest(AbstractTest):
 
     def setUp(self):
-        pass
+        super().setUp()
 
     def test_1(self):
         data = """{

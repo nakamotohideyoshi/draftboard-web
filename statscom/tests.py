@@ -8,6 +8,7 @@ from statscom.player import get_fantasy_point_projection_from_stats_projection
 
 class ResponseDataParserTest(AbstractTest):
     def setUp(self):
+        super().setUp()
         self.parser_class = ResponseDataParser
         self.data = {
             'apiResults': [
@@ -41,6 +42,7 @@ class ResponseDataParserTest(AbstractTest):
 
 class NFLPlayerProjectionParser(AbstractTest):
     def setUp(self):
+        super().setUp()
         self.data = {
             'attempts': '40',
             'chance100RushYards': '.015928072',
@@ -76,6 +78,7 @@ class NFLPlayerProjectionParser(AbstractTest):
 
 class StatsUrlAuthParamTest(AbstractTest):
     def setUp(self):
+        super().setUp()
         self.sport = 'nfl'
 
     def test_1(self):
@@ -95,6 +98,7 @@ class StatsUrlAuthParamTest(AbstractTest):
 
 class StatsProjectionsWeekTest(AbstractTest):
     def setUp(self):
+        super().setUp()
         self.sport = 'nfl'
 
     def test_1(self):
