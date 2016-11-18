@@ -3,7 +3,7 @@ from prize.views import (
     # CreatePrizeStructureView,
     # PrizeGeneratorView,
     # TicketPrizeStructureCreatorView,
-    # FlatCashPrizeStructureCreatorView,
+    FlatCashPrizeStructureCreatorView,
     PrizeStructureAPIView,
 )
 
@@ -18,8 +18,8 @@ urlpatterns = [
     # # ticket prize structure creator view
     # url(r'^ticket/$', TicketPrizeStructureCreatorView.as_view()),
     #
-    # # flat cash prize structure (for 50-50's and triple ups)
-    # url(r'^flat/$', FlatCashPrizeStructureCreatorView.as_view()),
+    # flat cash prize structure (for 50-50's and triple ups)
+    url(r'^flat/$', FlatCashPrizeStructureCreatorView.as_view()),
 
     #
     url(r'^(?P<id>[0-9]+)/$', PrizeStructureAPIView.as_view()),
