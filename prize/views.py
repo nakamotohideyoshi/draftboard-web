@@ -1,4 +1,5 @@
 import json
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import render
 from rest_framework.response import Response
 from django.views.generic import TemplateView, View
@@ -12,7 +13,7 @@ from prize.classes import (
 from prize.forms import PrizeGeneratorForm, TicketPrizeCreatorForm, FlatCashPrizeCreatorForm
 from prize.serializers import PrizeStructureSerializer
 from prize.models import PrizeStructure
-from rest_framework.exceptions import  NotFound
+from rest_framework.exceptions import NotFound
 
 
 class PrizeStructureAPIView(generics.GenericAPIView):
@@ -59,10 +60,10 @@ class PieDataObj(object):
         return self.data
 
 
-class PrizeGeneratorView(View):
+class PrizeGeneratorView(LoginRequiredMixin, PermissionRequiredMixin, View):
     template_name = 'prize_generator.html'
     form_class = PrizeGeneratorForm
-
+    permission_required = 'superuser'
     initial = {
         'buyin': 10,
         'first_place': 1000,
@@ -191,20 +192,18 @@ class PrizeGeneratorView(View):
         return render(request, self.template_name, context)
 
 
-class CreatePrizeStructureView(TemplateView):
+class CreatePrizeStructureView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """
     Usage:
 
         http://localhost:8888/prize/create-prize-structure/?b=10&fp=1700&rp=10&ps=120&pp=10000
-
     """
     template_name = 'create_prize_structure.html'
-
     #
     # this will be set after the GET
     prize_generator = None
+    permission_required = 'superuser'
 
-    #
     # get front end arguments #TODO
     def get(self, request, *args, **kwargs):
         print(str(request.GET))
@@ -308,12 +307,11 @@ class CreatePrizeStructureView(TemplateView):
         return context
 
 
-class TicketPrizeStructureCreatorView(View):
+class TicketPrizeStructureCreatorView(LoginRequiredMixin, PermissionRequiredMixin, View):
     """
     This view uses FlatTicketPrizeStructureCreator to help create
     a prize structure with an even 10% total rake.
     """
-
     template_name = 'ticket_prize_creator.html'
     form_class = TicketPrizeCreatorForm  # this is for FLAT structures
     initial = {
@@ -322,6 +320,7 @@ class TicketPrizeStructureCreatorView(View):
         'num_prizes': 25,
         'create': False
     }
+    permission_required = 'superuser'
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)
@@ -411,7 +410,8 @@ class TicketPrizeStructureCreatorView(View):
         return render(request, self.template_name, context)
 
 
-class FlatCashPrizeStructureCreatorView(View):
+class FlatCashPrizeStructureCreatorView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'superuser'
     template_name = 'flat_cash_prize_creator.html'
     form_class = FlatCashPrizeCreatorForm
     initial = {
