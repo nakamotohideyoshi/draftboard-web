@@ -1,3 +1,4 @@
+from raven.contrib.django.raven_compat.models import client
 import time
 import hashlib
 import json
@@ -5,8 +6,12 @@ import requests
 import csv
 import urllib.parse
 import datetime
+import pytz
 from django.conf import settings
 from salary.classes import PlayerProjection
+from scoring.models import StatPoint
+from .player import get_fantasy_point_projection_from_stats_projection
+from .constants import STATPOINT_TO_STATSCOM_NBA
 from sports.classes import SiteSportManager
 import draftgroup.classes
 from statscom.models import (
@@ -15,11 +20,12 @@ from statscom.models import (
 from util.slack import Webhook
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('statscom.classes')
+# For all scheduling purposes, EST is assumed
+tz = pytz.timezone('America/New_York')
 
 
 class ProjectionsWeekWebhook(Webhook):
-
     # its a piece of the full url from something like this:
     # https://hooks.slack.com/services/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
     identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
@@ -199,13 +205,21 @@ class Stats(object):
         """
         if r.status_code >= 400:
             w = ApiFailureWebhook()
-            err_msg = 'STATS.com api gave us an http status code: %s' % (str(r.status_code))
-            err_msg += '\n\n Body of http response: %s' % str(r.text)
-            err_msg += '\n\n Its possible we were rate limited. (ie: "Developer Over Qps")'
-            err_msg += '\n\n If so, you may need to increase the current value of statscom.classes.Stats objects ' \
-                       '"rate_limit_delay_seconds" which is currently [%s] seconds' % str(
-                           self.rate_limit_delay_seconds)
+            err_msg = 'STATS.com api gave us an http status code: %s - %s' % (r.status_code, r.text)
             w.send(err_msg)
+            client.context.activate()
+            client.context.merge({'extra': {
+                'stats_api_request': vars(r),
+                # This is formatted all dumb to sidestep Sentry's built-in filtering which filters out the url because
+                # it contains something it thinks is sensitive info (which technically it is but NBD in our case)
+                'request_url': "request_url: %s" % r.url,
+                'help': ("It's possible we were rate limited. (ie: 'Developer Over Qps') If so, you may need to "
+                         "increase the current value of statscom.classes.Stats objects rate_limit_delay_seconds which "
+                         "is currently [%s] seconds" % self.rate_limit_delay_seconds)
+            }})
+
+            client.captureMessage(err_msg)
+            raise Exception(err_msg)
 
     def api(self, endpoint, format=None, verbose=True, params={}):
         """
@@ -232,7 +246,9 @@ class Stats(object):
 
         # check if there is an error
         msg = self.data.get(self.field_message)
-        logger.info('self.data "%s" -> %s' % (self.field_message, str(msg)))
+        if msg:
+            logger.error(msg)
+            client.captureMessage(msg)
 
         # if no self.parser_class is set, return the entire json response
         if self.parser_class is None:
@@ -270,10 +286,12 @@ class Stats(object):
             return self.get_sport_players().get(first_name=first_name, last_name=last_name)
 
         except (model_class.MultipleObjectsReturned, model_class.DoesNotExist):
+            logger.info('%s.player not found for %s %s' % (self.sport, first_name, last_name))
             # check the lookup table
             return self.find_player_in_lookup_table(first_name, last_name, pid)
 
-        # raise Exception('statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
+            # raise Exception(
+            # 'statscom.classes Stats instance - find_player() ERROR - pid[%s] %s %s' % (pid, first_name, last_name))
 
     def find_player_in_lookup_table(self, first_name, last_name, pid):
         """
@@ -282,19 +300,26 @@ class Stats(object):
 
         returns None if no player could be looked up in /admin/statscom/playerlookup/
         """
-
         try:
+            logger.debug('find_player_in_lookup_table %s %s' % (first_name, last_name))
             player_lookup = PlayerLookup.objects.get(
                 first_name=first_name, last_name=last_name, pid=pid)
+            if player_lookup.sport is not self.sport.upper():
+                player_lookup.sport = self.sport.upper()
+                player_lookup.save()
             return player_lookup.player  # may return None if admin has not set it yet
 
         except PlayerLookup.DoesNotExist:
+            logger.info('creating PlayerLookup for %s %s - pid:%s' % (first_name, last_name, pid))
             # create their entry, but theres nothing to return, because a newly created object wont
             # be linked to an actual SR player yet!
-            player_lookup = PlayerLookup.objects.create(
-                first_name=first_name, last_name=last_name, pid=pid)
+            PlayerLookup.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                pid=pid,
+                sport=self.sport.upper(),
+            )
 
-        #
         return None
 
 
@@ -312,14 +337,16 @@ class DailyGamesNBA(Stats):
         """
         calls the api to get the current day's games.
         """
+        logger.info('Fetching NBA games for: Today')
         return self.api(self.endpoint_daily_games)
 
     def get_tomorrows_games(self):
         """
         Calls the stats api to get tomorrow's games. format: (YYYY-MM-DD)
         """
-        today = datetime.date.today()
-        tomorrow = today + datetime.timedelta(days=1)
+        now = datetime.datetime.now(tz)
+        tomorrow = now + datetime.timedelta(days=1)
+        logger.info('Fetching NBA games for: %s' % tomorrow.strftime('%Y-%m-%d'))
         return self.api(self.endpoint_daily_games, params={'date': tomorrow.strftime('%Y-%m-%d')})
 
     def get_event_ids(self, data=None):
@@ -350,7 +377,6 @@ class DailyGamesNBA(Stats):
 
 
 class DailyGamesMLB(Stats):
-
     endpoint_daily_games = '/stats/baseball/mlb/box/'
 
     def __init__(self):
@@ -364,18 +390,16 @@ class DailyGamesMLB(Stats):
 
 
 class PlayersParser(ResponseDataParser):
-
     field_players = 'players'
 
     def get_data(self):
         data = super().get_data()
         players = data.get(self.field_players, [])
-        logger.info('%s players' % (str(len(players))))  # TODO remove debug
+        logger.info('%s players' % (str(len(players))))
         return players
 
 
 class PlayersNBA(Stats):
-
     parser_class = PlayersParser
     endpoint = '/stats/basketball/nba/participants/'
 
@@ -458,7 +482,6 @@ class PlayersNBA(Stats):
 
 
 class PlayersMLB(Stats):
-
     parser_class = PlayersParser
     endpoint = '/stats/baseball/mlb/participants/'
 
@@ -471,7 +494,6 @@ class PlayersMLB(Stats):
 
 
 class ProjectionsParser(ResponseDataParser):
-
     class ProjectionsNotFound(Exception):
         pass
 
@@ -497,7 +519,6 @@ class ProjectionsParser(ResponseDataParser):
 
 
 class FantasyProjections(Stats):
-
     player_projection_class = PlayerProjection
 
     parser_class = ProjectionsParser
@@ -579,14 +600,16 @@ class FantasyProjectionsNBA(FantasyProjections):
     """
 
     endpoint_fantasy_projections = '/stats/basketball/nba/fantasyProjections/'
-
     field_fantasy_projections = 'fantasyProjections'
+    stat_map = STATPOINT_TO_STATSCOM_NBA
 
     def __init__(self):
         super().__init__('nba')
 
         # this instance lets us get player data by players' stats.com id
         self.players = PlayersNBA()
+        self.scoring_system_stat_points = StatPoint.objects.filter(score_system__sport='nba')
+        logger.info('Using scoring system: %s' % self.scoring_system_stat_points)
 
     def get_projections(self, event_id):
         """
@@ -603,7 +626,7 @@ class FantasyProjectionsNBA(FantasyProjections):
         if event_ids is None:
             # get the daily event ids
             event_ids = DailyGamesNBA().get_event_ids()
-            logger.info('   DailyGamesNBA().get_event_ids() -> %s' % str(event_ids))
+            logger.info('DailyGamesNBA().get_event_ids() -> %s' % event_ids)
 
         if isinstance(event_ids, int):
             # create a list of the single event id
@@ -619,10 +642,18 @@ class FantasyProjectionsNBA(FantasyProjections):
         # initialize the list of players that werent found when we looked them up
         no_lookups = []
 
+        # For each game, get projected player stats. > Based on DK+FD projections.
         for event_id in event_ids:
             player_projection_list, no_lookups_list = self.__get_player_projections(event_id)
             player_projections.extend(player_projection_list)
             no_lookups.extend(no_lookups_list)
+            logger.info('player_projections count for event.id %s: %s' % (event_id, len(player_projections)))
+
+        log_msg = ''
+        for projection in player_projections:
+            log_msg += '%s: %s fp points\n' % (projection.player, projection.fantasy_points)
+
+        logger.info(log_msg)
 
         # send slack webhook with the players we couldnt link
         num_players_without_lookup = len(no_lookups)
@@ -637,6 +668,8 @@ class FantasyProjectionsNBA(FantasyProjections):
 
     def __get_player_projections(self, event_id):
         """
+        This will get a player's project FP based on the DK + FD projections.
+
         returns a tuple of:
             ( <list of salary.classes.PlayerProjection objects>, <list of players not found> )
 
@@ -658,28 +691,36 @@ class FantasyProjectionsNBA(FantasyProjections):
         # data.keys()
         teams = data.get('teams')
         # len(teams)
-        for t in teams:
-            # logger.info(t.keys())
-            all_player_projections = t.get('players')
-            for player_projection in all_player_projections:
+        # Players are sorted by teams, loop through each team, then loop through each player
+        # on that team to extract projections.
+        for team in teams:
+            team_player_projections = team.get('players')
+            for player_projection in team_player_projections:
+                logger.debug('===== PLAYER =====')
+                # logger.info('   projection: %s' % player_projection)
                 # for nba, players do not have names in the projection data!
                 # we have to look them up by id using the PlayersNBA instance.
                 # logger.info('    x player_projection:' + str(player_projection)[:50]) # debug the first 50 chars
                 # get the player data via their id
                 pid = player_projection.get(self.field_player_id)
+                # player_data is a big dict of data about the player, all we really need this for is to find their
+                # name or PID for matching.
                 player_data = self.players.get_player_for_id(pid)
+                # logger.info('   player_data: %s', player_data )
                 if player_data is None:
-                    logger.info('(skipping player projection) STATS.com playerId [%s] not found in PlayerNBA data! '
-                          'Heres the projection that made us fail: %s' % (str(pid), str(player_projection)))
+                    logger.warn(
+                        "(skipping player projection) STATS.com playerId [%s] not found in PlayerNBA data! "
+                        "Here's the projection that made us fail: %s" % (str(pid), str(player_projection)))
                     continue
-
-                # logger.info('    ... player_data: %s' % str(player_data)[:50])
 
                 # try to get the fantasy projection list (of each site projection)
                 fantasy_projections = player_projection.get(self.field_fantasy_projections)
+                logger.debug('fantasyProjections (site projections): %s' % fantasy_projections)
                 if len(fantasy_projections) == 0:
-                    raise Exception('no projections found for field[%s] '
-                                    'player[%s]' % (self.field_fantasy_projections, str(player_data)))
+                    msg = 'No site projections found for field[%s]  player[%s]' % (
+                        self.field_fantasy_projections, str(player_data))
+                    logger.warn(msg)
+                    raise Exception(msg)
 
                 # get an instance of this data class to help extract
                 # the values we need to look this player up
@@ -691,35 +732,46 @@ class FantasyProjectionsNBA(FantasyProjections):
 
                 # look up this third party api player in our own db
                 player = self.find_player(first_name, last_name, pid)
-                # if player couldnt be found, debug message, and continue loop
+                # if player couldn't be found, debug message, and continue loop
                 if player is None:
-                    player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
-                                                                         str(first_name + ' ' + last_name), str(position))
+                    player_string = 'pid[%s] player[%s] position[%s]' % (
+                        str(pid), str(first_name + ' ' + last_name), str(position))
                     no_lookups.append(player_string)
-                    err_msg = 'COULDNT LOOKUP -> %s' % player_string
-                    logger.warn(err_msg)
+                    err_msg = 'COULD NOT LOOKUP -> %s' % player_string
+                    logger.warning(err_msg)
 
                 else:
+                    logger.debug('Player found: %s %s' % (first_name, last_name))
+                    # Figure out what we think their FP will be based on the projected stats from STATS.com.
+                    sal_dk = None
+                    sal_fd = None
+                    our_projected_fp = get_fantasy_point_projection_from_stats_projection(
+                        stat_points=self.scoring_system_stat_points,
+                        stats_projections=player_projection,
+                        stat_map=self.stat_map
+                    )
+
                     # iterate the list of sites which we have projections for until we find
                     # the one we want
                     fantasy_projections_copy = fantasy_projections.copy()
                     for site in fantasy_projections:
                         if self.default_site in site.get(self.field_name, '').lower():
-                            # append a new a salary.classes.PlayerProjection to our return list and
-                            # break
-                            fantasy_points = site.get(self.field_points)
+                            logger.debug('Site Projection found! %s ' % site)
 
                             # try to get the sites own salary for the player for the major sites.
-                            sal_dk = self.get_site_player_salary(
-                                fantasy_projections_copy, self.site_dk)
-                            sal_fd = self.get_site_player_salary(
-                                fantasy_projections_copy, self.site_fd)
-
-                            player_projections.append(self.build_player_projection(player, fantasy_points,
-                                                                                   sal_dk=sal_dk, sal_fd=sal_fd))
+                            sal_dk = self.get_site_player_salary(fantasy_projections_copy, self.site_dk)
+                            sal_fd = self.get_site_player_salary(fantasy_projections_copy, self.site_fd)
                             break  # is it possible its never found?
 
-        #
+                        else:
+                            logger.debug('%s not found in %s' % (
+                                self.default_site, site.get(self.field_name, '').lower()))
+
+                    # Extract the player's stat projections and append it to a list of projected stats.
+                    # This is the important part - we use these stats to determine the player's salary.
+                    player_projections.append(self.build_player_projection(player, our_projected_fp,
+                                                                           sal_dk=sal_dk, sal_fd=sal_fd))
+
         return player_projections, no_lookups
 
     def get_site_player_salary(self, fantasy_projections, site):
@@ -730,6 +782,7 @@ class FantasyProjectionsNBA(FantasyProjections):
         salary from the list of site projections objects if
         the 'site' param is contained within each site items name property.
 
+        :param fantasy_projections: The projections for the player we've found in the stats.com response
         :param site: a string, ie: 'draftkings'
         :return: float - the projected salary
         """
@@ -751,7 +804,6 @@ class FantasyProjectionsNBA(FantasyProjections):
 
 
 class FantasyProjectionsMLB(FantasyProjections):
-
     # the game's eventid must be appended to this endpoint
     endpoint_fantasy_projections = '/stats/baseball/mlb/fantasyProjections/'
 
@@ -818,7 +870,6 @@ class PlayerProjectionNFL(object):
 
 
 class FantasyProjectionsNFL(FantasyProjections):
-
     endpoint_current_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
     endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'  # append week number
 
@@ -878,11 +929,9 @@ class FantasyProjectionsNFL(FantasyProjections):
             # look up this third party api player in our own db
             player = self.find_player(first_name, last_name, pid)
             if player is None:
-                player_string = 'pid[%s] player[%s] position[%s]' % (str(pid),
-                                                                     str(first_name + ' ' + last_name), str(position))
+                player_string = 'pid[%s] player[%s %s] position[%s]' % (pid, first_name, last_name, position)
                 no_lookups.append(player_string)
-                err_msg = 'COULDNT LOOKUP -> %s' % player_string
-                logger.warn(err_msg)
+                logger.warning("Couldn't lookup: %s" % player_string)
                 continue
 
             #
@@ -921,6 +970,7 @@ class FantasyProjectionsNFL(FantasyProjections):
         salary from the list of site projections objects if
         the 'site' param is contained within each site items name property.
 
+        :param fantasy_projections: The projections for the player we've found in the stats.com response
         :param site: a string, ie: 'draftkings'
         :return: float - the projected salary
         """
@@ -949,7 +999,7 @@ class NFLPlayerProjectionCsv(PlayerProjectionNFL):  # particularly for NFL i mig
 
     field_player = 'player'
     field_player_id = 'playerId'
-    field_fullname = 'fullname'             # i made this one. it combines the first+last name
+    field_fullname = 'fullname'  # i made this one. it combines the first+last name
     field_first_name = 'firstName'
     field_last_name = 'lastName'
     field_position = 'position'
@@ -996,7 +1046,6 @@ class NFLPlayerProjectionCsv(PlayerProjectionNFL):  # particularly for NFL i mig
         for proj in offensive_projections:
             self.writerow(writer, proj)
 
-        # TODO debug
         logger.info('all possible categories seen:', str(self.all_fields.keys()))
 
         if f is not None:

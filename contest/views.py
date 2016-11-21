@@ -75,7 +75,7 @@ from util.dfsdate import DfsDate
 from account.utils import create_user_log
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('contest.views')
 
 # test the generic add view
 

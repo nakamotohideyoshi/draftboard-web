@@ -38,6 +38,7 @@ class CreateLineupAPITest( APITestCase,
                            test.classes.ForceAuthenticateAndRequestMixin ):
 
     def setUp(self):
+        super().setUp()
         """
         1. builds the world
         2. logs in a newly created user
@@ -82,10 +83,10 @@ class BuildWorldMixin(object):
 
         self.user = self.get_basic_user()
 
-        self.one = PlayerChild.objects.filter(position =self.world.position1)[0]
-        self.two = PlayerChild.objects.filter(position=self.world.position2)[0]
-        self.three = PlayerChild.objects.filter(position=self.world.position1)[1]
-        self.four = PlayerChild.objects.filter(position=self.world.position2)[1]
+        self.one = PlayerChild.objects.filter(position =self.world.position1, team__name="test1")[0]
+        self.two = PlayerChild.objects.filter(position=self.world.position2, team__name="test3")[0]
+        self.three = PlayerChild.objects.filter(position=self.world.position1, team__name="test2")[0]
+        self.four = PlayerChild.objects.filter(position=self.world.position2, team__name="test2")[0]
 
         team = [self.one, self.two, self.three]
         for player in team:
@@ -104,6 +105,7 @@ class BuildWorldMixin(object):
 class LineupTest(AbstractTest, BuildWorldMixin):
 
     def setUp(self):
+        super().setUp()
         self.build_world()
 
     def test_create_and_edit_lineup(self):
@@ -355,6 +357,7 @@ class LineupTest(AbstractTest, BuildWorldMixin):
 class LineupConcurrentTest(AbstractTest, BuildWorldMixin):
 
     def setUp(self):
+        super().setUp()
         self.build_world()
 
     @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,

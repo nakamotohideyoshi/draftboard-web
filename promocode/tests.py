@@ -14,6 +14,7 @@ from django.utils import timezone
 class PromoManagerExceptionsTest( AbstractTest ):
 
     def setUp(self):
+        super().setUp()
         self.transaction_type_promocode_add = \
             TransactionType.objects.get(pk=TransactionTypeConstants.PromoCodeAdd.value)
         self.transaction_type_promocode_remove = \

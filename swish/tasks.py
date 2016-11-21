@@ -1,15 +1,13 @@
 from __future__ import absolute_import
-
-#
-# tasks.py
-
 from django.core.cache import cache
 from mysite.celery_app import app
 from swish.classes import (
     PlayerUpdateManager,
     SwishNFL,
 )
+from logging import getLogger
 
+logger = getLogger('swish.tasks')
 LOCK_EXPIRE = 59
 
 
@@ -25,16 +23,17 @@ def update_injury_feed(self, sport):
     if acquire_lock():
         try:
             player_update_manager = PlayerUpdateManager(sport)
-            swish = SwishNFL() # TODO other sports, not just NFL
+            swish = SwishNFL()  # TODO other sports, not just NFL
             updates = swish.get_updates()
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
                 except PlayerUpdateManager.PlayerDoesNotExist:
                     pass
-            num_players_not_found = len(player_update_manager.players_not_found)
-            print('%s | [%s] swish players not found:' % (sport, str(num_players_not_found)),
-                                                str(player_update_manager.players_not_found))
+            if player_update_manager.players_not_found:
+                num_players_not_found = len(player_update_manager.players_not_found)
+                logger.info('%s | [%s] swish players not found:' % (sport, num_players_not_found),
+                            player_update_manager.players_not_found)
 
         finally:
             release_lock()
