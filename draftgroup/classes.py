@@ -533,7 +533,7 @@ class AbstractUpdateManager(object):
         self.players_not_found = None
 
     def add(self, update_id, category, type, value,
-            status, source_origin, url_origin, published_at=None):
+            status, source_origin, url_origin, **kwargs):
         """
         create or update a PlayerUpdate
 
@@ -552,7 +552,7 @@ class AbstractUpdateManager(object):
         self.validate_value(value)
 
         # parse and return a datetime object representing the publish time
-        updated_at = published_at
+        updated_at = kwargs.get('published_at')
         if updated_at is None:
             updated_at = timezone.now()
 
@@ -773,6 +773,14 @@ class PlayerUpdateManager(AbstractUpdateManager):
         """
         # create the model instance
         update_obj = super().add(*args, **kwargs)
+        fields = ['roster_status', 'roster_status_description', 'depth_chart_status',
+                  'player_status_probability', 'player_status_confidence',
+                  'last_text', 'game_id']
+        for f in fields:
+            old_value = getattr(update_obj, f)
+            new_value = kwargs.get(f)
+            if old_value is None or old_value != new_value:
+                setattr(update_obj, f, new_value)
         update_obj.player_srid = player_srid
         update_obj.save()
         return update_obj

@@ -56,7 +56,25 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         # get url_origin
         url_origin = swish_update.get_field(UpdateData.field_url_origin, '')
 
+        roster_status = swish_update.get_field(UpdateData.field_roster_status)
+        roster_status_description = swish_update.get_field(UpdateData.field_roster_status_description)
+        depth_chart_status = swish_update.get_field(UpdateData.field_depth_chart_status)
+        player_status_probability = swish_update.get_field(UpdateData.field_player_status_probability, 0)
+        player_status_confidence = swish_update.get_field(UpdateData.field_player_status_confidence, 0)
+        last_text = swish_update.get_field(UpdateData.field_last_text)
+        game_id = swish_update.get_field(UpdateData.field_game, {}).get('gameId', 0)
+
         # create a PlayerUpdate model in the db.
+        kwargs = {
+            'published_at': updated_at,
+            'roster_status': roster_status,
+            'roster_status_description': roster_status_description,
+            'depth_chart_status': depth_chart_status,
+            'player_status_probability': player_status_probability,
+            'player_status_confidence': player_status_confidence,
+            'last_text': last_text,
+            'game_id': game_id,
+        }
         update_obj = self.add(
             player_srid,
             update_id,
@@ -66,7 +84,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
             status,
             source_origin,
             url_origin,
-            published_at=updated_at
+            **kwargs
         )
         return update_obj
 
@@ -84,6 +102,13 @@ class UpdateData(object):
     field_source_origin = 'sourceOrigin'    # ie: rotowire, twitter, etc...
     field_swish_status = 'swishStatus'      # ie: 'week-to-week', etc...
     field_url_origin = 'urlOrigin'          # for twitter, the url to the post
+    field_roster_status = 'rosterStatus'
+    field_roster_status_description = 'rosterStatusDescription'
+    field_depth_chart_status = 'depthChartStatus'
+    field_player_status_probability = 'playerStatusProbability'
+    field_player_status_confidence = 'playerStatusConfidence'
+    field_last_text = 'lastText'
+    field_game = 'game'
 
     def __init__(self, data):
         self.data = data
