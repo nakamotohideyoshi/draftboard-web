@@ -14,17 +14,19 @@ from contest.schedule.models import (
     UpcomingBlock,
 )
 
-LOCK_EXPIRE         = 60  # lock expires in X seconds
-SHARED_LOCK_NAME    = 'contest_pool_schedule_manager'
+LOCK_EXPIRE = 60  # lock expires in X seconds
+SHARED_LOCK_NAME = 'contest_pool_schedule_manager'
+
 
 @app.task(bind=True)
 def contest_pool_schedule_manager(self, sport):
     """
+    This creates the daily game block schedules for each sport that can be seen here: /admin/schedule/upcomingblock/
+
     uses the ScheduleManager to create scheduled contests by calling
     ScheduleManager.run( td = td ).
 
-    :param td: datetime.timedelta object representing the
-                amount of time in the future from now to schedule for
+    :param sport
     :return:
     """
 
@@ -42,19 +44,19 @@ def contest_pool_schedule_manager(self, sport):
         finally:
             release_lock()
 
+
 @app.task(bind=True)
 def create_scheduled_contest_pools(self, sport):
     """
     uses the ScheduleManager to create scheduled contests by calling
-    ScheduleManager.run( td = td ).
+    ScheduleManager.create_upcoming_contest_pools.
 
-    :param td: datetime.timedelta object representing the
-                amount of time in the future from now to schedule for
+    :param sport
     :return:
     """
 
-    lock_expire  = 60  # lock expires in X seconds
-    lock_name    = 'create_scheduled_contest_pools'
+    lock_expire = 60  # lock expires in X seconds
+    lock_name = 'create_scheduled_contest_pools'
 
     # unique per sport, ie: task-LOCK--nfl--contest_pool_schedule_manager'
     lock_id = 'task-LOCK--%s--%s' % (sport, lock_name)
