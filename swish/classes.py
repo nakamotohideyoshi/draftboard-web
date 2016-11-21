@@ -168,6 +168,8 @@ class SwishAnalytics(object):
         'rosterStatus',
         'rosterStatusDescription',
         'depthChartStatus',
+        'playerStatusProbability',
+        'playerStatusConfidence',
         'lastText',
         'game',
     ]

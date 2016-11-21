@@ -11,16 +11,13 @@ from swish.classes import (
 )
 
 LOCK_EXPIRE = 59
-from pymongo import MongoClient
+
 
 @app.task(bind=True)
 def update_injury_feed(self, sport):
     """
     update Swish Analytics injury feed and add PlayerUpdate(s) to our backend
     """
-    c = MongoClient('mongodb')
-    db = c.test_database
-    posts = db.posts
     lock_id = 'task-LOCK-update_injury_feed_%s' % sport
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
     release_lock = lambda: cache.delete(lock_id)
@@ -30,8 +27,6 @@ def update_injury_feed(self, sport):
             player_update_manager = PlayerUpdateManager(sport)
             swish = SwishNFL() # TODO other sports, not just NFL
             updates = swish.get_updates()
-            #todo remove
-            posts.insert_many([x.data for x in updates])
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
@@ -43,5 +38,3 @@ def update_injury_feed(self, sport):
 
         finally:
             release_lock()
-
-    c.close()
