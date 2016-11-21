@@ -4,7 +4,7 @@ from prize.classes import FlatCashPrizeStructureCreator
 
 class Command(BaseCommand):
     """
-    This adds the django manage.py command called "ticketprizes"
+    This adds the django manage.py command called "flatcash"
 
     This command creates a ticket prize structure using the params from the commd line
 
