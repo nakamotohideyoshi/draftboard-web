@@ -25,7 +25,7 @@ from prize.models import (
 from util.dfsdate import DfsDate
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('schedule.classes')
 
 
 class ScheduleManager(object):
@@ -816,7 +816,7 @@ class DefaultPrizeStructureManager(object):
                             prize_structure = ps
                             break  # we found it
                     if prize_structure is None:
-                        logger.error(
+                        logger.warn(
                             ("No PrizeStructure for buyin: %s payout_spots: %s. You can add them "
                                 "manually though!") % (buyin, payout_spots))
                         # raise Exception(err_msg)
@@ -830,4 +830,4 @@ class DefaultPrizeStructureManager(object):
                         dps.save()
                         created_default_prize_structures += 1
 
-            logger.info("%s for %s" % (created_default_prize_structures, sport))
+            logger.info("%s created_default_prize_structures for %s" % (created_default_prize_structures, sport))

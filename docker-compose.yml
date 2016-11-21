@@ -42,6 +42,24 @@ services:
       # allows celery to run as the root user.
       - C_FORCE_ROOT=true
 
+  # run `docker-compose up celery_beat` to start the process
+  # then `docker-compose scale celery_beat=[x]` to add x number of processes!
+  celery_beat:
+    build:
+      context: .
+      args:
+        - DRAFTBOARD_SETTINGS
+    command: dumb-init celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler -l debug
+    links:
+      - postgres
+      - redis
+    volumes:
+      - .:/code
+    environment:
+      # allows celery to run as the root user.
+      - C_FORCE_ROOT=true
+
+
   # Run `docker-compose up django` to start up runserver process
   # Run `docker-compose run django sh -l` to access shell where you can run commands
   django:

@@ -1,7 +1,7 @@
 from django.db import connection
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('mysite.middleware.query_count_debug')
 
 
 class QueryCountDebugMiddleware(object):

@@ -8,7 +8,7 @@ import requests
 from trulioo.models import Verification
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('trulioo.classes')
 
 # this allegedly lists some of the required/optional fields of the Normalized API:
 #   https://portal.globaldatacompany.com/NormalizedApiGuidelines/Report?configurationName=Identity%20Verification&Country=US

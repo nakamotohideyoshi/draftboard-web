@@ -1,24 +1,20 @@
-#
-# sports/nfl/models.py
-
 from django.db import models
 import sports.models
 from django.db.models.signals import post_save
-from ..models import GameStatusChangedSignal
 import scoring.classes
 import push.classes
 from django.conf import settings
-from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
-from django.core.cache import cache
 
-DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
-DST_POSITION            = 'DST' # dont change this
+DST_PLAYER_LAST_NAME = 'DST'  # dst Player objects last_name
+DST_POSITION = 'DST'  # dont change this
 
-class Season( sports.models.Season ):
+
+class Season(sports.models.Season):
     class Meta:
         abstract = False
 
-class Team( sports.models.Team ):
+
+class Team(sports.models.Team):
     """
 
     !!!!
@@ -31,7 +27,9 @@ class Team( sports.models.Team ):
 
     # db.team.findOne({'parent_api__id':'hierarchy'})
     # {
-    #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWQ1NGRjNzM0OC1jMWQyLTQwZDgtODhiMy1jNGMwMTM4ZTA4NWRpZDU4M2VjZWE2LWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw==",
+    #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVy
+    #           ZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWQ1NGRjNzM0OC1jMWQyLTQwZDgtODh
+    #            iMy1jNGMwMTM4ZTA4NWRpZDU4M2VjZWE2LWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw==",
     #     "alias" : "MIA",
     #     "id" : "583ecea6-fb46-11e1-82cb-f4ce4684ea4c",
     #     "market" : "Miami",
@@ -44,68 +42,74 @@ class Team( sports.models.Team ):
     #     "venue" : "b67d5f09-28b2-5bc6-9097-af312007d2f4"
     # }
 
-    srid_league   = models.CharField(max_length=64, null=False,
-                            help_text='league sportsradar id')
-    srid_conference   = models.CharField(max_length=64, null=False,
-                            help_text='conference sportsradar id')
-    srid_division   = models.CharField(max_length=64, null=False,
-                            help_text='division sportsradar id')
-    market      = models.CharField(max_length=64)
+    srid_league = models.CharField(max_length=64, null=False,
+                                   help_text='league sportsradar id')
+    srid_conference = models.CharField(max_length=64, null=False,
+                                       help_text='conference sportsradar id')
+    srid_division = models.CharField(max_length=64, null=False,
+                                     help_text='division sportsradar id')
+    market = models.CharField(max_length=64)
 
     class Meta:
         abstract = False
 
-class Game( sports.models.Game ):
+
+class Game(sports.models.Game):
     """
     all we get from the inherited model is: 'start' and 'status'
     """
 
-    season      = models.ForeignKey(Season, null=False)
+    season = models.ForeignKey(Season, null=False)
 
-    home = models.ForeignKey( Team, null=False, related_name='game_hometeam')
-    srid_home   = models.CharField(max_length=64, null=False,
-                                help_text='home team sportsradar global id')
+    home = models.ForeignKey(Team, null=False, related_name='game_hometeam')
+    srid_home = models.CharField(max_length=64, null=False,
+                                 help_text='home team sportsradar global id')
 
-    away = models.ForeignKey( Team, null=False, related_name='game_awayteam')
-    srid_away   = models.CharField(max_length=64, null=False,
-                                help_text='away team sportsradar global id')
-    title       = models.CharField(max_length=128, null=True, blank=True)
+    away = models.ForeignKey(Team, null=False, related_name='game_awayteam')
+    srid_away = models.CharField(max_length=64, null=False,
+                                 help_text='away team sportsradar global id')
+    title = models.CharField(max_length=128, null=True, blank=True)
 
     weather_json = models.CharField(max_length=512, null=False, blank=True)
 
     class Meta:
         abstract = False
 
-class GameBoxscore( sports.models.GameBoxscore ):
-    clock       = models.CharField(max_length=16, null=False, default='')
-    completed   = models.CharField(max_length=64, null=False, default='')
-    quarter     = models.CharField(max_length=16, null=False, default='')
+
+class GameBoxscore(sports.models.GameBoxscore):
+    clock = models.CharField(max_length=16, null=False, default='')
+    completed = models.CharField(max_length=64, null=False, default='')
+    quarter = models.CharField(max_length=16, null=False, default='')
 
     class Meta:
         abstract = False
 
-class Player( sports.models.Player ):
+
+class Player(sports.models.Player):
     """
     inherited: 'srid', 'first_name', 'last_name'
     """
-    team        = models.ForeignKey(Team, null=False)
+    team = models.ForeignKey(Team, null=False)
     srid_team = models.CharField(max_length=64, null=False, default='')
     birth_place = models.CharField(max_length=64, null=False, default='')
-    birthdate   = models.CharField(max_length=64, null=False, default='')
-    college     = models.CharField(max_length=64, null=False, default='')
-    experience  = models.FloatField(default=0.0, null=False)
-    height      = models.FloatField(default=0.0, null=False, help_text='inches')
-    weight      = models.FloatField(default=0.0, null=False, help_text='lbs')
+    birthdate = models.CharField(max_length=64, null=False, default='')
+    college = models.CharField(max_length=64, null=False, default='')
+    experience = models.FloatField(default=0.0, null=False)
+    height = models.FloatField(default=0.0, null=False, help_text='inches')
+    weight = models.FloatField(default=0.0, null=False, help_text='lbs')
     jersey_number = models.CharField(max_length=64, null=False, default='')
 
-    #primary_position = models.CharField(max_length=64, null=False, default='')
+    # primary_position = models.CharField(max_length=64, null=False, default='')
 
     # A01 – Active
     # NWT – Not with team
     # P01 – Practice squad
-    status = models.CharField(max_length=64, null=False, default='',
-                help_text='roster status - ie: "A01" means they are ON the roster. Not particularly active as in not-injured!')
-
+    status = models.CharField(
+        max_length=64,
+        null=False,
+        default='',
+        help_text='roster status - ie: "A01" means they are ON the roster. Not particularly active as in not-injured!'
+    )
     draft_pick = models.CharField(max_length=64, null=False, default='')
     draft_round = models.CharField(max_length=64, null=False, default='')
     draft_year = models.CharField(max_length=64, null=False, default='')
@@ -114,14 +118,15 @@ class Player( sports.models.Player ):
     class Meta:
         abstract = False
         ordering = ('first_name',)
+        verbose_name = "NFL Player"
 
-class PlayerLineupName( Player ):
 
+class PlayerLineupName(Player):
     class Meta:
         proxy = True
 
-class PlayerStats( sports.models.PlayerStats ):
 
+class PlayerStats(sports.models.PlayerStats):
     # must override parent SCORING_FIELDS
     SCORING_FIELDS = [
         'pass_td',
@@ -164,18 +169,18 @@ class PlayerStats( sports.models.PlayerStats ):
     # game    = models.ForeignKey(Game, null=False)
 
     # passing
-    pass_td     = models.IntegerField(default=0, null=False)
-    pass_yds    = models.IntegerField(default=0, null=False)
-    pass_int    = models.IntegerField(default=0, null=False)
+    pass_td = models.IntegerField(default=0, null=False)
+    pass_yds = models.IntegerField(default=0, null=False)
+    pass_int = models.IntegerField(default=0, null=False)
 
     # rushing
-    rush_td     = models.IntegerField(default=0, null=False)
-    rush_yds    = models.IntegerField(default=0, null=False)
+    rush_td = models.IntegerField(default=0, null=False)
+    rush_yds = models.IntegerField(default=0, null=False)
 
     # receiving
-    rec_td      = models.IntegerField(default=0, null=False)
-    rec_yds     = models.IntegerField(default=0, null=False)
-    rec_rec     = models.IntegerField(default=0, null=False)
+    rec_td = models.IntegerField(default=0, null=False)
+    rec_yds = models.IntegerField(default=0, null=False)
+    rec_rec = models.IntegerField(default=0, null=False)
 
     # (offensive) fumbles lost
     off_fum_lost = models.IntegerField(default=0, null=False)
@@ -183,35 +188,35 @@ class PlayerStats( sports.models.PlayerStats ):
     off_fum_rec_td = models.IntegerField(default=0, null=False)
 
     # 2 point conversion
-    two_pt_conv     = models.IntegerField(default=0, null=False)
+    two_pt_conv = models.IntegerField(default=0, null=False)
 
     #
     # defensive stats:
-    sack            = models.IntegerField(default=0, null=False)
-    ints            = models.IntegerField(default=0, null=False)
-    fum_rec         = models.IntegerField(default=0, null=False)
+    sack = models.IntegerField(default=0, null=False)
+    ints = models.IntegerField(default=0, null=False)
+    fum_rec = models.IntegerField(default=0, null=False)
 
     # return tds
-    ret_kick_td     = models.IntegerField(default=0, null=False)
-    ret_punt_td     = models.IntegerField(default=0, null=False)
-    ret_int_td      = models.IntegerField(default=0, null=False)
-    ret_fum_td      = models.IntegerField(default=0, null=False)
+    ret_kick_td = models.IntegerField(default=0, null=False)
+    ret_punt_td = models.IntegerField(default=0, null=False)
+    ret_int_td = models.IntegerField(default=0, null=False)
+    ret_fum_td = models.IntegerField(default=0, null=False)
     ret_blk_punt_td = models.IntegerField(default=0, null=False)
-    ret_fg_td       = models.IntegerField(default=0, null=False)
-    ret_blk_fg_td   = models.IntegerField(default=0, null=False)
+    ret_fg_td = models.IntegerField(default=0, null=False)
+    ret_blk_fg_td = models.IntegerField(default=0, null=False)
 
     # misc
-    sfty            = models.IntegerField(default=0, null=False)
-    blk_kick        = models.IntegerField(default=0, null=False)
+    sfty = models.IntegerField(default=0, null=False)
+    blk_kick = models.IntegerField(default=0, null=False)
 
     # stats which factor into the DST "points allowed"
     #  ... includes safeties against the teams offense,
     #      plus interceptions and fumbles returned for TDs!
-    int_td_against  = models.IntegerField(default=0, null=False)
-    fum_td_against  = models.IntegerField(default=0, null=False)
-    off_pass_sfty   = models.IntegerField(default=0, null=False)
-    off_rush_sfty   = models.IntegerField(default=0, null=False)
-    off_punt_sfty   = models.IntegerField(default=0, null=False)
+    int_td_against = models.IntegerField(default=0, null=False)
+    fum_td_against = models.IntegerField(default=0, null=False)
+    off_pass_sfty = models.IntegerField(default=0, null=False)
+    off_rush_sfty = models.IntegerField(default=0, null=False)
+    off_punt_sfty = models.IntegerField(default=0, null=False)
 
     class Meta:
         abstract = False
@@ -220,7 +225,7 @@ class PlayerStats( sports.models.PlayerStats ):
     def save(self, *args, **kwargs):
         # perform score update
         scorer = scoring.classes.NflSalaryScoreSystem()
-        #self.fantasy_points = scorer.score_player( self )
+        # self.fantasy_points = scorer.score_player( self )
 
         # #
         # # pusher the fantasy points with stats
@@ -241,30 +246,35 @@ class PlayerStats( sports.models.PlayerStats ):
         # self.set_cache_token()
         # push.classes.DataDenPush   previously
         push.classes.PlayerStatsPush(push.classes.PUSHER_NFL_STATS, 'player').send(
-                                    self.to_json(), async=settings.DATADEN_ASYNC_UPDATES)
+            self.to_json(), async=settings.DATADEN_ASYNC_UPDATES)
 
         super().save(*args, **kwargs)
 
-class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
-    class Meta:
-        abstract = True # TODO
 
-class Injury( sports.models.Injury ):
+class PlayerStatsSeason(sports.models.PlayerStatsSeason):
+    class Meta:
+        abstract = True  # TODO
+
+
+class Injury(sports.models.Injury):
     #
     # nfl injuries have ids
-    srid    = models.CharField(max_length=64, null=False, default='')
+    srid = models.CharField(max_length=64, null=False, default='')
     practice_status = models.CharField(max_length=1024, null=False, default='')
 
     class Meta:
         abstract = False
 
-class RosterPlayer( sports.models.RosterPlayer ):
-    class Meta:
-        abstract = True # TODO
 
-class Venue( sports.models.Venue ):
+class RosterPlayer(sports.models.RosterPlayer):
     class Meta:
-        abstract = True # TODO
+        abstract = True  # TODO
+
+
+class Venue(sports.models.Venue):
+    class Meta:
+        abstract = True  # TODO
+
 
 class GamePortion(sports.models.GamePortion):
     #
@@ -275,6 +285,7 @@ class GamePortion(sports.models.GamePortion):
     class Meta:
         abstract = False
 
+
 class PbpDescription(sports.models.PbpDescription):
     #
     # this is the srid of the play, aka specific pbp object
@@ -283,9 +294,11 @@ class PbpDescription(sports.models.PbpDescription):
     class Meta:
         abstract = False
 
+
 class Pbp(sports.models.Pbp):
     class Meta:
         abstract = False
+
 
 def create_dst_player(sender, **kwargs):
     """
@@ -299,10 +312,10 @@ def create_dst_player(sender, **kwargs):
             #                                         object_id=instance.id,
             #                                         pub_date=instance.pub_date)
             dst = Player()
-            dst.team        = instance
-            dst.srid        = instance.srid     #
-            dst.first_name  = instance.name     # ie: "Patriots"
-            dst.last_name   = DST_PLAYER_LAST_NAME
+            dst.team = instance
+            dst.srid = instance.srid  #
+            dst.first_name = instance.name  # ie: "Patriots"
+            dst.last_name = DST_PLAYER_LAST_NAME
 
             #
             # get or create the custom 'dst' position for nfl
@@ -311,17 +324,19 @@ def create_dst_player(sender, **kwargs):
             except sports.models.Position.DoesNotExist:
                 position = sports.models.Position()
                 position.site_sport = sports.models.SiteSport.objects.get(name='nfl')
-                position.name       = DST_POSITION
+                position.name = DST_POSITION
                 position.save()
 
             dst.position = position
 
-            dst.status      = ''
-            dst.save() # commit changes
+            dst.status = ''
+            dst.save()  # commit changes
+
 
 #
 # listen for Team object save() and create its DST if it does not exist
 post_save.connect(create_dst_player, sender=Team)
+
 
 class TsxNews(sports.models.TsxNews):
     """
@@ -331,6 +346,7 @@ class TsxNews(sports.models.TsxNews):
     class Meta:
         abstract = False
 
+
 class TsxInjury(sports.models.TsxInjury):
     """
     inherits from sports.models.TsxXXX of the same name
@@ -339,6 +355,7 @@ class TsxInjury(sports.models.TsxInjury):
     class Meta:
         abstract = False
 
+
 class TsxTransaction(sports.models.TsxTransaction):
     """
     inherits from sports.models.TsxXXX of the same name
@@ -346,6 +363,7 @@ class TsxTransaction(sports.models.TsxTransaction):
 
     class Meta:
         abstract = False
+
 
 class TsxTeam(sports.models.TsxTeam):
     """
@@ -356,6 +374,7 @@ class TsxTeam(sports.models.TsxTeam):
 
     class Meta:
         abstract = False
+
 
 class TsxPlayer(sports.models.TsxPlayer):
     """

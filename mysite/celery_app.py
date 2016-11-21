@@ -27,7 +27,7 @@ import time
 from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
 
-logger = getLogger('django')
+logger = getLogger('mysite.celery_app')
 
 # Setup Sentry error logging.
 client = Client(settings.RAVEN_CONFIG['dsn'])
@@ -79,13 +79,6 @@ app.conf.update(
     # CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
 
     CELERYBEAT_SCHEDULE={
-        #
-        #
-        'notify_withdraws': {
-            'task': 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule': crontab(minute=0, hour='17'),  # ~ noon
-        },
-
         #
         #
         'notify_withdraws': {
@@ -201,6 +194,20 @@ app.conf.update(
         #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),
         #     'args': ('nfl',),
         # },
+
+        ########################################################################
+        # Fetch player stat projections from stats.com and generate salaries
+        ########################################################################
+        'nba_generate_salaries_from_statscom': {
+            'task': 'salary.tasks.generate_salaries_from_statscom_projections_nba',
+            'schedule': timedelta(minutes=30),
+        },
+
+        # 'nfl_generate_salaries_from_statscom': {
+        #     'task': 'salary.tasks.generate_salaries_from_statscom_projections_nfl',
+        #     'schedule': timedelta(minutes=30),
+        # },
+
 
         #
         # update injury information for the sports
@@ -466,7 +473,7 @@ class TaskHelper(object):
             #
             # return exception information here, including class name, and msg
             exception = {
-                'name': type(r).__name__,   # ie: 'Exception'
+                'name': type(r).__name__,  # ie: 'Exception'
                 'msg': str(r)
             }
 
@@ -492,6 +499,7 @@ class TaskHelper(object):
             'result': result,
         }
         return data
+
 
 #
 # BROKER_URL = 'amqp://guest:guest@localhost//'

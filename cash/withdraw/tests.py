@@ -45,6 +45,7 @@ class AdminCheckWithdrawTest(AbstractTest):
     WITHDRAW_CLASS  = CheckWithdraw  # must be a child of AbstractWithdraw, ie: CheckWithdraw
 
     def setUp(self):
+        super().setUp()
         self.user               = self.get_admin_user()     # get a superuser
         self.withdraw_amount    = 10.00                     # using float here on purpose
         self.account_balance    = 10000.00                  # balance starting amount (once we add it)
@@ -291,6 +292,7 @@ class AdminPayPalWithdrawTest( AbstractTest ):
     use_paypal = False
 
     def setUp(self):
+        super().setUp()
         self.user               = self.get_admin_user()     # get a superuser
         self.withdraw_amount    = 10.00                     # using float here on purpose
         self.account_balance    = 10000.00                  # balance starting amount (once we add it)
@@ -527,6 +529,7 @@ class WithdrawTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.withdraw_amount = decimal.Decimal(10.00)   # a decimal amount
         self.account_balance = 1000.00                  # balance starting amount (once we add it)
         self.user     = self.get_admin_user()           #

@@ -23,6 +23,7 @@ class MlbOutcome2FantasyPointTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         # TODO - setup dummy values
 
         # fantasy values
@@ -62,6 +63,7 @@ class NbaScoringTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.season_model_class = sports.nba.models.Season
         self.create_team()
         self.create_game()
@@ -394,6 +396,7 @@ class NhlScoringTest(AbstractTest):
     # available_apps = None
 
     def setUp(self):
+        super().setUp()
         self.season_model_class = sports.nhl.models.Season
         self.create_team()
         self.create_game()
@@ -734,6 +737,7 @@ class MlbScoringTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.season_model_class = sports.mlb.models.Season
         self.create_team()
         self.create_game()
@@ -1293,6 +1297,7 @@ class NflScoringTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.season_model_class = sports.nfl.models.Season
         self.create_team()
         self.create_game()
