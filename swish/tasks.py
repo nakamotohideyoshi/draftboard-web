@@ -16,7 +16,6 @@ def update_injury_feed(self, sport):
     """
     update Swish Analytics injury feed and add PlayerUpdate(s) to our backend
     """
-
     lock_id = 'task-LOCK-update_injury_feed_%s' % sport
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
     release_lock = lambda: cache.delete(lock_id)
