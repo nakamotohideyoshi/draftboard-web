@@ -14,7 +14,7 @@ class AppConfigView(generics.GenericAPIView):
     @staticmethod
     def get(request):
         serialized_data = {
-            'replayerTimeDelta': delta_now_prefix(request),
+            'replayerTimeDelta': delta_now_prefix(request)['DELTA_NOW'],
             'pusherKey': settings.PUSHER_KEY,
             'pusherChannelPrefix': settings.PUSHER_CHANNEL_PREFIX,
             'playerImagesBaseUrl': settings.PLAYER_IMAGES_URL,
