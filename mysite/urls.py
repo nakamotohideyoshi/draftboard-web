@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib.staticfiles import views
 from rest_framework_jwt import views as jwt_views
+from .views import AppConfigView
 import account.urls
 import cash.urls
 import contest.urls
@@ -33,7 +34,7 @@ urlpatterns = [
     url(r'^api/replayer/', include('replayer.urls')),
     url(r'^api/salary/', include(salary.urls)),
     url(r'^api/sports/', include(sports.urls)),
-
+    url(r'^api/config/', AppConfigView.as_view()),
     # this came with rest_framework
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
@@ -43,7 +44,7 @@ urlpatterns = [
     url(r'^api-token-verify/', jwt_views.verify_jwt_token),
 
     # TEMP to show pusher
-    url(r'^push/', include(push.urls, namespace='push')),
+    # url(r'^push/', include(push.urls, namespace='push')),
 
     url(r'^', include('account.urls_non_api')),
 ]
