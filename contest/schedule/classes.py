@@ -1,11 +1,10 @@
+from raven.contrib.django.raven_compat.models import client
 from pytz import timezone as pytz_timezone
 from datetime import timedelta, time
 from django.utils import timezone
 from django.db.transaction import atomic
 
-from contest.classes import (
-    ContestPoolCreator,
-)
+from contest.classes import ContestPoolCreator
 from .models import (
     Block,
     UpcomingBlock,  # proxy model for upcoming Block (all sports)
@@ -13,16 +12,12 @@ from .models import (
     DefaultPrizeStructure,
     BlockPrizeStructure,
 )
-from sports.classes import (
-    SiteSportManager,
-)
-from prize.models import (
-    PrizeStructure,
-)
+from sports.classes import SiteSportManager
+from prize.models import PrizeStructure
 from util.dfsdate import DfsDate
 import logging
 
-logger = logging.getLogger('schedule.classes')
+logger = logging.getLogger('contest.schedule.classes')
 
 
 class ScheduleManager(object):
@@ -380,7 +375,7 @@ class ScheduleDay(object):
         self.update_range(days_ago)
         day_range = self.get_day_range()
 
-        logger.info('first day (dt range)', day_range)
+        # logger.info('first day (dt range)', str(day_range))
 
         # Weekdays@7pm or later
         # Saturdays@7pm or later
@@ -519,7 +514,7 @@ class ContestPoolScheduleManager(object):
 
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
-            logger.debug(date_str)
+            # logger.info('Creating Blocks for %s - %s', (sport_day, date_str))
             self.sport_day = sport_day
             # use the BlockCreator to make new blocks
             # which will have all teh default prize structures
@@ -536,6 +531,7 @@ class BlockCreator(object):
     """
 
     class BlockExistsException(Exception):
+        logger.warning('Block already exists!')
         pass
 
     def __init__(self, sport_day):
@@ -557,12 +553,13 @@ class BlockCreator(object):
         try:
             #
             # set fields: dfsday_start (datetime), dfsday_end (datetime), cutoff_time (time object)
-            Block.objects.get(site_sport=site_sport,
+            block = Block.objects.get(site_sport=site_sport,
                               dfsday_start=start,
                               dfsday_end=end,
                               cutoff_time=cutoff_time)
             err_msg = 'A %s scheduled block at %s already exists' % (site_sport.name, start)
-            logger.error(err_msg)
+            logger.warning(err_msg)
+            BlockPrizeStructureCreator(block).create()
             raise self.BlockExistsException(err_msg)
         except Block.DoesNotExist:
             pass
@@ -577,7 +574,7 @@ class BlockCreator(object):
     def create_block_games(self, block, games):
         block_games = []
         for game in games:
-            logger.info('creating a BlockGame for', str(game))
+            logger.info('creating a BlockGame for %s', game)
             block_game = BlockGame()
             block_game.block = block
             block_game.name = game.get_home_at_away_str()
@@ -602,7 +599,7 @@ class BlockCreator(object):
         try:
             block = self.create_block()
         except self.BlockExistsException:
-            logger.warning('Existing block for day -- skipping it.')
+            logger.warning('Existing block for day - skipping it.')
             return
 
         # create the BlockGames (both included & excluded)
@@ -666,9 +663,8 @@ class BlockCreatorMulti(BlockCreator):
                               dfsday_start=start,
                               dfsday_end=end,
                               cutoff_time=cutoff_time)
-            err_msg = 'a %s scheduled block at %s ' \
-                      'already exists' % (str(site_sport.name), str(start))
-            logger.error(err_msg)
+            err_msg = 'a %s scheduled block at %s already exists' % (site_sport.name, start)
+            logger.warning(err_msg)
             raise self.BlockExistsException(err_msg)
         except Block.DoesNotExist:
             pass
@@ -721,7 +717,7 @@ class BlockManager(object):
             logger.info('%s formats based on default %s PrizeStructure(s)' % (
                 len(self.block_prize_structures),
                 self.block.site_sport)
-            )
+                        )
             for block_prize_structure in self.block_prize_structures:
                 # additional (optional) ContestPoolCreator arguments:
                 #  draft_group=None, user_entry_limit=None, entry_cap=None
@@ -766,26 +762,31 @@ class BlockPrizeStructureCreator(object):
 
     def create(self):
         """
-        perform the initial creation of all the BlockPrizeStructure(s)
-        by giving the block every PrizeStructure from its
-        sports DefaultPrizeStructure table
+        Perform the initial creation of all the BlockPrizeStructure(s) by giving the block every
+        PrizeStructure from its sports DefaultPrizeStructure table
         """
+        logger.info('Creating BlockPrizeStructures for %s' % self.block)
 
-        if BlockPrizeStructure.objects.filter(block=self.block).count() > 0:
-            logger.warning('exiting... this block already created its default prize structures.')
-            return
+        for default_prize_structure in DefaultPrizeStructure.objects.filter(site_sport=self.block.site_sport):
+            # If the BlockPrizeStructure for this DefaultPrizeStructure doesn't exist, create it.
+            if not BlockPrizeStructure.objects.filter(
+                    block=self.block,
+                    prize_structure=default_prize_structure.prize_structure
+            ).count() > 0:
+                logger.info('Creating non-existant BlockPrizeStructure for %s - %s' % (
+                    default_prize_structure, self.block))
+                try:
+                    bps = BlockPrizeStructure()
+                    bps.block = self.block
+                    bps.prize_structure = default_prize_structure.prize_structure
+                    bps.save()
 
-        for prize_structure in DefaultPrizeStructure.objects.filter(site_sport=self.block.site_sport):
-            try:
-                bps = BlockPrizeStructure()
-                bps.block = self.block
-                bps.prize_structure = prize_structure.prize_structure
-                bps.save()
-
-            except Exception as e:
-                # couldnt create it, but maybe it already existed
-                logger.error(e)
-                pass
+                except Exception as e:
+                    # Couldn't create it, but maybe it already existed? Either way, we don't want this to stop the
+                    # entire contest pool creation process, so capture the error and keep chugging.
+                    logger.error(e)
+                    client.captureException()
+                    pass
 
 
 class DefaultPrizeStructureManager(object):

@@ -7,13 +7,10 @@ from datetime import timedelta
 
 from mysite.celery_app import app
 from django.core.cache import cache
-from contest.schedule.classes import (
-    ContestPoolScheduleManager,
-)
-from contest.schedule.models import (
-    UpcomingBlock,
-)
+from contest.schedule.classes import ContestPoolScheduleManager
+from logging import getLogger
 
+logger = getLogger('contest.schedule.tasks')
 LOCK_EXPIRE = 60  # lock expires in X seconds
 SHARED_LOCK_NAME = 'contest_pool_schedule_manager'
 
@@ -48,7 +45,7 @@ def contest_pool_schedule_manager(self, sport):
 @app.task(bind=True)
 def create_scheduled_contest_pools(self, sport):
     """
-    uses the ScheduleManager to create scheduled contests by calling
+    uses the ScheduleManager to create scheduled contest pools by calling
     ScheduleManager.create_upcoming_contest_pools.
 
     :param sport
@@ -71,6 +68,7 @@ def create_scheduled_contest_pools(self, sport):
             scheduler.create_upcoming_contest_pools()
 
         except ContestPoolScheduleManager.ActiveBlockNotFoundException:
+            logger.warning('No Block was found for %s', scheduler)
             pass
 
         finally:

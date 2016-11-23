@@ -106,6 +106,9 @@ class DefaultPrizeStructure(models.Model):
     class Meta:
         unique_together = ('site_sport', 'prize_structure')
 
+    def __str__(self):
+        return '%s - %s' % (self.site_sport, self.prize_structure)
+
 
 class BlockGame(models.Model):
     """ an object that maps a real life game to a block """
@@ -128,6 +131,9 @@ class BlockPrizeStructure(models.Model):
     modified = models.DateTimeField(auto_now=True)
     block = models.ForeignKey('schedule.Block', null=False)
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+
+    def __str__(self):
+        return '%s - %s' % (self.block, self.prize_structure)
 
     class Meta:
         unique_together = ('block', 'prize_structure')
