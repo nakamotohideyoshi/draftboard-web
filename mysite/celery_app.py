@@ -136,7 +136,7 @@ app.conf.update(
 
         #
         ########################################################################
-        # generate the scheduled blocks for upcoming days
+        # generate the scheduled contest pools for upcoming days (based on Blocks)
         ########################################################################
         # nba
         'nba_create_scheduled_block_contest_pools': {
