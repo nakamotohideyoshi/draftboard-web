@@ -557,7 +557,7 @@ class BlockCreator(object):
                               dfsday_start=start,
                               dfsday_end=end,
                               cutoff_time=cutoff_time)
-            err_msg = 'A %s scheduled block at %s already exists' % (site_sport.name, start)
+            err_msg = 'A %s scheduled block already exists' % site_sport.name
             logger.warning(err_msg)
             BlockPrizeStructureCreator(block).create()
             raise self.BlockExistsException(err_msg)
@@ -663,7 +663,7 @@ class BlockCreatorMulti(BlockCreator):
                               dfsday_start=start,
                               dfsday_end=end,
                               cutoff_time=cutoff_time)
-            err_msg = 'a %s scheduled block at %s already exists' % (site_sport.name, start)
+            err_msg = 'a %s scheduled block already exists' % site_sport.name
             logger.warning(err_msg)
             raise self.BlockExistsException(err_msg)
         except Block.DoesNotExist:
