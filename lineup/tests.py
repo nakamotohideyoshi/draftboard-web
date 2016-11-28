@@ -145,11 +145,6 @@ class LineupTest(AbstractTest, BuildWorldMixin):
         self.assertRaises(lineup.exceptions.CreateLineupExpiredDraftgroupException,
                           lambda: lm.create_lineup(team, self.draftgroup))
 
-    def test_bad_player_ids(self):
-        lm = LineupManager(self.user)
-        self.assertRaises(PlayerChild.DoesNotExist,
-                          lambda: lm.create_lineup([self.one.pk, self.two.pk, 9999], self.draftgroup))
-
     def test_bad_too_small_lineup(self):
         lm = LineupManager(self.user)
         self.assertRaises(lineup.exceptions.InvalidLineupSizeException,
