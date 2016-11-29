@@ -19,7 +19,8 @@ const initialState = {
       // this doesn't matter.
       filterProperty: 'srid',
     },
-    positionFilter: {},
+    // Default to the 'all' filter.
+    positionFilter: { title: 'All', column: 'position', match: '' },
     teamFilter: {
       match: [],
       count: 0,
