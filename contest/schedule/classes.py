@@ -559,6 +559,8 @@ class BlockCreator(object):
                               cutoff_time=cutoff_time)
             err_msg = 'A %s scheduled block already exists' % site_sport.name
             logger.warning(err_msg)
+            # Create any BlockPrizeStructure for this existing Block. If we don't do this, any new prize structures will
+            # not be created to existing Blocks and thus will not spawn contests.
             BlockPrizeStructureCreator(block).create()
             raise self.BlockExistsException(err_msg)
         except Block.DoesNotExist:
