@@ -15,6 +15,7 @@ from swish.models import (
     PlayerLookup,
 )
 
+
 class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
     """
     Swish Analytics own class for injecting PlayerUpdate objects into the backend
@@ -38,7 +39,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
 
         # try to get this player using the PlayerLookup (if the model is set)
         # otherwise falls back on simple name-matching
-        player_srid = self.get_srid_for(pid=pid, name=name) # TODO catch self.PlayerDoesNotExist
+        player_srid = self.get_srid_for(pid=pid, name=name)  # TODO catch self.PlayerDoesNotExist
 
         # internally calls super().update(player_srid, *args, **kwargs)
         update_id = swish_update.get_update_id()
@@ -74,6 +75,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
             'player_status_confidence': player_status_confidence,
             'last_text': last_text,
             'game_id': game_id,
+            'sport': self.sport
         }
         update_obj = self.add(
             player_srid,
@@ -88,20 +90,21 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         )
         return update_obj
 
+
 class UpdateData(object):
     """ wrapper for each update object. this class is constructed with the JSON of an individual update """
 
     field_update_id = 'id'
     field_datetime_utc = 'datetimeUtc'
-    field_position = 'position'             # the sport position, ie: 'QB', 'TE' , etc...
+    field_position = 'position'  # the sport position, ie: 'QB', 'TE' , etc...
     field_text = 'text'
     field_sport = 'sport'
     field_player_id = 'playerId'
-    field_player_name = 'playerName'        # its the full name
+    field_player_name = 'playerName'  # its the full name
     field_source = 'source'
-    field_source_origin = 'sourceOrigin'    # ie: rotowire, twitter, etc...
-    field_swish_status = 'swishStatus'      # ie: 'week-to-week', etc...
-    field_url_origin = 'urlOrigin'          # for twitter, the url to the post
+    field_source_origin = 'sourceOrigin'  # ie: rotowire, twitter, etc...
+    field_swish_status = 'swishStatus'  # ie: 'week-to-week', etc...
+    field_url_origin = 'urlOrigin'  # for twitter, the url to the post
     field_roster_status = 'rosterStatus'
     field_roster_status_description = 'rosterStatusDescription'
     field_depth_chart_status = 'depthChartStatus'
@@ -146,6 +149,7 @@ class UpdateData(object):
         """ lowercases, and returns the sport like: 'nfl', 'mlb', etc... """
         return self.data.get(self.field_sport).lower()
 
+
 class SwishAnalytics(object):
     """
     api example:
@@ -154,7 +158,8 @@ class SwishAnalytics(object):
 
     """
 
-    class SwishApiException(Exception): pass
+    class SwishApiException(Exception):
+        pass
 
     # known swish status id(s) and their string names
     STARTING, ACTIVE, PROBABLE, GAMETIME_DECISION, QUESTIONABLE, DOUBTFUL, OUT, DAY_TO_DAY, WEEK_TO_WEEK, \
@@ -182,7 +187,7 @@ class SwishAnalytics(object):
     api_base_url = 'https://api.swishanalytics.com'
     api_injuries = '/players/injuries'
     api_projections_game = '/players/fantasy'
-    api_projections_season = '/players/fantasy/remaining'   # exists also: '/players/fantasy/season'
+    api_projections_season = '/players/fantasy/remaining'  # exists also: '/players/fantasy/season'
     api_player_status = '/players/status'
 
     api_key = settings.SWISH_API_KEY
@@ -199,13 +204,14 @@ class SwishAnalytics(object):
         'game',
     ]
 
-    def __init__(self):
+    def __init__(self, sport):
         # create the Session object for performing the api calls
         self.session = requests.Session()
         # always hold onto the last http response
         self.r = None
         # the list of updates (UpdateData objects) if it has been parsed will be set here
         self.updates = None
+        self.sport = sport
 
     def get_sport(self):
         return self.sport
@@ -230,7 +236,7 @@ class SwishAnalytics(object):
         self.r = self.session.get(url)
 
         # save the response in the database
-        #self.save_history(self.r)
+        # self.save_history(self.r)
 
         # otherwise convert it to JSON and return the the data
         return json.loads(self.r.text)
@@ -254,11 +260,11 @@ class SwishAnalytics(object):
     def get_updates(self):
         formatted_date = self.get_formatted_date()
         url = '%s/%s%s?date=%s&apikey=%s' % (self.api_base_url, self.sport,
-                                            self.api_injuries, formatted_date, self.api_key)
+                                             self.api_injuries, formatted_date, self.api_key)
         response_data = self.call_api(url)
 
         # results will be a list of the updates from swish
-        results = response_data.get('data',{}).get('results',[])
+        results = response_data.get('data', {}).get('results', [])
         self.updates = []
         for update_data in results:
             status = update_data.get('swishStatusId')
@@ -270,15 +276,3 @@ class SwishAnalytics(object):
         print('%s UpdateData(s)' % str(len(self.updates)))
 
         return self.updates
-
-class SwishNFL(SwishAnalytics):
-    sport = 'nfl'
-
-class SwishNHL(SwishAnalytics):
-    sport = 'nhl'
-
-class SwishNBA(SwishAnalytics):
-    sport = 'nba'
-
-class SwishMLB(SwishAnalytics):
-    sport = 'mlb'

@@ -319,6 +319,7 @@ class PlayerUpdate(AbstractUpdate):
     player_status_confidence = models.FloatField(default=0, null=True)
     last_text = models.CharField(max_length=1024 * 8, null=True, default='')
     game_id = models.IntegerField(null=False, default=0)
+    sport = models.CharField(max_length=4, null=False)
 
     class Meta:
         abstract = False
