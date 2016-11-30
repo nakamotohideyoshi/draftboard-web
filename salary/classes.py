@@ -253,6 +253,10 @@ class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
         self.sal_dk = sal_dk
         self.sal_fd = sal_fd
 
+    def __str__(self):
+        return "SalaryPlayerStatsProjectionObject for %s - fantasy_points (projected from stats.com): %s" % (
+            self.player, self.fantasy_points)
+
 
 class SalaryPlayerObject(object):
     """
@@ -275,7 +279,7 @@ class SalaryPlayerObject(object):
         self.flagged = False
 
     def __str__(self):
-        string_ret = str(self.player_id) + " w_points=" + str(self.fantasy_weighted_average) + \
+        string_ret = str(self.player_id) + " SalaryPlayerObject w_points=" + str(self.fantasy_weighted_average) + \
                      " flagged=" + str(self.flagged) + ": \n"
         string_ret += '%s total playerstats instances\n' % str(len(self.player_stats_list))
         for player in self.player_stats_list:
@@ -283,7 +287,7 @@ class SalaryPlayerObject(object):
         return string_ret
 
     def get_fantasy_average(self):
-        if self.fantasy_average == None:
+        if self.fantasy_average is None:
             self.fantasy_average = 0.0
             count = 0
             for player_stat in self.player_stats_list[:self.max_games]:
@@ -1096,7 +1100,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
             #
             # Make sure the player has an acceptable average FPPG to be included
             # in getting the average points per position
-            player_avg = player.get_fantasy_average()
+            player.get_fantasy_average()
             if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
                 for player_stats in player.player_stats_list:
 
@@ -1312,7 +1316,6 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                 #
                 # creates the salary for each player in the specified roster spot
                 for player in players:
-
                     # debug print this player once if their srid is specified by 'debug_srid'
                     if player.player.srid == self.debug_srid and player.player.srid not in printed_players:
                         msg = str(player.player) + '\n'
@@ -1356,17 +1359,22 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             # print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
                             salary.amount += salary.random_adjust_amount
 
-                        #
-                        salary.amount = self.__round_salary(salary.amount)
-                        if (salary.amount < self.salary_conf.min_player_salary):
-                            salary.amount = self.salary_conf.min_player_salary
+                        # Don't update the player's salary if we have a 0 fpp projection from stats.com.
+                        if salary.fppg > 0:
+                            salary.amount = self.__round_salary(salary.amount)
+                            if salary.amount < self.salary_conf.min_player_salary:
+                                salary.amount = self.salary_conf.min_player_salary
+                        else:
+                            logger.warning(
+                                'Skipping salary update because stats.com gave us 0 fpp. Salary: %s Projection: %s' % (
+                                    salary, player
+                                )
+                            )
                         salary.flagged = player.flagged
                         salary.pool = self.pool
                         salary.player = player.player
                         salary.primary_roster = roster_spot
-
                         salary.fppg = player.get_fantasy_average()
-
                         salary.fppg_pos_weighted = player.fantasy_weighted_average
                         if salary.fppg_pos_weighted is None:
                             salary.fppg_pos_weighted = 0.0

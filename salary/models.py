@@ -174,7 +174,8 @@ class Salary(models.Model):
                                              help_text='the amount of ($) salary +/- applied before final rounding.')
 
     def __str__(self):
-        return 'Salary'
+        return "Salary for player_id: %s - amount: %s fppg: %s pool: %s" % (
+            self.player_id, self.amount, self.fppg, self.pool)
 
     class Meta:
         ordering = ('primary_roster', '-amount')
