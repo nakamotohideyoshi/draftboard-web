@@ -290,11 +290,18 @@ app.conf.update(
             'schedule': timedelta(minutes=1),
             'args': ('nfl',),
         },
+
         'nba_swish_update_injury_feed': {
             'task': 'swish.tasks.update_injury_feed',
             'schedule': timedelta(minutes=1),
             'args': ('nba',),
-        }
+        },
+
+        # Check for inactive users and send an email report to settings.INACTIVE_USERS_EMAILS
+        'inactive_users': {
+            'task': 'account.tasks.check_inactive_users',
+            'schedule': crontab(minute=0, hour='17'),  # ~ noon
+        },
     },
 
     CELERY_ENABLE_UTC=True,
