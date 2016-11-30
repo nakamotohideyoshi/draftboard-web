@@ -289,6 +289,11 @@ app.conf.update(
             'task': 'swish.tasks.update_injury_feed',
             'schedule': timedelta(minutes=1),
             'args': ('nfl',),
+        },
+        'nba_swish_update_injury_feed': {
+            'task': 'swish.tasks.update_injury_feed',
+            'schedule': timedelta(minutes=1),
+            'args': ('nba',),
         }
     },
 
