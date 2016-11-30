@@ -19,6 +19,7 @@ class Information(models.Model):
     AbstractUser, this is used to store user-related things like permissions and various properties.
     """
     user = models.OneToOneField(User, primary_key=True)
+    inactive = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Information'

@@ -141,6 +141,12 @@ if slack_updates is not None and 't' in str(slack_updates).lower():
     SLACK_UPDATES = True
 
 
+# Inactive users
+INACTIVE_USERS_EMAILS = [
+    'pedro@runitonce.com',
+    'dan@runitonce.com',
+]
+
 # Trulioo creds
 TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
 TRULIOO_USER = 'Draftboard_API'
