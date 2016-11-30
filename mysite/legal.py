@@ -1,21 +1,58 @@
-#from enum import Enum
+# All US States
+ALL_STATES = [
+    'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN',
+    'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ',
+    'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA',
+    'WI', 'WV', 'WY']
 
-#
-# these are the states which are not allowed to play daily fantasy
-# Arizona(AZ), Iowa(IA), Montana(MT), Washington(WA)
-
-#
-# currently these are the U.S. states which allow daily fantasy players.
-
-# the legal states. the strange gaps are for the illegal states
-states = [
-    'AL','AK',     'AR','CA','CO','CT','DE','FL','GA',
-    'HI','ID','IL','IN',     'KS','KY','LA','ME','MD',
-    'MA','MI','MN','MS','MO',     'NE','NV','NH','NJ',
-    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
-    'SD','TN','TX','UT','VT','VA',     'WV','WI','WY'
+# States we cannot operate in.
+BLOCKED_STATES = [
+    'AL',
+    'AR',
+    'AZ',
+    'DE',
+    'FL',
+    'GA',
+    'HI',
+    'IA',
+    'ID',
+    'IL',
+    'LA',
+    'MT',
+    'NV',
+    'TX',
+    'VA',
+    'VT',
+    'WA',
 ]
 
-#
-# generated from the 'states' list !
-state_choices = [ (x, x) for x in states ]
+# All states, in tuple format.
+# ex: [('NY', 'NY'), ('FL', 'FL'), ...]
+STATE_CHOICES = [(x, x) for x in ALL_STATES]
+
+# States it is legal to play DFS in.
+LEGAL_STATES = set(ALL_STATES) - set(BLOCKED_STATES)
+
+# Country codes we are allowed to operate in. These are in our geoip database.
+LEGAL_COUNTRIES = ['US']
+
+
+# State Age Limitations
+DEFAULT_AGE_LIMIT = 18
+# These states are differnet than the default.
+STATE_AGE_EXCEPTIONS = {
+    'AL': 19,
+    'MA': 21,
+    'NE': 19,
+    'NV': 21,
+}
+
+# Build up a dictionary that will default all states to the default, unless they
+# exist in state_age_exceptions.
+# ex: {'AK': 18, 'AL': 19, 'AR': 18, ...}
+STATE_AGE_LIMITS = {}
+for state in ALL_STATES:
+    if state in STATE_AGE_EXCEPTIONS:
+        STATE_AGE_LIMITS[state] = STATE_AGE_EXCEPTIONS[state]
+    else:
+        STATE_AGE_LIMITS[state] = DEFAULT_AGE_LIMIT

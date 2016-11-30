@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('nba', '0001_squashed_0011_auto_20160119_2125'),
+        ('nba', '0011_auto_20160119_2125'),
     ]
 
     operations = [

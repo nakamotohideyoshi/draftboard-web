@@ -14,7 +14,7 @@ const ResultsLineups = (props) => {
     <div className="results-page--lineups">
       {props.lineups.map((lineup) => React.createElement(
         ResultsLineup, extend(
-          {}, lineup, { key: lineup.id, dateIsToday: props.dateIsToday }
+          {}, lineup, { key: lineup.id, isWatchingLive: props.isWatchingLive }
         ))
       )}
     </div>
@@ -22,7 +22,7 @@ const ResultsLineups = (props) => {
 };
 
 ResultsLineups.propTypes = {
-  dateIsToday: React.PropTypes.bool.isRequired,
+  isWatchingLive: React.PropTypes.bool.isRequired,
   lineups: React.PropTypes.array.isRequired,
 };
 

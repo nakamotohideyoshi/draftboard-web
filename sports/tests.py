@@ -15,6 +15,7 @@ from sports.game_status import GameStatus
 class GameStatusTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.invalid_sport  = 'asdfawef'
         self.valid_sport    = 'nfl'
 

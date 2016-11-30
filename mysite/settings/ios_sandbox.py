@@ -1,11 +1,11 @@
 from dj_database_url import config as heroku_db_config
-from urllib.parse import urlparse
-
+from urllib import parse
 from .base import *
 
 # Constant for determining environment
 DOMAIN = 'draftboard-ios-sandbox.herokuapp.com'
-ALLOWED_HOSTS = ['.draftboard-ios-sandbox.herokuapp.com', '*.draftboard-ios-sandbox.herokuapp.com', ]
+ALLOWED_HOSTS = ['.draftboard-ios-sandbox.herokuapp.com',
+                 '*.draftboard-ios-sandbox.herokuapp.com', ]
 
 # Connect Heroku database
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
@@ -18,30 +18,67 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
 
-# Redis caching
-redis_url = urlparse(environ.get('REDISCLOUD_URL'))
+# RedisCloud redis - used primarily for live stats
+REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
+REDIS_URL = parse.urlparse(REDISCLOUD_URL)
 
 CACHES = {
+    # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/0' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {'max_connections': 10}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-
-    # separate one to invalidate all of cachalot if need be
-    "cachalot": {
+    # Celery cache
+    'celery': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
+        'LOCATION': 'redis://:%s@%s:%s/1' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+    },
+    # separate one to invalidate all of cachalot if need be
+    'cachalot': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/2' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
+    # separate for template caching so we can clear when we want
+    'django_templates': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/3' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    },
+    # api view cache
+    API_CACHE_NAME: {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/4' % (
+            REDIS_URL.password,
+            REDIS_URL.hostname,
+            REDIS_URL.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
 }
-
 # Static assets, served via django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
@@ -73,11 +110,12 @@ PUSHER_SECRET = environ.get('PUSHER_SECRET')
 
 #
 # dataden mongo database connection
-MONGO_AUTH_DB   = 'admin'
-MONGO_USER      = 'admin'
-MONGO_PASSWORD  = 'dataden1'
-MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
+MONGO_AUTH_DB = 'admin'
+MONGO_USER = 'admin'
+MONGO_PASSWORD = 'dataden1'
+MONGO_PORT = 27017  # NOTE: any port specified in the connection uri string overrides this port
+MONGO_HOST = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (
+    MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
 # MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
 # # if this config var exists, override the default production value

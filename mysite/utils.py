@@ -1,17 +1,9 @@
-#
-# mysite/utils.py
-
-# import os
-import urllib
 from ast import literal_eval
-from redis import Redis
-from django.conf import settings
+from django_redis import get_redis_connection
 
 
 def get_redis_instance():
-    redis_url = urllib.parse.urlparse(settings.REDISCLOUD_URL)
-    r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
-    return r
+    return get_redis_connection("default")
 
 
 class QuickCache(object):
@@ -23,7 +15,8 @@ class QuickCache(object):
 
     usage:
 
-        e = {'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'dd_updated__id': 1464841517401, 'something to cache': 'asdfasdf'}
+        e = {'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'dd_updated__id': 1464841517401,
+            'something to cache': 'asdfasdf'}
         from mysite.utils import QuickCache
         class Steve(QuickCache):
             name = 'Steve' # naming the cache will help more uniquely identify it at runtime
@@ -61,7 +54,7 @@ class QuickCache(object):
             self.cache = get_redis_instance()
 
         # immediately cache it based on 'stash_now' bool
-        if data is not None and stash_now == True:
+        if data is not None and stash_now is True:
             self.stash(data)
 
     def get_key(self, ts, gid):
@@ -70,13 +63,10 @@ class QuickCache(object):
 
     def scan(self, ts):
         """ return the keys for objects matching the same cache and timestamp 'ts' """
-
-        #redis = Redis()
         redis = get_redis_instance()
 
         keys = []
         pattern = self.scan_pattern % ts
-        #print('scan pattern:', pattern)
         for k in redis.scan_iter(pattern):
             keys.append(k)
         return keys
@@ -95,28 +85,19 @@ class QuickCache(object):
             err_msg = 'data must be an instance of dict'
             raise Exception(err_msg)
 
-    #@timeit
     def fetch(self, ts, gid):
         k = self.get_key(ts, gid)
         ret_val = None
-        #print('<<< fetch key: %s' % k)
         try:
             ret_val = self.bytes_2_dict(self.cache.get(k))
         except self.BytesIsNoneException:
             pass
         return ret_val
 
-    #@timeit
     def stash(self, data):
-        #
         self.validate_stashable(data)
-
-        #
         ts = data.get('dd_updated__id')
         gid = data.get(self.field_id)
         k = self.get_key(ts, gid)
-        #print('>>> stash key: %s' % k)
-        #
         ret_val = self.add_to_cache_method(k, data)
-        #print('stashed: key', str(k), ':', str(data))
         return ret_val
