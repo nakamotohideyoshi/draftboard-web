@@ -51,7 +51,7 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
         down: 2,
         clock: '14:30',
         location: {
-          yardline: 25,
+          yardline: 5,
         },
       },
       description: '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
@@ -209,6 +209,7 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
       formation: 'shotgun',
       fumbles: false,
       gameId: 'game1',
+      isBigPlay: true,
       playersStats: [],
       side: 'middle',
       sport: 'nfl',
@@ -216,7 +217,7 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
       type: 'pass',
       when: { clock: '14:30', quarter: 1 },
       yardlineEnd: 0.29,
-      yardlineStart: 0.25,
+      yardlineStart: 0.05,
       pass: {
         attemptedYards: 2,
         completed: true,
@@ -259,6 +260,7 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
       fumbles: false,
       formation: 'default',
       gameId: 'game1',
+      isBigPlay: false,
       playersStats: [],
       side: 'middle',
       sport: 'nfl',
@@ -303,6 +305,7 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
       formation: 'default',
       fumbles: false,
       gameId: 'game1',
+      isBigPlay: false,
       playersStats: [],
       side: 'middle',
       sport: 'nfl',
@@ -332,6 +335,11 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
   it('should add sack information if available in pass pbp event', () => {
     const message = merge({}, defaultPassReceptionMessage, {
       pbp: {
+        start_situation: {
+          location: {
+            yardline: 25,
+          },
+        },
         statistics: {
           pass__list: {
             sack_yards: -8,
@@ -351,6 +359,7 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
       formation: 'shotgun',
       fumbles: false,
       gameId: 'game1',
+      isBigPlay: false,
       playersStats: [],
       side: 'middle',
       sport: 'nfl',

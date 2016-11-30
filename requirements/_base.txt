@@ -29,6 +29,7 @@ Jinja2==2.7.3
 kombu==3.0.35
 Markdown==2.6.2
 #MarkupSafe==0.23
+mock==2.0.0
 psycopg2==2.6.1           # was simply 2.6
 pusher==1.2.3
 pyasn1==0.1.9
@@ -64,7 +65,7 @@ django-extensions==1.5.9
 ipython==4.0.3
 
 # Sentry dependency
-raven==5.1.1
+raven==5.31.0
 
 # Paths
 Unipath==1.1

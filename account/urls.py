@@ -1,6 +1,3 @@
-#
-# account/urls.py
-
 from django.conf.urls import url
 from account.views import (
     AuthAPIView,
@@ -8,20 +5,20 @@ from account.views import (
     PasswordResetAPIView,
     RegisterAccountAPIView,
     UserAPIView,
-    InformationAPIView,
+    UserCredentialsAPIView,
     UserEmailNotificationAPIView,
 )
 from .views import (
     # paypal apis:
     PayPalDepositWithPayPalAccountAPIView,              # not fully implemented
     PayPalDepositWithPayPalAccountSuccessAPIView,       # not fully implemented
-    PayPalDepositWithPayPalAccountFailAPIView,          # not fully implemented
-    PayPalDepositCreditCardAPIView,
-    PayPalDepositSavedCardAPIView,
-    PayPalSavedCardAddAPIView,
-    PayPalSavedCardDeleteAPIView,
-    PayPalSavedCardListAPIView,
-    SetSavedCardDefaultAPIView,
+    # PayPalDepositWithPayPalAccountFailAPIView,          # not fully implemented
+    # PayPalDepositCreditCardAPIView,
+    # PayPalDepositSavedCardAPIView,
+    # PayPalSavedCardAddAPIView,
+    # PayPalSavedCardDeleteAPIView,
+    # PayPalSavedCardListAPIView,
+    # SetSavedCardDefaultAPIView,
     # paypal vzero apis
     VZeroGetClientTokenView,
     VZeroDepositView,
@@ -40,9 +37,9 @@ urlpatterns = [
 
     url(r'^register/$', RegisterAccountAPIView.as_view()),
 
-    url(r'^information/$', InformationAPIView.as_view()),
+    url(r'^user/$', UserAPIView.as_view()),
 
-    url(r'^settings/$', UserAPIView.as_view()),
+    url(r'^settings/$', UserCredentialsAPIView.as_view()),
 
     url(r'^notifications/email/$', UserEmailNotificationAPIView.as_view()),
 

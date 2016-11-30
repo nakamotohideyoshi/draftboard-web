@@ -1,0 +1,127 @@
+@import "../../variables.scss";
+
+$block: '.live-standings-pane';
+
+
+#{$block} {
+  bottom: 120px;
+  background: #2b2e3d;
+  height: 1px;
+  left: 50%;
+  position: fixed;
+  transform: translateX(-50%);
+  width: 70%;
+  z-index: $zindex-live-standings-pane;
+
+  &__point {
+    cursor: pointer;
+    height: 20px;
+    position: absolute;
+    top: -10px;
+    transform: translateX(-50%);
+    width: 20px;
+    z-index: 20;
+
+    &:hover #{$block}__inner-point {
+      background-color: #fff;
+      box-shadow: 0px 0px 16.38px 4.62px rgba(176, 237, 136, 0.48);
+      height: 9px;
+      padding: 0;
+      width: 9px;
+    }
+
+    &:hover #{$block}__live-standing {
+      display: block;
+    }
+
+    &--losing,
+    &--winning,
+    &--mine {
+      #{$block}__inner-point {
+        border-radius: 50%;
+        height: 6px;
+        width: 6px;
+      }
+    }
+
+    &--losing #{$block}__inner-point {
+      background: #7a7d8a;
+    }
+
+    &--winning #{$block}__inner-point {
+      background: #2db773;
+    }
+
+    &--mine {
+      cursor: auto;
+    }
+
+    &--mine #{$block}__inner-point {
+      background: #37a5c9;
+
+      // ring around
+      &:after {
+        border: 1px solid rgba(127, 214, 243, 0.39);
+        border-radius: 50%;
+        content: '';
+        display: block;
+        height: 12px;
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 12px;
+      }
+    }
+
+    &--mine #{$block}__live-standing {
+      top: -50px;
+    }
+  }
+
+  &__legend {
+    $offset: -72px;
+
+    color: #7a7d8b;
+    font-family: $font-oswald;
+    font-size: 9px;
+    position: absolute;
+    top: -6px;
+    text-transform: uppercase;
+    width: 60px;
+
+    &--last {
+      left: $offset;
+      text-align: right;
+    }
+
+    &--first {
+      right: $offset;
+    }
+  }
+
+  &__inner-point {
+    left: 50%;
+    position: relative;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 100ms cubic-bezier(0.8, 0.16, 0.18, 0.85);
+  }
+
+  &__in-the-money {
+    background: #264c44;
+    height: 100%;
+    position: absolute;
+    width: 30%;
+    right: 0;
+    top: 0;
+    z-index: 10;
+  }
+
+  &__live-standing {
+    display: none;
+    position: absolute;
+    left: -123px;
+    top: -64px;
+  }
+}

@@ -1,13 +1,20 @@
 import React from 'react';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
-
-import { LiveHeader } from '../../../components/live/live-header.jsx';
-import LiveOverallStats from '../../../components/live/live-overall-stats.jsx';
+import proxyquire from 'proxyquire';
 
 
 describe('<LiveHeader /> Component', () => {
+  // use proxyquire to mock in responses
+  const proxyComponent = proxyquire('../../../components/live/live-header', {
+    './live-overall-stats': {
+      LiveOverallStatsConnected: ({}) => (<div className="live-overall-stats"></div>),
+    },
+  });
+  const LiveHeader = proxyComponent.LiveHeader;
+
   const renderComponent = (props) => mount(<LiveHeader {...props} />);
+
 
   afterEach(() => {
     document.body.innerHTML = '';
@@ -19,6 +26,9 @@ describe('<LiveHeader /> Component', () => {
       myLineup: {
         isLoading: true,
       },
+      lineups: [],
+      selectLineup: () => {},
+      showEventResult: false,
       opponentLineup: { isLoading: true },
       watching: {
         myLineupId: 2,
@@ -29,7 +39,7 @@ describe('<LiveHeader /> Component', () => {
 
     const wrapper = renderComponent(props);
 
-    expect(wrapper.find(LiveOverallStats)).to.have.length(0);
+    expect(wrapper.find('.live-overall-stats')).to.have.length(0);
   });
 
   it('should only render my lineup stats if no contest', () => {
@@ -46,6 +56,9 @@ describe('<LiveHeader /> Component', () => {
           duration: 88,
         },
       },
+      lineups: [],
+      selectLineup: () => {},
+      showEventResult: false,
       opponentLineup: { isLoading: true },
       watching: {
         myLineupId: 2,
@@ -56,8 +69,7 @@ describe('<LiveHeader /> Component', () => {
 
     const wrapper = renderComponent(props);
 
-    expect(wrapper.find(LiveOverallStats)).to.have.length(1);
-    expect(wrapper.find(LiveOverallStats).node.props.id).to.equal(2);
+    expect(wrapper.find('.live-overall-stats')).to.have.length(1);
   });
 
   it('should only render contest rank and potentialWinnings if contest mode', () => {
@@ -68,6 +80,9 @@ describe('<LiveHeader /> Component', () => {
         potentialWinnings: 25,  // relevant field
         rank: 1,
       },
+      lineups: [],
+      selectLineup: () => {},
+      showEventResult: false,
       myLineup: {
         isLoading: false,
         potentialWinnings: 80,
@@ -89,9 +104,7 @@ describe('<LiveHeader /> Component', () => {
 
     const wrapper = renderComponent(props);
 
-    expect(wrapper.find(LiveOverallStats)).to.have.length(1);
-    expect(wrapper.find(LiveOverallStats).node.props.potentialWinnings).to.equal(25);
-    expect(wrapper.find(LiveOverallStats).node.props.rank).to.equal(1);
+    expect(wrapper.find('.live-overall-stats')).to.have.length(1);
   });
 
   it('should render mine and opponent stats when opponent chosen', () => {
@@ -99,6 +112,7 @@ describe('<LiveHeader /> Component', () => {
       contest: {
         id: 3,
         isLoading: false,
+        name: 'Foo',
         potentialWinnings: 25,
         rank: 1,
       },
@@ -113,6 +127,9 @@ describe('<LiveHeader /> Component', () => {
           duration: 88,
         },
       },
+      lineups: [],
+      selectLineup: () => {},
+      showEventResult: false,
       opponentLineup: {
         isLoading: false,
         potentialWinnings: 20,
@@ -133,12 +150,7 @@ describe('<LiveHeader /> Component', () => {
 
     const wrapper = renderComponent(props);
 
-    expect(wrapper.find(LiveOverallStats)).to.have.length(2);
-    expect(wrapper.find(LiveOverallStats).at(0).node.props.id).to.equal(2);
-    expect(wrapper.find(LiveOverallStats).at(1).node.props.id).to.equal(4);
-    expect(wrapper.find('.live-overall-stats__vs')).to.have.length(1);
-
-    // should still be using contest based winnings in vs mode
-    expect(wrapper.find(LiveOverallStats).at(0).node.props.potentialWinnings).to.equal(25);
+    expect(wrapper.find('.live-overall-stats')).to.have.length(2);
+    expect(wrapper.find('.live-header__contest-name')).to.have.length(1);
   });
 });

@@ -3,7 +3,7 @@ import { dateNow } from '../lib/utils';
 import log from '../lib/logging.js';
 import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
-
+import { getJsonResponse } from '../lib/utils/response-types';
 
 // custom API domain for local dev testing
 const { API_DOMAIN = '' } = process.env;
@@ -20,7 +20,7 @@ const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
 }).then(response => {
   // First, reject a response that isn't in the 200 range.
   if (!response.ok) {
-    return response.json().then((json) => {
+    return getJsonResponse(response).then((json) => {
       // If the error response is for a restricted location, immediately redirect to the
       // restricted location page.
       if (json.detail === 'IP_CHECK_FAILED') {

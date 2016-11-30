@@ -18,7 +18,7 @@ def gen(buyin=100, first=1500, round=100, payouts=23, prize_pool=10000, exact=Tr
 class GeneratorTest(AbstractTest):
 
     def setUp(self):
-        pass
+        super().setUp()
 
     def test_generator_invalid_round_payouts_param_less_than_buyin(self):
         self.assertRaises( mysite.exceptions.InvalidArgumentException,

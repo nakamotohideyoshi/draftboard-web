@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('contest', '0001_squashed_0004_historyentry'),
+        ('contest', '0004_historyentry'),
     ]
 
     operations = [

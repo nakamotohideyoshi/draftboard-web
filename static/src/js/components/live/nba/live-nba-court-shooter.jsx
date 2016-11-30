@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   removeCurrentEvent,
-  shiftOldestGameEvent,
+  shiftOldestEvent,
   showAnimationEventResults,
-} from '../../actions/events';
-import store from '../../store';
+} from '../../../actions/events';
+import store from '../../../store';
 
 /**
  * The shooter that appears and disappears. This will be changing to an animation
@@ -76,7 +76,7 @@ const LiveNBACourtShooter = React.createClass({
 
       // enter the next item in the queue once everything is done
       setTimeout(() => {
-        shiftOldestGameEvent(event.gameId);
+        shiftOldestEvent(event.gameId);
       }, 3000);
     }, 5000);
 

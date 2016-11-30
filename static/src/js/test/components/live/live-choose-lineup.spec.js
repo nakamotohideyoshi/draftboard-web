@@ -14,7 +14,7 @@ describe('<LiveChooseLineup /> Component', () => {
 
   const lineupsSameSportProps = {
     lineupsLoaded: true,
-    actions: {},
+    selectLineup: () => {},
     lineups: [
       {
         id: 1,
@@ -43,7 +43,7 @@ describe('<LiveChooseLineup /> Component', () => {
 
   const lineupsDifferentSportProps = {
     lineupsLoaded: true,
-    actions: {},
+    selectLineup: () => {},
     lineups: [
       {
         id: 1,
@@ -86,8 +86,8 @@ describe('<LiveChooseLineup /> Component', () => {
   it('should show message if no lineups to choose from', () => {
     const props = {
       lineupsLoaded: true,
-      actions: {},
       lineups: [],
+      selectLineup: () => {},
     };
     const wrapper = renderComponent(props);
 
@@ -97,8 +97,8 @@ describe('<LiveChooseLineup /> Component', () => {
   it('should show LiveLoading if lineups not loaded yet', () => {
     const props = {
       lineupsLoaded: false,
-      actions: {},
       lineups: [],
+      selectLineup: () => {},
     };
     const wrapper = renderComponent(props);
 
@@ -109,26 +109,15 @@ describe('<LiveChooseLineup /> Component', () => {
     // Update the default props with a spy function.
     const props = merge(
       {}, lineupsSameSportProps, {
-        actions: {
-          updateWatchingAndPath: sinon.spy(),
-          fetchCurrentLineupsAndRelated: () => ({}),
-        },
+        selectLineup: sinon.spy(),
       }
     );
-    const path = '/live/nba/lineups/1/';
-    const changedFields = {
-      draftGroupId: 1,
-      myLineupId: 1,
-      sport: 'nba',
-    };
 
     const wrapper = renderComponent(props);
-    wrapper.find('.live-choose-lineup__option').first().simulate('click');
-
-    expect(props.actions.updateWatchingAndPath.calledWith(path, changedFields)).to.equal(true);
-
-    // Expect it to be called only once.
-    expect(props.actions.updateWatchingAndPath.callCount).to.equal(1);
+    wrapper.find('.live-choose-lineup__option').first().simulate('click', () => {
+      // Expect it to be called only once.
+      expect(props.selectLineup.callCount()).to.equal(1);
+    });
   });
 
   it('title should be select lineup as we are directly on the lineup selection', () => {

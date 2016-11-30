@@ -11,7 +11,7 @@ import ResultsPane from './results-pane';
 const ResultsLineup = React.createClass({
 
   propTypes: {
-    dateIsToday: React.PropTypes.bool,
+    isWatchingLive: React.PropTypes.bool,
     id: React.PropTypes.number.isRequired,
     draftGroupId: React.PropTypes.number,
     name: React.PropTypes.string,
@@ -96,7 +96,7 @@ const ResultsLineup = React.createClass({
       let decimalRemaining = 0;
 
       // if live, then show progress bar
-      if (this.props.dateIsToday === true && isUpcoming === false) {
+      if (this.props.isWatchingLive === true && isUpcoming === false) {
         decimalRemaining = player.timeRemaining.decimal;
       }
 
@@ -278,7 +278,7 @@ const ResultsLineup = React.createClass({
 
   renderContests() {
     const isLive = this.props.hasOwnProperty('liveStats');
-    const isUpcoming = this.props.dateIsToday && isTimeInFuture(this.props.start);
+    const isUpcoming = this.props.isWatchingLive && isTimeInFuture(this.props.start);
 
     const entries = this.props.entries.map((entry) => {
       const payout = entry.payout || {};

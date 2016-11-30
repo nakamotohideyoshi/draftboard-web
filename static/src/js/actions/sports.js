@@ -299,7 +299,7 @@ export const calculateTimeRemaining = (sport, game) => {
     case 'nfl':
     default: {
       // if the game hasn't started but we have boxscore, return with full minutes
-      if (boxScore.quarter === '') {
+      if (boxScore.quarter === '' || !('clock' in boxScore)) {
         return sportConst.gameDuration;
       }
 
@@ -423,7 +423,7 @@ const fetchGames = (sport) => ({
       ActionTypes.RECEIVE_GAMES,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
     endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
     requestFields: { sport },
     callback: (json) => receiveGames(sport, json || {}),
@@ -469,7 +469,7 @@ const fetchTeams = (sport) => ({
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchGames = (state, sport, force) => {
-  logAction.trace('actions.shouldFetchGames');
+  logAction.trace('actions.shouldFetchGames', force);
 
   // ignore the expiration if forcing
   if (force === true) return true;
@@ -517,7 +517,7 @@ const shouldFetchTeams = (state, sport) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
-  logAction.trace('actions.fetchGamesIfNeeded');
+  logAction.trace('actions.fetchGamesIfNeeded', sport);
 
   if (shouldFetchGames(getState(), sport, force) === false) {
     return Promise.resolve('Games already exists');
@@ -547,7 +547,7 @@ export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
-  logAction.trace('actions.fetchSportIfNeeded');
+  logAction.trace('actions.fetchSportIfNeeded', sport);
 
   dispatch(fetchTeamsIfNeeded(sport));
   dispatch(fetchGamesIfNeeded(sport, force));
@@ -617,7 +617,7 @@ export const isGameReady = (state, dispatch, sport, gameId) => {
 
   // if no boxscore from the server, ask for it
   if (!games[gameId].hasOwnProperty('boxscore')) {
-    dispatch(fetchSportIfNeeded(sport, true));
+    dispatch(fetchSportIfNeeded(sport));
 
     logAction.debug('actions.isGameReady - boxscore does not exist', gameId);
     return false;

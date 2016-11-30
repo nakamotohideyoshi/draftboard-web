@@ -35,7 +35,10 @@ from draftgroup.models import DraftGroup
 from django.utils import timezone
 from datetime import timedelta
 from mysite.celery_app import TaskHelper
-from account.permissions import HasIpAccess
+from account.permissions import (
+    HasIpAccess,
+    HasVerifiedIdentity,
+)
 from account import const as _account_const
 from account.utils import create_user_log
 
@@ -44,7 +47,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess,)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity,)
     serializer_class = CreateLineupSerializer
 
     def post(self, request, format=None):
@@ -192,7 +195,7 @@ class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess,)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity,)
     serializer_class = EditLineupSerializer
 
     def post(self, request, format=None):

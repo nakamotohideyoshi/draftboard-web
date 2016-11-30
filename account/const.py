@@ -26,7 +26,10 @@ CONTEST_DEREGISTERED = 9
 DEPOSIT = 10
 DEPOSIT_CLIENT_TOKEN = 11
 WITHDRAWAL_PAYPAL = 12
-WITHDRAWAL_CHECK = 13
+IDENTITY_VERIFICATION_FAILED = 13
+IDENTITY_VERIFICATION_SUCCESS = 14
+IDENTITY_VERIFICATION_EXISTS = 15
+IP_CHECK_UNKNOWN = 16
 
 ACTIONS = (
     (IP_CHECK_FAILED_COUNTRY, 'Country check failed'),
@@ -41,6 +44,9 @@ ACTIONS = (
     (CONTEST_DEREGISTERED, 'Contest deregistered'),
     (DEPOSIT, 'Deposit funds'),
     (DEPOSIT_CLIENT_TOKEN, 'Deposit pageview'),
-    (WITHDRAWAL_PAYPAL, 'Withraw request - paypal'),
-    (WITHDRAWAL_CHECK, 'Withraw request - check'),
+    (WITHDRAWAL_PAYPAL, 'Withdraw request - paypal'),
+    (IDENTITY_VERIFICATION_FAILED, 'Trulioo verification failed'),
+    (IDENTITY_VERIFICATION_SUCCESS, 'Trulioo verification success'),
+    (IDENTITY_VERIFICATION_EXISTS, 'User identity is already claimed'),
+    (IP_CHECK_UNKNOWN, 'IP not found in the db'),
 )

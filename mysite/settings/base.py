@@ -70,6 +70,26 @@ TIME_INPUT_FORMATS = [
 ]
 
 # Django installs
+
+MIDDLEWARE_CLASSES = (
+    # CSRF token masking
+    'debreach.middleware.CSRFCryptMiddleware',
+
+    # GZIP and security protection for it
+    'django.middleware.gzip.GZipMiddleware',
+    'debreach.middleware.RandomCommentMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+# django (>= 1.9) template settings
 INSTALLED_APPS = (
     # django defaults
     'django.contrib.admin',
@@ -79,18 +99,14 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-
-    # testing this out
-    # 'django_toolbar',
     'djcelery',
     'rest_framework',  # for api stuff
     'braces',
     'django_extensions',  # shell_plus
-
+    # TODO: Enable Cachalot... maybe.
     # --- removed for testing only ---
     # 'cachalot',  # caching models
     'pipeline',  # minifying/compressing static assets
-
     # draftboard specific apps below here #
     'account',
     'dfslog',
@@ -135,26 +151,6 @@ INSTALLED_APPS = (
 
     'rest_framework_swagger',
 )
-
-MIDDLEWARE_CLASSES = (
-    # CSRF token masking
-    'debreach.middleware.CSRFCryptMiddleware',
-
-    # GZIP and security protection for it
-    'django.middleware.gzip.GZipMiddleware',
-    'debreach.middleware.RandomCommentMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
-
-# django (>= 1.9) template settings
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     'DIRS': [
@@ -233,7 +229,7 @@ TEST_SETUP = None
 # defaults to false, though we made turn this on in production.py
 SLACK_UPDATES = False
 
-REDISCLOUD_URL = 'redis://127.0.0.1:6379'  # for live stats, defaults to local vagrant
+REDISCLOUD_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 HEROKU_REDIS_URL = REDISCLOUD_URL  # for caching pages/views, same place locally
 
 # defaults to use the default cache, but
@@ -250,6 +246,7 @@ DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
 DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from triggers
 
 # Mailchimp/Mandrill
+# TODO: Remove mandrill settings
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.mandrillapp.com'
 EMAIL_HOST_USER = 'devs@draftboard.com'
@@ -276,7 +273,8 @@ PUSHER_APP_ID = '179543'
 PUSHER_KEY = '5a4601521c1e2a3778aa'
 PUSHER_SECRET = '2c286ac8c239f8e73f00'
 PUSHER_CHANNEL_PREFIX = ''  # prepends any Pusher channel, useful for silo-ing calls per dev
-PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')  # if Pusher will actually send objects its told to send()
+# if Pusher will actually send objects its told to send()
+PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')
 
 # Paypal - test
 PAYPAL_REST_API_BASE = 'https://api.sandbox.paypal.com'
@@ -291,21 +289,21 @@ VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437aff
 # stats.com credentials for api usage
 STATSCOM_URL_BASE = 'http://api.stats.com/v1'
 STATSCOM_KEYS = {
-    'nfl' : {
-        'api_key' : 'ayecer82rvxzeu5pcea2a89p',
-        'secret'  : 'zj9pqF2882',
+    'nfl': {
+        'api_key': 'ayecer82rvxzeu5pcea2a89p',
+        'secret': 'zj9pqF2882',
     },
-    'mlb' : {
-        'api_key' : 'vqcfvb8vz9m732hqm5saxv3g',
-        'secret'  : 'kywJJpqs6a',
+    'mlb': {
+        'api_key': 'vqcfvb8vz9m732hqm5saxv3g',
+        'secret': 'kywJJpqs6a',
     },
-    'nba' : {
-        'api_key' : 'vz2jhrxzm9pxnnf8ek6d4p5j',
-        'secret'  : 'fMZCuGgUNy',
+    'nba': {
+        'api_key': 'vz2jhrxzm9pxnnf8ek6d4p5j',
+        'secret': 'fMZCuGgUNy',
     },
-    'nhl' : {
-        'api_key' : 'yubvm7f4gzxve5h3mh2qzgsb',
-        'secret'  : 'xQJ2CTWzP8',
+    'nhl': {
+        'api_key': 'yubvm7f4gzxve5h3mh2qzgsb',
+        'secret': 'xQJ2CTWzP8',
     }
 }
 
@@ -363,16 +361,15 @@ if USE_LOCKDOWN:
 
 # Django Logging
 # ----------------------------------------------------------
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s - %(message)s'
+            'format': '%(levelname)s %(asctime)s %(pathname)s:%(lineno)s - %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(pathname)s:%(lineno)s - %(message)s'
         },
     },
     'handlers': {
@@ -384,11 +381,17 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {
+        # A catch-all logger.
+        '': {
             'handlers': ['console'],
             'level': 'INFO',
         },
-        'mysite': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
             'handlers': ['console'],
             'level': 'INFO',
         },
@@ -397,43 +400,29 @@ LOGGING = {
 
 # GETIPNET settings
 # ----------------------------------------------------------
-
 GETIPNET_DEFAULT_SUBDOMAIN = "check"
 GETIPNET_SUBDOMAIN = "runfdv4kure0vjqfmdl8hba"
-GETIPNET_CONTACT = "inlanger@gmail.com"
+GETIPNET_CONTACT = "devs@draftboard.com"
 GETIPNET_NORMAL = 0.99
 
 # GEOIP settings
 # ----------------------------------------------------------
-
 GEOIP_PATH = path.join(BASE_DIR, '../geoip')
-BLOCKED_COUNTRIES_CODES = []
-BLOCKED_STATES = [
-    'TX',
-    'IL',
-    'GA',
-    'VA',
-    'WA',
-    'AZ',
-    'IN',
-    'AL',
-    'LA',
-    'IA',
-    'AK',
-    'NV',
-    'ID',
-    'HI',
-    'MT',
-    'DE',
-    'ND',
-]
 
-
-# Trulioo creds
+# Trulioo DEMO settings
+# ----------------------------------------------------------
 TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
-TRULIOO_USER = 'Draftboard_Demo_API'  # 'Draftboard_Demo_Portal'
-TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'
+TRULIOO_USER = 'Draftboard_Demo_API'
+TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
+TRULIOO_DEMO_MODE = True
 
-
-#Inactive users
+# Inactive users
 INACTIVE_USERS_EMAILS = []
+
+# Sentry Config
+RAVEN_CONFIG = {
+    'dsn': environ.get('SENTRY_DSN')
+}
+
+# access domain
+COOKIE_ACCESS_DOMAIN = '.draftboard.com'

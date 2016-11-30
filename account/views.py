@@ -1,25 +1,28 @@
-#
-# views.py
-
+from datetime import datetime, timedelta
+from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.views.generic.base import TemplateView
+from django.http import Http404
+from braces.views import LoginRequiredMixin
 from account.models import (
     Information,
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
+    Identity,
 )
 from account.forms import LoginForm
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
+    HasVerifiedIdentity,
 )
 from account.serializers import (
     LoginSerializer,
@@ -27,8 +30,8 @@ from account.serializers import (
     PasswordResetSerializer,
     RegisterUserSerializer,
     UserSerializer,
+    UserCredentialsSerializer,
     UserSerializerNoPassword,
-    InformationSerializer,
     UserEmailNotificationSerializer,
     UpdateUserEmailNotificationSerializer,
     SavedCardSerializer,
@@ -47,7 +50,6 @@ from pp.classes import (
     VZeroTransaction,
 )
 from pp.serializers import (
-    VZeroShippingSerializer,
     VZeroDepositSerializer,
 )
 from cash.classes import (
@@ -58,16 +60,21 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import login as authLogin
 from django.contrib.auth import authenticate, logout
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import (APIException, ValidationError)
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from account import const as _account_const
 from account.utils import create_user_log
-
 from trulioo.classes import (
     Trulioo,
+    VerifyDataValidationError,
+    TruliooException
 )
+import logging
+
+logger = logging.getLogger('account.views')
+
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
@@ -181,7 +188,8 @@ class RegisterAccountAPIView(generics.CreateAPIView):
             user = User.objects.create(username=username, email=email)
             user.set_password(password)
             user.save()
-
+            # Make sure each user gets an information model.
+            Information.objects.create(user=user)
             newUser = authenticate(username=user.username, password=password)
             if newUser is not None:
                 authLogin(request, newUser)
@@ -190,7 +198,20 @@ class RegisterAccountAPIView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserAPIView(generics.GenericAPIView):
+class UserAPIView(generics.RetrieveAPIView):
+    """
+    General user information.
+
+    * |api-text| :dfs:`account/user/`
+    """
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        return self.request.user
+
+
+class UserCredentialsAPIView(generics.GenericAPIView):
     """
     Allows the logged in user to modify their password and email.
 
@@ -203,7 +224,7 @@ class UserAPIView(generics.GenericAPIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserCredentialsSerializer
 
     def get_object(self):
         user = self.request.user
@@ -212,7 +233,7 @@ class UserAPIView(generics.GenericAPIView):
     def post(self, request, format=None):
         user = self.get_object()
         data = request.data
-        serializer = UserSerializer(user, data=data, partial=True)
+        serializer = self.serializer_class(user, data=data, partial=True)
 
         if serializer.is_valid():
             if(data.get('email')):
@@ -223,65 +244,6 @@ class UserAPIView(generics.GenericAPIView):
             return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class InformationAPIView (generics.GenericAPIView):
-    """
-    Allows the logged in user to modify their personal information.
-
-        * |api-text| :dfs:`account/information/`
-    """
-    # authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated,)
-    serializer_class = InformationSerializer
-
-    def get_object(self):
-        user = self.request.user
-
-        try:
-            info = Information.objects.get(user=user)
-        except Information.DoesNotExist:
-            #
-            # Creates the user information for the user to modify
-            # if it does not already exist in the database.
-            #
-            info = Information()
-            info.user = user
-            info.fullname = ""
-            info.address1 = ""
-            info.address2 = ""
-            info.city = ""
-            info.state = ""
-            info.zipcode = ""
-            info.dob = None
-            info.save()
-            info = Information.objects.filter(user=user)
-        return info
-
-    def get(self, request, format=None):
-        info = self.get_object()
-        serializer = InformationSerializer(info, many=False)
-
-        return Response(serializer.data)
-
-    def post(self, request, format=None):
-        info = self.get_object()
-        serializer = InformationSerializer(info, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class EmailNotificationAPIView (generics.ListCreateAPIView):
-#     """
-#     Allows the admin to modify and insert new Email Notifications
-#
-#         * |api-text| :dfs:`account/email/notification/`
-#     """
-#     authentication_classes = (SessionAuthentication, BasicAuthentication)
-#     permission_classes = (IsAdminUser,)
-#     serializer_class = EmailNotificationSerializer
-#     queryset = EmailNotification.objects.all()
 
 
 class UserEmailNotificationAPIView (generics.GenericAPIView):
@@ -357,99 +319,6 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
         return self.get(request)
-
-
-class WithdrawAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response(
-            status=409,
-            data={'errors': {
-                'ssn': {
-                    'title': 'SSN needed.',
-                    'description': """By law restrictions, if you are willing to withdraw
-                            more than $700, ssn is needed."""
-                }
-            }
-            }
-        )
-
-
-class DepositAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response(status=202)
-
-
-class PaymentsAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response([
-            {
-                'type': 'visa',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': False,
-                'id': 1,
-            },
-            {
-                'type': 'amex',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': True,
-                'id': 2,
-            },
-            {
-                'type': 'discover',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': False,
-                'id': 3,
-            },
-            {
-                'type': 'mastercard',
-                'ending': 2785,
-                'expires': '11/2016',
-                'isDefault': False,
-                'id': 10,
-            }
-        ])
-
-
-class AddPaymentMethodAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response({
-            'type': 'mastercard',
-            'ending': 6612,
-            'expires': '11/2316',
-            'isDefault': False,
-            'id': 14,
-        })
-
-
-class RemovePaymentMethodAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def delete(self, request, *args, **kwargs):
-        return Response(status=204)
-
-
-class SetDefaultPaymentMethodAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def post(self, request, *args, **kwargs):
-        return Response(status=201)
 
 
 def login(request, **kwargs):
@@ -637,10 +506,14 @@ class PayPalDepositSavedCardAPIView(APIView):
         # {'create_time': '2016-06-28T20:47:39Z',
         #  'id': 'PAY-8B978986LB367434PK5ZOE2Y',
         #  'intent': 'sale',
-        #  'links': [{'href': 'https://api.sandbox.paypal.com/v1/payments/payment/PAY-8B978986LB367434PK5ZOE2Y',
+        #  'links': [{
+        #       'href':
+        #           'https://api.sandbox.paypal.com/v1/payments/payment/PAY-8B978986LB367434PK5ZOE2Y',
         #    'method': 'GET',
         #    'rel': 'self'}],
-        #  'payer': {'funding_instruments': [{'credit_card_token': {'credit_card_id': 'CARD-6WP04454GN306160EK5ZOADI',
+        #  'payer': {
+        #      'funding_instruments':
+        #           [{'credit_card_token': {'credit_card_id': 'CARD-6WP04454GN306160EK5ZOADI',
         #      'expire_month': '12',
         #      'expire_year': '2020',
         #      'last4': '2399',
@@ -657,13 +530,16 @@ class PayPalDepositSavedCardAPIView(APIView):
         #       'create_time': '2016-06-28T20:47:39Z',
         #       'fmf_details': {},
         #       'id': '3CS45219T6507753W',
-        #       'links': [{'href': 'https://api.sandbox.paypal.com/v1/payments/sale/3CS45219T6507753W',
+        #       'links': [{'href':
+        #           'https://api.sandbox.paypal.com/v1/payments/sale/3CS45219T6507753W',
         #         'method': 'GET',
         #         'rel': 'self'},
-        #        {'href': 'https://api.sandbox.paypal.com/v1/payments/sale/3CS45219T6507753W/refund',
+        #        {'href':
+        #           'https://api.sandbox.paypal.com/v1/payments/sale/3CS45219T6507753W/refund',
         #         'method': 'POST',
         #         'rel': 'refund'},
-        #        {'href': 'https://api.sandbox.paypal.com/v1/payments/payment/PAY-8B978986LB367434PK5ZOE2Y',
+        #        {'href':
+        #           'https://api.sandbox.paypal.com/v1/payments/payment/PAY-8B978986LB367434PK5ZOE2Y',
         #         'method': 'GET',
         #         'rel': 'parent_payment'}],
         #       'parent_payment': 'PAY-8B978986LB367434PK5ZOE2Y',
@@ -922,23 +798,12 @@ class VZeroGetClientTokenView(APIView):
     """
 
     permission_classes = (IsAuthenticated, HasIpAccess)
-
     serializer_classes = None
 
     def get(self, request, *args, **kwargs):
-        # do we need the user?
-        #user = self.request.user
-
-        # TODO - check if its anonymous user(?)
         vzero = VZero()
         client_token = vzero.get_client_token()
-
-        return Response(
-            {
-                'client_token': client_token
-            },
-            status=200
-        )
+        return Response({'client_token': client_token}, status=200)
 
 
 class VZeroDepositView(APIView):
@@ -956,23 +821,22 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess)
-
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
         # get the django user
-        user = self.request.user
+        # user = self.request.user
 
-        shipping_data = {
-            'first_name': user.information.fullname,
-            'last_name': user.information.fullname,
-            'street_address': user.information.address1,
-            'extended_address': user.information.address2,
-            'locality': user.information.city,
-            'region': user.information.state,
-            'postal_code': user.information.zipcode
-        }
+        # shipping_data = {
+        #     'first_name': user.information.fullname,
+        #     'last_name': user.information.fullname,
+        #     'street_address': user.information.address1,
+        #     'extended_address': user.information.address2,
+        #     'locality': user.information.city,
+        #     'region': user.information.state,
+        #     'postal_code': user.information.zipcode
+        # }
 
         # validate the validity of the params
         serializer = self.serializer_class(data=self.request.data)
@@ -987,18 +851,17 @@ class VZeroDepositView(APIView):
         # using the information (payment_method_nonce, amount, shipping info)
         # make the deposit using the VZero object to create the transaction (sale)
         transaction = VZeroTransaction()
-        transaction.update_data(shipping_data=shipping_data, transaction_data=transaction_data)
+        transaction.update_data(shipping_data={}, transaction_data=transaction_data)
 
         vzero = VZero()
         try:
             transaction_id = vzero.create_transaction(transaction)
-        except VZero.VZeroException as e:
-            # print('e:',e)
-            # print('str(e):',str(e))
-            raise APIException(str(e))
-
-        except Exception:
-            raise APIException('vzero create transaction error')
+        # except VZero.VZeroException as e:
+        except Exception as e:
+            # Throw Paypal exceptions back through the API, log & report the details
+            logger.error("VZeroDepositView() user: %s - %s" % (request.user.username, str(e)))
+            client.captureException()
+            raise APIException({'detail': "vzero create transaction error"})
 
         # TODO add a transaction type (?)
 
@@ -1009,9 +872,8 @@ class VZeroDepositView(APIView):
             ct = CashTransaction(self.request.user)
             ct.deposit_vzero(amount, transaction_id)
         except Exception:
-
-            raise APIException(
-                'Error adding funds to draftboard account. Please contact admin@draftboard.com')
+            raise APIException({'detail': """
+                Error adding funds to draftboard account. Please contact admin@draftboard.com"""})
 
         create_user_log(
             request=request,
@@ -1027,6 +889,7 @@ class VZeroDepositView(APIView):
         # return success response if everything went ok
         return Response(status=200)
 
+
 class VerifyLocationAPIView(APIView):
     """
     A simple endpoint to run the HasIpAccess permission class.
@@ -1035,7 +898,8 @@ class VerifyLocationAPIView(APIView):
     permission_classes = (HasIpAccess,)
 
     def get(self, request, *args, **kwargs):
-        return Response(data={"detail": "location verification passed"}, status=200,)
+        return Response(data={"detail": "location and age verification passed"}, status=200,)
+
 
 class TruliooVerifyUserAPIView(APIView):
     """
@@ -1044,37 +908,132 @@ class TruliooVerifyUserAPIView(APIView):
 
     example POST param (JSON):
 
-        {"first":"FullSteve","last":"Stevenson","birth_day":1,"birth_month":1,"birth_year":1990,"postal_code":"11111"}
-
+    {"first": "FullSteve","last": "Stevenson","birth_day": 1,"birth_month": 1,"birth_year": 1990,
+        "postal_code": "11111", "ssn": '111-11-1111'}
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, HasIpAccess,)
     serializer_class = TruliooVerifyUserSerializer
 
     def post(self, request, *args, **kwargs):
         # use the serializer to validate the arguments
-        self.serializer_class(data=self.request.data).is_valid(raise_exception=True)
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
         # get the django user
         user = self.request.user
+        logger.debug(serializer.validated_data)
+        # Grab the data out of the serializer. it will be validated and whitespace-trimmed.
+        first = serializer.validated_data.get('first')
+        last = serializer.validated_data.get('last')
+        birth_day = serializer.validated_data.get('birth_day')
+        birth_month = serializer.validated_data.get('birth_month')
+        birth_year = serializer.validated_data.get('birth_year')
+        postal_code = serializer.validated_data.get('postal_code')
+        ssn = serializer.validated_data.get('ssn')
 
-        args = self.request.data
-        first = args.get('first')
-        last = args.get('last')
-        birth_day = args.get('birth_day')
-        birth_month = args.get('birth_month')
-        birth_year = args.get('birth_year')
-        postal_code = args.get('postal_code')
+        # First check if we have an existing user match in our DB.
+        existing_identities = Identity.objects.filter(
+            first_name__iexact=first,
+            last_name__iexact=last,
+            birth_day=birth_day,
+            birth_month=birth_month,
+            birth_year=birth_year,
+            postal_code=postal_code,
+        )
+
+        # If the identity is already claimed, log and return errror message.
+        if existing_identities.exists():
+            logger.warn("IDENTITY_VERIFICATION_EXISTS")
+            create_user_log(
+                request=request,
+                type=_account_const.AUTHENTICATION,
+                action=_account_const.IDENTITY_VERIFICATION_EXISTS,
+                metadata={'detail': """User attampted to claim an identity that already exists in
+                            our database.""", }
+            )
+            raise APIException({
+                "detail": "Unable to verify your identity. Please contact support@draftboard.com"})
 
         # use Trulioo class to verify the user
         verified = False
+
         try:
             t = Trulioo()
-            verified = t.verify_minimal(first, last, birth_day, birth_month, birth_year, postal_code, user=user)
-        except Exception as e:
-            raise APIException(str(e))
+            verified = t.verify_minimal(
+                first=first, last=last, birth_day=birth_day, birth_month=birth_month,
+                birth_year=birth_year, postal_code=postal_code, user=user, ssn=ssn)
+        # Send data validation exceptions back through the API.
+        except VerifyDataValidationError as e:
+            raise ValidationError({"detail": str(e)})
 
-        if verified == False:
-            raise APIException('User verification was unsuccessful. Please contact support@draftboard.com')
+        # There was a data validation error sent back from Trulioo.
+        except TruliooException as e:
+            raise ValidationError({"detail": str(e)})
+
+        # Log all others before sending the user a generic response.
+        except Exception as e:
+            logger.error("TruliooVerifyUserAPIView: %s" % str(e))
+            client.captureException()
+            raise APIException(
+                'User verification was unsuccessful. Please contact support@draftboard.com')
+
+        if verified is False:
+            # Create a user log for the failed attempt.
+            create_user_log(
+                request=request,
+                type=_account_const.AUTHENTICATION,
+                action=_account_const.IDENTITY_VERIFICATION_FAILED,
+                metadata={
+                    'detail': 'No identity match was found for provided info.',
+                }
+            )
+
+            raise APIException(
+                'User verification was unsuccessful. Please contact support@draftboard.com')
+
+        if verified is False:
+            raise APIException(
+                'User verification was unsuccessful. Please contact support@draftboard.com')
+
+        # If the verification request was successful...
+        #
+        # Save the information so we can do multi-account checking.
+        identity = Identity(
+            user=request.user, first_name=first, last_name=last, birth_day=birth_day,
+            birth_month=birth_month, birth_year=birth_year, postal_code=postal_code)
+        identity.save()
+        # Create a user log for the verification.
+        create_user_log(
+            request=request,
+            type=_account_const.AUTHENTICATION,
+            action=_account_const.IDENTITY_VERIFICATION_SUCCESS,
+            metadata={
+                'detail': 'An identity match was found.',
+                'UserIdentity.pk:': identity.pk,
+            }
+        )
 
         # return success response if everything went ok
-        return Response(status=200)
+        return Response(data={"detail": "Identity Verified"}, status=200)
+
+
+class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
+    """
+    A view that, if you have access, sets a cookie to let you view other Run It Once sites in development.
+    """
+    template_name = 'frontend/access_subdomains.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        If user is logged in, redirect them to their feed
+        """
+        response = super(AccessSubdomainsTemplateView, self).render_to_response(context, **response_kwargs)
+
+        if not self.request.user.has_perm('sites.access_subdomains'):
+            raise Http404
+
+        days_expire = 7
+        max_age = days_expire * 24 * 60 * 60
+        expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
+        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
+        return response
