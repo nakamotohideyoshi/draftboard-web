@@ -32,8 +32,10 @@ def update_injury_feed(self, sport):
                     pass
             if player_update_manager.players_not_found:
                 num_players_not_found = len(player_update_manager.players_not_found)
-                logger.info('%s | [%s] swish players not found:' % (sport, num_players_not_found),
-                            player_update_manager.players_not_found)
+                logger.warning('%s | [%s] swish players not found:' % (sport, num_players_not_found))
+
+                for player in player_update_manager.players_not_found:
+                    logger.warning('%s | swish player not found: %s' % (sport, player))
 
         finally:
             release_lock()
