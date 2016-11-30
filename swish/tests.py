@@ -2,22 +2,17 @@
 # tests.py
 
 import json
-from django.test import TestCase
 from test.classes import (
     AbstractTest,
-)
-from swish.models import (
-    PlayerLookup,
 )
 from swish.classes import (
     UpdateData,
     SwishAnalytics,
-    SwishNFL,
 )
 from util.utctime import UtcTime
 
-class UpdateDataTest(AbstractTest):
 
+class UpdateDataTest(AbstractTest):
     def setUp(self):
         super().setUp()
 
@@ -38,8 +33,8 @@ class UpdateDataTest(AbstractTest):
         # get a random field and make sure get_field() works
         self.assertIsNotNone(ud.get_field(UpdateData.field_player_name))
 
-class SwishTest(AbstractTest):
 
+class SwishTest(AbstractTest):
     def setUp(self):
         super().setUp()
 
@@ -123,6 +118,6 @@ class SwishTest(AbstractTest):
         self.assertIsNotNone(ud)
 
     def test_2(self):
-        nfl = SwishNFL()
-        updates = nfl.get_updates() # returns a list of UpdateData objects
+        nfl = SwishAnalytics('nfl')
+        updates = nfl.get_updates()  # returns a list of UpdateData objects
         self.assertIsNotNone(updates)
