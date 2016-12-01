@@ -22,7 +22,7 @@ class GameTeamAdmin(admin.ModelAdmin):
 
 @admin.register(draftgroup.models.PlayerUpdate)
 class PlayerUpdateAdmin(admin.ModelAdmin):
-    list_display = [ 'sport', 'created', 'category', 'type', 'value', 'roster_status']
+    list_display = [ 'sport', 'created', 'category', 'type', 'value', 'status', 'roster_status']
     list_filter = ['sport', 'created', 'category', 'type', 'roster_status']
     search_fields = ['update_id', 'player_srid', 'category', 'type', 'value', 'sport']
 
