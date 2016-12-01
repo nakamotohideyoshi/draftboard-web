@@ -299,7 +299,7 @@ app.conf.update(
 
         # Check for inactive users and send an email report to settings.INACTIVE_USERS_EMAILS
         'inactive_users': {
-            'task': 'account.tasks.check_inactive_users',
+            'task': 'account.tasks.check_not_active_users',
             'schedule': crontab(minute=0, hour='17'),  # ~ noon
         },
     },
