@@ -210,7 +210,7 @@ class LineupManager(AbstractSiteUserClass):
         players_with_nicknames = list(filter(lambda p: p.lineup_nickname, players))
 
         if lineup.name == '' and players_with_nicknames:
-            lineup.name = random.choice(players_with_nicknames)
+            lineup.name = random.choice(players_with_nicknames).lineup_nickname
             lineup.save()
 
         self.__merge_lineups(lineup)
