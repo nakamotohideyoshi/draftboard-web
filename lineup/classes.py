@@ -207,10 +207,10 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.save()
             i += 1
 
-        random_draft_group_player = self.draft_group_players[random.choice(players).pk]
-        nick_name = random_draft_group_player.salary_player.player.lineup_nickname
-        if lineup.name == '' and nick_name != '':
-            lineup.name = nick_name
+        players_with_nicknames = list(filter(lambda p: p.lineup_nickname, players))
+
+        if lineup.name == '' and players_with_nicknames:
+            lineup.name = random.choice(players_with_nicknames)
             lineup.save()
 
         self.__merge_lineups(lineup)
