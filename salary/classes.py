@@ -1250,6 +1250,9 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         # initialize the salaries by setting everyone to the minimum
         min_salary = self.salary_conf.min_player_salary
         all_pool_salaries = Salary.objects.filter(pool=self.pool)
+        # This used to set ALL players to the minimum before updating them. we don't want this because
+        # we want the previous salary to be sticky, this prevents players from getitng reset to minimum
+        # just because stats.com thinks they won't play or something like that.
         # Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
         # count = 0
         logger.info("Resetting %s DK+FD salary projections to None" % len(all_pool_salaries))
@@ -1331,6 +1334,10 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         #
                         salary = self.get_salary_for_player(player.player)
                         if average_weighted_fantasy_points_for_pos == 0.0:
+                            logger.info(
+                                'the average_weighted_fantasy_points_for_pos is 0, setting to min player: %s salary: %s'
+                                % (player, salary)
+                            )
                             salary.amount = self.salary_conf.min_player_salary
                         else:
                             salary.amount = ((player.fantasy_weighted_average /
@@ -1359,17 +1366,22 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             # print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
                             salary.amount += salary.random_adjust_amount
 
-                        # Don't update the player's salary if we have a 0 fpp projection from stats.com.
+                        # Only update the player's salary if we DON'T have a 0 fpp projection from stats.com.
+                        # This will make previous salaries 'sticky'.
                         if salary.fppg > 0:
                             salary.amount = self.__round_salary(salary.amount)
-                            if salary.amount < self.salary_conf.min_player_salary:
-                                salary.amount = self.salary_conf.min_player_salary
                         else:
                             logger.warning(
                                 'Skipping salary update because stats.com gave us 0 fpp. Salary: %s Projection: %s' % (
                                     salary, player
                                 )
                             )
+                        # If the player's salary is less than the minimum, set them to the min.
+                        if salary.amount < self.salary_conf.min_player_salary:
+                            logger.info('player: %s was below the minimum salary, setting to minimum. salary: %s' % (
+                                player, salary))
+                            salary.amount = self.salary_conf.min_player_salary
+
                         salary.flagged = player.flagged
                         salary.pool = self.pool
                         salary.player = player.player
@@ -1380,9 +1392,9 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             salary.fppg_pos_weighted = 0.0
 
                         salary.avg_fppg_for_position = average_weighted_fantasy_points_for_pos
-
                         salary.num_games_included = len(player.player_stats_list)
 
+                        logger.info('setting player: %s salary to %s' % (player, salary.amount))
                         salary.save()
 
     def get_salary_for_player(self, player):
