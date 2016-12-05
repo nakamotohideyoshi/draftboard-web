@@ -1,5 +1,6 @@
 #
 # lineup/classes.py
+import random
 
 from collections import Counter
 from mysite.classes import AbstractSiteUserClass
@@ -195,7 +196,7 @@ class LineupManager(AbstractSiteUserClass):
         lineup.save()
 
         i = 0
-        highest_salary_player = None
+
         for player in players:
             lineup_player = LineupPlayer()
             lineup_player.player                = player
@@ -206,13 +207,10 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.save()
             i += 1
 
-            if highest_salary_player is None:
-                highest_salary_player = lineup_player.draft_group_player
-            elif lineup_player.draft_group_player.salary > highest_salary_player.salary:
-                highest_salary_player = lineup_player.draft_group_player
+        players_with_nicknames = list(filter(lambda p: p.lineup_nickname, players))
 
-        if lineup.name == '' and highest_salary_player.salary_player.player.lineup_nickname != '':
-            lineup.name = highest_salary_player.salary_player.player.lineup_nickname
+        if lineup.name == '' and players_with_nicknames:
+            lineup.name = random.choice(players_with_nicknames).lineup_nickname
             lineup.save()
 
         self.__merge_lineups(lineup)
@@ -471,19 +469,14 @@ class LineupManager(AbstractSiteUserClass):
         """
         ssm = SiteSportManager()
         player_class = ssm.get_player_class(site_sport)
-        players = []
 
         #
         # Check if there are duplicate players
         if len(set(player_ids)) != len(player_ids):
             raise DuplicatePlayerException()
 
-        #
-        # create a list of players
-        for player_id in player_ids:
-            players.append(player_class.objects.get(pk=player_id))
-
-        return players
+        players = player_class.objects.filter(pk__in=player_ids)
+        return sorted(players, key=lambda player: player_ids.index(player.pk))
 
     def __merge_lineups(self, lineup):
         """

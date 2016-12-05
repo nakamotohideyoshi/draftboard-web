@@ -1,13 +1,10 @@
-#
-# prize/management/commands/ticketprizes.py
-
-from django.utils import timezone
 from django.core.management.base import BaseCommand, CommandError
 from prize.classes import FlatCashPrizeStructureCreator
 
+
 class Command(BaseCommand):
     """
-    This adds the django manage.py command called "ticketprizes"
+    This adds the django manage.py command called "flatcash"
 
     This command creates a ticket prize structure using the params from the commd line
 
@@ -35,17 +32,17 @@ class Command(BaseCommand):
 
         values = []
         for x in options['values']:
-            values.append( x )
+            values.append(x)
 
-        buyin           = float(values[0])
-        ticket_amount   = float(values[1])
-        num_payouts     = int(values[2])
+        buyin = float(values[0])
+        ticket_amount = float(values[1])
+        num_payouts = int(values[2])
         try:
-            name = ' '.join( values[3:] )
+            name = ' '.join(values[3:])
         except:
             name = ''
 
         self.stdout.write('%s %s %s name[%s]' % (str(buyin),
-                                str(ticket_amount), str(num_payouts), str(name)))
+                                                 str(ticket_amount), str(num_payouts), str(name)))
         creator = FlatCashPrizeStructureCreator(buyin, ticket_amount, num_payouts, name=name)
         creator.save()

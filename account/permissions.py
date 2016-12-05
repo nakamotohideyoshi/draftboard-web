@@ -4,7 +4,7 @@ from rest_framework import exceptions
 from .utils import CheckUserAccess
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('account.permissions')
 
 
 class IsNotAuthenticated(permissions.BasePermission):

@@ -21,7 +21,7 @@ from salary.classes import (
 )
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('salary.admin')
 
 
 # @admin.register(TrailingGameWeight)
@@ -48,6 +48,7 @@ class SalaryInline(admin.TabularInline):
     can_delete = False
     extra = 0
     readonly_fields = (
+        'updated_at',
         'sal_dk',
         'sal_fd',
         'player',
@@ -68,7 +69,7 @@ class SalaryInline(admin.TabularInline):
 
     def get_queryset(self, request):
         # select_related('priced_product__product')
-        return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster')
+        return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster').order_by('-amount')
 
     def player(self, obj):
         return obj.player
@@ -103,7 +104,7 @@ class PoolAdmin(admin.ModelAdmin):
                 request, 'You must select only one pool to generate salaries for at a time.')
         else:
             for pool in queryset:
-                #task = generate_salary.delay(pool)
+                # task = generate_salary.delay(pool)
                 task = generate_salaries_for_sport.delay(pool.site_sport.name)
                 pool.generate_salary_task_id = task.id
                 print("task.id " + task.id)
@@ -190,9 +191,9 @@ class PoolAdmin(admin.ModelAdmin):
                     task_result = generate_salaries_from_statscom_projections_nba.delay()
 
                 else:
-                    logger.error('Queing NBA stats projection task.')
                     msg = '[%s] is unimplemented server-side. DID NOT GENERATE SALARIES for %s!' % (
                         sport, sport)
+                    logger.error(msg)
                     client.captureMessage(msg)
                     self.message_user(request, msg)
                     return
@@ -219,9 +220,9 @@ class PoolAdmin(admin.ModelAdmin):
 
 @admin.register(Salary)
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
-
     list_display = ['player', 'amount', 'flagged', 'pool',
-                    'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg', 'avg_fppg_for_position', 'num_games_included']
+                    'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg', 'avg_fppg_for_position',
+                    'num_games_included', 'updated_at']
     list_editable = ['amount', 'flagged']
     model = Salary
     list_filter = ['primary_roster', 'flagged', 'pool']

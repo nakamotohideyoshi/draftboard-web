@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 from raven.contrib.django.raven_compat.models import client
-from mysite.celery_app import app
 import sports.classes
 from django.conf import settings
-from celery import task
+from mysite.celery_app import app
 from django.core.cache import cache
 from hashlib import md5
 from statscom.classes import (
@@ -20,10 +19,10 @@ from salary.classes import (
 from salary.models import Pool
 from logging import getLogger
 
-logger = getLogger('django')
+logger = getLogger('salary.tasks')
 
 
-@app.task(bind=True)
+@app.task(name='salary.tasks.check_current_projections_week', bind=True)
 def check_current_projections_week(self):
     api = FantasyProjectionsNFL()
     data = api.get_projections()
@@ -34,7 +33,7 @@ def check_current_projections_week(self):
     webhook.send(str(week))
 
 
-@app.task(bind=True)
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nfl', bind=True)
 def generate_salaries_from_statscom_projections_nfl(self):
     """ NFL """
     # from statscom.classes import FantasyProjectionsNFL
@@ -46,7 +45,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name='nfl')
     # salary_generator = SalaryGeneratorFromProjections(
-    #   player_projections, PlayerProjection, pool, slack_updates=True)
+    #   player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
     # salary_generator.generate_salaries()
 
     sport_md5 = md5(str('nfl').encode('utf-8')).hexdigest()
@@ -61,7 +60,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
         try:
             # start generating the salary pool, time consuming...
             salary_generator = SalaryGeneratorFromProjections(
-                player_projections, PlayerProjection, pool, slack_updates=True)
+                player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
             salary_generator.generate_salaries()
 
         finally:
@@ -73,15 +72,23 @@ def generate_salaries_from_statscom_projections_nfl(self):
         # raise Exception(err_msg)
 
 
-@app.task(bind=True)
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nba', bind=True)
 def generate_salaries_from_statscom_projections_nba(self):
-    """ NBA """
+    """
+    NBA
+
+     This task is kicked off from the django admin panel by pressing the
+     'Generate Salaries using STATS.com projections` button here: /admin/salary/pool/
+
+     First it runs FantasyProjectionsNBA to fetch all of tomorrow's NBA game projections from STATS.com,
+     then generates salaries based on those projections in SalaryGeneratorFromProjections.
+    """
     logger.info('action: generate_salaries_from_statscom_projections_nba')
     sport = 'nba'
 
     api = FantasyProjectionsNBA()
     player_projections = api.get_player_projections()
-
+    logger.info('FINAL player_projections count: %s' % len(player_projections))
     Pool.objects.all().count()
     pool = Pool.objects.get(site_sport__name=sport)
 
@@ -98,7 +105,7 @@ def generate_salaries_from_statscom_projections_nba(self):
         try:
             # start generating the salary pool, time consuming...
             salary_generator = SalaryGeneratorFromProjections(
-                player_projections, PlayerProjection, pool, slack_updates=True)
+                player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
             salary_generator.generate_salaries()
         except Exception as e:
             logger.error(e)
@@ -112,12 +119,13 @@ def generate_salaries_from_statscom_projections_nba(self):
             'action: generate_salaries_from_statscom_projections_nba - a task is already'
             'generating salaries for sport: %s (stats.com)' % sport)
         logger.error(msg)
+        print(msg)
         client.captureMessage(msg)
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 
-@app.task(bind=True)
+@app.task(name='salary.tasks.generate_salaries_for_sport', bind=True)
 def generate_salaries_for_sport(self, sport):
     ssm = sports.classes.SiteSportManager()
     site_sport = ssm.get_site_sport(sport)
@@ -155,7 +163,7 @@ def generate_salaries_for_sport(self, sport):
 #     generate_salaries_for_sport.delay(sport)
 
 
-@app.task
+@app.task(name='salary.tasks.generate_season_fppgs')
 def generate_season_fppgs(sport=None):
     """
     calculates and sets 'season_fppg' for all sports
@@ -169,4 +177,4 @@ def generate_season_fppgs(sport=None):
         # update specific sports season_fppg
         season_fppg_generator.update_sport(sport)
     else:
-        raise Exception('salary.tasks.generate_season_fppgs() - unknown sport[%s]' % str(sport))
+        raise Exception('salary.tasks.generate_season_fppgs() - unknown sport[%s]' % sport)

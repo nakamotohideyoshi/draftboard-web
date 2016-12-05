@@ -1,22 +1,17 @@
-#
-# contest/schedule/models.py
-
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-import contest.models
-from prize.models import (
-    PrizeStructure,
-)
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.conf import settings
 from django.utils import timezone
 from pytz import timezone as pytz_timezone
+
 
 class Notification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=128, null=False, unique=True)
     enabled = models.BooleanField(default=True, null=False)
+
 
 class Block(models.Model):
     """ a sport and a time, which characterizes a ContestPools start time """
@@ -27,14 +22,14 @@ class Block(models.Model):
     dfsday_end = models.DateTimeField(null=False)
     cutoff_time = models.TimeField(null=False)
     cutoff = models.DateTimeField(null=False, blank=True,
-                help_text='the UTC datetime object for the cutoff_time')
+                                  help_text='the UTC datetime object for the cutoff_time')
 
     # False if the ContestPools for this Block have not been created yet.
     # otherwise, this field should be set to True if ANY Contest Pools have been created
     contest_pools_created = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('site_sport','dfsday_start','dfsday_end','cutoff_time')
+        unique_together = ('site_sport', 'dfsday_start', 'dfsday_end', 'cutoff_time')
 
     def __str__(self):
         local_cutoff = self.get_utc_cutoff().astimezone(pytz_timezone(settings.TIME_ZONE))
@@ -64,19 +59,16 @@ class Block(models.Model):
         #                                                          ms, microsec
         est_cutoff = est_startofday.replace(year, month, day, hour, minute, 0, 0)
         utc_cutoff = est_cutoff.astimezone(pytz_timezone('UTC'))
-        #print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
+        # print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
         return utc_cutoff
 
     def get_block_games(self):
         """
         returns a tuple of two lists in the form: ([included games], [excluded games])
-
-        :param block:
-        :return:
         """
-        included    = []
-        excluded    = []
-        utc_cutoff  = self.get_utc_cutoff()
+        included = []
+        excluded = []
+        utc_cutoff = self.get_utc_cutoff()
 
         for block_game in BlockGame.objects.filter(block=self):
             if block_game.game.start < utc_cutoff:
@@ -85,7 +77,8 @@ class Block(models.Model):
                 included.append(block_game)
         #
         # return a tuple of included, excluded
-        return (included, excluded)
+        return included, excluded
+
 
 class UpcomingBlock(Block):
     """ PROXY for upcoming Blocks """
@@ -94,13 +87,14 @@ class UpcomingBlock(Block):
         def get_queryset(self):
             # allegedly order_by() can take multiple params to sort by
             return super().get_queryset().filter(
-                cutoff__gte=timezone.now()).order_by('dfsday_start','cutoff_time')
+                cutoff__gte=timezone.now()).order_by('dfsday_start', 'cutoff_time')
 
     objects = UpcomingBlockManager()
 
     class Meta:
         proxy = True
         verbose_name = 'Schedule'
+
 
 class DefaultPrizeStructure(models.Model):
     """ for a sport, this is the set of PrizeStructures to create for a Block """
@@ -110,7 +104,11 @@ class DefaultPrizeStructure(models.Model):
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
 
     class Meta:
-        unique_together = ('site_sport','prize_structure')
+        unique_together = ('site_sport', 'prize_structure')
+
+    def __str__(self):
+        return '%s - %s' % (self.site_sport, self.prize_structure)
+
 
 class BlockGame(models.Model):
     """ an object that maps a real life game to a block """
@@ -119,12 +117,13 @@ class BlockGame(models.Model):
     name = models.CharField(max_length=256, null=False, blank=False, default='')
     block = models.ForeignKey('schedule.Block', null=False)
     srid = models.CharField(max_length=128, null=False)
-    game_type           = models.ForeignKey(ContentType) #,  related_name='%(app_label)s_%(class)s_block_game')
-    game_id             = models.PositiveIntegerField()
-    game                = GenericForeignKey('game_type', 'game_id')
+    game_type = models.ForeignKey(ContentType)  # ,  related_name='%(app_label)s_%(class)s_block_game')
+    game_id = models.PositiveIntegerField()
+    game = GenericForeignKey('game_type', 'game_id')
 
     class Meta:
-        unique_together = ('block','srid')
+        unique_together = ('block', 'srid')
+
 
 class BlockPrizeStructure(models.Model):
     """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
@@ -133,5 +132,8 @@ class BlockPrizeStructure(models.Model):
     block = models.ForeignKey('schedule.Block', null=False)
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
 
+    def __str__(self):
+        return '%s - %s' % (self.block, self.prize_structure)
+
     class Meta:
-        unique_together = ('block','prize_structure')
+        unique_together = ('block', 'prize_structure')

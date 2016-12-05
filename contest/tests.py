@@ -100,6 +100,7 @@ class FairMatchTest(unittest.TestCase):
 class SkillLevelManagerTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         # check if it migrations the initial SkillLevels
         self.slm = SkillLevelManager()
 
@@ -149,6 +150,7 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     """
 
     def setUp(self):
+        super().setUp()
         # setup a salary pool and draft group
         self.sport = 'test' # build_world() should create a sport called 'test'
 
@@ -221,6 +223,7 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
     """
 
     def setUp(self):
+        super().setUp()
         # setup a salary pool and draft group
         #print("WTF")
         self.sport = 'nfl' # build_world() should create a sport called 'test'
@@ -284,14 +287,16 @@ class ContestManagerTest(AbstractTest):
         HistoryContest  - contests in a final state, such as having been cancelled or paid out.
     """
     def setUp(self):
-        pass # TODO
+        super().setUp()
+        # TODO
 
 class ContestCreatorClone(AbstractTest):
     """
     test cloning a Contest does what we expect.
     """
     def setUp(self):
-        pass # TODO
+        super().setUp()
+        # TODO
 
 class ContestCreatorRespawn(AbstractTest):
     """
@@ -299,7 +304,8 @@ class ContestCreatorRespawn(AbstractTest):
     but should only work on upcoming contests.
     """
     def setUp(self):
-        pass # TODO
+        super().setUp()
+        # TODO
 
 # class ContestOnGameClosedRaceCondition(AbstractTest):
 #

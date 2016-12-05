@@ -1,14 +1,10 @@
-#
-# contest/schedule/classes.py
-
+from raven.contrib.django.raven_compat.models import client
 from pytz import timezone as pytz_timezone
 from datetime import timedelta, time
 from django.utils import timezone
 from django.db.transaction import atomic
 
-from contest.classes import (
-    ContestPoolCreator,
-)
+from contest.classes import ContestPoolCreator
 from .models import (
     Block,
     UpcomingBlock,  # proxy model for upcoming Block (all sports)
@@ -16,16 +12,12 @@ from .models import (
     DefaultPrizeStructure,
     BlockPrizeStructure,
 )
-from sports.classes import (
-    SiteSportManager,
-)
-from prize.models import (
-    PrizeStructure,
-)
+from sports.classes import SiteSportManager
+from prize.models import PrizeStructure
 from util.dfsdate import DfsDate
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('contest.schedule.classes')
 
 
 class ScheduleManager(object):
@@ -34,7 +26,12 @@ class ScheduleManager(object):
 
 
 class ScheduleDay(object):
+    """
+    This is a factory that produces SportDays for each type of sport (MlbDay, NhlDay, etc). A SportDay is an object
+    that has some properties that tell us when games for that sport usually start.
 
+    With this info a Block is created. A block is a group of IRL games.
+    """
     tzinfo_est = pytz_timezone('America/New_York')
     datetime_format_date = '%Y-%m-%d'
     datetime_format_time = '%I:%M %p'
@@ -167,7 +164,8 @@ class ScheduleDay(object):
 
             return 'type: %s, weekday:%s, included games:%s pct   (%s of %s) >>> included times %s  ((excluded times %s))' \
                    '' % (self.data['type'], self.data['weekday'], include_pct,
-                         included, str(self.data['total']), str(self.data['include_times']), str(self.data['exclude_times']))
+                         included, str(self.data['total']), str(self.data['include_times']),
+                         str(self.data['exclude_times']))
 
         def weekday_to_str(self, weekday):
             if weekday in self.weekday_values:
@@ -215,36 +213,36 @@ class ScheduleDay(object):
 
     class MlbDay(SportDay):
 
-        weekday = time(19, 0)   # 7pm +
-        saturday = time(16, 0)   # 4pm +
-        sunday = time(13, 0)   # 1pm +
+        weekday = time(19, 0)  # 7pm +
+        saturday = time(16, 0)  # 4pm +
+        sunday = time(13, 0)  # 1pm +
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
     class NhlDay(SportDay):
 
-        weekday = time(19, 0)   # 7pm +
-        saturday = time(19, 0)   # 7pm +
-        sunday = time(15, 0)   # 3pm +
+        weekday = time(19, 0)  # 7pm +
+        saturday = time(19, 0)  # 7pm +
+        sunday = time(15, 0)  # 3pm +
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
     class NbaDay(SportDay):
 
-        weekday = time(19, 0)   # 7pm +
-        saturday = time(19, 0)   # 7pm +
-        sunday = time(18, 0)   # 6pm +
+        weekday = time(19, 0)  # 7pm +
+        saturday = time(19, 0)  # 7pm +
+        sunday = time(18, 0)  # 6pm +
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
     class NflDay(SportDay):
 
-        weekday = time(19, 0)   # 7pm +  (thursday night games)
-        saturday = time(13, 0)   # 1pm +  (saturday games)
-        sunday = time(13, 0)   # 1pm +  (sunday games)
+        weekday = time(19, 0)  # 7pm +  (thursday night games)
+        saturday = time(13, 0)  # 1pm +  (saturday games)
+        sunday = time(13, 0)  # 1pm +  (sunday games)
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -262,46 +260,46 @@ class ScheduleDay(object):
 
         else:
             raise Exception('ScheduleDay for sport: %s - UNIMPLEMENTED' % sport)
-        # def get_data(self):
-        #     if self.games.count() == 0:
-        #         return None
-        #
-        #     weekday = None
-        #     include = []
-        #     exclude = []
-        #     include_times = []
-        #     exclude_times = []
-        #     for game in self.games:
-        #
-        #         if weekday is None:
-        #             weekday = game.start.weekday()
-        #
-        #         datetime_start_est = self.get_local_datetime(game.start)
-        #         if weekday in [0,1,2,3,4] and self.include_in_weekday_block(datetime_start_est):
-        #             include.append(game.pk)
-        #             include_times.append(self.get_str_local_time(game.start))
-        #         elif weekday in [5] and self.include_in_saturday_block(datetime_start_est):
-        #             include.append(game.pk)
-        #             include_times.append(self.get_str_local_time(game.start))
-        #         elif weekday in [6] and self.include_in_sunday_block(datetime_start_est):
-        #             include.append(game.pk)
-        #             include_times.append(self.get_str_local_time(game.start))
-        #         else:
-        #             exclude.append(game.pk)
-        #             exclude_times.append(self.get_str_local_time(game.start))
-        #
-        #     self.data = {
-        #         'weekday'       : weekday,
-        #         'type'          : self.weekday_to_str(weekday),
-        #         'total'         : self.games.count(),
-        #         'include'       : include,
-        #         'exclude'       : exclude,
-        #         'include_times' : include_times,
-        #         'exclude_times' : exclude_times,
-        #         'include_pct'   : float(float(len(include)) / float(self.games.count()))
-        #     }
-        #
-        #     return self.data
+            # def get_data(self):
+            #     if self.games.count() == 0:
+            #         return None
+            #
+            #     weekday = None
+            #     include = []
+            #     exclude = []
+            #     include_times = []
+            #     exclude_times = []
+            #     for game in self.games:
+            #
+            #         if weekday is None:
+            #             weekday = game.start.weekday()
+            #
+            #         datetime_start_est = self.get_local_datetime(game.start)
+            #         if weekday in [0,1,2,3,4] and self.include_in_weekday_block(datetime_start_est):
+            #             include.append(game.pk)
+            #             include_times.append(self.get_str_local_time(game.start))
+            #         elif weekday in [5] and self.include_in_saturday_block(datetime_start_est):
+            #             include.append(game.pk)
+            #             include_times.append(self.get_str_local_time(game.start))
+            #         elif weekday in [6] and self.include_in_sunday_block(datetime_start_est):
+            #             include.append(game.pk)
+            #             include_times.append(self.get_str_local_time(game.start))
+            #         else:
+            #             exclude.append(game.pk)
+            #             exclude_times.append(self.get_str_local_time(game.start))
+            #
+            #     self.data = {
+            #         'weekday'       : weekday,
+            #         'type'          : self.weekday_to_str(weekday),
+            #         'total'         : self.games.count(),
+            #         'include'       : include,
+            #         'exclude'       : exclude,
+            #         'include_times' : include_times,
+            #         'exclude_times' : exclude_times,
+            #         'include_pct'   : float(float(len(include)) / float(self.games.count()))
+            #     }
+            #
+            #     return self.data
 
     def __init__(self, sport, season=None, season_types=None):
         self.data = None
@@ -326,7 +324,7 @@ class ScheduleDay(object):
         """
         add timedelta(days=days) to the start and end datetime object
 
-        :param days:
+        :param days_ago:
         :return:
         """
         dfs_date_range = DfsDate.get_current_dfs_date_range()
@@ -335,7 +333,7 @@ class ScheduleDay(object):
         self.end = dfs_date_range[1] - timedelta(days=days_ago)
 
     def get_day_range(self):
-        return (self.start, self.end)
+        return self.start, self.end
 
     def get_days_since(self, datetime_obj):
         td = (timezone.now() - datetime_obj)
@@ -351,7 +349,7 @@ class ScheduleDay(object):
         and lists of all the games with their own unique start times
         """
         # if running for the first time, its very likely you wont want to add 1 day to start time
-        #dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0] + timedelta(days=1)
+        # dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0] + timedelta(days=1)
         dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0]
 
         games = []  # default
@@ -362,22 +360,22 @@ class ScheduleDay(object):
                 start__gt=dfs_date_tomorrow,
                 season__season_type__in=self.season_types).order_by('start')  # oldest first
         else:
-            games = self.game_model_class.objects.filter(season__season_year=self.season,
-                                                         season__season_type__in=self.season_types).order_by('start')  # oldest first
+            games = self.game_model_class.objects.filter(
+                season__season_year=self.season,
+                season__season_type__in=self.season_types).order_by('start')  # oldest first
 
         if games.count() <= 0:
-            print('0 games found. exiting...')
+            logger.info('0 games found. exiting...')
             return
         else:
-            print('%s games found, as old as %s' % (games.count(), games[0].start))
+            logger.info('%s games found, as old as %s' % (games.count(), games[0].start))
 
         #
         days_ago = self.get_days_since(games[0].start)
         self.update_range(days_ago)
         day_range = self.get_day_range()
 
-        print('')
-        print('first day (dt range)', str(day_range))
+        # logger.info('first day (dt range)', str(day_range))
 
         # Weekdays@7pm or later
         # Saturdays@7pm or later
@@ -413,7 +411,6 @@ class ScheduleDay(object):
 
 
 class ScheduleWeek(ScheduleDay):
-
     default_season_types = ['reg']
 
     def update_range(self, days_ago):
@@ -433,14 +430,13 @@ class ScheduleWeek(ScheduleDay):
         increment the weekly range by adding 7
         """
         self.start = self.start + timedelta(days=7)
-        #self.end = self.end + timedelta(days=7)
+        # self.end = self.end + timedelta(days=7)
         self.end = self.start + timedelta(days=3)
 
 
 class ContestPoolScheduleManager(object):
     """
-    This class takes over all the duties of ensuring that ContestPools
-    are created at the proper times.
+    This class takes over all the duties of ensuring that ContestPools are created at the proper times.
     """
 
     class ActiveBlockNotFoundException(Exception):
@@ -467,8 +463,8 @@ class ContestPoolScheduleManager(object):
 
         upcoming_blocks = UpcomingBlock.objects.filter(site_sport__name=self.sport)
         if upcoming_blocks.count() == 0:
-            err_msg = '[%s] ContestPoolScheduleManager ' \
-                      'an active block could not be found!' % (self.sport)
+            err_msg = '[%s] ContestPoolScheduleManager an active block could not be found!' % self.sport
+            logger.error(err_msg)
             raise self.ActiveBlockNotFoundException(err_msg)
 
         # return the first UpcomingBlock
@@ -518,7 +514,7 @@ class ContestPoolScheduleManager(object):
 
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
-            print(str(date_str))
+            # logger.info('Creating Blocks for %s - %s', (sport_day, date_str))
             self.sport_day = sport_day
             # use the BlockCreator to make new blocks
             # which will have all teh default prize structures
@@ -535,6 +531,7 @@ class BlockCreator(object):
     """
 
     class BlockExistsException(Exception):
+        logger.warning('Block already exists!')
         pass
 
     def __init__(self, sport_day):
@@ -543,6 +540,7 @@ class BlockCreator(object):
     def create_block(self):
         """
         TODO - this creates DAILY blocks, and will need a tweak for NFL weekly stuff
+             - This appear to be implemented below in BlockCreatorMulti
 
         :return: the newly created Block
         """
@@ -555,12 +553,15 @@ class BlockCreator(object):
         try:
             #
             # set fields: dfsday_start (datetime), dfsday_end (datetime), cutoff_time (time object)
-            Block.objects.get(site_sport=site_sport,
+            block = Block.objects.get(site_sport=site_sport,
                               dfsday_start=start,
                               dfsday_end=end,
                               cutoff_time=cutoff_time)
-            err_msg = 'a %s scheduled block at %s ' \
-                      'already exists' % (str(site_sport.name), str(start))
+            err_msg = 'A %s scheduled block already exists' % site_sport.name
+            logger.warning(err_msg)
+            # Create any BlockPrizeStructure for this existing Block. If we don't do this, any new prize structures will
+            # not be created to existing Blocks and thus will not spawn contests.
+            BlockPrizeStructureCreator(block).create()
             raise self.BlockExistsException(err_msg)
         except Block.DoesNotExist:
             pass
@@ -575,7 +576,7 @@ class BlockCreator(object):
     def create_block_games(self, block, games):
         block_games = []
         for game in games:
-            print('creating a BlockGame for', str(game))
+            logger.info('creating a BlockGame for %s', game)
             block_game = BlockGame()
             block_game.block = block
             block_game.name = game.get_home_at_away_str()
@@ -600,7 +601,7 @@ class BlockCreator(object):
         try:
             block = self.create_block()
         except self.BlockExistsException:
-            print('existing block for day -- skipping it')
+            logger.warning('Existing block for day - skipping it.')
             return
 
         # create the BlockGames (both included & excluded)
@@ -617,12 +618,10 @@ class BlockCreator(object):
 
 
 class BlockCreatorMulti(BlockCreator):
-
-    # TODO for things like nfl's Thursday - Monday slate, we need to implement this class
+    # TODO: for things like nfl's Thursday - Monday slate, we need to implement this class
 
     def __init__(self, sport_days):
         """
-
         :param sport_days: a list of 'sport_day' objects
         """
         self.sport_days = sport_days
@@ -666,8 +665,8 @@ class BlockCreatorMulti(BlockCreator):
                               dfsday_start=start,
                               dfsday_end=end,
                               cutoff_time=cutoff_time)
-            err_msg = 'a %s scheduled block at %s ' \
-                      'already exists' % (str(site_sport.name), str(start))
+            err_msg = 'a %s scheduled block already exists' % site_sport.name
+            logger.warning(err_msg)
             raise self.BlockExistsException(err_msg)
         except Block.DoesNotExist:
             pass
@@ -681,7 +680,6 @@ class BlockCreatorMulti(BlockCreator):
 
 
 class BlockManager(object):
-
     def __init__(self, block):
         self.block = block
         self.cutoff = self.block.get_utc_cutoff()
@@ -718,9 +716,10 @@ class BlockManager(object):
             duration = int(td.total_seconds() / 60)  # convert seconds to minutes
 
             # create all required ContestPools
-            print('%s formats based on default %s '
-                  'PrizeStructure(s)' % (str(len(self.block_prize_structures)),
-                                         self.block.site_sport))
+            logger.info('%s formats based on default %s PrizeStructure(s)' % (
+                len(self.block_prize_structures),
+                self.block.site_sport)
+                        )
             for block_prize_structure in self.block_prize_structures:
                 # additional (optional) ContestPoolCreator arguments:
                 #  draft_group=None, user_entry_limit=None, entry_cap=None
@@ -734,8 +733,7 @@ class BlockManager(object):
 
                 contest_pool = contest_pool_creator.get_or_create()
                 num_contest_pools_created += 1
-                print('creating ContestPool: %s for Block: %s' %
-                      (str(contest_pool), str(self.block)))
+                logger.info('creating ContestPool: %s for Block: %s' % (contest_pool, self.block))
 
                 #
                 # we really want to let exceptions propagate up to the admin
@@ -745,8 +743,7 @@ class BlockManager(object):
             self.block.contest_pools_created = True
         self.block.save()
 
-        print('%s ContestPool(s) created for Block: %s' %
-              (str(num_contest_pools_created), str(self.block)))
+        logger.info('%s ContestPool(s) created for Block: %s' % (num_contest_pools_created, self.block))
 
 
 class BlockPrizeStructureCreator(object):
@@ -762,30 +759,36 @@ class BlockPrizeStructureCreator(object):
 
         # now self.block should be a Block instance
         if not isinstance(self.block, Block):
+            logger.error('"block" is not a Block instance')
             raise Exception('"block" is not a Block instance')
 
     def create(self):
         """
-        perform the initial creation of all the BlockPrizeStructure(s)
-        by giving the block every PrizeStructure from its
-        sports DefaultPrizeStructure table
+        Perform the initial creation of all the BlockPrizeStructure(s) by giving the block every
+        PrizeStructure from its sports DefaultPrizeStructure table
         """
+        logger.info('Creating BlockPrizeStructures for %s' % self.block)
 
-        if BlockPrizeStructure.objects.filter(block=self.block).count() > 0:
-            print('exiting... this block already created its default prize structures.')
-            return
+        for default_prize_structure in DefaultPrizeStructure.objects.filter(site_sport=self.block.site_sport):
+            # If the BlockPrizeStructure for this DefaultPrizeStructure doesn't exist, create it.
+            if not BlockPrizeStructure.objects.filter(
+                    block=self.block,
+                    prize_structure=default_prize_structure.prize_structure
+            ).count() > 0:
+                logger.info('Creating non-existant BlockPrizeStructure for %s - %s' % (
+                    default_prize_structure, self.block))
+                try:
+                    bps = BlockPrizeStructure()
+                    bps.block = self.block
+                    bps.prize_structure = default_prize_structure.prize_structure
+                    bps.save()
 
-        for prize_structure in DefaultPrizeStructure.objects.filter(site_sport=self.block.site_sport):
-            try:
-                bps = BlockPrizeStructure()
-                bps.block = self.block
-                bps.prize_structure = prize_structure.prize_structure
-                bps.save()
-
-            except Exception as e:
-                # couldnt create it, but maybe it already existed
-                print(e)
-                pass
+                except Exception as e:
+                    # Couldn't create it, but maybe it already existed? Either way, we don't want this to stop the
+                    # entire contest pool creation process, so capture the error and keep chugging.
+                    logger.error(e)
+                    client.captureException()
+                    pass
 
 
 class DefaultPrizeStructureManager(object):
@@ -809,16 +812,16 @@ class DefaultPrizeStructureManager(object):
                 for size, payout_spots in DefaultPrizeStructureManager.default_contest_sizes:
                     # get the prize structure based on the buyin and # of payout spots
                     prize_structures = PrizeStructure.objects.filter(
-                                    generator__buyin=buyin, generator__payout_spots=payout_spots)
+                        generator__buyin=buyin, generator__payout_spots=payout_spots)
                     prize_structure = None  # loop until we find it
                     for ps in prize_structures:
                         if size == ps.get_entries():
                             prize_structure = ps
                             break  # we found it
                     if prize_structure is None:
-                        logger.error(
+                        logger.warning(
                             ("No PrizeStructure for buyin: %s payout_spots: %s. You can add them "
-                                "manually though!") % (buyin, payout_spots))
+                             "manually though!") % (buyin, payout_spots))
                         # raise Exception(err_msg)
 
                     else:
@@ -830,4 +833,4 @@ class DefaultPrizeStructureManager(object):
                         dps.save()
                         created_default_prize_structures += 1
 
-            logger.info("%s for %s" % (created_default_prize_structures, sport))
+            logger.info("%s created_default_prize_structures for %s" % (created_default_prize_structures, sport))

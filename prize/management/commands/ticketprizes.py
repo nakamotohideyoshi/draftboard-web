@@ -1,11 +1,7 @@
-#
-# prize/management/commands/ticketprizes.py
-
-from django.utils import timezone
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from prize.classes import FlatTicketPrizeStructureCreator
 from ticket.classes import TicketManager
-from ticket.models import TicketAmount
+
 
 class Command(BaseCommand):
     """
@@ -37,9 +33,9 @@ class Command(BaseCommand):
 
         values = []
         for x in options['values']:
-            values.append( x )
+            values.append(x)
 
-        max_entries           = float(values[0])
+        max_entries = float(values[0])
         # ticket_amount   = float(values[1])
         # num_payouts     = int(values[2])
         # entries         = int(values[3])
@@ -54,8 +50,6 @@ class Command(BaseCommand):
         # creator = TicketPrizeStructureCreator(buyin, ticket_amount, num_payouts, entries, name=name)
         # creator.save()
 
-
-        #
         # print out possible prize structures for Flat Ticket Prize structures
         TicketManager.create_default_ticket_amounts()
-        FlatTicketPrizeStructureCreator.print_all( max_entries )
+        FlatTicketPrizeStructureCreator.print_all(max_entries)

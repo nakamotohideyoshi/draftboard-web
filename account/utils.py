@@ -4,13 +4,14 @@ from datetime import date
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.contrib.gis.geoip2 import GeoIP2
+from django.contrib.auth.forms import PasswordResetForm
 from geoip2.errors import AddressNotFoundError
 from raven.contrib.django.raven_compat.models import client
 from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
 from account import const as _account_const
 import logging
 
-logger = logging.getLogger('django')
+logger = logging.getLogger('account.utils')
 
 
 def create_user_log(request=None, type=None, action=None, metadata={}, user=None):
@@ -251,3 +252,11 @@ class CheckUserAccess(object):
             return access, msg
 
         return self.check_for_vpn()
+
+
+def reset_user_password_email(user, request):
+    if user.email:
+        form = PasswordResetForm({'email': user.email})
+        form.is_valid()
+        form.save(from_email=settings.DEFAULT_FROM_EMAIL, request=request)
+

@@ -1,7 +1,3 @@
-#
-# sports/classes.py
-
-from django.utils import timezone
 from util.dfsdate import DfsDate
 from django.contrib.contenttypes.models import ContentType
 import dataden.classes
@@ -59,6 +55,9 @@ import sports.nba.models
 import sports.mlb.models
 
 import scoring.classes
+from logging import getLogger
+
+logger = getLogger('sports.classes')
 
 
 class AbstractGameManager(object):
@@ -417,7 +416,7 @@ class SiteSportManager(object):
             # add the game data
             g = game_serializer_class(game).data
 
-            print(g, 'fooooooo')
+            logger.debug(g)
             self.__add_to_dict(inner_data, g)
 
             # add the home/away scores to the inner data
