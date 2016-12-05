@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from account.models import Information, EmailNotification, UserLog, Identity
 from cash.admin import CashBalanceAdminInline, CashTransactionDetailAdminInline
+from .utils import reset_user_password_email
 
 
 class InformationAdminInline(admin.TabularInline):
@@ -29,6 +30,12 @@ class EmailNotificationAdmin(admin.ModelAdmin):
     ]
 
 
+def sent_reset_password(modeladmin, request, queryset):
+    for user in queryset:
+        reset_user_password_email(user, request)
+sent_reset_password.short_description = "Sent reset password email"
+
+
 class MyUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets
     inlines = [
@@ -37,6 +44,8 @@ class MyUserAdmin(UserAdmin):
         CashBalanceAdminInline,
         CashTransactionDetailAdminInline,
     ]
+    actions = [sent_reset_password]
+
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
 

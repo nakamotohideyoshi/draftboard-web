@@ -30,6 +30,10 @@ from dataden.cache.caches import (
     LinkedExpiringObjectQueueTable,
 )
 from push.tasks import linker_pusher_send_task, PUSH_TASKS_STATS_LINKER
+from logging import getLogger
+
+logger = getLogger('pusher.classes')
+
 
 #
 # on production this will be an empty string,
@@ -366,11 +370,11 @@ class AbstractPush(object):
                         int(time.time()), self.channel, self.event, str(data.get('id')),
                         str(data), str(pusher_start_ts), str(pusher_completed_ts),
                         str(int(pusher_completed_ts - pusher_start_ts)))
-            print(log_msg)
+            logger.debug(log_msg)
 
         else:
             # print to console if its disable to remind us
-            print('settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
+            logger.info('settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
 
     @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
     def edit_linker_queue(self, channel, linkable_object, linker, linker_queue):

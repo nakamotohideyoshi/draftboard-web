@@ -10,16 +10,14 @@ celery==3.1.23
 coreapi==1.32.0
 Django==1.9.7
 dj-database-url==0.3.0
-dj-static==0.0.6
 django-braces==1.8.0
 django-celery==3.1.17
 django-lockdown==1.2 # django 1.9.7 uses 1.2 hopefully # for django 1.8 its 1.1
 django-redis==4.3.0
 django-rest-swagger==2.0.3
-django-suit==0.2.18
 djangorestframework==3.4.3
 djangorestframework-jwt==1.8
-django-test-without-migrations==0.4
+django-test-without-migrations==0.4  # ???
 docutils==0.12
 eventlet==0.17.4
 geoip2==2.4.0
@@ -29,6 +27,7 @@ Jinja2==2.7.3
 kombu==3.0.35
 Markdown==2.6.2
 #MarkupSafe==0.23
+mock==2.0.0
 psycopg2==2.6.1           # was simply 2.6
 pusher==1.2.3
 pyasn1==0.1.9
@@ -90,7 +89,6 @@ flower==0.8.4
 
 urllib3==1.16   # urllib3==1.14
 
-paypalrestsdk==1.11.5
 
 # for looking up state/city with a zipcode
 zipcode==2.0.0

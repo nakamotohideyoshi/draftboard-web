@@ -17,6 +17,7 @@ class InitialCashTransactionTest(AbstractTest):
     ensures the first transaction creates the balance entry if necessary
     """
     def setUp(self):
+        super().setUp()
         self.user       = self.get_user('testuser')
         self.amount     = decimal.Decimal(10.00)
 
@@ -30,6 +31,7 @@ class CashTransactionTest(AbstractTest):
     Tests the :class:`cash.classes.CashTransaction` class
     """
     def setUp(self):
+        super().setUp()
         self.USERNAME   = 'test_user'
         self.user       = self.get_user(self.USERNAME)
 
@@ -220,8 +222,8 @@ class AdminPanelCashDeposit(AbstractTest):
     amount = 1.00
 
     def setUp(self):
+        super().setUp()
         # nothing much to do here
-        pass
 
     def __user_exists(self, username):
         try:
@@ -341,6 +343,7 @@ class AdminPanelCashWithdrawal(AbstractTest):
     amount = 1.00
 
     def setUp(self):
+        super().setUp()
         # nothing much to do here
         pass
 

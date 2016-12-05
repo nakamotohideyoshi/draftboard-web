@@ -22,6 +22,8 @@ from ..exceptions import (
     ContestCanNotBeRefunded,
 )
 from .tasks import refund_task
+from ..classes import ContestPoolCreator
+
 
 class RefundBuildWorldMixin(object):
 
@@ -31,7 +33,14 @@ class RefundBuildWorldMixin(object):
         self.world.build_world()
         self.world.contest.entries =3
         self.contest = self.world.contest
-
+        draftgroup = self.world.draftgroup
+        self.contest_pool, created = ContestPoolCreator(
+            'nfl',
+            self.contest.prize_structure,
+            draftgroup.start,
+            (draftgroup.end - draftgroup.start).seconds * 60,
+            draftgroup
+        ).get_or_create()
         # self.user1 = self.get_basic_user("test1")
         # self.user2 = self.get_basic_user("test2")
         # self.user3 = self.get_basic_user("test3")
@@ -65,6 +74,7 @@ class RefundBuildWorldMixin(object):
 class RefundTest(AbstractTest, RefundBuildWorldMixin):
 
     def setUp(self):
+        super().setUp()
         self.user1 = self.get_basic_user("test1")
         self.user2 = self.get_basic_user("test2")
         self.user3 = self.get_basic_user("test3")
@@ -86,14 +96,14 @@ class RefundTest(AbstractTest, RefundBuildWorldMixin):
         self.escrow_ct = CashTransaction(self.escrow_user)
 
         bm = BuyinManager(self.user1)
-        bm.buyin(self.contest)
-
+        bm.buyin(self.contest_pool)
 
         bm = BuyinManager(self.user2)
-        bm.buyin(self.world.contest)
+        bm.buyin(self.contest_pool)
 
         bm = BuyinManager(self.user3)
-        bm.buyin(self.world.contest)
+        bm.buyin(self.contest_pool)
+        Entry.objects.filter(contest_pool=self.contest_pool).update(contest=self.contest)
 
     def test_refund(self):
 

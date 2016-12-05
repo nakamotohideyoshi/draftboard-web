@@ -40,7 +40,7 @@ CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/0' % (
+        'LOCATION': 'redis://:%s@%s:%s' % (
             REDIS_URL.password,
             REDIS_URL.hostname,
             REDIS_URL.port),
@@ -54,7 +54,7 @@ CACHES = {
     # Celery cache
     'celery': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/1' % (
+        'LOCATION': 'redis://:%s@%s:%s' % (
             REDIS_URL.password,
             REDIS_URL.hostname,
             REDIS_URL.port),
@@ -62,7 +62,7 @@ CACHES = {
     # separate one to invalidate all of cachalot if need be
     'cachalot': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/2' % (
+        'LOCATION': 'redis://:%s@%s:%s' % (
             REDIS_URL.password,
             REDIS_URL.hostname,
             REDIS_URL.port),
@@ -73,7 +73,7 @@ CACHES = {
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/3' % (
+        'LOCATION': 'redis://:%s@%s:%s' % (
             REDIS_URL.password,
             REDIS_URL.hostname,
             REDIS_URL.port),
@@ -84,7 +84,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s/4' % (
+        'LOCATION': 'redis://:%s@%s:%s' % (
             REDIS_URL.password,
             REDIS_URL.hostname,
             REDIS_URL.port),

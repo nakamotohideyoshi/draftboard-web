@@ -70,6 +70,26 @@ TIME_INPUT_FORMATS = [
 ]
 
 # Django installs
+
+MIDDLEWARE_CLASSES = (
+    # CSRF token masking
+    'debreach.middleware.CSRFCryptMiddleware',
+
+    # GZIP and security protection for it
+    'django.middleware.gzip.GZipMiddleware',
+    'debreach.middleware.RandomCommentMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+# django (>= 1.9) template settings
 INSTALLED_APPS = (
     # django defaults
     'django.contrib.admin',
@@ -87,7 +107,6 @@ INSTALLED_APPS = (
     # --- removed for testing only ---
     # 'cachalot',  # caching models
     'pipeline',  # minifying/compressing static assets
-
     # draftboard specific apps below here #
     'account',
     'dfslog',
@@ -132,26 +151,6 @@ INSTALLED_APPS = (
 
     'rest_framework_swagger',
 )
-
-MIDDLEWARE_CLASSES = (
-    # CSRF token masking
-    'debreach.middleware.CSRFCryptMiddleware',
-
-    # GZIP and security protection for it
-    'django.middleware.gzip.GZipMiddleware',
-    'debreach.middleware.RandomCommentMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
-
-# django (>= 1.9) template settings
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     'DIRS': [
@@ -249,9 +248,9 @@ DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from trig
 # Mailchimp/Mandrill
 # TODO: Remove mandrill settings
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.mandrillapp.com'
-EMAIL_HOST_USER = 'devs@draftboard.com'
-EMAIL_HOST_PASSWORD = 'bfNdCw7LpBD4UUrYG91YVw'
+EMAIL_HOST = 'smtp.sparkpostmail.com'
+EMAIL_HOST_USER = 'SMTP_Injection'
+EMAIL_HOST_PASSWORD = '1ab47c61d2f7da062c67ceb9cb91b7b0099d3f3c'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'support@draftboard.com'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
@@ -367,10 +366,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s - %(message)s'
+            'format': '%(levelname)s %(asctime)s %(pathname)s:%(lineno)s - %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(pathname)s:%(lineno)s - %(message)s'
         },
     },
     'handlers': {
@@ -385,16 +384,16 @@ LOGGING = {
         # A catch-all logger.
         '': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         'celery': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
     },
 }
@@ -417,9 +416,13 @@ TRULIOO_USER = 'Draftboard_Demo_API'
 TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
 TRULIOO_DEMO_MODE = True
 
+# Inactive users
+INACTIVE_USERS_EMAILS = []
+
+# Sentry Config
 RAVEN_CONFIG = {
     'dsn': environ.get('SENTRY_DSN')
 }
 
 # access domain
-COOKIE_ACCESS_DOMAIN = '*.draftboard.com'
+COOKIE_ACCESS_DOMAIN = '.draftboard.com'

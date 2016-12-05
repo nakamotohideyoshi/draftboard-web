@@ -9,7 +9,7 @@ from account.utils import create_user_log
 from account import const as _account_const
 from cash.classes import CashTransaction
 
-logger = getLogger('django')
+logger = getLogger('account.models')
 
 
 class Information(models.Model):
@@ -19,6 +19,7 @@ class Information(models.Model):
     AbstractUser, this is used to store user-related things like permissions and various properties.
     """
     user = models.OneToOneField(User, primary_key=True)
+    inactive = models.BooleanField(default=False)
     exclude_date = models.DateField(blank=True, null=True)
 
     class Meta:
@@ -123,7 +124,7 @@ class UserLog(models.Model):
     """
     Store user actions for easy access
 
-    Log types and actions are found in account/const.py
+    Log types and actions are found in account/constants.py
     """
     type = models.SmallIntegerField(choices=_account_const.TYPES)
     ip = models.CharField(max_length=15, blank=True, null=True)
