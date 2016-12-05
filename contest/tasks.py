@@ -14,7 +14,7 @@ from draftgroup.models import DraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
 from logging import getLogger
-from util.slack import WebhookContestScheduler
+from util.slack import WebhookContestInfo
 
 logger = getLogger('contests.tasks')
 HIGH_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
@@ -36,7 +36,7 @@ LOW_PRIORITY_EMAILS = [
 LOCK_EXPIRE = 60  # lock expires in this many seconds
 SHARED_LOCK_NAME = 'spawn_contest_pool_contests'
 
-slack = WebhookContestScheduler()
+slack = WebhookContestInfo()
 
 
 @app.task(bind=True)

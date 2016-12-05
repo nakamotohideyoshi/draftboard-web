@@ -120,6 +120,15 @@ class Attachment(object):
         return self.data
 
 
+class WebhookContestInfo(Webhook):
+    """
+    use this class for sending non sport-specific notifications to  #contest-updates
+    # currently for draftboard: #contest-updates
+    # https://hooks.slack.com/services/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
+    """
+    identifier = 'T02S3E1FD/B3ARUD0V9/S5BmvH6qbrF3SlzyA1R2WAKE'
+
+
 class WebhookContestScheduler(Webhook):
     """
     use this class for sending notifications to  #contest-updates
