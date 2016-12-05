@@ -13,8 +13,11 @@ from contest.payout.tasks import payout_task
 from draftgroup.models import DraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
+from logging import getLogger
+from util.slack import Webhook
 
 
+logger = getLogger('contests.tasks')
 HIGH_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
 LOW_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
 
@@ -38,6 +41,13 @@ LOCK_EXPIRE = 60  # lock expires in this many seconds
 SHARED_LOCK_NAME = 'spawn_contest_pool_contests'
 
 
+class ContestTaskWebhook(Webhook):
+    # rio slack - channel #stats-projections
+    identifier = 'T02S3E1FD/B2H8GB97T/gHG66jb3wvGHSJb9Zcr7IwHC'
+
+slack = ContestTaskWebhook()
+
+
 @app.task(bind=True)
 def spawn_contest_pool_contests(self):
     lock_id = 'task-LOCK--%s--%s' % ('all_sports', SHARED_LOCK_NAME)
@@ -50,10 +60,10 @@ def spawn_contest_pool_contests(self):
             contest_pools = LiveContestPool.objects.all()
             # contest_pools.count()
             for cp in contest_pools:
+                slack.send("Attempting to spawn contests for ContestPool: %s", cp)
                 cpf = ContestPoolFiller(cp)
                 # create all its Contests using FairMatch
                 new_contests = cpf.fair_match()
-
         finally:
             release_lock()
 
@@ -128,7 +138,7 @@ def notify_admin_draft_groups_not_completed(self, hours=5, *args, **kwargs):
 
     msg_str = '*** %s *** contests are live >>> %s <<< hours after the last game(s) started.' % (
     contests.count(), hours)
-    print(msg_str)
+    logger.info(msg_str)
     send_mail("Alert! Draft Groups (Live Games) Running late (!?)",
               msg_str,
               HIGH_PRIORITY_FROM_EMAIL,
@@ -152,8 +162,9 @@ def notify_admin_contests_not_paid(self, *args, **kwargs):
     num_contests = payable_contests.count()
     if num_contests > 0:
         msg_str = '*** %s *** need to be paid out!' % (num_contests)
-        print(msg_str)
+        logger.info(msg_str)
 
+        slack.send("Alert! Contest Payout time! %s" % msg_str)
         send_mail("Alert! Contest Payout time!",
                   msg_str,
                   HIGH_PRIORITY_FROM_EMAIL,
@@ -178,11 +189,11 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     # use the payout_task to payout all completed contests
     task = payout_task.delay(contests=list(contests_to_pay))
 
-    # if contests_to_pay.count() > 0:
-    #     msg_str = '*** %s *** automatically paid out!' % (num_contests)
-    #     print( msg_str )
-    #
-    #     send_mail("Contest Auto Payout Time!",
-    #                 msg_str,
-    #                 HIGH_PRIORITY_FROM_EMAIL,
-    #                 HIGH_PRIORITY_EMAILS)
+    if contests_to_pay.count() > 0:
+        msg_str = '*** %s *** automatically paid out!' % num_contests
+        logger.info(msg_str)
+        slack.send(msg_str)
+        send_mail("Contest Auto Payout Time!",
+                    msg_str,
+                    HIGH_PRIORITY_FROM_EMAIL,
+                    HIGH_PRIORITY_EMAILS)
