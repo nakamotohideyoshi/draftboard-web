@@ -24,7 +24,8 @@ class Lineup(models.Model):
         return self.draft_group.salary_pool.site_sport.name
 
     def __str__(self):
-        return '%s %s %s' % (self.user, self.fantasy_points, 'NAME_TODO')
+        return '<Lineup>: user: %s fp: %s name: "%s" draft_group: %s' % (
+            self.user, self.fantasy_points, self.name, self.draft_group)
 
 class Player(models.Model):
     """

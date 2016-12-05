@@ -1,12 +1,14 @@
-import React from 'react';
-import map from 'lodash/map';
-import size from 'lodash/size';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { humanizeCurrency } from '../../lib/utils/currency';
-import { updateWatchingAndPath } from '../../actions/watching.js';
-import * as AppActions from '../../stores/app-state-store';
 import LiveContestsPaneItem from './live-contests-pane-item';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
+import React from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
+import { updateWatchingAndPath } from '../../actions/watching.js';
+
+// assets
+require('../../../sass/blocks/live/live-contests-pane.scss');
 
 
 /*
@@ -33,8 +35,38 @@ export const LiveContestsPane = React.createClass({
     watching: React.PropTypes.object.isRequired,
   },
 
-  componentDidMount() {
-    if (this.props.openOnStart) AppActions.addClass('appstate--live-contests-pane--open');
+  getInitialState() {
+    return {
+      modifiers: [],
+    };
+  },
+
+  componentWillMount() {
+    const state = merge({}, this.state);
+
+    if (this.props.watching.opponentLineupId !== null) {
+      state.modifiers = ['opponent-mode'];
+
+      this.setState(state);
+    }
+  },
+
+  // close the window when in opponent mode
+  componentWillReceiveProps(nextProps) {
+    const state = merge({}, this.state);
+    // const { actions, watching } = this.props;
+
+    if (nextProps.watching.opponentLineupId !== this.props.watching.opponentLineupId) {
+      if (nextProps.watching.opponentLineupId === null) {
+        state.modifiers = [];
+      }
+
+      if (nextProps.watching.opponentLineupId !== null) {
+        state.modifiers = ['opponent-mode'];
+      }
+    }
+
+    this.setState(state);
   },
 
   viewContest(contestId) {
@@ -47,67 +79,50 @@ export const LiveContestsPane = React.createClass({
     };
 
     actions.updateWatchingAndPath(path, changedFields);
-
-    // open up the standings pane, fade out contests
-    AppActions.addClass('appstate--live-contests-pane--faded-out');
   },
 
-  minimizePane() {
-    AppActions.removeClass('live--right-panes-open');
-    AppActions.removeClass('appstate--live-contests-pane--open');
+  backToContestsPane() {
+    const { actions, watching } = this.props;
+    const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/`;
+    const changedFields = {
+      contestId: null,
+    };
+
+    actions.updateWatchingAndPath(path, changedFields);
   },
 
   renderContests() {
-    const { lineup } = this.props;
+    const { lineup, watching } = this.props;
 
-    return map(lineup.contestsStats, (contest) => (
-      <LiveContestsPaneItem
-        contest={contest}
-        onItemClick={this.viewContest}
-        key={contest.id}
-      />
-    ));
+    let index = 0;
+    const contestsSize = Object.keys(lineup.contestsStats).length;
+    return map(lineup.contestsStats, (contest) => {
+      index++;
+      const modifiers = [];
+      if (watching.contestId === contest.id) modifiers.push('active');
+
+      return (
+        <LiveContestsPaneItem
+          contest={contest}
+          contestsSize={contestsSize}
+          index={index}
+          backToContestsPane={this.backToContestsPane}
+          onItemClick={this.viewContest}
+          key={contest.id}
+          modifiers={modifiers}
+        />
+      );
+    });
   },
 
   render() {
-    const { contestsStats, totalBuyin, potentialWinnings } = this.props.lineup;
+    const block = 'live-contests-pane';
+    const classNames = generateBlockNameWithModifiers(block, this.state.modifiers);
 
     return (
-      <div className="live-contests-pane live-pane live-pane--right">
-        <div className="live-pane__minimize" onClick={this.minimizePane}></div>
-        <div className="live-pane__content">
-          <h2>
-            My Contests
-
-            <div className="stats">
-              <div className="num-contest">
-                {size(contestsStats)} <span>Contests</span>
-              </div>
-
-              <div className="profit">
-                <div className="fees">
-                  {humanizeCurrency(totalBuyin)} Fees
-                </div>
-                {" "} / {" "}
-                <div className="earnings">
-                  Winning
-                  {" "}
-                  <span>{humanizeCurrency(potentialWinnings)}</span>
-                </div>
-              </div>
-            </div>
-          </h2>
-
-          <div className="live-contests-pane__list">
-            <ul className="live-contests-pane__list__inner">
-              {this.renderContests()}
-            </ul>
-          </div>
-        </div>
-        <div className="live-pane__left-shadow" />
-
-        <div className="live-contests-pane__view-contest" onClick={this.viewContest} />
-      </div>
+      <ul className={classNames}>
+        {this.renderContests()}
+      </ul>
     );
   },
 });

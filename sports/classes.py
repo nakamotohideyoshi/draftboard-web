@@ -1,7 +1,3 @@
-#
-# sports/classes.py
-
-from django.utils import timezone
 from util.dfsdate import DfsDate
 from django.contrib.contenttypes.models import ContentType
 import dataden.classes
@@ -59,13 +55,19 @@ import sports.nba.models
 import sports.mlb.models
 
 import scoring.classes
+from logging import getLogger
+
+logger = getLogger('sports.classes')
+
 
 class AbstractGameManager(object):
+
     """
     Parent class with common behavior of GameManager classes.
     """
 
-    class MethodNotImplementedException(Exception): pass
+    class MethodNotImplementedException(Exception):
+        pass
 
     def __init__(self, game_model):
         self.game_model = game_model
@@ -75,12 +77,16 @@ class AbstractGameManager(object):
         get games relevant to daily fantasy contests
         at or after the start.time() on the start.date()
         """
-        raise self.MethodNotImplementedException('method ' + self.get_daily_games_gte.__name__ + '()')
+        raise self.MethodNotImplementedException(
+            'method ' + self.get_daily_games_gte.__name__ + '()')
+
 
 class NhlGameManager(AbstractGameManager):
+
     """
     NHL games database wrapper
     """
+
     def __init__(self):
         super().__init__(sports.nhl.models.Game)
 
@@ -88,20 +94,29 @@ class NhlGameManager(AbstractGameManager):
         """
         get the relevant games for daily fantasy on the start.date() on or after start.time()
         """
-        pass # TODO
+        pass  # TODO
+
 
 class NflGameManager(AbstractGameManager):
+
     """
     NFL games database wrapper
     """
+
     def __init__(self):
         super().__init__(sports.nfl.models.Game)
 
-class NbaGameManager(AbstractGameManager): pass # TODO - implement
 
-class MlbGameManager(AbstractGameManager): pass # TODO - implement
+class NbaGameManager(AbstractGameManager):
+    pass  # TODO - implement
+
+
+class MlbGameManager(AbstractGameManager):
+    pass  # TODO - implement
+
 
 class SiteSportManager(object):
+
     """
     SiteSportManager helps get the model classes related to a sport.
 
@@ -162,11 +177,12 @@ class SiteSportManager(object):
         :return: the corresponding SiteSport instance if it exists,
             otherwise returns the value passed into method
         """
-        if isinstance( sport, str ):
+        if isinstance(sport, str):
             try:
                 return SiteSport.objects.get(name=sport)
             except SiteSport.DoesNotExist:
-                raise SiteSportWithNameDoesNotExistException(type(self).__name__, sport)
+                raise SiteSportWithNameDoesNotExistException(
+                    type(self).__name__, sport)
 
         # default: return parameter passed into this method
         return sport
@@ -208,7 +224,7 @@ class SiteSportManager(object):
 
     def __get_array_of_classes(self, sport, filter_string, parent_class):
         content_types = ContentType.objects.filter(app_label=sport.name,
-                                             model__icontains=filter_string)
+                                                   model__icontains=filter_string)
         #
         # Iterates through all of the content_types that contain the filter
         # string and adds them to the matching_arr array if they are a
@@ -223,7 +239,7 @@ class SiteSportManager(object):
         return matching_arr
 
     #########
-    #########   this method returns a list()
+    # this method returns a list()
     #########
     def get_player_stats_class(self, sport):
         """
@@ -338,7 +354,8 @@ class SiteSportManager(object):
         """
         sport = self.__get_site_sport_from_str(sport)
         self.__check_sport(sport)
-        arr = self.__get_array_of_classes(sport, 'pbpdescription', PbpDescription)
+        arr = self.__get_array_of_classes(
+            sport, 'pbpdescription', PbpDescription)
         if len(arr) >= 1:
             return arr[0]
 
@@ -362,33 +379,33 @@ class SiteSportManager(object):
             # so that we get all the games
             dt_range = DfsDate.get_current_dfs_date_range(offset_hours=6)
 
-        #games = game_class.objects.filter( start__range=dt_range )
+        # games = game_class.objects.filter( start__range=dt_range )
         start = dt_range[0]
         end = dt_range[1]
-        #print('get_scoreboard_games:', 'start[%s]'%str(start), start, 'end[%s]'%str(end), end, str(dt_range))
-        games = game_class.objects.filter( start__gt=start,
-                                           start__lte=end)
+        # print('get_scoreboard_games:', 'start[%s]'%str(start), start, 'end[%s]'%str(end), end, str(dt_range))
+        games = game_class.objects.filter(start__gt=start,
+                                          start__lte=end)
         # tab_width = '    '
         # for g in games:
         #     print(tab_width, g.srid, str(g.start))
         return games
 
     def __add_to_dict(self, target, extras, exclude_fields=[]):
-        for k,v in extras.items():
+        for k, v in extras.items():
             if k in exclude_fields:
-                continue # dont add this one
-            target[ k ] = v
+                continue  # dont add this one
+            target[k] = v
         return target
 
     def get_serialized_scoreboard_data(self, sport):
-        #boxscore_exclude_fields = ['status']
+        # boxscore_exclude_fields = ['status']
 
         site_sport = self.__get_site_sport_from_str(sport)
         boxscore_class = self.get_game_boxscore_class(site_sport)
         # boxscore_serializer_class = self.get_boxscore_serializer_class(sport)
         game_serializer_class = self.get_game_serializer_class(sport)
         games = self.get_scoreboard_games(sport)
-        game_srids = [ g.srid for g in games ]
+        game_srids = [g.srid for g in games]
         boxscores = boxscore_class.objects.filter(srid_game__in=game_srids)
 
         data = {}
@@ -397,12 +414,14 @@ class SiteSportManager(object):
             inner_data = {}
 
             # add the game data
-            g = game_serializer_class( game ).data
-            self.__add_to_dict( inner_data, g )
+            g = game_serializer_class(game).data
+
+            logger.debug(g)
+            self.__add_to_dict(inner_data, g)
 
             # add the home/away scores to the inner data
-            inner_data['home_score'] = None # default
-            inner_data['away_score'] = None # default
+            inner_data['home_score'] = None  # default
+            inner_data['away_score'] = None  # default
             try:
                 boxscore = boxscores.get(srid_game=game.srid)
                 inner_data['home_score'] = boxscore.home_score
@@ -411,7 +430,7 @@ class SiteSportManager(object):
                 pass
 
             # finish it by adding the game data to the return data dict
-            data[ game.srid ] = inner_data
+            data[game.srid] = inner_data
 
         # return the json data
         return data
@@ -488,7 +507,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "GameSerializer", sport.name)
         except:
             #
-            raise GameSerializerClassNotFoundException(type(self).__name__, sport)
+            raise GameSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_boxscore_serializer_class(self, sport):
         """
@@ -505,7 +525,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "BoxscoreSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
-            raise BoxscoreSerializerClassNotFoundException(type(self).__name__, sport)
+            raise BoxscoreSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_team_serializer_class(self, sport):
         """
@@ -522,7 +543,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "TeamSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
-            raise TeamSerializerClassNotFoundException(type(self).__name__, sport)
+            raise TeamSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_player_serializer_class(self, sport):
         """
@@ -539,7 +561,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "PlayerSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
-            raise PlayerSerializerClassNotFoundException(type(self).__name__, sport)
+            raise PlayerSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_injury_serializer_class(self, sport):
         """
@@ -555,9 +578,9 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "InjurySerializer", sport.name)
         except:
 
-
             # by default raise an exception if we couldnt return a game class
-            raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
+            raise InjurySerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_fantasypoints_serializer_class(self, sport):
         """
@@ -570,7 +593,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "FantasyPointsSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
-            raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
+            raise InjurySerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_playerhistory_serializer_class(self, sport):
         """
@@ -583,7 +607,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "PlayerHistorySerializer", sport.name)
         except:
             #
-            raise PlayerHistorySerializerClassNotFoundException(type(self).__name__, sport)
+            raise PlayerHistorySerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_playernews_serializer_class(self, sport):
         """
@@ -598,7 +623,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "PlayerNewsSerializer", sport.name)
         except:
             #
-            raise PlayerNewsSerializerClassNotFoundException(type(self).__name__, sport)
+            raise PlayerNewsSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def __get_tsx_model_class(self, sport, model_name, model_parent_class):
         """
@@ -614,7 +640,8 @@ class SiteSportManager(object):
         """
         sport = self.__get_site_sport_from_str(sport)
         self.__check_sport(sport)
-        arr = self.__get_array_of_classes(sport, model_name, model_parent_class)
+        arr = self.__get_array_of_classes(
+            sport, model_name, model_parent_class)
         if len(arr) >= 1:
             return arr[0]
 
@@ -640,7 +667,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "TsxNewsSerializer", sport.name)
         except:
             # raise generic TsxSerializer exception
-            raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
+            raise TsxSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_tsxplayer_serializer_class(self, sport):
         sport = self.__get_site_sport_from_str(sport)
@@ -651,7 +679,8 @@ class SiteSportManager(object):
             return SiteSportManager.buildSpecialAliasMetaClass(class_string, "TsxPlayerSerializer", sport.name)
         except:
             # raise generic TsxSerializer exception
-            raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
+            raise TsxSerializerClassNotFoundException(
+                type(self).__name__, sport)
 
     def get_tsxinjury_class(self, sport):
         """
@@ -685,11 +714,13 @@ class SiteSportManager(object):
         """
         return self.__get_tsx_model_class(sport, 'tsxplayer', TsxPlayer)
 
+
 class PlayerNamesCsv(object):
 
     def __init__(self, sport='nfl', positions=None, filename=None):
 
-        self.sports = ['nfl','nba','mlb','nhl']     # dataden four major sports
+        # dataden four major sports
+        self.sports = ['nfl', 'nba', 'mlb', 'nhl']
 
         self.site_sport = self.__validate_site_sport(sport)
 
@@ -698,114 +729,132 @@ class PlayerNamesCsv(object):
         if filename:
             self.filename = filename
         else:
-            self.filename = '%s_playernames_%s.csv' % (sport, '_'.join( self.positions ))
+            self.filename = '%s_playernames_%s.csv' % (
+                sport, '_'.join(self.positions))
 
-        self.f                  = None                      # dont create the file yet
-        self.dataden            = dataden.classes.DataDen() # access dataden/mongo player data
+        self.f = None                      # dont create the file yet
+        # access dataden/mongo player data
+        self.dataden = dataden.classes.DataDen()
 
-        self.player_collection  = 'player'
-        self.parent_api         = 'rosters'         # for nfl. other classes may override this
+        self.player_collection = 'player'
+        # for nfl. other classes may override this
+        self.parent_api = 'rosters'
 
-        self.key_fullname       = 'name_full'       # for nfl. other classes may override this
-        self.key_position       = 'position'        # for nfl. other classes may override this
+        # for nfl. other classes may override this
+        self.key_fullname = 'name_full'
+        # for nfl. other classes may override this
+        self.key_position = 'position'
 
     def __validate_site_sport(self, sport):
         if isinstance(sport, str):          # sport is a string
             if sport not in self.sports:
-                raise Exception('sport [%s] is not a valid sport in %s' % (sport, self.sports))
+                raise Exception(
+                    'sport [%s] is not a valid sport in %s' % (sport, self.sports))
             return SiteSport.objects.get(name=sport)
 
-        elif isinstance(sport, SiteSport):  # sport is an instance of sports.models.SiteSport
+        # sport is an instance of sports.models.SiteSport
+        elif isinstance(sport, SiteSport):
             return sport
         else:
-            raise Exception('sport needs to be a string in %s, or an instance of SiteSport' % str(self.sports))
+            raise Exception(
+                'sport needs to be a string in %s, or an instance of SiteSport' % str(self.sports))
 
     def get_players(self):
         """
         get the cursor of players from dataden from their respective sport
         """
         if self.positions is None:
-            raise Exception('self.positions is None (ie: you need to set it to a list of the string positions ie: ["QB","RB"]')
-        target = {self.key_position : {'$in':self.positions}}
+            raise Exception(
+                'self.positions is None (ie: you need to set it to a list of the string positions ie: ["QB","RB"]')
+        target = {self.key_position: {'$in': self.positions}}
         return self.dataden.find(self.site_sport.name, self.player_collection, self.parent_api, target)
 
     def get_row_str(self, p):
         return '%s, %s, "%s", %s,\n' % (self.site_sport.name,
-                    p.get('id'), p.get(self.key_fullname), p.get(self.key_position))
+                                        p.get('id'), p.get(self.key_fullname), p.get(self.key_position))
+
     def generate(self):
         """
         generate the csv file with the params this object was constructed with
         """
-        self.f = open(self.filename,'w') # open the file with the filename and overwrite it
+        self.f = open(
+            self.filename, 'w')  # open the file with the filename and overwrite it
         players = self.get_players()
         print(players.count(), 'players')
         for p in players:
             # self.f.write('%s, %s, "%s", %s,\n' % (self.site_sport.name,
             #         p.get('id'),p.get(self.key_fullname),p.get(self.key_position)))
-            self.f.write( self.get_row_str( p ) )
+            self.f.write(self.get_row_str(p))
         self.f.close()
         print('...generated file: ', self.filename)
 
     def get_rows(self):
         rows = []
         for p in self.get_players():
-            rows.append( self.get_row_str( p ) )
+            rows.append(self.get_row_str(p))
         return rows
 
+
 class NflPlayerNamesCsv(PlayerNamesCsv):
+
     """
     get a csv list of the nfl players names
     """
-    DEFAULT_SPORT       = 'nfl'
-    DEFAULT_POSITIONS   = ['QB','RB','FB','WR','TE']
+    DEFAULT_SPORT = 'nfl'
+    DEFAULT_POSITIONS = ['QB', 'RB', 'FB', 'WR', 'TE']
 
     def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
         super().__init__(sport, positions)
+
 
 class NhlPlayerNamesCsv(PlayerNamesCsv):
+
     """
     get a csv list of the nfl players names
     """
-    DEFAULT_SPORT       = 'nhl'
-    DEFAULT_POSITIONS   = ['G','LW','RW','C','D']
+    DEFAULT_SPORT = 'nhl'
+    DEFAULT_POSITIONS = ['G', 'LW', 'RW', 'C', 'D']
 
     def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
         super().__init__(sport, positions)
 
         # override
-        self.key_fullname   = 'full_name'
-        self.key_position   = 'primary_position'
+        self.key_fullname = 'full_name'
+        self.key_position = 'primary_position'
+
 
 class NbaPlayerNamesCsv(PlayerNamesCsv):
+
     """
     get a csv list of the nfl players names
     """
-    DEFAULT_SPORT       = 'nba'
-    DEFAULT_POSITIONS   = ['PG','SG','PF','SF','C']
+    DEFAULT_SPORT = 'nba'
+    DEFAULT_POSITIONS = ['PG', 'SG', 'PF', 'SF', 'C']
 
     def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
         super().__init__(sport, positions)
 
         # override
-        self.key_fullname   = 'full_name'
-        self.key_position   = 'primary_position'
+        self.key_fullname = 'full_name'
+        self.key_position = 'primary_position'
+
 
 class MlbPlayerNamesCsv(PlayerNamesCsv):
+
     """
     get a csv list of the nfl players names
     """
-    DEFAULT_SPORT       = 'mlb'
-    DEFAULT_POSITIONS   = ['P','C','1B','2B','SS','3B','LF','CF','RF','DH']
+    DEFAULT_SPORT = 'mlb'
+    DEFAULT_POSITIONS = [
+        'P', 'C', '1B', '2B', 'SS', '3B', 'LF', 'CF', 'RF', 'DH']
 
     def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
         super().__init__(sport, positions)
 
         # override
-        self.parent_api     = 'rostersfull'
-        self.key_fullname   = 'full_name'
-        self.key_position   = 'primary_position'
-
-
+        self.parent_api = 'rostersfull'
+        self.key_fullname = 'full_name'
+        self.key_position = 'primary_position'
 
 
 # class Fppg(object):
@@ -863,5 +912,3 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
 #
 # this way we could make a method to parse fppgs( start_dt, end_dt ) which is more
 # generic and useful   OR MAY BE EXISTING IN THE SALARY STUFF RYAN WROTE BTW
-
-

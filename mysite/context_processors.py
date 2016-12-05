@@ -34,8 +34,7 @@ def delta_now_prefix(request):
         return {'DELTA_NOW': 0}
 
 
-# allows delta_now() method to be in the template
-# this way we can pass through the replayer time for testing purposes into javascript
+# allows PLAYER_IMAGES_URL to be passed to clients via templates.
 def player_images_url(request):
     return {'PLAYER_IMAGES_URL': settings.PLAYER_IMAGES_URL}
 

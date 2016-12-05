@@ -23,6 +23,9 @@ describe('<Results /> Component', () => {
       month: 1,
       day: 1,
     },
+    route: {
+      path: '',
+    },
     results: { isLoading: true },
     myCurrentLineupsSelector: {},
     liveContestsSelector: {},
@@ -50,25 +53,13 @@ describe('<Results /> Component', () => {
     document.body.innerHTML = '';
   });
 
-  it('should select current day if not date provided and it is before 10AM', () => {
+  it('should select yesterday if not date provided and it is before 10AM', () => {
     const wrapper = renderComponent(defaultProps);
     expect(wrapper.state().day).to.equal(1);
   });
 
-  it('should select current day if not date provided and it is before 10AM', () => {
-    const date = new Date(2016, 3, 12, 12);  // second 12 refers to 12pm UTC
-    fakes.stub(utils, 'dateNow', () => date);
-    const wrapper = renderComponent(Object.assign(
-      {},
-      defaultProps,
-      { params: {} }
-    ));
-
-    expect(wrapper.state().day).to.equal(12);
-  });
-
-  it('should select previous day if not date provided and it is before 10AM', () => {
-    const date = new Date(2016, 3, 12, 9);  // 9 refers to 9am UTC
+  it('should select yesterday if not date provided and it is before 10AM', () => {
+    const date = new Date(Date.UTC(2016, 3, 12, 12));  // second 12 refers to 12pm UTC
     fakes.stub(utils, 'dateNow', () => date);
     const wrapper = renderComponent(Object.assign(
       {},
@@ -77,5 +68,17 @@ describe('<Results /> Component', () => {
     ));
 
     expect(wrapper.state().day).to.equal(11);
+  });
+
+  it('should select two days ago if not date provided and it is before 10AM', () => {
+    const date = new Date(Date.UTC(2016, 3, 12, 9)).getTime();  // 9 refers to 9am UTC
+    fakes.stub(utils, 'dateNow', () => date);
+    const wrapper = renderComponent(Object.assign(
+      {},
+      defaultProps,
+      { params: {} }
+    ));
+
+    expect(wrapper.state().day).to.equal(10);
   });
 });

@@ -5,7 +5,7 @@ import renderComponent from '../../lib/render-component';
 import { deposit } from '../../actions/payments';
 import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
-import { verifyLocation, verifyIdentity } from '../../actions/user';
+import { verifyLocation, verifyIdentity, fetchUser } from '../../actions/user';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
@@ -17,15 +17,18 @@ const depositOptions = ['25', '50', '100', '250', '500'];
 
 function mapStateToProps(state) {
   return {
-    user: state.user.info,
+    user: state.user.user,
     payPalNonce: state.payments.payPalNonce,
     payPalClientToken: state.payments.payPalClientToken,
     isDepositing: state.payments.isDepositing,
+    identityFormErrors: state.user.identityFormErrors,
+    identityFormIsSending: state.user.identityFormIsSending,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
+    fetchUser: () => dispatch(fetchUser()),
     deposit: (nonce, amount) => dispatch(deposit(nonce, amount)),
     setupBraintree: (callback) => setupBraintree(callback),
     beginPaypalCheckout: (options) => beginPaypalCheckout(options),
@@ -47,6 +50,9 @@ const Deposits = React.createClass({
     beginPaypalCheckout: React.PropTypes.func.isRequired,
     verifyLocation: React.PropTypes.func.isRequired,
     verifyIdentity: React.PropTypes.func.isRequired,
+    identityFormErrors: React.PropTypes.object,
+    identityFormIsSending: React.PropTypes.bool,
+    fetchUser: React.PropTypes.func.isRequired,
   },
 
 
@@ -60,6 +66,7 @@ const Deposits = React.createClass({
 
 
   componentWillMount() {
+    this.props.fetchUser();
     // As soon as the compenent boots up, setup braintree.
     // This will fetch the client token.
     this.props.setupBraintree((paypalInstance) => {
@@ -222,11 +229,19 @@ const Deposits = React.createClass({
   },
 
 
+  identityFormClosed() {
+    // This will fetch the client token.
+    // this.props.setupBraintree((paypalInstance) => {
+    //   this.setState({ paypalInstance });
+    //   this.enablePaypalButton();
+    // });
+  },
+
+
   render() {
     const depositButtonClasses = classNames('button button--flat-alt1');
-    // If we don't have a nonce, or if we have an outstanding deposit request, disable the button.
+    // If we have a nonce, or if we have an outstanding deposit request, disable the button.
     const buttonIsDisabled = (this.doHaveNonce() || !this.state.amount || this.props.isDepositing);
-
     // Create the list of quick deposit amounts.
     const quckDeposits = depositOptions.map((amount) => {
       const dolarPrepended = '$'.concat(amount);
@@ -292,14 +307,16 @@ const Deposits = React.createClass({
         </div>
 
         <Modal
-          isOpen={false}
-          onClose={this.close}
+          isOpen={!this.props.user.identity_verified}
+          onClose={this.identityFormClosed}
           className="cmp-modal-identity-form"
           showCloseBtn={false}
         >
           <div className="cmp-modal__content">
             <IdentityForm
               verifyIdentity={this.props.verifyIdentity}
+              errors={this.props.identityFormErrors}
+              formIsSending={this.props.identityFormIsSending}
             />
           </div>
         </Modal>

@@ -1,6 +1,6 @@
 #
 # sports/nfl/test.py
-
+from mock import patch
 from django.utils import timezone
 from ast import literal_eval
 from test.classes import AbstractTest
@@ -36,6 +36,7 @@ import re
 class TeamHierarchyParserTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.parser = TeamHierarchy()
 
     def __parse_and_send(self, unwrapped_obj, target):
@@ -111,6 +112,7 @@ class TeamHierarchyParserTest(AbstractTest):
 class TestRushPlayManagerRegexScraping(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.play_type = 'rush'  # this would come in the SportRadar play data
 
     def test_rush_1(self):
@@ -176,6 +178,7 @@ class TestPassPlayManagerRegexScraping(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.play_type = 'pass' # this would come in the SportRadar play data
 
     def test_pass_1(self):
@@ -234,6 +237,7 @@ class TestPlayManager(AbstractTest):
     """ parse some information out of the human readable text description """
 
     def setUp(self):
+        super().setUp()
         # actual example from mongo of an NFL official feed play object (from the pbp feed)
         self.data = {
             "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkMGIxYWVhNzAtNmRhMC00YzZkLWIzZjUtMTUwZDVmZTczYWY2aWRkNTYzZjkzYy02ZjlmLTQ5MzEtOGNmYi1lNTRmZDlkNWZhMTc=",
@@ -339,6 +343,7 @@ class TestTeamBoxscoreParser(AbstractTest):
     """ tests the send() part only """
 
     def setUp(self):
+        super().setUp()
         self.parser = DataDenNfl()
 
     def __parse_and_send(self, unwrapped_obj, target):
@@ -370,88 +375,89 @@ class TestTeamBoxscoreParser(AbstractTest):
 
         self.__parse_and_send(data, (sport_db + '.' + 'team', parent_api))
 
-class TestGameBoxscoreParser(AbstractTest):
-    """ tests the send() part only """
-
-    def setUp(self):
-        self.parser = DataDenNfl()
-
-    def __parse_and_send(self, unwrapped_obj, target):
-        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
-        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
-        parts = target[0].split('.')
-        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-        self.parser.parse(oplog_obj)
-        # self.parser.send()
-
-    def test_1(self):
-        sport_db = 'nflo'
-        parent_api = 'boxscores'
-
-        data = {
-            "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZQ==",
-            "attendance": 76512,
-            "clock": "00:00",
-            "entry_mode": "INGEST",
-            "id": "0141a0a5-13e5-4b28-b19f-0c3923aaef6e",
-            "number": 8,
-            "quarter": 4,
-            "reference": 56510,
-            "scheduled": "2015-09-13T17:02:41+00:00",
-            "status": "closed",
-            "utc_offset": -5,
-            "weather": "Partly Cloudy Temp: 69 F, Humidity: 58%, Wind: NW 10 mph",
-            "xmlns": "http://feed.elasticstats.com/schema/nfl/premium/boxscore-v2.0.xsd",
-            "parent_api__id": "boxscores",
-            "dd_updated__id": 1464834044370,
-            "summary__list": {
-                "season": "46aa2ca3-c2fc-455d-8256-1f7893a87113",
-                "week": "581edacd-e641-43d6-9e69-76b29a306643",
-                "venue": "7c11bb2d-4a53-4842-b842-0f1c63ed78e9",
-                "home": "22052ff7-c065-42ee-bc8f-c4691c50e624",
-                "away": "4809ecb0-abd3-451d-9c4a-92a90b83ca06"
-            },
-            "situation__list": {
-                "clock": "00:00",
-                "down": 2,
-                "yfd": 11,
-                "possession": "4809ecb0-abd3-451d-9c4a-92a90b83ca06",
-                "location": "4809ecb0-abd3-451d-9c4a-92a90b83ca06"
-            },
-            "last_event__list": {
-                "event": "c68447b0-425f-4e7b-8200-581ca222c03d"
-            },
-            "scoring__list": [
-                {
-                    "quarter": "fd31368b-a159-4f56-a022-afc691e34755"
-                },
-                {
-                    "quarter": "17ee8c4c-3e1c-4dbb-83eb-f54fabe2a117"
-                },
-                {
-                    "quarter": "da1c72aa-a5eb-44db-a23f-f9e2284d7968"
-                },
-                {
-                    "quarter": "99063002-e5ee-4239-b686-f5aaa192e5d8"
-                }
-            ],
-            "scoring_drives__list": [
-                {
-                    "drive": "a956d9cb-d8ab-408c-91fc-442f06e338ff"
-                },
-                {
-                    "drive": "37c135a1-9d50-4da7-a975-f93a5bc2bfb5"
-                },
-                {
-                    "drive": "d7474f02-e785-4638-b604-1065174d4a67"
-                },
-                {
-                    "drive": "3b6e7850-bfa5-4ac8-90f4-9bd14a5a12c9"
-                }
-            ]
-        }
-
-        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+# TODO: Disabled Test: sports.nfl.tests.TestGameBoxscoreParser
+# class TestGameBoxscoreParser(AbstractTest):
+#     """ tests the send() part only """
+#
+#     def setUp(self):
+#         self.parser = DataDenNfl()
+#
+#     def __parse_and_send(self, unwrapped_obj, target):
+#         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+#         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+#         parts = target[0].split('.')
+#         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+#         self.parser.parse(oplog_obj)
+#         # self.parser.send()
+#
+#     def test_1(self):
+#         sport_db = 'nflo'
+#         parent_api = 'boxscores'
+#
+#         data = {
+#             "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZQ==",
+#             "attendance": 76512,
+#             "clock": "00:00",
+#             "entry_mode": "INGEST",
+#             "id": "0141a0a5-13e5-4b28-b19f-0c3923aaef6e",
+#             "number": 8,
+#             "quarter": 4,
+#             "reference": 56510,
+#             "scheduled": "2015-09-13T17:02:41+00:00",
+#             "status": "closed",
+#             "utc_offset": -5,
+#             "weather": "Partly Cloudy Temp: 69 F, Humidity: 58%, Wind: NW 10 mph",
+#             "xmlns": "http://feed.elasticstats.com/schema/nfl/premium/boxscore-v2.0.xsd",
+#             "parent_api__id": "boxscores",
+#             "dd_updated__id": 1464834044370,
+#             "summary__list": {
+#                 "season": "46aa2ca3-c2fc-455d-8256-1f7893a87113",
+#                 "week": "581edacd-e641-43d6-9e69-76b29a306643",
+#                 "venue": "7c11bb2d-4a53-4842-b842-0f1c63ed78e9",
+#                 "home": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+#                 "away": "4809ecb0-abd3-451d-9c4a-92a90b83ca06"
+#             },
+#             "situation__list": {
+#                 "clock": "00:00",
+#                 "down": 2,
+#                 "yfd": 11,
+#                 "possession": "4809ecb0-abd3-451d-9c4a-92a90b83ca06",
+#                 "location": "4809ecb0-abd3-451d-9c4a-92a90b83ca06"
+#             },
+#             "last_event__list": {
+#                 "event": "c68447b0-425f-4e7b-8200-581ca222c03d"
+#             },
+#             "scoring__list": [
+#                 {
+#                     "quarter": "fd31368b-a159-4f56-a022-afc691e34755"
+#                 },
+#                 {
+#                     "quarter": "17ee8c4c-3e1c-4dbb-83eb-f54fabe2a117"
+#                 },
+#                 {
+#                     "quarter": "da1c72aa-a5eb-44db-a23f-f9e2284d7968"
+#                 },
+#                 {
+#                     "quarter": "99063002-e5ee-4239-b686-f5aaa192e5d8"
+#                 }
+#             ],
+#             "scoring_drives__list": [
+#                 {
+#                     "drive": "a956d9cb-d8ab-408c-91fc-442f06e338ff"
+#                 },
+#                 {
+#                     "drive": "37c135a1-9d50-4da7-a975-f93a5bc2bfb5"
+#                 },
+#                 {
+#                     "drive": "d7474f02-e785-4638-b604-1065174d4a67"
+#                 },
+#                 {
+#                     "drive": "3b6e7850-bfa5-4ac8-90f4-9bd14a5a12c9"
+#                 }
+#             ]
+#         }
+#
+#         self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
 class TestPlayParser(AbstractTest):
     """
@@ -462,6 +468,7 @@ class TestPlayParser(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.parser = PlayParser()
 
     def __parse_and_send(self, unwrapped_obj, target, tag=None):
@@ -879,6 +886,7 @@ class GameStatusChangedSignal(AbstractTest):
         return team
 
     def setUp(self):
+        super().setUp()
         self.SCHEDULED = 'scheduled' # the default game status
         self.COMPLETE  = 'complete'  # made up - does not actually reflect a real status, necessarily
 
@@ -949,6 +957,7 @@ class SeasonScheduleParserTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.sport = 'nflo'
         self.obj_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkNjU5ZDJiZDAtYzQzZS00YmIwLTg1MDMtOWQ1NzY5MTFkMDI5',
             'dd_updated__id': 1471578967708,
@@ -986,6 +995,7 @@ class GameScheduleParserTest(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.sport = 'nflo'
 
     # def setUp(self):

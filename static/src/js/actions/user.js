@@ -6,12 +6,29 @@ import request from 'superagent';
 import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
 import { addMessage } from './message-actions';
+import { getJsonResponse } from '../lib/utils/response-types';
+
 
 // custom API domain for local dev testing
 let { API_DOMAIN = '' } = process.env;
 // For some dumb reason fetch isn't adding the domain for POST requests, when testing we need
 // a full domain in order for nock to work.
 if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
+
+
+/**
+ * Get Basic User Information.
+ */
+export const fetchUser = () => ({
+  [CALL_API]: {
+    types: [
+      actionTypes.FETCH_USER,
+      actionTypes.FETCH_USER__SUCCESS,
+      actionTypes.FETCH_USER__FAIL,
+    ],
+    endpoint: '/api/account/user/',
+  },
+});
 
 
 function fetchUserInfoSuccess(body) {
@@ -28,6 +45,10 @@ function fetchUserInfoFail(ex) {
   };
 }
 
+
+/**
+ * Fetch user information -  address, DOB, name.
+ */
 export function fetchUserInfo() {
   return (dispatch) => {
     request
@@ -369,21 +390,26 @@ export function verifyIdentity(postData) {
       // If the response was not in the success (2xx) range...
       if (!response.ok) {
         // Extract the text and dispatch some actions.
-        return response.json().then(
+        return getJsonResponse(response).then(
           json => {
             dispatch(addMessage({
               header: 'Unable to verify your identity.',
               level: 'warning',
-              content: json.detail,
+              content: json.detail || 'Please contact us if you beleive this is an error.',
             }));
 
             // Tell the state it failed.
-            dispatch({ type: actionTypes.VERIFY_IDENTITY__FAIL });
+            dispatch({
+              type: actionTypes.VERIFY_IDENTITY__FAIL,
+              response: json,
+            });
             // Kill the promise chain.
-            return Promise.reject({ response: json });
+            return Promise.resolve({ err: json });
           }
         );
       }
+
+      dispatch(fetchUser());
 
       // if it was a success...
       dispatch({

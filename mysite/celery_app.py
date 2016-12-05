@@ -18,10 +18,31 @@ from celery.schedules import crontab
 from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
+from django.core.cache import caches
+from logging import getLogger
 import celery.states
 import os
 import redis
 import time
+from raven import Client
+from raven.contrib.celery import register_signal, register_logger_signal
+
+logger = getLogger('mysite.celery_app')
+
+# Setup Sentry error logging.
+client = Client(settings.RAVEN_CONFIG['dsn'])
+# register a custom filter to filter out duplicate logs
+register_logger_signal(client)
+# The register_logger_signal function can also take an optional argument
+# `loglevel` which is the level used for the handler created.
+# Defaults to `logging.ERROR`
+register_logger_signal(client)
+# hook into the Celery error handler
+register_signal(client)
+# The register_signal function can also take an optional argument
+# `ignore_expected` which causes exception classes specified in Task.throws
+# to be ignored
+register_signal(client)
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
@@ -40,17 +61,12 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 #
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
-broker_url = settings.CACHES['default']['LOCATION']
+broker_url = caches['celery']._server
+logger.info('Celery starting using broker_url:', broker_url)
 
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    # CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
-    # CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
-    # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
-    # BROKER_URL = 'redis://localhost:6379/0',
-    # CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
-    # BROKER_URL = settings.CACHES['default']['LOCATION'],
     CELERY_RESULT_BACKEND=broker_url,
     BROKER_URL=broker_url,
 
@@ -68,13 +84,6 @@ app.conf.update(
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
             'schedule': crontab(minute=0, hour='17'),  # ~ noon
-        },
-
-        #
-        #
-        'notify_withdraws' : {
-            'task' : 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule' : crontab(minute=0, hour='17'), # ~ noon
         },
 
         #
@@ -127,7 +136,7 @@ app.conf.update(
 
         #
         ########################################################################
-        # generate the scheduled blocks for upcoming days
+        # generate the scheduled contest pools for upcoming days (based on Blocks)
         ########################################################################
         # nba
         'nba_create_scheduled_block_contest_pools': {
@@ -160,7 +169,8 @@ app.conf.update(
         ########################################################################
         #
         # DEPRECATED - we will now be running salaries by hand using stats.com projections.
-        #            - or you can run salaries the using the admin panel for doing so the old way if you have to.
+        #            - or you can run salaries the using the admin panel for doing so the old way
+        #               if you have to.
         #
         # 'nba_generate_salaries': {
         #     'task': 'salary.tasks.generate_salaries_for_sport',
@@ -180,9 +190,24 @@ app.conf.update(
         # nfl done on thursdays only
         # 'nfl_generate_salaries': {
         #     'task': 'salary.tasks.generate_salaries_for_sport',
-        #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+        #     # 2 PM (UTC) - which is ~ 9 AM EST
+        #     'schedule': crontab(minute=0, day_of_week='thu', hour='14'),
         #     'args': ('nfl',),
         # },
+
+        ########################################################################
+        # Fetch player stat projections from stats.com and generate salaries
+        ########################################################################
+        'nba_generate_salaries_from_statscom': {
+            'task': 'salary.tasks.generate_salaries_from_statscom_projections_nba',
+            'schedule': timedelta(minutes=30),
+        },
+
+        # 'nfl_generate_salaries_from_statscom': {
+        #     'task': 'salary.tasks.generate_salaries_from_statscom_projections_nfl',
+        #     'schedule': timedelta(minutes=30),
+        # },
+
 
         #
         # update injury information for the sports
@@ -264,7 +289,19 @@ app.conf.update(
             'task': 'swish.tasks.update_injury_feed',
             'schedule': timedelta(minutes=1),
             'args': ('nfl',),
-        }
+        },
+
+        'nba_swish_update_injury_feed': {
+            'task': 'swish.tasks.update_injury_feed',
+            'schedule': timedelta(minutes=1),
+            'args': ('nba',),
+        },
+
+        # Check for inactive users and send an email report to settings.INACTIVE_USERS_EMAILS
+        'inactive_users': {
+            'task': 'account.tasks.check_not_active_users',
+            'schedule': crontab(minute=0, hour='17'),  # ~ noon
+        },
     },
 
     CELERY_ENABLE_UTC=True,
@@ -448,7 +485,7 @@ class TaskHelper(object):
             #
             # return exception information here, including class name, and msg
             exception = {
-                'name': type(r).__name__,   # ie: 'Exception'
+                'name': type(r).__name__,  # ie: 'Exception'
                 'msg': str(r)
             }
 
@@ -474,6 +511,7 @@ class TaskHelper(object):
             'result': result,
         }
         return data
+
 
 #
 # BROKER_URL = 'amqp://guest:guest@localhost//'

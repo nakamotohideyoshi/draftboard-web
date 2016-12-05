@@ -1,0 +1,45 @@
+@import "../../variables.scss";
+
+//
+// BEM block for React Live Big Plays
+//
+
+$block: '.live-big-plays';
+
+
+#{$block} {
+  bottom: 0;
+  height: 130px;
+  left: 0;
+  padding: 22px 80px 22px 60px;
+  position: absolute;
+  width: 100%;
+  z-index: $zindex-live-big-plays;
+
+  .slick-prev, .slick-next {
+    color: #878a9f;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 60px;
+    font-weight: 100;
+    position: absolute;
+    text-align: center;
+    top: -6px;
+    transform: scaleX(0.5) translateY(9px);
+    opacity: 0.7;
+    width: 40px;
+  }
+
+  .slick-prev {
+    left: -50px;
+  }
+
+  .slick-next {
+    right: -50px;
+  }
+
+  .slick-disabled {
+    cursor: auto;
+    opacity: 0.1;
+  }
+}

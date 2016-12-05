@@ -1,6 +1,6 @@
 import React from 'react';
 import log from '../../../lib/logging';
-
+import forEach from 'lodash/forEach';
 
 /**
  * A form allowing the user to enter their personal details in order to have
@@ -13,6 +13,7 @@ const IdentityForm = React.createClass({
   propTypes: {
     verifyIdentity: React.PropTypes.func.isRequired,
     errors: React.PropTypes.object.isRequired,
+    formIsSending: React.PropTypes.bool.isRequired,
   },
 
 
@@ -35,11 +36,35 @@ const IdentityForm = React.createClass({
       birth_month: this.refs.birth_month.value,
       birth_year: this.refs.birth_year.value,
       postal_code: this.refs.postal_code.value,
+      ssn: this.refs.ssn.value,
     });
   },
 
 
-  renderErrors() {
+  renderErrors(errors) {
+    const errorList = [];
+
+    forEach(errors, (error, index) => {
+      errorList.push(<p key={index} className="form-field-message__description">{ error }</p>);
+    });
+
+    if (!errorList.length) {
+      return '';
+    }
+
+    return (
+      <div className="form-field-message form-field-message--error form-field-message--settings">
+        { errorList }
+      </div>
+    );
+  },
+
+
+  renderDateErrors(errors) {
+    if (errors.birth_day || errors.birth_month || errors.birth_year) {
+      return this.renderErrors(['Enter a valid date.']);
+    }
+
     return '';
   },
 
@@ -47,7 +72,12 @@ const IdentityForm = React.createClass({
   render() {
     return (
       <div className="cmp-identity-form">
-        <form ref="form" className="form">
+        <h3>Hate multi-accounting? So do we!</h3>
+        <p>
+          Providing the information below allows us to make sure no one has more than one account at
+          Draftboard.
+        </p>
+        <div ref="form" className="form">
           <fieldset className="form__fieldset">
 
             <div className="form-field">
@@ -60,7 +90,7 @@ const IdentityForm = React.createClass({
                 required
               />
 
-              {this.renderErrors(this.props.errors.first_name)}
+              {this.renderErrors(this.props.errors.first)}
             </div>
 
             <div className="form-field">
@@ -73,24 +103,13 @@ const IdentityForm = React.createClass({
                 required
               />
 
-              {this.renderErrors(this.props.errors.last_name)}
+              {this.renderErrors(this.props.errors.last)}
             </div>
 
             <div className="form-field birth-date">
-              <label className="form-field__label" htmlFor="birth_day">Birth Date (D/M/Y)</label>
+              <label className="form-field__label" htmlFor="birth_day">Birth Date (M/D/Y)</label>
               <input
-                placeholder="D"
-                ref="birth_day"
-                className="form-field__text-input"
-                type="number"
-                name="birth_day"
-                min="1"
-                max="31"
-                required
-              />
-              /
-              <input
-                placeholder="M"
+                placeholder="MM"
                 ref="birth_month"
                 className="form-field__text-input"
                 type="number"
@@ -101,9 +120,20 @@ const IdentityForm = React.createClass({
               />
               /
               <input
-                placeholder="Y"
-                ref="birth_year"
+                placeholder="DD"
+                ref="birth_day"
                 className="form-field__text-input"
+                type="number"
+                name="birth_day"
+                min="1"
+                max="31"
+                required
+              />
+              /
+              <input
+                placeholder="YYYY"
+                ref="birth_year"
+                className="form-field__text-input birth-year"
                 type="number"
                 name="birth_year"
                 max="9999"
@@ -112,7 +142,7 @@ const IdentityForm = React.createClass({
                 required
               />
 
-              {this.renderErrors(this.props.errors.last_name)}
+              {this.renderDateErrors(this.props.errors)}
             </div>
 
             <div className="form-field">
@@ -128,14 +158,29 @@ const IdentityForm = React.createClass({
               {this.renderErrors(this.props.errors.postal_code)}
             </div>
 
-            <button
-              ref="submit-button"
-              className="button button--flat-alt1"
-              onClick={this.onSubmit}
-            >Submit</button>
+            <div className="form-field">
+              <label className="form-field__label" htmlFor="ssn">Social Security Number</label>
+              <input
+                ref="ssn"
+                className="form-field__text-input"
+                type="text"
+                name="ssn"
+                required
+              />
 
+              {this.renderErrors(this.props.errors.ssn)}
+            </div>
+
+            <div className="form-controls">
+              <button
+                disabled={this.props.formIsSending}
+                ref="submit-button"
+                className="button button--flat-alt1"
+                onClick={this.onSubmit}
+              >Submit</button>
+            </div>
           </fieldset>
-        </form>
+        </div>
       </div>
     );
   },

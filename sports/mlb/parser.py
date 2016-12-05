@@ -1,25 +1,21 @@
 #
 # sports/mlb/parser.py
 
-import os
-import urllib
 from redis import Redis
 from util.dicts import (
     Reducer,
     Shrinker,
+    Manager,
 )
 from util.timesince import timeit
 from collections import (
     OrderedDict,
-    Counter,
 )
 from django.db.transaction import atomic
 from django.core.cache import cache
 from sports.game_status import GameStatus
-from sports.classes import SiteSportManager
 from sports.trigger import CacheList
-import sports.models
-import sports.mlb.models
+from sports.models import Position
 from sports.mlb.models import (
     Team,
     Game,
@@ -31,7 +27,8 @@ from sports.mlb.models import (
     Season,
     ProbablePitcher,
 )
-import sports.mlb.models # mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
+# mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
+import sports.mlb.models
 from sports.sport.base_parser import (
     AbstractDataDenParser,
     AbstractDataDenParseable,
@@ -43,43 +40,38 @@ from sports.sport.base_parser import (
     DataDenTeamBoxscores,
     DataDenPbpDescription,
     DataDenInjury,
-    SridFinder,
     DataDenSeasonSchedule,
 )
 import json
 from ast import literal_eval
-from django.contrib.contenttypes.models import ContentType
 from dataden.classes import DataDen
-from dataden.util.hsh import Hashable
 import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
 from draftgroup.classes import (
-    PlayerUpdateManager,
     GameUpdateManager,
 )
 import scoring.classes
-from util.dicts import (
-    Reducer,
-    Shrinker,
-    Manager,
-)
 
 
 def get_redis_instance():
-    redis_url = urllib.parse.urlparse(settings.REDISCLOUD_URL)
-    r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
-    return r
+    # return cache
+    return Redis(
+        host=settings.REDIS_URL.hostname,
+        port=settings.REDIS_URL.port,
+        password=settings.REDIS_URL.password,
+        db=0)
+
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
-    gameboxscore_model  = GameBoxscore
+    gameboxscore_model = GameBoxscore
 
     def __init__(self):
         super().__init__()
 
     def parse(self, obj, target=None):
-        super().parse( obj, target )
+        super().parse(obj, target)
 
         # db.home.findOne({'parent_api__id':'summary', 'game__id':'31781430-ed00-49c7-827f-e03a9a1e80d4'})
         # {
@@ -293,38 +285,39 @@ class HomeAwaySummary(DataDenTeamBoxscores):
 
         srid_team = self.o.get('id', None)
 
-        probable_pitcher    = self.o.get('probable_pitcher', None)
-        starting_pitcher    = self.o.get('starting_pitcher', None)
-        scoring_json        = json.loads( json.dumps( self.o.get('scoring__list', {}) ) )
-        runs                = self.o.get('runs', 0)
-        hits                = self.o.get('hits', 0)
-        errors              = self.o.get('errors', 0)
+        probable_pitcher = self.o.get('probable_pitcher', None)
+        starting_pitcher = self.o.get('starting_pitcher', None)
+        scoring_json = json.loads(json.dumps(self.o.get('scoring__list', {})))
+        runs = self.o.get('runs', 0)
+        hits = self.o.get('hits', 0)
+        errors = self.o.get('errors', 0)
 
         if self.boxscore.srid_home == srid_team:
             # home
-            #print( 'home_score / runs:', str(runs) )
-            self.boxscore.home_score        = runs
-            self.boxscore.srid_home_pp      = probable_pitcher
-            self.boxscore.srid_home_sp      = starting_pitcher
-            self.boxscore.home_hits         = hits
-            self.boxscore.home_errors       = errors
+            # print( 'home_score / runs:', str(runs) )
+            self.boxscore.home_score = runs
+            self.boxscore.srid_home_pp = probable_pitcher
+            self.boxscore.srid_home_sp = starting_pitcher
+            self.boxscore.home_hits = hits
+            self.boxscore.home_errors = errors
 
         elif self.boxscore.srid_away == srid_team:
             # away
-            #print( 'away_score / runs:', str(runs) )
-            self.boxscore.away_score        = runs
-            self.boxscore.srid_away_pp      = probable_pitcher
-            self.boxscore.srid_away_sp      = starting_pitcher
-            self.boxscore.away_hits         = hits
-            self.boxscore.away_errors       = errors
+            # print( 'away_score / runs:', str(runs) )
+            self.boxscore.away_score = runs
+            self.boxscore.srid_away_pp = probable_pitcher
+            self.boxscore.srid_away_sp = starting_pitcher
+            self.boxscore.away_hits = hits
+            self.boxscore.away_errors = errors
 
         else:
-            #print( str(self.o) )
-            #print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
+            # print( str(self.o) )
+            # print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
             return
 
-        #print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
+        # print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
         self.boxscore.save()
+
 
 class GameBoxscoreReducer(Reducer):
     """ pop off fields named in the 'remove_fields' property """
@@ -333,13 +326,15 @@ class GameBoxscoreReducer(Reducer):
         'parent_api__id',
     ]
 
+
 class GameBoxscoreShrinker(Shrinker):
     """ in underlying data, rename key to value for all key-value-pairs in 'fields' """
     fields = {
-        'id' : 'srid_game',
+        'id': 'srid_game',
         'dd_updated__id': 'ts',
         'game__id': 'srid_game',
     }
+
 
 class GameBoxscoreManager(Manager):
     """
@@ -348,20 +343,21 @@ class GameBoxscoreManager(Manager):
     reducer_class = GameBoxscoreReducer
     shrinker_class = GameBoxscoreShrinker
 
+
 class GameBoxscores(DataDenGameBoxscores):
 
-    gameboxscore_model  = GameBoxscore
-    team_model          = Team
+    gameboxscore_model = GameBoxscore
+    team_model = Team
 
     # setting manager_class will cause it to
     # reduce and shrink the data before getting sent to client
-    manager_class       = GameBoxscoreManager
+    manager_class = GameBoxscoreManager
 
     # the Game model
-    game_model          = Game
+    game_model = Game
 
     # an instance of GameStatus helps us determine the "primary" status
-    game_status         = GameStatus(GameStatus.mlb)
+    game_status = GameStatus(GameStatus.mlb)
 
     # for pusher to know the channel & event
     channel = push.classes.PUSHER_BOXSCORES   # 'boxscores', its not sport specific
@@ -378,7 +374,7 @@ class GameBoxscores(DataDenGameBoxscores):
         push.classes.DataDenPush(self.channel, self.event).send(data)
 
     def parse(self, obj, target=None):
-        super().parse( obj, target )
+        super().parse(obj, target)
 
         if self.boxscore is None:
             return
@@ -422,7 +418,7 @@ class GameBoxscores(DataDenGameBoxscores):
         #     }
         # }
 
-        #### FOR AN ACTIVE GAME!!! ...
+        # FOR AN ACTIVE GAME!!! ...
         # db.game.findOne({'parent_api__id':'boxscores', 'status':'inprogress'})
         # {
         #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDMxNzgxNDMwLWVkMDAtNDljNy04MjdmLWUwM2E5YTFlODBkNA==",
@@ -468,9 +464,9 @@ class GameBoxscores(DataDenGameBoxscores):
         #     "away" : "a7723160-10b7-4277-a309-d8dd95a8ae65"
         # }
 
-        self.boxscore.attendance     = self.o.get('attendance', 0)
-        self.boxscore.day_night      = self.o.get('day_night', '')
-        self.boxscore.game_number    = self.o.get('game_number', '')
+        self.boxscore.attendance = self.o.get('attendance', 0)
+        self.boxscore.day_night = self.o.get('day_night', '')
+        self.boxscore.game_number = self.o.get('game_number', '')
 
         #     "pitching__list" : {
         #         "win__list" : {
@@ -484,21 +480,21 @@ class GameBoxscores(DataDenGameBoxscores):
         #         }
         #     }
 
-        pitching_list   = self.o.get('pitching__list', {})
-        win_list        = pitching_list.get('win__list', {})
-        loss_list       = pitching_list.get('loss__list', {})
-        #hold_list       = pitching_list.get('hold__list', {}) # can return an array, (multiple "holds")
-        #save_list       = pitching_list.get('save__list', {})
-        #blown_save_list = pitching_list.get('blown_save__list', {})
+        pitching_list = self.o.get('pitching__list', {})
+        win_list = pitching_list.get('win__list', {})
+        loss_list = pitching_list.get('loss__list', {})
+        # hold_list       = pitching_list.get('hold__list', {}) # can return an array, (multiple "holds")
+        # save_list       = pitching_list.get('save__list', {})
+        # blown_save_list = pitching_list.get('blown_save__list', {})
 
         # when its final
-        self.boxscore.srid_win       = win_list.get('player', None)
-        self.boxscore.srid_loss      = loss_list.get('player', None)
-        #boxscore.srid_hold         = hold_list.get('player', None)
-        #boxscore.srid_save         = save_list.get('player', None)
-        #boxscore.srid_blown_save = blown_save_list.get('player', None)
+        self.boxscore.srid_win = win_list.get('player', None)
+        self.boxscore.srid_loss = loss_list.get('player', None)
+        # boxscore.srid_hold         = hold_list.get('player', None)
+        # boxscore.srid_save         = save_list.get('player', None)
+        # boxscore.srid_blown_save = blown_save_list.get('player', None)
 
-        outcome_list    = self.o.get('outcome__list', None)
+        outcome_list = self.o.get('outcome__list', None)
         if outcome_list:
             #         "current_inning" : 1,
             #         "current_inning_half" : "T",
@@ -511,19 +507,20 @@ class GameBoxscores(DataDenGameBoxscores):
             #             "outs" : 1,
             #             "strikes" : 2
             #         },
-            self.boxscore.inning         = outcome_list.get('current_inning', '')
-            self.boxscore.inning_half    = outcome_list.get('current_inning_half', '')
+            self.boxscore.inning = outcome_list.get('current_inning', '')
+            self.boxscore.inning_half = outcome_list.get('current_inning_half', '')
 
-        final_list      = self.o.get('final__list', None)
+        final_list = self.o.get('final__list', None)
         if final_list:
             #     "final__list" : {  ##### when the game is OVER it holds this
             #         "inning" : 9,
             #         "inning_half" : "T"
             #     },
-            self.boxscore.inning         = final_list.get('inning', '')
-            self.boxscore.inning_half    = final_list.get('inning_half', '')
+            self.boxscore.inning = final_list.get('inning', '')
+            self.boxscore.inning_half = final_list.get('inning_half', '')
 
-        self.boxscore.save() # commit changes
+        self.boxscore.save()  # commit changes
+
 
 class TeamHierarchy(DataDenTeamHierarchy):
 
@@ -533,11 +530,12 @@ class TeamHierarchy(DataDenTeamHierarchy):
         super().__init__()
 
     def parse(self, obj, target=None):
-        super().parse( obj, target )
+        super().parse(obj, target)
 
         # in mlb, we set the 'abbr' to the alias
         self.team.alias = self.o.get('abbr', None)
         self.team.save()
+
 
 class SeasonSchedule(DataDenSeasonSchedule):
     """
@@ -553,16 +551,17 @@ class SeasonSchedule(DataDenSeasonSchedule):
         super().parse(obj, target)
 
         if self.season is None:
-            #print('mlb Season was None - not saving')
+            # print('mlb Season was None - not saving')
             return
 
         self.season.save()
 
+
 class GameSchedule(DataDenGameSchedule):
 
-    team_model      = Team
-    game_model      = Game
-    season_model    = Season
+    team_model = Team
+    game_model = Game
+    season_model = Season
 
     def __init__(self):
         super().__init__()
@@ -575,7 +574,7 @@ class GameSchedule(DataDenGameSchedule):
         # we only know the season_type from chopping up the parent_api__id !
         season_type = str(o.get('parent_api__id')).split('_')[1]
         # although its unique on srid, year and type, mlb just has srid and type in this obj
-        #print('srid', srid, 'season_type', season_type)
+        # print('srid', srid, 'season_type', season_type)
         self.season = self.season_model.objects.get(srid=srid, season_type=season_type)
 
         super().parse(obj, target)
@@ -607,26 +606,27 @@ class GameSchedule(DataDenGameSchedule):
         #     }
         # }
 
-        self.game.attendance  = self.o.get('attendance',   0)
-        self.game.day_night   = self.o.get('day_night',    None)
+        self.game.attendance = self.o.get('attendance',   0)
+        self.game.day_night = self.o.get('day_night',    None)
         self.game.game_number = self.o.get('game_number',  None)
-        self.game.srid_venue  = self.o.get('venue', '')
+        self.game.srid_venue = self.o.get('venue', '')
 
         self.game.save()
+
 
 class PlayerTeamProfile(DataDenPlayerRosters):
 
     POSITION_DH = 'DH'
     POSITION_1B = '1B'
 
-    team_model      = Team
-    player_model    = Player
+    team_model = Team
+    player_model = Player
 
     def __init__(self):
         super().__init__()
 
     def parse(self, obj, target=None):
-        super().parse( obj, target )
+        super().parse(obj, target)
 
         # db.player.findOne({'parent_api__id':'team_profile'})
         # {
@@ -662,9 +662,10 @@ class PlayerTeamProfile(DataDenPlayerRosters):
         if position.name == self.POSITION_DH:
             # were going to set him to a 1B instead
             try:
-                #print(site_sport, self.POSITION_1B)
-                position_1b = sports.models.Position.objects.get(site_sport=site_sport, name=self.POSITION_1B)
-            except Position.DoesNotExist:
+                # print(site_sport, self.POSITION_1B)
+                position_1b = sports.models.Position.objects.get(
+                    site_sport=site_sport, name=self.POSITION_1B)
+            except self.PositionDoesNotExist:
                 position_1b = Position()
                 position_1b.site_sport = site_sport
                 position_1b.name = self.POSITION_1B
@@ -674,21 +675,22 @@ class PlayerTeamProfile(DataDenPlayerRosters):
             self.player.position = position_1b
 
         #
-        self.player.preferred_name  = self.o.get('preferred_name', None)
+        self.player.preferred_name = self.o.get('preferred_name', None)
 
-        self.player.birthcity       = self.o.get('birthcity', '')
-        self.player.birthcountry    = self.o.get('birthcountry', '')
+        self.player.birthcity = self.o.get('birthcity', '')
+        self.player.birthcountry = self.o.get('birthcountry', '')
 
-        self.player.pro_debut       = self.o.get('pro_debut',    '')
-        self.player.throw_hand      = self.o.get('throw_hand',   '')
-        self.player.bat_hand        = self.o.get('bat_hand',     '')
+        self.player.pro_debut = self.o.get('pro_debut',    '')
+        self.player.throw_hand = self.o.get('throw_hand',   '')
+        self.player.bat_hand = self.o.get('bat_hand',     '')
 
         self.player.save()
 
+
 class PlayerStats(DataDenPlayerStats):
 
-    game_model          = Game
-    player_model        = Player
+    game_model = Game
+    player_model = Player
 
     cache_list_unique_name = 'cache_list_player_stats'
 
@@ -697,7 +699,7 @@ class PlayerStats(DataDenPlayerStats):
     # just to make the constructor happy and not throw exceptions.
     # But we need to (and we will) dynamically set the right
     # playerstats model based on whether its a pitcher or hitting in parse() method
-    player_stats_model  = sports.mlb.models.PlayerStatsHitter
+    player_stats_model = sports.mlb.models.PlayerStatsHitter
 
     def __init__(self):
         super().__init__()
@@ -820,80 +822,79 @@ class PlayerStats(DataDenPlayerStats):
         #     }
         # }
 
-
         # "pitching__list" : {
-		# 	"bf" : 3,
-		# 	"era" : 0,
-		# 	"error" : 0,
-		# 	"gofo" : 0,
-		# 	"ip_1" : 3,
-		# 	"ip_2" : 1,
-		# 	"k9" : 18,
-		# 	"kbb" : 0,
-		# 	"lob" : 0,
-		# 	"oba" : 0,
-		# 	"pitch_count" : 15,
-		# 	"whip" : 0,
-		# 	"onbase__list" : {
-		# 		"bb" : 0,
-		# 		"d" : 0,
-		# 		"fc" : 0,
-		# 		"h" : 0,
-		# 		"hbp" : 0,
-		# 		"hr" : 0,
-		# 		"ibb" : 0,
-		# 		"roe" : 0,
-		# 		"s" : 0,
-		# 		"t" : 0,
-		# 		"tb" : 0
-		# 	},
-		# 	"runs__list" : {
-		# 		"earned" : 0,
-		# 		"total" : 0,
-		# 		"unearned" : 0
-		# 	},
-		# 	"outcome__list" : {
-		# 		"ball" : 5,
-		# 		"dirtball" : 0,
-		# 		"foul" : 4,
-		# 		"iball" : 0,
-		# 		"klook" : 4,
-		# 		"kswing" : 1,
-		# 		"ktotal" : 5
-		# 	},
-		# 	"outs__list" : {
-		# 		"fidp" : 0,
-		# 		"fo" : 1,
-		# 		"gidp" : 0,
-		# 		"go" : 0,
-		# 		"klook" : 2,
-		# 		"kswing" : 0,
-		# 		"ktotal" : 2,
-		# 		"lidp" : 0,
-		# 		"lo" : 0,
-		# 		"po" : 0,
-		# 		"sacfly" : 0,
-		# 		"sachit" : 0
-		# 	},
-		# 	"steal__list" : {
-		# 		"caught" : 0,
-		# 		"stolen" : 0
-		# 	},
-		# 	"games__list" : {
-		# 		"blown_save" : 0,
-		# 		"complete" : 0,
-		# 		"finish" : 0,
-		# 		"hold" : 0,
-		# 		"loss" : 0,
-		# 		"play" : 1,
-		# 		"qstart" : 0,
-		# 		"save" : 0,
-		# 		"shutout" : 0,
-		# 		"start" : 0,
-		# 		"svo" : 0,
-		# 		"win" : 0
-		# 	}
-		# },
+                # 	"bf" : 3,
+                # 	"era" : 0,
+                # 	"error" : 0,
+                # 	"gofo" : 0,
+                # 	"ip_1" : 3,
+                # 	"ip_2" : 1,
+                # 	"k9" : 18,
+                # 	"kbb" : 0,
+                # 	"lob" : 0,
+                # 	"oba" : 0,
+                # 	"pitch_count" : 15,
+                # 	"whip" : 0,
+                # 	"onbase__list" : {
+                # 		"bb" : 0,
+                # 		"d" : 0,
+                # 		"fc" : 0,
+                # 		"h" : 0,
+                # 		"hbp" : 0,
+                # 		"hr" : 0,
+                # 		"ibb" : 0,
+                # 		"roe" : 0,
+                # 		"s" : 0,
+                # 		"t" : 0,
+                # 		"tb" : 0
+                # 	},
+                # 	"runs__list" : {
+                # 		"earned" : 0,
+                # 		"total" : 0,
+                # 		"unearned" : 0
+                # 	},
+                # 	"outcome__list" : {
+                # 		"ball" : 5,
+                # 		"dirtball" : 0,
+                # 		"foul" : 4,
+                # 		"iball" : 0,
+                # 		"klook" : 4,
+                # 		"kswing" : 1,
+                # 		"ktotal" : 5
+                # 	},
+                # 	"outs__list" : {
+                # 		"fidp" : 0,
+                # 		"fo" : 1,
+                # 		"gidp" : 0,
+                # 		"go" : 0,
+                # 		"klook" : 2,
+                # 		"kswing" : 0,
+                # 		"ktotal" : 2,
+                # 		"lidp" : 0,
+                # 		"lo" : 0,
+                # 		"po" : 0,
+                # 		"sacfly" : 0,
+                # 		"sachit" : 0
+                # 	},
+                # 	"steal__list" : {
+                # 		"caught" : 0,
+                # 		"stolen" : 0
+                # 	},
+                # 	"games__list" : {
+                # 		"blown_save" : 0,
+                # 		"complete" : 0,
+                # 		"finish" : 0,
+                # 		"hold" : 0,
+                # 		"loss" : 0,
+                # 		"play" : 1,
+                # 		"qstart" : 0,
+                # 		"save" : 0,
+                # 		"shutout" : 0,
+                # 		"start" : 0,
+                # 		"svo" : 0,
+                # 		"win" : 0
+                # 	}
+                # },
 
         # db.player.distinct('primary_position')
         # >>> [ "1B", "LF", "3B", "CF", "RF", "C", "2B", "SP", "RP", "SS", "DH" ]
@@ -909,7 +910,7 @@ class PlayerStats(DataDenPlayerStats):
         if the_stats is None:
             return
 
-        fielding = o.get('fielding__list', {}) # info about whether they played/started the game
+        fielding = o.get('fielding__list', {})  # info about whether they played/started the game
         game_info = fielding.get('games__list', {})
 
         #
@@ -917,84 +918,90 @@ class PlayerStats(DataDenPlayerStats):
         # decide whether this is a hitter or pitcher here, based on 'position'
         arch_position = o.get('position')  # ['IF','OF','C','P','DH']
         if arch_position == 'P':
-            self.player_stats_model  = sports.mlb.models.PlayerStatsPitcher
-            super().parse( obj, target )
+            self.player_stats_model = sports.mlb.models.PlayerStatsPitcher
+            super().parse(obj, target)
             # after calling super().parse() check if self.ps is None, return if it is
             if self.ps is None:
                 return
 
             # collect pitching stats
-            statistics = o.get('statistics__list', {}) # default will useful if it doenst exist
+            statistics = o.get('statistics__list', {})  # default will useful if it doenst exist
 
             pitching = statistics.get('pitching__list', {})
 
-            games   = pitching.get('games__list', {})
-            onbase  = pitching.get('onbase__list', {})
-            runs    = pitching.get('runs__list', {})
-            steals  = pitching.get('steal__list', {})
-            outs    = pitching.get('outs__list', {})
+            games = pitching.get('games__list', {})
+            onbase = pitching.get('onbase__list', {})
+            runs = pitching.get('runs__list', {})
+            steals = pitching.get('steal__list', {})
+            outs = pitching.get('outs__list', {})
 
-            self.ps.ip_1    = pitching.get('ip_1', 0.0) # outs, basically. for 1 inning pitched == 3 (4 possible?)
-            self.ps.ip_2    = pitching.get('ip_2', 0.0) # 1 == one inning pitched
-            self.ps.win     = bool( games.get('win', 0) )
-            self.ps.loss    = bool( games.get('loss', 0) )
-            self.ps.qstart  = bool( games.get('qstart', 0) )
-            self.ps.ktotal  = outs.get('ktotal', 0)
-            self.ps.er      = runs.get('earned', 0)  # earned runs allowed
+            # outs, basically. for 1 inning pitched == 3 (4 possible?)
+            self.ps.ip_1 = pitching.get('ip_1', 0.0)
+            self.ps.ip_2 = pitching.get('ip_2', 0.0)  # 1 == one inning pitched
+            self.ps.win = bool(games.get('win', 0))
+            self.ps.loss = bool(games.get('loss', 0))
+            self.ps.qstart = bool(games.get('qstart', 0))
+            self.ps.ktotal = outs.get('ktotal', 0)
+            self.ps.er = runs.get('earned', 0)  # earned runs allowed
             self.ps.r_total = runs.get('total', 0)   # total runs allowed (earned and unearned)
-            self.ps.h       = onbase.get('h', 0)     # hits against
-            self.ps.bb      = onbase.get('bb', 0)    # walks against
-            self.ps.hbp     = onbase.get('hbp', 0)   # hit batsmen
-            self.ps.cg      = bool( games.get('complete', 0) ) # complete game
-            self.ps.cgso    = bool( games.get('shutout', 0) ) and self.ps.cg # complete game shut out
-            self.ps.nono    = bool( self.ps.h ) and self.ps.cg # no hitter if hits == 0, and complete game
+            self.ps.h = onbase.get('h', 0)     # hits against
+            self.ps.bb = onbase.get('bb', 0)    # walks against
+            self.ps.hbp = onbase.get('hbp', 0)   # hit batsmen
+            self.ps.cg = bool(games.get('complete', 0))  # complete game
+            self.ps.cgso = bool(games.get('shutout', 0)) and self.ps.cg  # complete game shut out
+            # no hitter if hits == 0, and complete game
+            self.ps.nono = bool(self.ps.h) and self.ps.cg
 
         else:
             # its a hitter
-            self.player_stats_model  = sports.mlb.models.PlayerStatsHitter
-            super().parse( obj, target )
+            self.player_stats_model = sports.mlb.models.PlayerStatsHitter
+            super().parse(obj, target)
             if self.ps is None:
-                return # if super().parse() doesnt create this, get out of here
+                return  # if super().parse() doesnt create this, get out of here
 
             statistics = o.get('statistics__list', {})
 
-            hitting = statistics.get('hitting__list', {}) # default will useful if it doenst exist
+            hitting = statistics.get('hitting__list', {})  # default will useful if it doenst exist
 
-            onbase  = hitting.get('onbase__list', {})
-            runs    = hitting.get('runs__list', {})
-            steals  = hitting.get('steal__list', {})
-            outs    = hitting.get('outs__list', {})
+            onbase = hitting.get('onbase__list', {})
+            runs = hitting.get('runs__list', {})
+            steals = hitting.get('steal__list', {})
+            outs = hitting.get('outs__list', {})
 
-            self.ps.bb  = onbase.get('bb', 0)
-            self.ps.s   = onbase.get('s', 0)
-            self.ps.d   = onbase.get('d', 0)
-            self.ps.t   = onbase.get('t', 0)
-            self.ps.hr  = onbase.get('hr', 0)
+            self.ps.bb = onbase.get('bb', 0)
+            self.ps.s = onbase.get('s', 0)
+            self.ps.d = onbase.get('d', 0)
+            self.ps.t = onbase.get('t', 0)
+            self.ps.hr = onbase.get('hr', 0)
             self.ps.rbi = hitting.get('rbi', 0)
-            self.ps.r   = runs.get('total', 0)
+            self.ps.r = runs.get('total', 0)
             self.ps.hbp = onbase.get('hbp', 0)
-            self.ps.sb  = steals.get('stolen', 0)
-            self.ps.cs  = steals.get('caught', 0)
+            self.ps.sb = steals.get('stolen', 0)
+            self.ps.cs = steals.get('caught', 0)
 
-            self.ps.ktotal  = outs.get('ktotal', 0)
+            self.ps.ktotal = outs.get('ktotal', 0)
 
-            self.ps.ab  = hitting.get('ab', 0)
-            self.ps.ap  = hitting.get('ap', 0)
+            self.ps.ab = hitting.get('ab', 0)
+            self.ps.ap = hitting.get('ap', 0)
             self.ps.lob = hitting.get('lob', 0)
             self.ps.xbh = hitting.get('xhb', 0)
 
         #
         # hitters and pitchers both get these pieces of info
-        self.ps.played  = bool( game_info.get('play', 0) )
-        self.ps.started = bool( game_info.get('start', 0) )
+        self.ps.played = bool(game_info.get('play', 0))
+        self.ps.started = bool(game_info.get('start', 0))
 
-        self.ps.save() # commit changes
+        self.ps.save()  # commit changes
+
 
 class AbstractManager(object):
 
     # exceptions for validity checking
-    class InvalidReducer(Exception): pass
-    class InvalidShrinker(Exception): pass
+    class InvalidReducer(Exception):
+        pass
+
+    class InvalidShrinker(Exception):
+        pass
 
     # must be set by child classes
     reducer_class = None
@@ -1022,12 +1029,13 @@ class AbstractManager(object):
 
     def add_data(self, base_data, additional=None):
         if additional is not None:
-            for k,v in additional.items():
+            for k, v in additional.items():
                 # add this key:value of additional data,
                 # but only if the field doesnt exist already in orig
                 if base_data.get(k, None) is None:
                     base_data[k] = v
         return base_data
+
 
 class AbstractStatReducer(object):
     """
@@ -1036,7 +1044,8 @@ class AbstractStatReducer(object):
     to cut down on packet size.
     """
 
-    class InvalidDataType(Exception): pass
+    class InvalidDataType(Exception):
+        pass
 
     # inheriting classes should set this to a list of string field names to remove
     remove_fields = []
@@ -1048,8 +1057,8 @@ class AbstractStatReducer(object):
     def __init__(self, data):
         if not isinstance(data, dict):
             raise self.InvalidDataType('"data" must be of type "dict"')
-        self.data = data # save the original data
-        self.reduced = self.data.copy() # clone the data coming in
+        self.data = data  # save the original data
+        self.reduced = self.data.copy()  # clone the data coming in
 
     def str2bool(self, val):
         if not isinstance(val, str):
@@ -1060,14 +1069,14 @@ class AbstractStatReducer(object):
         elif val == self.str_true:
             return True
         else:
-            return False # default !?
+            return False  # default !?
 
     def get_internal_data(self):
         return self.reduced
 
     def pre_reduce(self):
         """ you should override this in child class if you want to perform customizations """
-        pass # by default does nothing, side effects nothing
+        pass  # by default does nothing, side effects nothing
 
     def reduce(self):
         self.pre_reduce()
@@ -1080,6 +1089,7 @@ class AbstractStatReducer(object):
             except:
                 pass
         return self.reduced
+
 
 class AbstractShrinker(object):
 
@@ -1096,14 +1106,15 @@ class AbstractShrinker(object):
             try:
                 val = self.shrinked.pop(old_field)
             except KeyError:
-                #print('old_field popped: %s' % str(old_field))
-                continue # old_field didnt exist. dont hold it against them
-            #print('field: %s, val: %s' % (str(old_field), str(val)))
+                # print('old_field popped: %s' % str(old_field))
+                continue  # old_field didnt exist. dont hold it against them
+            # print('field: %s, val: %s' % (str(old_field), str(val)))
             if val is None:
-                continue # dont add a random default value if the field doesnt exist
+                continue  # dont add a random default value if the field doesnt exist
             self.shrinked[new_field] = val
         #
         return self.shrinked
+
 
 class AtBatReducer(Reducer):
 
@@ -1127,20 +1138,23 @@ class AtBatReducer(Reducer):
         'hit_type',
     ]
 
+
 class AtBatShrinker(Shrinker):
 
     fields = {
-        'at_bat__id' : 'srid',
-        'dd_updated__id' : 'ts',
-        'hitter_id' : 'srid_hitter',
-        'outcome_id' : 'oid',
-        'description' : 'oid_description',
+        'at_bat__id': 'srid',
+        'dd_updated__id': 'ts',
+        'hitter_id': 'srid_hitter',
+        'outcome_id': 'oid',
+        'description': 'oid_description',
     }
+
 
 class AtBatManager(AbstractManager):
 
     reducer_class = AtBatReducer
     shrinker_class = AtBatShrinker
+
 
 class ZonePitchReducer(AbstractStatReducer):
 
@@ -1154,19 +1168,21 @@ class ZonePitchReducer(AbstractStatReducer):
         'dd_updated__id',
         'hitter_hand',
         'pitcher_hand',
-        #'pitch_count',   # we add our own thing -- this is overall pitch count anyways
+        # 'pitch_count',   # we add our own thing -- this is overall pitch count anyways
     ]
+
 
 class ZonePitchShrinker(Shrinker):
     """ reduce() then shrink the fields of a ZonePitch """
 
     fields = {
-        'pitch_count'           : 'tpc',
-        'at_bat_pitch_count'    : 'pc',
-        'pitch_speed'           : 'mph',
-        'pitch_type'            : 't',
-        'pitch_zone'            : 'z',
+        'pitch_count': 'tpc',
+        'at_bat_pitch_count': 'pc',
+        'pitch_speed': 'mph',
+        'pitch_type': 't',
+        'pitch_zone': 'z',
     }
+
 
 class ZonePitchSorter(object):
     """
@@ -1180,7 +1196,7 @@ class ZonePitchSorter(object):
     def __init__(self, zone_pitches, at_bat):
         self.zone_pitches = zone_pitches
         self.at_bat = at_bat
-        #self.pitchs = self.at_bat.get('pitchs', None)
+        # self.pitchs = self.at_bat.get('pitchs', None)
         self.srid_pitchs = None
         self.pitchs = self.at_bat.get('pitchs', None)
         if self.pitchs is None:
@@ -1188,28 +1204,29 @@ class ZonePitchSorter(object):
             found_pitch_srid = self.at_bat.get('pitch')
             if found_pitch_srid is None:
                 err_msg = 'ZonePitchSorter didnt expect found_pitch_srid (a single one in the at, not in a list) to be None!'
-                #print(err_msg)
+                # print(err_msg)
                 raise Exception(err_msg)
-            self.srid_pitchs = [ found_pitch_srid ]
+            self.srid_pitchs = [found_pitch_srid]
         else:
             # pitchs was not none, and we can get the srids
-            self.srid_pitchs = [ v.get('pitch') for v in self.pitchs ]
+            self.srid_pitchs = [v.get('pitch') for v in self.pitchs]
         # self.srid_pitchs shouldnt be None here now:
         if self.srid_pitchs is None:
             err_msg = 'ZonePitchSorter self.srid_pitchs was None at end of __init__  (thats bad)'
-            #print(err_msg)
+            # print(err_msg)
             raise Exception(err_msg)
 
     def sort(self):
         """ reduce, sort, and shrink the zone_pitches and return a list """
         pitch_order_map = {}
-        #for i, pitch_dict in enumerate(self.pitchs):
+        # for i, pitch_dict in enumerate(self.pitchs):
         for i, pitch_srid in enumerate(self.srid_pitchs):
             # pitch_srid = pitch_dict.get('pitch')
             pitch_order_map[pitch_srid] = i + 1   # map of srid -> atbat pitch index
-        #print('pitch_order_map:', str(pitch_order_map))
+        # print('pitch_order_map:', str(pitch_order_map))
         # we will remove pitch__ids we've used from this.
-        # if there are pitch srids remaining at the end, those are ones we missed, and we should make note!
+        # if there are pitch srids remaining at the end, those are ones we missed,
+        # and we should make note!
         unused_pitches = list(pitch_order_map.keys())
         # now using the pitch_order_map - adding the pitches in order
         # will have hte effect of taking the most recent zone pitch
@@ -1217,11 +1234,11 @@ class ZonePitchSorter(object):
         indexed_pitch_map = {}
         for zone_pitch in self.zone_pitches:
             try:
-                #print('    zone_pitch:', str(zone_pitch))
+                # print('    zone_pitch:', str(zone_pitch))
                 retrieve_zp_id = zone_pitch.get('pitch__id', None)
                 if retrieve_zp_id is None:
-                    #print('        it didnt have one')
-                    continue # not having a pitch__id could mean it was simply a pickoff attempt
+                    # print('        it didnt have one')
+                    continue  # not having a pitch__id could mean it was simply a pickoff attempt
                 at_bat_idx = pitch_order_map[retrieve_zp_id]
 
                 # remove the references to pitches srids we used
@@ -1229,24 +1246,26 @@ class ZonePitchSorter(object):
                     try:
                         unused_pitches.remove(retrieve_zp_id)
                     except ValueError:
-                        break # all copies of that srid are gone
+                        break  # all copies of that srid are gone
 
             except KeyError:
-                #print("known Exception KeyError! on at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')]")
-                #raise Exception('')
-                #print('at_bat:', str(self.at_bat))
-                #print('pitchs:', str(self.pitchs))
-                #print('zone_pitches:', str(self.zone_pitches))
+                # print("known Exception KeyError! on at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')]")
+                # raise Exception('')
+                # print('at_bat:', str(self.at_bat))
+                # print('pitchs:', str(self.pitchs))
+                # print('zone_pitches:', str(self.zone_pitches))
                 pass
 
-            zone_pitch[self.at_bat_pitch_count] = at_bat_idx     # setting at_bat_idx here doesnt get pushed back into cache!
+            # setting at_bat_idx here doesnt get pushed back into cache!
+            zone_pitch[self.at_bat_pitch_count] = at_bat_idx
             indexed_pitch_map[at_bat_idx] = zone_pitch
             # TODO i need to add the at bat index to the zone_pitch json!
 
         #
         ordered_zps = OrderedDict(sorted(indexed_pitch_map.items()))
-        #print('leftover unused_pitches:', str(unused_pitches))
-        return [ zp for zp in ordered_zps.values() ]
+        # print('leftover unused_pitches:', str(unused_pitches))
+        return [zp for zp in ordered_zps.values()]
+
 
 class ZonePitchManager(Manager):
     """
@@ -1259,10 +1278,10 @@ class ZonePitchManager(Manager):
     shrinker_class = ZonePitchShrinker
 
     defaults = {
-        #'mph' : 0.0,
-        #'z' : 5,
-        #'t' : 'UNK',
-        #'valid' : False
+        # 'mph' : 0.0,
+        # 'z' : 5,
+        # 't' : 'UNK',
+        # 'valid' : False
     }
 
     def __init__(self, zone_pitches, at_bat):
@@ -1289,7 +1308,7 @@ class ZonePitchManager(Manager):
 
         # iterate, number them (in-atbat order), and reduce + shrink them
         for pc, zp in enumerate(self.zone_pitches):
-            zp['at_bat_pitch_count'] = pc+1 # +1 so its not 0-based
+            zp['at_bat_pitch_count'] = pc + 1  # +1 so its not 0-based
             reducer = ZonePitchReducer(zp)
             reduced_zp = reducer.reduce()
             shrinker = ZonePitchShrinker(reduced_zp)
@@ -1297,11 +1316,12 @@ class ZonePitchManager(Manager):
             reduced_and_shrunk_zone_pitches.append(shrunk_zp)
             for rszp in reduced_and_shrunk_zone_pitches:
                 # make sure they are complete... with invalid information though and a flag
-                for k,v in self.defaults.items():
+                for k, v in self.defaults.items():
                     if rszp.get(k) is None:
                         rszp[k] = v
                 self.add_data(rszp, additional_data)
         return reduced_and_shrunk_zone_pitches
+
 
 class RunnerReducer(AbstractStatReducer):
 
@@ -1322,23 +1342,25 @@ class RunnerReducer(AbstractStatReducer):
     def pre_reduce(self):
         d = self.get_internal_data()
         out_as_str = d.get(self.field_out, None)
-        #print('out_as_str:', str(out_as_str))
+        # print('out_as_str:', str(out_as_str))
         d[self.field_out] = self.str2bool(out_as_str)
-        #print('d:', str(d))
+        # print('d:', str(d))
         self.data = d
 
         super().pre_reduce()
 
+
 class RunnerShrinker(AbstractShrinker):
 
     fields = {
-        'id'                : 'srid',
-        'starting_base'     : 'start',
-        'ending_base'       : 'end',
-        'outcome_id'        : 'oid',
-        'preferred_name'    : 'fn',
-        'last_name'         : 'ln',
+        'id': 'srid',
+        'starting_base': 'start',
+        'ending_base': 'end',
+        'outcome_id': 'oid',
+        'preferred_name': 'fn',
+        'last_name': 'ln',
     }
+
 
 class RunnerManager(AbstractManager):
 
@@ -1357,6 +1379,7 @@ class RunnerManager(AbstractManager):
                 self.add_data(rsr, additional_data)
         return reduced_and_shrunk_runners
 
+
 class PitchPbpReducer(AbstractStatReducer):
 
     class FlagsReducer(AbstractStatReducer):
@@ -1372,7 +1395,7 @@ class PitchPbpReducer(AbstractStatReducer):
 
             # loop thru all fields, and convert "true" to True, and "false" to False
             # so when we convert it to JSON the real booleans go out
-            for k,v in flags.items():
+            for k, v in flags.items():
                 flags[k] = self.str2bool(v)
 
             # add onbase_list stats back in
@@ -1395,15 +1418,16 @@ class PitchPbpReducer(AbstractStatReducer):
     ]
 
     def reduce(self):
-        #print('in here')
+        # print('in here')
         d = self.get_internal_data()
         flags = d.get(self.FlagsReducer.key, None)
         if flags is not None:
             flags_reducer = self.FlagsReducer(flags)
-            #print('flags:', str(flags))
+            # print('flags:', str(flags))
             d[self.FlagsReducer.key] = flags_reducer.reduce()
-            #print('d:', str(d))
+            # print('d:', str(d))
         return super().reduce()
+
 
 class PitchPbpShrinker(AbstractShrinker):
     """ reduce() then shrink the fields of a ZonePitch """
@@ -1413,20 +1437,20 @@ class PitchPbpShrinker(AbstractShrinker):
         key = 'count'
 
         fields = {
-            'strikes'       : 'k',
-            'balls'         : 'b',
-            'pitch_count'   : 'pc',
+            'strikes': 'k',
+            'balls': 'b',
+            'pitch_count': 'pc',
         }
 
     fields = {
-        'dd_updated__id'    : 'ts',
-        'id'                : 'srid',
-        'at_bat__id'        : 'srid_at_bat',
-        'count__list'       : 'count',
-        'flags__list'       : 'flags',
-        'game__id'          : 'srid_game',
-        'pitcher'           : 'srid_pitcher',
-        'outcome_id'        : 'oid',
+        'dd_updated__id': 'ts',
+        'id': 'srid',
+        'at_bat__id': 'srid_at_bat',
+        'count__list': 'count',
+        'flags__list': 'flags',
+        'game__id': 'srid_game',
+        'pitcher': 'srid_pitcher',
+        'outcome_id': 'oid',
     }
 
     def shrink(self):
@@ -1436,10 +1460,12 @@ class PitchPbpShrinker(AbstractShrinker):
             data[k] = self.CountShrinker(data[k]).shrink()
         return data
 
+
 class PitchPbpManager(AbstractManager):
 
     reducer_class = PitchPbpReducer
     shrinker_class = PitchPbpShrinker
+
 
 class HittingListToStr(object):
     """
@@ -1538,14 +1564,14 @@ class HittingListToStr(object):
         steal_list = self.data.get('steal__list', {})
         at_bats = self.data.get('ab')
         hits = onbase_list.get('h')
-        stat_desc_list.append( self.format_stat( 'R', runs_list.get('total') ) )
-        stat_desc_list.append( self.format_stat( 'RBI', self.data.get('rbi') ) )
-        stat_desc_list.append( self.format_stat( 'B', onbase_list.get('bb') ) )
-        stat_desc_list.append( self.format_stat( 'HBP', onbase_list.get('hbp') ) )
-        stat_desc_list.append( self.format_stat( 'HR',  onbase_list.get('hr') ) )
-        stat_desc_list.append( self.format_stat( '2B', onbase_list.get('d') ) )
-        stat_desc_list.append( self.format_stat( '3B', onbase_list.get('t') ) )
-        stat_desc_list.append( self.format_stat( 'SB', steal_list.get('stolen') ) )
+        stat_desc_list.append(self.format_stat('R', runs_list.get('total')))
+        stat_desc_list.append(self.format_stat('RBI', self.data.get('rbi')))
+        stat_desc_list.append(self.format_stat('B', onbase_list.get('bb')))
+        stat_desc_list.append(self.format_stat('HBP', onbase_list.get('hbp')))
+        stat_desc_list.append(self.format_stat('HR',  onbase_list.get('hr')))
+        stat_desc_list.append(self.format_stat('2B', onbase_list.get('d')))
+        stat_desc_list.append(self.format_stat('3B', onbase_list.get('t')))
+        stat_desc_list.append(self.format_stat('SB', steal_list.get('stolen')))
 
         # generaet the return string
         desc = '%s for %s' % (hits, at_bats)
@@ -1564,6 +1590,7 @@ class HittingListToStr(object):
 
         return '%s %s' % (int(value), name)
 
+
 class PlayerStatsToStr(HittingListToStr):
 
     def __init__(self, player_stats_instance):
@@ -1578,17 +1605,17 @@ class PlayerStatsToStr(HittingListToStr):
         singles = self.data.s
         doubles = self.data.d
         triples = self.data.t
-        homers  = self.data.hr
+        homers = self.data.hr
         at_bats = self.data.ab
         hits = singles + doubles + triples + homers
-        stat_desc_list.append( self.format_stat( 'R',   self.data.r ) )
-        stat_desc_list.append( self.format_stat( 'RBI', self.data.rbi ) )
-        stat_desc_list.append( self.format_stat( 'B',   self.data.bb ) )
-        stat_desc_list.append( self.format_stat( 'HBP', self.data.hbp ) )
-        stat_desc_list.append( self.format_stat( 'HR',  homers ) )
-        stat_desc_list.append( self.format_stat( '2B',  doubles ) )
-        stat_desc_list.append( self.format_stat( '3B',  triples ) )
-        stat_desc_list.append( self.format_stat( 'SB',  self.data.sb ) )
+        stat_desc_list.append(self.format_stat('R',   self.data.r))
+        stat_desc_list.append(self.format_stat('RBI', self.data.rbi))
+        stat_desc_list.append(self.format_stat('B',   self.data.bb))
+        stat_desc_list.append(self.format_stat('HBP', self.data.hbp))
+        stat_desc_list.append(self.format_stat('HR',  homers))
+        stat_desc_list.append(self.format_stat('2B',  doubles))
+        stat_desc_list.append(self.format_stat('3B',  triples))
+        stat_desc_list.append(self.format_stat('SB',  self.data.sb))
 
         # generaet the return string
         desc = '%s for %s' % (hits, at_bats)
@@ -1599,6 +1626,7 @@ class PlayerStatsToStr(HittingListToStr):
             desc += suffix
         return desc
 
+
 class QuickCache(object):
     """
     uniquely caches objects if they have an
@@ -1607,7 +1635,8 @@ class QuickCache(object):
     Redis cache is used by default
     """
 
-    class BytesIsNoneException(Exception): pass
+    class BytesIsNoneException(Exception):
+        pass
 
     name = 'QuickCache'
     timeout_seconds = 60 * 5
@@ -1621,7 +1650,7 @@ class QuickCache(object):
     field_timestamp = 'dd_updated__id'
 
     def __init__(self, data=None, stash_now=True, override_cache=None):
-        #self.key_prefix_pattern = self.name + '--%s--'            # ex: 'QuickCache--%s--'
+        # self.key_prefix_pattern = self.name + '--%s--'            # ex: 'QuickCache--%s--'
         self.key_prefix_pattern = self.name + self.extra_key
         self.scan_pattern = self.key_prefix_pattern + '*'         # ex: 'QuickCache--%s--*'
         self.key_pattern = self.key_prefix_pattern + '%s'         # ex: 'QuickCache--%s--%s'
@@ -1634,7 +1663,7 @@ class QuickCache(object):
             self.cache = get_redis_instance()
 
         # immediately cache it based on 'stash_now' bool
-        if data is not None and stash_now == True:
+        if data is not None and stash_now is True:
             self.stash(data)
 
     def get_key(self, ts, gid):
@@ -1644,12 +1673,11 @@ class QuickCache(object):
     def scan(self, ts):
         """ return the keys for objects matching the same cache and timestamp 'ts' """
 
-        #redis = Redis()
         redis = get_redis_instance()
 
         keys = []
         pattern = self.scan_pattern % ts
-        #print('scan pattern:', pattern)
+        # print('scan pattern:', pattern)
         for k in redis.scan_iter(pattern):
             keys.append(k)
         return keys
@@ -1668,19 +1696,19 @@ class QuickCache(object):
             err_msg = 'data must be an instance of dict'
             raise Exception(err_msg)
 
-    #@timeit
+    # @timeit
     def fetch(self, ts, gid):
         k = self.get_key(ts, gid)
         ret_val = None
-        #print('<<< fetch key: %s' % k)
+        # print('<<< fetch key: %s' % k)
         try:
             ret_val = self.bytes_2_dict(self.cache.get(k))
-            #print('fetched: key', str(k), ':', str(ret_val))
+            # print('fetched: key', str(k), ':', str(ret_val))
         except self.BytesIsNoneException:
             pass
         return ret_val
 
-    #@timeit
+    # @timeit
     def stash(self, data, timestamp=None):
         #
         self.validate_stashable(data)
@@ -1692,11 +1720,12 @@ class QuickCache(object):
 
         gid = data.get(self.field_id)
         k = self.get_key(ts, gid)
-        #print('>>> stash key: %s' % k)
+        # print('>>> stash key: %s' % k)
         #
         ret_val = self.add_to_cache_method(k, data)
-        #print('stashed: key', str(k), ':', str(data))
+        # print('stashed: key', str(k), ':', str(data))
         return ret_val
+
 
 class QuickCacheList(QuickCache):
     """
@@ -1712,7 +1741,7 @@ class QuickCacheList(QuickCache):
 
     # we will likely  want to override this field
     # in inheriting classes, but dont do it here
-    #field_id = 'id'
+    # field_id = 'id'
 
     def add_to_cache_method(self, k, data):
         """
@@ -1734,7 +1763,7 @@ class QuickCacheList(QuickCache):
                 ret_list.append(obj)
         return ret_list
 
-    #@timeit
+    # @timeit
     def stash(self, data):
         """ adds the data to its corresponding list in the cache """
         self.validate_stashable(data)
@@ -1745,33 +1774,37 @@ class QuickCacheList(QuickCache):
 
         #
         ret_val = self.add_to_cache_method(k, data)
-        #print(self.name, 'stashed: key', str(k), ':', str(data))
+        # print(self.name, 'stashed: key', str(k), ':', str(data))
         return ret_val
 
     def get_key(self, gid):
         key = self.key_pattern % gid
         return key
 
-    #@timeit
+    # @timeit
     def fetch(self, gid):
         # get a list of dicts from the key
         k = self.get_key(gid)
-        l = self.cache.lrange(k, 0, -1) # start with 0, get thru last!
-        ret_list = [ self.bytes_2_dict(dict_bytes) for dict_bytes in l ]
-        #print(self.name, 'fetched: key', str(k), ':', str(ret_list))
+        l = self.cache.lrange(k, 0, -1)  # start with 0, get thru last!
+        ret_list = [self.bytes_2_dict(dict_bytes) for dict_bytes in l]
+        # print(self.name, 'fetched: key', str(k), ':', str(ret_list))
         return ret_list
 
 #
 ###############################################################
 # the cache objects help us store short lived dataden objects
 ###############################################################
+
+
 class PitchCache(QuickCache):
     """ cache for objects from mongo namespace 'mlb.pitch' """
     name = 'PitchCache_mlb_pbp'
 
+
 class AtBatCache(QuickCache):
     """ cache for objects from mongo namespace 'mlb.at_bat' """
     name = 'AtBatCache_mlb_pbp'
+
 
 class LastAtBatCache(QuickCache):
     """ cache for the most recent at bat by its srid alone (does not factor ts in the key) """
@@ -1784,14 +1817,17 @@ class LastAtBatCache(QuickCache):
     def stash(self, data):
         return super().stash(data, timestamp=0)
 
+
 class PitcherCache(QuickCache):
     """ zone pitch cache - object from mongo called a 'mlb.pitcher' """
     name = 'PitcherCache_mlb_pbp'
     field_id = 'pitch__id'
 
+
 class RunnerCache(QuickCache):
     """ cache for objects from mongo namespace 'mlb.runner' """
     name = 'RunnerCache_mlb_pbp'
+
 
 class PitcherCacheList(QuickCacheList):
     """ cache 'mlb.pitcher' (zone pitches) objects by the at_bat's srid """
@@ -1806,8 +1842,9 @@ class PitcherCacheList(QuickCacheList):
         if l == []:
             return None
         ret_list = self.remove_duplicates_by_field(l, self.field_at_bat_pitch_count)
-        ret_list.reverse() # now flip it back to the regular direction again
+        ret_list.reverse()  # now flip it back to the regular direction again
         return ret_list
+
 
 class RunnerCacheList(QuickCacheList):
     """ cache runner objects by the at_bat id which they happened during """
@@ -1828,10 +1865,13 @@ class RunnerCacheList(QuickCacheList):
 # the entire mlb linked pbp object we send that includes
 # the pitch, at_bat, zone pitches, and base runners (if any).
 ###############################################################
+
+
 class Req(object):
 
     # raised if child class does not override and implement build()
-    class MustImplementBuildMethodException(Exception): pass
+    class MustImplementBuildMethodException(Exception):
+        pass
 
     # cache class
     cache_class = None
@@ -1870,26 +1910,28 @@ class Req(object):
     def build_from(self, pitch, at_bat, zone_pitches, runners):
         """ runners needs to be at least an empty list in the case there are no runners to be valid (not None) """
         raw = {
-            'pitch'         : pitch,
-            'at_bat'        : at_bat,
-            'zone_pitches'  : zone_pitches,
-            'runners'       : runners,
+            'pitch': pitch,
+            'at_bat': at_bat,
+            'zone_pitches': zone_pitches,
+            'runners': runners,
         }
         return raw
 
+
 class OidExtras(object):
 
-    class ScoreSystemClassNotSetException(Exception): pass
+    class ScoreSystemClassNotSetException(Exception):
+        pass
 
     # sub-classes must set 'score_system_class'
     score_system_class = None
 
-    OID_FP      = 'oid_fp'
+    OID_FP = 'oid_fp'
     OID_SUMMARY = 'oid_summary'
 
     defaults = {
-        OID_FP      : 0.0,
-        OID_SUMMARY : '',
+        OID_FP: 0.0,
+        OID_SUMMARY: '',
     }
 
     def __init__(self, data=None):
@@ -1916,8 +1958,9 @@ class OidExtras(object):
     def update_outcome(self, outcome_id, fp_change=0.0):
         oid_fp, oid_summary = self.score_system.get_outcome_fantasy_points(outcome_id)
         # oid_fp is not used now -- use the PlayerStats model's 'fp_change' property instead
-        self.add(self.OID_FP, fp_change) # amount of draftboard fantasy points from the last play
+        self.add(self.OID_FP, fp_change)  # amount of draftboard fantasy points from the last play
         self.add(self.OID_SUMMARY, oid_summary)
+
 
 class PitchExtras(OidExtras):
     """
@@ -1929,6 +1972,7 @@ class PitchExtras(OidExtras):
 
     score_system_class = scoring.classes.MlbSalaryScoreSystem
 
+
 class AtBatExtras(OidExtras):
     """
     used to add additional data, especially outcome information and fantasy points
@@ -1936,16 +1980,16 @@ class AtBatExtras(OidExtras):
 
     score_system_class = scoring.classes.MlbSalaryScoreSystem
 
-    FIRST_NAME  = 'fn'
-    LAST_NAME   = 'ln'
-    SRID_TEAM   = 'srid_team'
-    STATS_STR   = 'stats_str'
+    FIRST_NAME = 'fn'
+    LAST_NAME = 'ln'
+    SRID_TEAM = 'srid_team'
+    STATS_STR = 'stats_str'
 
     ab_bat_extra_data = {
-        FIRST_NAME  : '',
-        LAST_NAME   : '',
-        SRID_TEAM   : '',
-        STATS_STR   : '0 for 0',
+        FIRST_NAME: '',
+        LAST_NAME: '',
+        SRID_TEAM: '',
+        STATS_STR: '0 for 0',
     }
 
     def __init__(self):
@@ -1961,6 +2005,7 @@ class AtBatExtras(OidExtras):
         self.add(self.SRID_TEAM, player_stats.player.team.srid)
         self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
 
+
 class RunnerExtras(OidExtras):
     """
     used to add additional data, especially outcome information and fantasy points
@@ -1968,6 +2013,7 @@ class RunnerExtras(OidExtras):
 
     # set the class with the method: get_outcome_fantasy_points( outcome_id )
     score_system_class = scoring.classes.MlbSalaryScoreSystem
+
 
 class ReqPitch(Req):
     """
@@ -2040,29 +2086,30 @@ class ReqPitch(Req):
         # 1. get the at_bat
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            #print('    ', tag, 'at_bat -> None')
+            # print('    ', tag, 'at_bat -> None')
             return None
-        #print('    ', tag, 'at_bat -> yes')
+        # print('    ', tag, 'at_bat -> yes')
 
         # 2. get 'pitches' ie: zone_pitches
-        #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
-        zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id()) # could also use: at_bat.get('id')
-        #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
+        # zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id())  # could also use: at_bat.get('id')
+        # print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
+            # print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        # print('    ', tag, 'pitches -> yes')
 
         # 3. get any existing runners
-        #runners = self.get_runners()
+        # runners = self.get_runners()
         runners = RunnerCacheList().fetch(self.get_at_bat_id())
         if runners is None:
-            #print('    ', tag, 'runners -> None (didnt find all, if we found any)')
+            # print('    ', tag, 'runners -> None (didnt find all, if we found any)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        # print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        # print('found all!') # TODO remove debug prints
         return self.build_from(self.data, at_bat, zone_pitches, runners)
+
 
 class ReqAtBat(Req):
     """
@@ -2115,14 +2162,14 @@ class ReqAtBat(Req):
         # print(tag, 'ts', ts, 'id', id)
 
         # 1. get the 'pitches' (zone_pitches)  --- this will return None if it cant get ALL of them
-        #zone_pitches = self.get_zone_pitches()
+        # zone_pitches = self.get_zone_pitches()
         zone_pitches = PitcherCacheList().fetch(self.get_id())
 
-        #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
+        # print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            #print('    ', tag, 'pitchers -> None or [] (ie: zone_pitches)')
+            # print('    ', tag, 'pitchers -> None or [] (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitchers -> yes')
+        # print('    ', tag, 'pitchers -> yes')
 
         # 2. get the main 'pitch' id from the last zone_pitch in the list (if exists)
         last_zone_pitch = zone_pitches[-1]
@@ -2130,9 +2177,9 @@ class ReqAtBat(Req):
         pitch_id = ReqPitcher(last_zone_pitch, stash_now=False).get_pitch_id()
         pitch = PitchCache().fetch(ts, pitch_id)
         if pitch is None:
-            #print('    ', tag, 'pitch -> None')
+            # print('    ', tag, 'pitch -> None')
             return None
-        #print('    ', tag, 'pitch -> yes')
+        # print('    ', tag, 'pitch -> yes')
 
         at_bat_pitch_count = int((pitch.get('count__list', {}).get('pitch_count')))  # CBAN TODO
         if len(zone_pitches) != at_bat_pitch_count:
@@ -2143,12 +2190,13 @@ class ReqAtBat(Req):
         # runners = ReqPitch(pitch, stash_now=False).get_runners()
         runners = RunnerCacheList().fetch(self.get_id())
         if runners is None:
-            #print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
+            # print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        # print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        # print('found all!') # TODO remove debug prints
         return self.build_from(pitch, self.data, zone_pitches, runners)
+
 
 class ReqPitcher(Req):
     """
@@ -2180,7 +2228,7 @@ class ReqPitcher(Req):
         """ try to build the whole pbp object from only this (one of many) required parts """
         tag = self.get_tag()
         ts = self.get_ts()
-        id = self.get_id() # yes the id of the Pitch (not the zone_pitch ie 'pitcher')
+        id = self.get_id()  # yes the id of the Pitch (not the zone_pitch ie 'pitcher')
 
         # # TODO remove this eventually its debug
         # print(tag, 'ts', ts, 'id', id)
@@ -2201,33 +2249,33 @@ class ReqPitcher(Req):
         # 2. get the 'pitch'
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            #print('    ',tag, 'pitch -> None')
+            # print('    ',tag, 'pitch -> None')
             return None
-        #print('    ', tag, 'pitch -> yes')
+        # print('    ', tag, 'pitch -> yes')
 
-
-        #print('    ', tag, 'at_bat -> yes')
+        # print('    ', tag, 'at_bat -> yes')
 
         # 3. get the list of all the 'pitcher' objects (ie: zone pitches)
-        #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        # zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id())
-        #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
-        at_bat_pitch_count = int((pitch.get('count__list', {}).get('pitch_count')))# CBAN TODO
+        # print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
+        at_bat_pitch_count = int((pitch.get('count__list', {}).get('pitch_count')))  # CBAN TODO
         if zone_pitches is None or len(zone_pitches) != at_bat_pitch_count:
-            #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
+            # print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        # print('    ', tag, 'pitches -> yes')
 
         # 4. get runners if any exist
-        #runners = ReqPitch(pitch, stash_now=False).get_runners()
+        # runners = ReqPitch(pitch, stash_now=False).get_runners()
         runners = RunnerCacheList().fetch(self.get_at_bat_id())
         if runners is None:
-            #print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
+            # print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        # print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        # print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
+
 
 class ReqRunner(Req):
     """
@@ -2261,47 +2309,51 @@ class ReqRunner(Req):
         # 1. get the main 'pitch' (kind of like the pbp object)
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            #print('    ', tag, 'pitch -> None')
+            # print('    ', tag, 'pitch -> None')
             return None
-        #print('    ', tag, 'pitch -> yes')
+        # print('    ', tag, 'pitch -> yes')
 
         # 2. get the 'at_bat'
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            #print('    ', tag, 'at_bat -> None')
+            # print('    ', tag, 'at_bat -> None')
             return None
-        #print('    ', tag, 'at_bat -> yes')
+        # print('    ', tag, 'at_bat -> yes')
 
         # 3. get the 'pitches' ie: the zone_pitches
-        #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        # zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         zone_pitches = PitcherCacheList().fetch(at_bat.get('id'))
-        #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
+        # print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
+            # print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        # print('    ', tag, 'pitches -> yes')
 
         # 4. get ALL the runners
-        #runners = ReqPitch(pitch, stash_now=False).get_runners()
+        # runners = ReqPitch(pitch, stash_now=False).get_runners()
         runners = RunnerCacheList().fetch(at_bat.get('id'))
         if runners is None:
-            #print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
+            # print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        # print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        # print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
+
 
 class PbpParser(DataDenPbpDescription):
 
     # for zone pitches that are lacking the pitch_zone
-    class IncompleteZonePitch(Exception): pass
+    class IncompleteZonePitch(Exception):
+        pass
 
     # we dont want to include pickoff pitches, but they come in like zone pitches
-    class PickoffPitchException(Exception): pass
+    class PickoffPitchException(Exception):
+        pass
 
     # error reducing, shrinking, or adding extras
-    class BuildSendableDataException(Exception): pass
+    class BuildSendableDataException(Exception):
+        pass
 
     game_model = Game
     pbp_model = Pbp
@@ -2314,7 +2366,7 @@ class PbpParser(DataDenPbpDescription):
     pusher_sport_pbp_event = 'linked'
 
     # until we could potentially send a duplicate if we parsed it again
-    cache_timeout = 60*60*18
+    cache_timeout = 60 * 60 * 18
 
     # the mlb object has a manager for each subobject, no need for this class.
     # the super() call to get_send_data() should just send the data as-is
@@ -2322,11 +2374,11 @@ class PbpParser(DataDenPbpDescription):
     manager_class = None
 
     # field names for the final data that gets sent to clients
-    pitch           = 'pbp'
-    at_bat          = 'at_bat'
-    zone_pitches    = 'zone_pitches'
-    runners         = 'runners'
-    stats           = 'stats'
+    pitch = 'pbp'
+    at_bat = 'at_bat'
+    zone_pitches = 'zone_pitches'
+    runners = 'runners'
+    stats = 'stats'
 
     def __init__(self):
         super().__init__()
@@ -2341,7 +2393,7 @@ class PbpParser(DataDenPbpDescription):
     def parse(self, obj, target):
         """ parse a dataden object that has a mongo oplog wrapper on it """
 
-        #print('PbpParser.parse(obj) -> %s' % str(obj))
+        # print('PbpParser.parse(obj) -> %s' % str(obj))
 
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
         # now we can use self.o which is the data object we care about.
@@ -2352,7 +2404,7 @@ class PbpParser(DataDenPbpDescription):
         try:
             req = self.get_req_from(self.o, target)
         except self.PickoffPitchException as e:
-            return # nothing to do for a zone pitch thats not actually a zone pitch
+            return  # nothing to do for a zone pitch thats not actually a zone pitch
 
         # now ask the req for the whole pbp obj.
         # if it cant build it, will return None
@@ -2365,7 +2417,7 @@ class PbpParser(DataDenPbpDescription):
     def send(self):
 
         if self.pbp_raw is None:
-            #print('self.pbp_raw: is None. not sending')
+            # print('self.pbp_raw: is None. not sending')
             return
 
         # if self.pbp_raw is not None:
@@ -2383,7 +2435,7 @@ class PbpParser(DataDenPbpDescription):
 
             cache_instance.set(key, True, self.cache_timeout)
             push.classes.DataDenPush(self.pusher_sport_pbp,
-                            self.pusher_sport_pbp_event, hash=key).send(sendable_data)
+                                     self.pusher_sport_pbp_event, hash=key).send(sendable_data)
 
     def can_send(self, raw_requirements):
         """
@@ -2394,7 +2446,7 @@ class PbpParser(DataDenPbpDescription):
         :return:
         """
         r = get_redis_instance()
-        pitch = self.pbp_raw.get('pitch') # in the raw, its still 'pitch' here not yet 'pbp' !
+        pitch = self.pbp_raw.get('pitch')  # in the raw, its still 'pitch' here not yet 'pbp' !
         ts = pitch.get('dd_updated__id')
         id = pitch.get('id')
         # cache_key = 'mlblinkedpbp-%s-%s' % (ts, id)
@@ -2412,7 +2464,8 @@ class PbpParser(DataDenPbpDescription):
 
         elif target == ('mlb.at_bat', 'pbp'):
             # stash this at bat object by its id only
-            # if it has the description set (meaning its over and wont be sent again except for changes)
+            # if it has the description set (meaning its over and wont be sent again
+            # except for changes)
             if data.get('description') is not None:
                 x = LastAtBatCache().stash(data)
 
@@ -2428,11 +2481,11 @@ class PbpParser(DataDenPbpDescription):
                 # ignore pickoff throws which come in looking like zone pitches!
                 raise self.PickoffPitchException()
 
-            pcl = PitcherCacheList(data) # add it to a list
+            pcl = PitcherCacheList(data)  # add it to a list
             return ReqPitcher(data)
 
         elif target == ('mlb.runner', 'pbp'):
-            rcl = RunnerCacheList(data) # add to the list
+            rcl = RunnerCacheList(data)  # add to the list
             return ReqRunner(data)
 
         else:
@@ -2449,21 +2502,26 @@ class PbpParser(DataDenPbpDescription):
         srid_at_bat_hitter = at_bat.get('hitter_id')
         zone_pitches = requirements.get(self.zone_pitches)
         runners = requirements.get(self.runners)
-        additional_runner_data = {'oid_fp': 0.0}  # TODO for testing -- need to hook up runner fantasy points
+        # TODO for testing -- need to hook up runner fantasy points
+        additional_runner_data = {'oid_fp': 0.0}
 
-        srid_runners = [r.get('id') for r in runners]  # not pulled from original data, but i think its fine
+        # not pulled from original data, but i think its fine
+        srid_runners = [r.get('id') for r in runners]
         # player_stats
-        player_stats = self.find_player_stats(srid_game, srid_pitcher, srid_at_bat_hitter, srid_runners)
+        player_stats = self.find_player_stats(
+            srid_game, srid_pitcher, srid_at_bat_hitter, srid_runners)
         # at_bat_stats
-        at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(srid_game, srid_at_bat_hitter)
+        at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(
+            srid_game, srid_at_bat_hitter)
 
         # create the at_bat extras (the hitters extra fields) -- apparently the hitter can be None
         #    so moved the .fp_change access to inside the next if statement
         at_bat_extras = AtBatExtras()
         # at_bat_extras.update_outcome(pitch.get('outcome_id'), at_bat_player_stats_hitter.fp_change)
         if at_bat_player_stats_hitter is not None:
-            #at_bat_extras = AtBatExtras()
-            at_bat_extras.update_outcome(pitch.get('outcome_id'), at_bat_player_stats_hitter.fp_change)
+            # at_bat_extras = AtBatExtras()
+            at_bat_extras.update_outcome(pitch.get('outcome_id'),
+                                         at_bat_player_stats_hitter.fp_change)
             at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
 
         # get the PlayerStats objects as json
@@ -2480,7 +2538,7 @@ class PbpParser(DataDenPbpDescription):
             pitch_extras = PitchExtras()
             pitch_extras.update_outcome(pitch.get('outcome_id'), pitcher_player_stats.fp_change)
         except Exception as e:
-            #print(str(e))
+            # print(str(e))
             pitch_extras = PitchExtras()
 
         # get reduce/shrink manager instances
@@ -2504,7 +2562,8 @@ class PbpParser(DataDenPbpDescription):
     #########
     def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
         # print('__find_player_stats', str(player_stats_class), 'srid_game', srid_game, 'srid_players:', str(srid_players))
-        player_stats = player_stats_class.objects.filter(srid_game=srid_game, srid_player__in=srid_players)
+        player_stats = player_stats_class.objects.filter(
+            srid_game=srid_game, srid_player__in=srid_players)
         # print('    ', str(player_stats.count()))
         return player_stats
 
@@ -2520,7 +2579,8 @@ class PbpParser(DataDenPbpDescription):
             return None
 
         # otherwise something bad is happening
-        err_msg = '%s PlayerStatsHitter object(s) found for game[%s]-player[%s]' % (str(count), game, hitter)
+        err_msg = '%s PlayerStatsHitter object(s) found for game[%s]-player[%s]' % (
+            str(count), game, hitter)
         raise Exception(err_msg)
 
     def find_player_stats(self, game, pitcher, hitter, runners=[]):
@@ -2535,7 +2595,8 @@ class PbpParser(DataDenPbpDescription):
         # print('add hitter stats:', str(player_stats))
 
         # extend the list of playerstats for the remaining srids
-        player_stats.extend(self.__find_player_stats(self.player_stats_pitcher_model, game, [pitcher]))
+        player_stats.extend(self.__find_player_stats(
+            self.player_stats_pitcher_model, game, [pitcher]))
         # print('add pitcher stats:', str(player_stats))
         player_stats.extend(self.__find_player_stats(self.player_stats_hitter_model, game, runners))
         # print('add runner stats:', str(player_stats))
@@ -2550,6 +2611,7 @@ class PbpParser(DataDenPbpDescription):
         # return the list that ensures no duplicates
         return player_stats_no_duplicates
 
+
 class Injury(DataDenInjury):
     """
     MLB injuries dont have sports radar global ids (srids).
@@ -2562,7 +2624,7 @@ class Injury(DataDenInjury):
     player_model = Player
     injury_model = sports.mlb.models.Injury
 
-    key_iid     = 'UNUSED' # the name of the field in the obj
+    key_iid = 'UNUSED'  # the name of the field in the obj
 
     def __init__(self, wrapped=True):
         super().__init__(wrapped)
@@ -2584,7 +2646,7 @@ class Injury(DataDenInjury):
     def parse(self, obj, target=None):
         super().parse(obj, target)
 
-        if self.player is None: # ignore injury, because were going to get it manually below
+        if self.player is None:  # ignore injury, because were going to get it manually below
             return
 
         # "full_name" : "Dioner Navarro",
@@ -2595,7 +2657,7 @@ class Injury(DataDenInjury):
 
         #
         # extract the information from self.o
-        status  = self.o.get('status', None)
+        status = self.o.get('status', None)
         if status is None:
             raise Exception('mlb Injury.parse() error - "status" cant be None!')
         # IGNORE CERTAIN STATUSES WHICH ARENT INJURY RELATED
@@ -2603,7 +2665,8 @@ class Injury(DataDenInjury):
             return
         updated = self.o.get('updated', None)
         if updated is None:
-            raise Exception('mlb Injury.parse() error - "updated" cant be None because get_custom_iid() will break!')
+            raise Exception(
+                'mlb Injury.parse() error - "updated" cant be None because get_custom_iid() will break!')
 
         #
         # get the custom "iid" and look it up with that
@@ -2611,12 +2674,12 @@ class Injury(DataDenInjury):
         try:
             self.injury = self.injury_model.objects.get(iid=iid)
         except self.injury_model.DoesNotExist:
-            self.injury         = self.injury_model()
-            self.injury.iid     = iid
-            self.injury.player  = self.player
+            self.injury = self.injury_model()
+            self.injury.iid = iid
+            self.injury.player = self.player
 
-        self.injury.comment     = ''
-        self.injury.status      = status
+        self.injury.comment = ''
+        self.injury.status = status
         self.injury.description = ''
         self.injury.save()
 
@@ -2624,6 +2687,7 @@ class Injury(DataDenInjury):
         # connect the player object to the injury object
         self.player.injury = self.injury
         self.player.save()
+
 
 class ProbablePitcherParser(AbstractDataDenParseable):
 
@@ -2650,11 +2714,11 @@ class ProbablePitcherParser(AbstractDataDenParseable):
         # 'dd_updated__id': 1464125707339}=
 
         srid_game = self.o.get('game__id')
-        srid_team = self.o.get('away__id',None)
+        srid_team = self.o.get('away__id', None)
         srid_player = self.o.get('id')
 
         if srid_team is None:
-            srid_team = self.o.get('home__id',None)
+            srid_team = self.o.get('home__id', None)
         try:
             pp = self.model.objects.get(srid_game=srid_game, srid_team=srid_team)
 
@@ -2665,8 +2729,8 @@ class ProbablePitcherParser(AbstractDataDenParseable):
         except self.model.DoesNotExist:
 
             pp = self.model()
-            pp.srid_game        = srid_game
-            pp.srid_team        = srid_team
+            pp.srid_game = srid_game
+            pp.srid_team = srid_team
 
         if pp.srid_player != srid_player:
             pp.srid_player = srid_player
@@ -2677,6 +2741,7 @@ class ProbablePitcherParser(AbstractDataDenParseable):
         # the draftgroup information
         gum = GameUpdateManager('mlb', srid_game)
         gum.add_probable_pitcher(srid_team, srid_player)
+
 
 class DataDenMlb(AbstractDataDenParser):
 
@@ -2710,31 +2775,31 @@ class DataDenMlb(AbstractDataDenParser):
         self.sport = 'mlb'
 
     def parse(self, obj):
-        super().parse( obj ) # setup self.ns, self.parent_api
+        super().parse(obj)  # setup self.ns, self.parent_api
 
         #
         # game
-        if self.target in [ ('mlb.season_schedule','schedule_pre'),
-                            ('mlb.season_schedule','schedule_reg'),
-                            ('mlb.season_schedule','schedule_pst') ]:
-            #print( str(obj) )
-            SeasonSchedule().parse( obj )
-        elif self.target == ('mlb.game','schedule_reg'):
-            #print( str(obj) )
-            GameSchedule().parse( obj )
-        elif self.target == ('mlb.game','schedule_pre'):
-            #print( str(obj) )
-            GameSchedule().parse( obj )
-        elif self.target == ('mlb.game','schedule_pst'):
-            #print( str(obj) )
-            GameSchedule().parse( obj )
+        if self.target in [('mlb.season_schedule', 'schedule_pre'),
+                           ('mlb.season_schedule', 'schedule_reg'),
+                           ('mlb.season_schedule', 'schedule_pst')]:
+            # print( str(obj) )
+            SeasonSchedule().parse(obj)
+        elif self.target == ('mlb.game', 'schedule_reg'):
+            # print( str(obj) )
+            GameSchedule().parse(obj)
+        elif self.target == ('mlb.game', 'schedule_pre'):
+            # print( str(obj) )
+            GameSchedule().parse(obj)
+        elif self.target == ('mlb.game', 'schedule_pst'):
+            # print( str(obj) )
+            GameSchedule().parse(obj)
 
         # save the atbats (even in realtime) so we dont
         # have to query mongo for them (which is slower than a django query)
-        elif self.target in [ (self.sport + '.at_bat', 'pbp'),
-                              (self.sport + '.pitch', 'pbp'),
-                              (self.sport + '.pitcher', 'pbp'),
-                              (self.sport + '.runner', 'pbp') ]:
+        elif self.target in [(self.sport + '.at_bat', 'pbp'),
+                             (self.sport + '.pitch', 'pbp'),
+                             (self.sport + '.pitcher', 'pbp'),
+                             (self.sport + '.runner', 'pbp')]:
             # try to build and send the main mlb pbp object.
             parser = PbpParser()
             parser.parse(obj, self.target)
@@ -2766,9 +2831,9 @@ class DataDenMlb(AbstractDataDenParser):
         #     #self.add_pbp( obj )
 
         #
-        elif self.target == ('mlb.game','boxscores'):
+        elif self.target == ('mlb.game', 'boxscores'):
             boxscore_parser = GameBoxscores()
-            boxscore_parser.parse( obj )  # top level boxscore info
+            boxscore_parser.parse(obj)  # top level boxscore info
             boxscore_parser.send()
 
             # TODO modify te GameBoxscores parser class to
@@ -2790,20 +2855,23 @@ class DataDenMlb(AbstractDataDenParser):
         #     # add it to a list of objects we've sent (helps us not double-send later on)
         #     #self.add_pbp( obj )
 
-        elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
-        elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
+        elif self.target == ('mlb.home', 'summary'):
+            HomeAwaySummary().parse(obj)  # home team of boxscore
+        elif self.target == ('mlb.away', 'summary'):
+            HomeAwaySummary().parse(obj)  # away team of boxscore
         #
         # team
-        elif self.target == ('mlb.team','hierarchy'): TeamHierarchy().parse( obj ) # parse each team
+        elif self.target == ('mlb.team', 'hierarchy'):
+            TeamHierarchy().parse(obj)  # parse each team
         #
         # player
-        elif self.target == ('mlb.player','team_profile'):
-            PlayerTeamProfile().parse( obj ) # ie: rosters
-        elif self.target == ('mlb.player','summary'):
-            PlayerStats().parse( obj ) # stats from games
+        elif self.target == ('mlb.player', 'team_profile'):
+            PlayerTeamProfile().parse(obj)  # ie: rosters
+        elif self.target == ('mlb.player', 'summary'):
+            PlayerStats().parse(obj)  # stats from games
         #
         # probable_pitcher
-        elif self.target == ('mlb.probable_pitcher','daily_summary'):
+        elif self.target == ('mlb.probable_pitcher', 'daily_summary'):
             ppparser = ProbablePitcherParser()
             ppparser.parse(obj)
         #
@@ -2815,9 +2883,10 @@ class DataDenMlb(AbstractDataDenParser):
             #
             # get an instance of TsxContentParser( sport ) to parse
             # the Sports Xchange content
-            TsxContentParser(self.sport).parse( obj )
+            TsxContentParser(self.sport).parse(obj)
 
-        else: self.unimplemented( self.target[0], self.target[1] )
+        else:
+            self.unimplemented(self.target[0], self.target[1])
 
     def cleanup_injuries(self):
         """
@@ -2831,25 +2900,26 @@ class DataDenMlb(AbstractDataDenParser):
 
         #
         # injury process:
-        # 1) get all the updates (ie: get the most recent dd_updated__id, and get all objects with that value)
-        injury_objects = list( dd.find_recent('mlb','player','rostersfull') )
-        #print(str(len(injury_objects)), 'recent injury updates (for mlb its from the rostersfull parent api')
+        # 1) get all the updates (ie: get the most recent dd_updated__id, and get
+        # all objects with that value)
+        injury_objects = list(dd.find_recent('mlb', 'player', 'rostersfull'))
+        # print(str(len(injury_objects)), 'recent injury updates (for mlb its from the rostersfull parent api')
 
         # 2) get all the existing players with injuries
         # players = list( Player.objects.filter( injury_type__isnull=False,
         #                                        injury_id__isnull=False ) )
-        all_players = list( Player.objects.all() )
+        all_players = list(Player.objects.all())
 
         # 3) for each updated injury, remove the player from the all-players list
         for inj in injury_objects:
             #
             # wrapped=False just means the obj isnt wrapped by the oplogwrapper
             i = Injury(wrapped=False)
-            i.parse( inj )
+            i.parse(inj)
             try:
-                all_players.remove( i.get_player() )
+                all_players.remove(i.get_player())
             except ValueError:
-                pass # thrown if player not in the list.
+                pass  # thrown if player not in the list.
 
         # 5) with the leftover existing players,
         #    remove their injury since theres no current injury for them

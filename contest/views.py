@@ -1,26 +1,24 @@
 #
 # contest/views.py
-
-from django.db.models import Q
+from raven.contrib.django.raven_compat.models import client
 from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, timedelta
 import json
-import celery
 from rest_framework import status
 from rest_framework.response import Response
 from debreach.decorators import random_comment_exempt
 from rest_framework.views import APIView
-from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import (
     ValidationError,
     NotFound,
     APIException,
 )
-from account.permissions import HasIpAccess
+from account.permissions import (
+    HasIpAccess,
+    HasVerifiedIdentity,
+)
 from account import const as _account_const
 from contest.serializers import (
     ContestSerializer,
@@ -30,9 +28,7 @@ from contest.serializers import (
     EnterLineupSerializer,
     PayoutSerializer,
     EditEntryLineupSerializer,
-    EditEntryLineupStatusSerializer,
     RemoveAndRefundEntrySerializer,
-    RemoveAndRefundEntryStatusSerializer,
     UserLineupHistorySerializer,
     # PlayHistoryLineupSerializer,
     RankedEntrySerializer,
@@ -48,7 +44,6 @@ from contest.models import (
     Entry,
     CurrentContest,
     LiveContest,
-    HistoryContest,
     CurrentEntry,
     HistoryEntry,
     ClosedEntry,
@@ -58,16 +53,15 @@ from contest.models import (
 from contest.payout.models import (
     Payout,
 )
-from contest.buyin.classes import BuyinManager
 from contest.buyin.tasks import buyin_task
-from contest.exceptions import (
-    ContestLineupMismatchedDraftGroupsException,
-    ContestIsInProgressOrClosedException,
-    ContestIsFullException,
-    ContestCouldNotEnterException,
-    ContestMaxEntriesReachedException,
-    ContestIsNotAcceptingLineupsException,
-)
+# from contest.exceptions import (
+#     ContestLineupMismatchedDraftGroupsException,
+#     ContestIsInProgressOrClosedException,
+#     ContestIsFullException,
+#     ContestCouldNotEnterException,
+#     ContestMaxEntriesReachedException,
+#     ContestIsNotAcceptingLineupsException,
+# )
 from contest.refund.tasks import unregister_entry_task
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
@@ -76,11 +70,13 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
-from django.db.models import Count
 from mysite.celery_app import TaskHelper
 from util.dfsdate import DfsDate
-from account import const as _account_const
 from account.utils import create_user_log
+import logging
+
+logger = logging.getLogger('contest.views')
+
 
 # test the generic add view
 
@@ -88,7 +84,8 @@ from account.utils import create_user_log
 class ContestCreate(CreateView):
     model = Contest
     form_class = ContestFormAdd
-    #fields      = ['name','ends_tonight','start']
+    # fields      = ['name','ends_tonight','start']
+
 
 # testing the generic edit view
 
@@ -96,7 +93,7 @@ class ContestCreate(CreateView):
 class ContestUpdate(UpdateView):
     model = Contest
     form_class = ContestForm
-    #fields      = ['name','start']
+    # fields      = ['name','start']
 
 
 class SingleContestAPIView(generics.GenericAPIView):
@@ -158,7 +155,6 @@ class LobbyAPIView(generics.ListAPIView):
 
 
 class UserEntryAPIView(generics.ListAPIView):
-
     contest_model = None  # child class must set this, see UserUpcomingAPIView for example
 
     permission_classes = (IsAuthenticated,)
@@ -334,25 +330,27 @@ class UserHistoryAPIView(generics.GenericAPIView):
             return self.get_entries_response(entries)
 
         else:
-            if start_ts == None:
+            if start_ts is None:
                 return Response(
                     status=409,
                     data={
                         'errors': {
                             'name': {
                                 'title': 'start_ts required',
-                                'description': 'You must provide unix time stamp variable start_ts in your get parameters.'
+                                'description': """You must provide unix time stamp variable start_ts
+                                                    in your get parameters."""
                             }
                         }
                     })
-            if end_ts == None:
+            if end_ts is None:
                 return Response(
                     status=409,
                     data={
                         'errors': {
                             'name': {
                                 'title': 'end_ts required',
-                                'description': 'You must provide unix time stamp variable end_ts in your get parameters.'
+                                'description': """You must provide unix time stamp variable end_ts in
+                                                    your get parameters."""
                             }
                         }
                     })
@@ -381,12 +379,12 @@ class AllLineupsView(View):
     def get(self, request, contest_id):
         clm = ContestLineupManager(contest_id=contest_id)
         if 'json' in request.GET:
-            #print ('json please!' )
             return HttpResponse(json.dumps(clm.dev_get_all_lineups(contest_id)))
         else:
-            #clm = ContestLineupManager( contest_id = contest_id )
+            # clm = ContestLineupManager( contest_id = contest_id )
             # return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
             return HttpResponse(clm.get_http_payload(), content_type='application/octet-stream')
+
 
 class SingleLineupView(View):
     """
@@ -431,7 +429,8 @@ class RegisteredUsersAPIView(generics.ListAPIView):
         """
         get the registered user information
         """
-        return Entry.objects.filter(contest__pk=self.kwargs['contest_id']).select_related('lineup__user__username')
+        return Entry.objects.filter(
+            contest__pk=self.kwargs['contest_id']).select_related('lineup__user__username')
 
 
 class ContestRanksAPIView(generics.GenericAPIView):
@@ -460,7 +459,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
     enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
     """
     log_action = _account_const.CONTEST_ENTERED
-    permission_classes = (IsAuthenticated, HasIpAccess)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity,)
     serializer_class = EnterLineupSerializer
 
     def post(self, request, format=None):
@@ -492,8 +491,14 @@ class EnterLineupAPIView(generics.CreateAPIView):
         # get() blocks the view from returning until the task completes its work
         try:
             task_result.get()
+        except OverdraftException:
+            raise ValidationError(
+                {"detail": "You do not have the necessary funds for this action."})
         except Exception as e:
-            raise APIException(e)
+            logger.error("EnterLineupAPIView: %s" % str(e))
+            client.captureException()
+            raise APIException({"detail": "Unable to enter contest."})
+
         task_helper = TaskHelper(buyin_task, task_result.id)
         # print('task_helper.get_data()', task_helper.get_data())
         data = task_helper.get_data()
@@ -542,7 +547,7 @@ class EditEntryLineupAPIView(APIView):
     def post(self, request, format=None):
         entry_id = request.data.get('entry')
         players = request.data.get('players', [])
-        name = request.data.get('name', '')
+        # name = request.data.get('name', '')
 
         #
         # validate the parameters passed in here.
@@ -625,17 +630,14 @@ class UserPlayHistoryAPIView(APIView):
         """
         get the historical lineup data
         """
-        #print( year, month, day)
         rng = DfsDate.get_current_dfs_date_range()
         start = rng[0].replace(int(year), int(month), int(day))
         end = start + timedelta(days=1)
-        #print('range(%s, %s)' % (start, end))
 
         # get a list of the lineups in historical entries for the day
-        history_entries = ClosedEntry.objects.filter(user=self.request.user,
-                                                     contest__start__range=(start, end))
+        history_entries = ClosedEntry.objects.filter(user=self.request.user, contest__start__range=(start, end))
         payouts = Payout.objects.filter(entry__in=history_entries)
-        distinct_lineup_ids = [e.lineup.pk for e in history_entries]
+        # distinct_lineup_ids = [e.lineup.pk for e in history_entries]
         lineup_map = {}
         for entry in history_entries:
             lineup_map[entry.lineup.pk] = entry.lineup
@@ -647,7 +649,7 @@ class UserPlayHistoryAPIView(APIView):
         winnings = 0
         possible = 0
         contest_map = {}
-        for lineup in list(lineup_map.values()):     # for each distinct lineup
+        for lineup in list(lineup_map.values()):  # for each distinct lineup
             for history_entry in history_entries.filter(lineup=lineup):
                 total_buyins += history_entry.contest.buyin
                 num_entries += 1
@@ -655,7 +657,6 @@ class UserPlayHistoryAPIView(APIView):
                     winnings += payouts.get(entry=history_entry).amount
                 except Payout.DoesNotExist:
                     pass
-                # print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
                 possible += history_entry.contest.prize_structure.generator.first_place
                 contest_map[history_entry.contest.pk] = history_entry.contest
 
@@ -681,6 +682,7 @@ class UserPlayHistoryAPIView(APIView):
         data = self.get_history_data(year, month, day)
         return Response(data, status=status.HTTP_200_OK)
 
+
 class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
     """
     inherits UserPlayHistoryAPIView for the get_history_data() method.
@@ -697,11 +699,11 @@ class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
         current_entries = CurrentEntry.objects.filter(user=self.request.user)
 
         # TODO below
-        payouts = Payout.objects.filter( entry__in=current_entries)
-        distinct_lineup_ids = [ e.lineup.pk for e in current_entries ]
+        payouts = Payout.objects.filter(entry__in=current_entries)
+        # distinct_lineup_ids = [e.lineup.pk for e in current_entries]
         lineup_map = {}
         for entry in current_entries:
-            lineup_map[ entry.lineup.pk ] = entry.lineup
+            lineup_map[entry.lineup.pk] = entry.lineup
 
         #
         # sum the values for each lineup (and all its entries for paid contests)
@@ -710,7 +712,7 @@ class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
         winnings = 0
         possible = 0
         contest_map = {}
-        for lineup in list(lineup_map.values()):     # for each distinct lineup
+        for lineup in list(lineup_map.values()):  # for each distinct lineup
             for current_entry in current_entries.filter(lineup=lineup):
                 if current_entry.contest is None:
                     # this means the lineup is not yet live. skip it.
@@ -721,21 +723,21 @@ class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
                     winnings += payouts.get(entry=current_entry).amount
                 except Payout.DoesNotExist:
                     pass
-                # print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
+
                 possible += current_entry.contest.prize_structure.generator.first_place
-                contest_map[ current_entry.contest.pk ] = current_entry.contest
+                contest_map[current_entry.contest.pk] = current_entry.contest
 
         overall = {
-            "buyins"    : '%.2f' % total_buyins,
-            "entries"   : num_entries,
-            "winnings"  : '%.2f' % winnings,
-            "possible"  : '%.2f' % possible,
-            "contests"  : len(contest_map.values()),
+            "buyins": '%.2f' % total_buyins,
+            "entries": num_entries,
+            "winnings": '%.2f' % winnings,
+            "possible": '%.2f' % possible,
+            "contests": len(contest_map.values()),
         }
 
         data = {
-            'lineups'   : self.serializer_class( list(lineup_map.values()), many=True).data,
-            'overall'   : overall,
+            'lineups': self.serializer_class(list(lineup_map.values()), many=True).data,
+            'overall': overall,
         }
 
         return data
@@ -757,8 +759,8 @@ class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
 
         # pack it into this dict and return it
         data = {
-            'history'   : history_data,
-            'current'   : current_data,
+            'history': history_data,
+            'current': current_data,
         }
 
         # return http response with the data

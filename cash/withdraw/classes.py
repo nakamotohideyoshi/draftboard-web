@@ -448,7 +448,12 @@ class PayPalWithdraw(AbstractWithdraw):
         self.save_payout_history(self.withdraw_object, data)
 
         # depending on the paypal transaction status...
+        #error_str = ''
+        # try:
         errors = payout_response.get_errors()
+        # except Exception as e:
+        #     error_str(str(e))
+        #     print(error_str)
 
         self.withdraw_object.paypal_payout_item = payout_response.get_payout_item_id()
         self.withdraw_object.paypal_transaction = payout_response.get_transaction_id()
@@ -493,12 +498,13 @@ class CheckWithdraw(AbstractWithdraw):
 
         #
         # sets the local variables in the withdraw object
-        self.withdraw_object.fullname   = account_information.information.fullname
-        self.withdraw_object.address1   = account_information.information.address1
-        self.withdraw_object.address2   = account_information.information.address2
-        self.withdraw_object.city       = account_information.information.city
-        self.withdraw_object.state      = account_information.information.state
-        self.withdraw_object.zipcode    = account_information.information.zipcode
+        self.withdraw_object.fullname = account_information.information.user.get_full_name()
+        # information model hasn't that fields any more
+        # self.withdraw_object.address1   = account_information.information.address1
+        # self.withdraw_object.address2   = account_information.information.address2
+        # self.withdraw_object.city       = account_information.information.city
+        # self.withdraw_object.state      = account_information.information.state
+        # self.withdraw_object.zipcode    = account_information.information.zipcode
 
     def payout(self):
         """

@@ -14,6 +14,7 @@ class TestBonusCashTransactionInitialBalance(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         self.user = self.get_admin_user()
 
     def test_bonuscash_transaction_get_balance(self):
@@ -29,6 +30,7 @@ class TestBonusCashTransaction(AbstractTest):
     test a wide range of behaviors for BonusCashTransaction including its constructor, deposit, and withdraw
     """
     def setUp(self):
+        super().setUp()
         self.user                   = self.get_admin_user()
         self.starting_balance       = self.__get_starting_balance(self.user)
 
@@ -150,6 +152,7 @@ class TestBonusCashTransaction(AbstractTest):
 class TestAdminPanelBonusCashDeposit(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         self.user   = self.get_admin_user()
         self.url    = '/admin/bonuscash/adminbonuscashdeposit/add/' # you can determine the url from the actual admin panel
         self.client = Client()

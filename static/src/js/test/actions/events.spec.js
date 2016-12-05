@@ -83,6 +83,27 @@ describe('actions.events.showGameEvent', () => {
     watching: watchingReducer(undefined, {}),
   };
 
+  // update with game data, for big plays
+  defaultStore.sports.games = {
+    '73e40c5f-c690-4936-8853-339ed43dcc76': {
+      home_score: 3,
+      away_score: 2,
+      sport: 'mlb',
+      srid_home: 'c69073e40c5f-4936-8853-339ed43dcc76',
+      srid_away: '339ed43dcc76-c69073e40c5f-4936-8853',
+    },
+  };
+  defaultStore.sports.mlb.teams = {
+    'c69073e40c5f-4936-8853-339ed43dcc76': {
+      alias: 'Team1',
+    },
+    '339ed43dcc76-c69073e40c5f-4936-8853': {
+      alias: 'Team2',
+    },
+  };
+
+  defaultStore.sports.nba.gameIds = [gameId];
+
   const defaultMessage = {
     description: '',
     eventPlayers: ['player1', 'player4'],
@@ -128,8 +149,11 @@ describe('actions.events.showGameEvent', () => {
           type: types.EVENT_MULTIPART_SET,
           key: 'atbat1',
           value: merge({}, defaultMessage, {
+            awayScoreStr: 'Team2 2',
+            homeScoreStr: 'Team1 3',
             relevantPlayersInEvent: ['player1'],
             whichSide: 'mine',
+            winning: 'home',
           }),
         },
         {

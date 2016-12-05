@@ -57,14 +57,9 @@ Hello WOrld!
 @import "./blocks/form.scss";
 @import "./blocks/form-field.scss";
 @import "./blocks/form-field-message.scss";
-@import "./blocks/live-contests-pane.scss";
 @import "./blocks/player-detail-pane.scss";
-@import "./blocks/live-player-pane.scss";
 @import "./blocks/cmp-draft-player-detail.scss";
-@import "./blocks/live-standings-pane.scss";
 @import "./blocks/live-moneyline.scss";
-@import "./blocks/live-nba-court.scss";
-@import "./blocks/live-pane.scss";
 @import "./blocks/live.scss";
 @import "./blocks/nav-main.scss";
 @import "./blocks/pane.scss";
@@ -84,6 +79,7 @@ Hello WOrld!
 @import "./blocks/cmp-message-display.scss";
 @import "./blocks/account/section-account.scss";
 @import "./blocks/account/deposits.scss";
+@import "./blocks/account/identity-form.scss";
 
 /* Components */
 @import "./blocks/cmp-contest-list.scss";
