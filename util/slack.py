@@ -122,7 +122,7 @@ class Attachment(object):
 
 class WebhookContestScheduler(Webhook):
     """
-    use this class for sending notifications to  #contest-pool-admin
+    use this class for sending notifications to  #contest-updates
 
     usage:
 
@@ -134,9 +134,9 @@ class WebhookContestScheduler(Webhook):
 
     """
 
-    # currently for draftboard: #contest-pool-admin
-    # https://hooks.slack.com/services/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
-    identifier = 'T03UVUNP8/B0YSXEPPY/pKte0MIETAHMwowloM0Yl4UX'
+    # currently for draftboard: #contest-updates
+    # https://hooks.slack.com/services/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
+    identifier = 'T02S3E1FD/B3ARUD0V9/S5BmvH6qbrF3SlzyA1R2WAKE'
 
     def __init__(self, sport):
         super().__init__()
