@@ -20,10 +20,13 @@ from fpp.classes import FppTransaction
 from mysite.classes import  AbstractManagerClass
 from promocode.bonuscash.classes import BonusCashTransaction
 from cash.models import CashTransactionDetail
+from ..classes import ContestPoolCreator
+
 
 class PayoutTest(AbstractTest):
 
     def setUp(self):
+        super().setUp()
         # creates very standard ticket amounts like 1,2,5, 10, 20, 50
         TicketManager.create_default_ticket_amounts(verbose=False)
 
@@ -54,6 +57,15 @@ class PayoutTest(AbstractTest):
         self.contest.entries = 6
         self.contest.save()
 
+        self.contest_pool, created = ContestPoolCreator(
+            'nfl',
+            self.prize_structure,
+            self.draftgroup.start,
+            (self.draftgroup.end - self.draftgroup.start).seconds * 60,
+            self.draftgroup
+        ).get_or_create()
+        self.contest_pool.entries = 6
+        self.contest_pool.save()
         self.scorer_class = TestSalaryScoreSystem
 
     def create_ticket_contest(self):
@@ -89,8 +101,8 @@ class PayoutTest(AbstractTest):
             lineup.save()
 
             bm = BuyinManager(lineup.user)
-            bm.buyin(self.contest, lineup)
-
+            bm.buyin(self.contest_pool, lineup)
+        Entry.objects.filter(contest_pool=self.contest_pool).update(contest=self.contest)
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
@@ -109,8 +121,8 @@ class PayoutTest(AbstractTest):
             lineup.save()
 
             bm = BuyinManager(lineup.user)
-            bm.buyin(self.contest, lineup)
-
+            bm.buyin(self.contest_pool, lineup)
+        Entry.objects.filter(contest_pool=self.contest_pool).update(contest=self.contest)
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
@@ -134,8 +146,8 @@ class PayoutTest(AbstractTest):
 
 
             bm = BuyinManager(lineup.user)
-            bm.buyin(self.contest, lineup)
-
+            bm.buyin(self.contest_pool, lineup)
+        Entry.objects.filter(contest_pool=self.contest_pool).update(contest=self.contest)
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
@@ -163,18 +175,18 @@ class PayoutTest(AbstractTest):
             lineup.save()
 
             bm = BuyinManager(lineup.user)
-            bm.buyin(self.contest, lineup)
-
+            bm.buyin(self.contest_pool, lineup)
+        Entry.objects.filter(contest_pool=self.contest_pool).update(contest=self.contest)
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
-    def __create_lineups_with_fantasy_points(self, contest, lineup_points=[]):
+    def __create_lineups_with_fantasy_points(self, contest_pool, lineup_points=[]):
         """
         contest is the contest to associate lineups with
         lineup_points is an array of the points to give to the lineups in creation order.
         """
 
-        max = contest.entries
+        max = contest_pool.entries
         for i in range(1, max+1):
             # get the user for the lineup
             user = self.get_user(username=str(i))
@@ -189,8 +201,8 @@ class PayoutTest(AbstractTest):
 
             # buy this lineup into the contest
             bm = BuyinManager(lineup.user)
-            bm.buyin(self.contest, lineup)
-
+            bm.buyin(self.contest_pool, lineup)
+        Entry.objects.filter(contest_pool=self.contest_pool).update(contest=self.contest)
         # set the contest as payout-able
         self.contest.status = Contest.COMPLETED
         self.contest.save()
@@ -254,7 +266,7 @@ class PayoutTest(AbstractTest):
         :param payout_ranks:
         :return:
         """
-        self.__create_lineups_with_fantasy_points(self.contest, lineup_points=lineup_points)
+        self.__create_lineups_with_fantasy_points(self.contest_pool, lineup_points=lineup_points)
         pm = PayoutManager()
         pm.payout(finalize_score=False)
 

@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { updateGameTeam, updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
 import { updateLiveMode } from './watching';
+import { sportsSelector } from '../selectors/sports';
 import {
   removeEventMultipart,
   storeEventMultipart,
@@ -18,6 +19,11 @@ import {
 // get custom logger for actions
 const logAction = log.getLogger('action');
 
+
+const addEventToBigPlays = (value) => ({
+  type: ActionTypes.EVENT_ADD_TO_BIG_QUEUE,
+  value,
+});
 
 const showCurrentResults = () => ({
   type: ActionTypes.EVENT__SHOW_CURRENT_RESULT,
@@ -75,6 +81,9 @@ export const updatePBPPlayersStats = (sport, playersStats) => (dispatch) => {
 const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers) => {
   logAction.debug('actions.whichSide');
 
+  // if (relevantPlayersInEvent.length === 0) return 'bigPlay';
+  if (relevantPlayersInEvent.length === 0) return 'both';  // until we get updated animations
+
   // determine what color the animation should be, based on which lineup(s) the player(s) are in
   if (watching.opponentLineupId && opponentLineup.isLoading === false) {
     const rosterBySRID = opponentLineup.rosterBySRID;
@@ -105,6 +114,11 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
 
   calls.push(dispatch(removePlayersPlaying(relevantPlayersInEvent)));
 
+  // add to big plays, if relevant
+  if (relevantPlayersInEvent.length > 0 || animationEvent.isBigPlay) {
+    calls.push(dispatch(addEventToBigPlays(animationEvent)));
+  }
+
   switch (animationEvent.sport) {
     case 'mlb': {
       const { sridAtBat } = animationEvent;
@@ -126,7 +140,22 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
 
       break;
     }
-    case 'nba':
+    case 'nba': {
+      eventDescription.when = when;
+
+      // show event beside player and in their history
+      forEach(relevantPlayersInEvent, (playerId) => {
+        const playerEventDescription = merge({}, eventDescription, { playerId });
+
+        calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
+        calls.push(dispatch(showCurrentResults()));
+      });
+
+      // update player stats if we have them
+      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.playersStats)));
+
+      break;
+    }
     case 'nfl': {
       eventDescription.when = when;
 
@@ -140,6 +169,9 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
 
       // update player stats if we have them
       calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.playersStats)));
+
+      // add to big plays
+      calls.push(dispatch(addEventToBigPlays(animationEvent)));
 
       break;
     }
@@ -163,20 +195,35 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const watching = state.watching;
   const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
+  const sports = sportsSelector(state);
 
   const { eventPlayers, playersStats, sport } = message;
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
   // if there are no more relevant players, just update stats
-  if (relevantPlayersInEvent.length === 0) return dispatch(updatePBPPlayersStats(sport, playersStats));
+  if (relevantPlayersInEvent.length === 0) {
+    const calls = [];
+    calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
+    return Promise.all(calls);
+  }
 
-  logAction.debug('showGameEvent has relevant player(s)', relevantPlayersInEvent);
+  if (relevantPlayersInEvent.length > 0) {
+    logAction.debug('showGameEvent has relevant player(s)', relevantPlayersInEvent);
+  }
 
   // update message to reflect current lineups the user is watching
   const animationEvent = merge({}, message, {
     relevantPlayersInEvent,
     whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
   });
+
+  // add in game information for big plays
+  const game = sports.games[message.gameId];
+  const homeScore = game.home_score;
+  const awayScore = game.away_score;
+  animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
+  animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
+  animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
 
   switch (sport) {
     case 'mlb': {

@@ -1,7 +1,7 @@
 import LiveAnimationArea from './live-animation-area';
 import LiveChooseLineup from './live-choose-lineup';
+import LiveBigPlays from './live-big-plays';
 import LiveContestsPane from './live-contests-pane';
-import LiveContestsToggle from './live-contests-toggle';
 import LiveCountdown from './live-countdown';
 import LiveHeader from './live-header';
 import LiveLineup from './live-lineup';
@@ -13,6 +13,7 @@ import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
+import { bigPlaysSelector } from '../../selectors/live-big-plays';
 import { bindActionCreators } from 'redux';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
@@ -21,7 +22,7 @@ import { Provider, connect } from 'react-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { uniqueLineupsSelector } from '../../selectors/current-lineups';
-import { updateLiveMode } from '../../actions/watching';
+import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching';
 import {
   watchingContestSelector,
   watchingDraftGroupTimingSelector,
@@ -47,6 +48,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchCurrentLineupsAndRelated,
     fetchRelatedLineupsInfo,
     updateLiveMode,
+    updateWatchingAndPath,
   }, dispatch),
 });
 
@@ -56,6 +58,7 @@ const mapDispatchToProps = (dispatch) => ({
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
+  bigPlaysQueue: bigPlaysSelector(state),
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   contest: watchingContestSelector(state),
@@ -72,6 +75,7 @@ export const Live = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
+    bigPlaysQueue: React.PropTypes.array.isRequired,
     contest: React.PropTypes.object.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
     relevantGamesPlayers: React.PropTypes.object.isRequired,
@@ -117,7 +121,7 @@ export const Live = React.createClass({
   },
 
   componentWillReceiveProps(nextProps) {
-    const { actions } = this.props;
+    const { actions, watching } = this.props;
 
     // show a message when contests are done for the night
     if (!this.props.draftGroupTiming.ended && nextProps.draftGroupTiming.ended) {
@@ -131,8 +135,8 @@ export const Live = React.createClass({
 
     // terrible hack to poll for current-lineups
     // instead, we should be looking for pusher call confirming that contests have been generated
-    if (this.props.watching.myLineupId) {
-      const myLineupId = this.props.watching.myLineupId;
+    if (watching.myLineupId) {
+      const myLineupId = watching.myLineupId;
       const myLineup = this.props.uniqueLineups.lineupsObj[myLineupId] || {};
       const myLineupNext = nextProps.uniqueLineups.lineupsObj[myLineupId] || {};
       const myContestNext = myLineupNext.contests || [];
@@ -148,6 +152,17 @@ export const Live = React.createClass({
 
         // also immediately check
         // actions.fetchCurrentLineupsAndRelated(true);
+      }
+
+      // if there's only one contest, default to it
+      if (watching.contestId === null && myLineup.hasStarted && myLineupNext.contests.length === 1) {
+        const contestId = myLineupNext.contests[0];
+        const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${contestId}/`;
+        const changedFields = {
+          contestId,
+        };
+
+        actions.updateWatchingAndPath(path, changedFields);
       }
 
       // stop checking once we have a contest
@@ -168,9 +183,23 @@ export const Live = React.createClass({
     this.setState({ windowWidth: window.innerWidth });
   },
 
+  selectLineup(lineup) {
+    const { actions } = this.props;
+    const path = `/live/${lineup.sport}/lineups/${lineup.id}/`;
+    const changedFields = {
+      draftGroupId: lineup.draftGroup,
+      myLineupId: lineup.id,
+      sport: lineup.sport,
+    };
+
+    actions.updateWatchingAndPath(path, changedFields);
+    actions.fetchCurrentLineupsAndRelated(true);
+  },
+
   render() {
     const {
       actions,
+      bigPlaysQueue,
       contest,
       draftGroupTiming,
       myLineupInfo,
@@ -194,6 +223,7 @@ export const Live = React.createClass({
       return (
         <div className={`${block}`}>
           <LiveChooseLineup
+            selectLineup={this.selectLineup}
             lineupsLoaded={uniqueLineups.haveLoaded}
             lineups={uniqueLineups.lineups}
           />
@@ -241,8 +271,8 @@ export const Live = React.createClass({
     }
 
     // defining optional component pieces
+    let liveBigPlaysDom;
     let liveStandingsPane;
-    let liveContestsToggle = (<LiveContestsToggle />);
     let opponentLineupComponent;
     let contestsPaneOpen = true;
     let venuesPosition = '';
@@ -251,16 +281,14 @@ export const Live = React.createClass({
     // if viewing a contest
     if (watching.contestId !== null && !contest.isLoading) {
       contestsPaneOpen = false;
-      liveContestsToggle = null;
-      let standingsPaneOpen = true;
 
       // if viewing an opponent, add in lineup and update moneyline
       if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
-        standingsPaneOpen = false;
         venuesPosition = 'showing-opponent-lineup';
 
         opponentLineupComponent = (
           <LiveLineup
+            contest={contest}
             draftGroupStarted={draftGroupTiming.started}
             lineup={opponentLineup}
             watching={watching}
@@ -271,9 +299,9 @@ export const Live = React.createClass({
 
       liveStandingsPane = (
         <LiveStandingsPane
-          contest={contest}
+          hasLineupsUsernames={contest.hasLineupsUsernames}
           lineups={contest.lineups}
-          openOnStart={standingsPaneOpen}
+          lineupsUsernames={contest.lineupsUsernames}
           rankedLineups={contest.rankedLineups}
           watching={watching}
         />
@@ -283,9 +311,12 @@ export const Live = React.createClass({
     modifiers.push(venuesPosition);
     const classNames = generateBlockNameWithModifiers(block, modifiers);
 
+    if (bigPlaysQueue.length > 0) liveBigPlaysDom = (<LiveBigPlays queue={bigPlaysQueue} />);
+
     return (
       <div className={classNames}>
         <LiveLineup
+          contest={contest}
           draftGroupStarted={draftGroupTiming.started}
           lineup={myLineupInfo}
           watching={watching}
@@ -298,8 +329,10 @@ export const Live = React.createClass({
           <div className={`${block}__venues-inner`}>
             <LiveHeader
               contest={contest}
+              lineups={uniqueLineups.lineups}
               myLineup={myLineupInfo}
               opponentLineup={opponentLineup}
+              selectLineup={this.selectLineup}
               watching={watching}
             />
 
@@ -312,13 +345,15 @@ export const Live = React.createClass({
           openOnStart={contestsPaneOpen}
           watching={watching}
         />
-        {liveContestsToggle}
 
         {liveStandingsPane}
+
+        {liveBigPlaysDom}
       </div>
     );
   },
 });
+
 
 // Wrap the component to inject dispatch and selected state into it.
 export const LiveConnected = connect(

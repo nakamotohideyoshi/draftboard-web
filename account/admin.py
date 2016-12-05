@@ -1,26 +1,20 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-
-from account.models import Information, EmailNotification, UserLog
+from account.models import Information, EmailNotification, UserLog, Identity
 from cash.admin import CashBalanceAdminInline, CashTransactionDetailAdminInline
+from .utils import reset_user_password_email
 
 
 class InformationAdminInline(admin.TabularInline):
     model = Information
-    list_display = ['user','fullname','address1','address2','city','state','zipcode','dob']
+    list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
 
 
-class UserLogAdminInline(admin.TabularInline):
-    model = UserLog
-    list_display = ['ip', 'action', 'type', 'timestamp', 'metadata']
-    readonly_fields = ('ip', 'action', 'type', 'timestamp', 'metadata')
-    can_delete = False
-    extra = 0
-    max_num = 10
-
-    def has_add_permission(self, request):
-        return False
+class IdentityAdminInline(admin.TabularInline):
+    model = Identity
+    list_display = ['first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
+                    'postal_code', 'created']
 
 
 @admin.register(EmailNotification)
@@ -33,22 +27,28 @@ class EmailNotificationAdmin(admin.ModelAdmin):
     ]
 
 
+def sent_reset_password(modeladmin, request, queryset):
+    for user in queryset:
+        reset_user_password_email(user, request)
+sent_reset_password.short_description = "Sent reset password email"
+
+
 class MyUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets
     inlines = [
         InformationAdminInline,
+        IdentityAdminInline,
         CashBalanceAdminInline,
         CashTransactionDetailAdminInline,
-        UserLogAdminInline,
     ]
+    actions = [sent_reset_password]
+
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
 
 
 @admin.register(UserLog)
 class UserLogAdmin(admin.ModelAdmin):
-    list_display = ['user', 'ip', 'action', 'type', 'timestamp']
-    search_fields = ['ip', 'user__email', 'user__first_name', 'user__last_name',
-                     'metadata']
-    list_filter = ['action', 'type', 'timestamp']
-
+    list_display = ['user', 'ip', 'type', 'action', 'timestamp']
+    search_fields = ['ip', 'user__username']
+    list_filter = ['timestamp', 'type']

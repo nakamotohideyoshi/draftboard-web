@@ -7,10 +7,10 @@ import ResultsStats from './results-stats.jsx';
  * The overarching component for the results section.
  */
 const ResultsStatic = (props) => {
-  const { year, month, day, dateIsToday, formattedDate } = props.date;
+  const { year, month, day, isWatchingLive, formattedDate } = props.date;
 
   let dayResults = props.results[formattedDate] || null;
-  if (dateIsToday === true) {
+  if (isWatchingLive === true) {
     dayResults = props.resultsWithLive || null;
   }
 
@@ -20,7 +20,7 @@ const ResultsStatic = (props) => {
       <div>
         <ResultsStats stats={dayResults.overall} />
         <ResultsLineups
-          dateIsToday={dateIsToday}
+          isWatchingLive={isWatchingLive}
           lineups={dayResults.lineups}
         />
       </div>
@@ -40,7 +40,9 @@ const ResultsStatic = (props) => {
         year={year}
         month={month}
         day={day}
+        isWatchingLive={isWatchingLive}
         onSelectDate={props.onSelectDate}
+        watchLiveLineups={props.watchLiveLineups}
       />
       {statsAndLineups}
     </div>
@@ -54,11 +56,12 @@ ResultsStatic.propTypes = {
     year: React.PropTypes.number,
     month: React.PropTypes.number,
     day: React.PropTypes.number,
-    dateIsToday: React.PropTypes.boolean,
+    isWatchingLive: React.PropTypes.boolean,
     formattedDate: React.PropTypes.string,
   }),
   onSelectDate: React.PropTypes.func.isRequired,
   resultsWithLive: React.PropTypes.object.isRequired,
+  watchLiveLineups: React.PropTypes.func,
 };
 
 export default ResultsStatic;

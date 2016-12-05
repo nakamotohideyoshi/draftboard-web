@@ -66,6 +66,12 @@ urlpatterns = [
     ),
 
     url(
+        r'^results/live-with-lineups/$',
+        views.FrontendResultsTemplateView.as_view(),
+        name='live-results'
+    ),
+
+    url(
         r'^results/$',
         views.FrontendResultsTemplateView.as_view(),
         name='live-results'

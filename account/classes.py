@@ -20,7 +20,7 @@ class AccountInformation( AbstractSiteUserClass ):
     Class manages the user's account information
     """
 
-    required_fields = ['fullname', 'address1', 'city', 'state', 'zipcode']
+    required_fields = [] # ['fullname', 'address1', 'city', 'state', 'zipcode']
     information = None
 
     def __init__(self, user):

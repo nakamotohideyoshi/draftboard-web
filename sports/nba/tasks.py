@@ -1,8 +1,6 @@
-#
-# nba/tasks.py
-
 from mysite.celery_app import app
 from sports.nba.parser import DataDenNba
+
 
 @app.task(bind=True)
 def update_injuries(self):
@@ -14,6 +12,7 @@ def update_injuries(self):
     """
     parser = DataDenNba()
     parser.cleanup_injuries()
+
 
 @app.task(bind=True)
 def cleanup_rosters(self):

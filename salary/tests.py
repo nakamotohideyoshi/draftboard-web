@@ -169,6 +169,7 @@ class PlayerStatsObjectTest(AbstractTest):
     """ test PlayerStats object """
 
     def setUp(self):
+        super().setUp()
         create_sport_and_rosters()
         self.player_stats = create_basic_player_stats()
 
@@ -188,6 +189,7 @@ class SalaryGeneratorTest(AbstractTest):
     """ test the salary generation """
 
     def setUp(self):
+        super().setUp()
         self.site_sport = create_sport_and_rosters()
 
         self.salary_conf                                    = SalaryConfig()
@@ -330,6 +332,7 @@ class CreateActivePoolAndSideEffectExisting(AbstractTest):
     """
 
     def setUp(self):
+        super().setUp()
         """
         create a fake site_sport for use by test functions
         """

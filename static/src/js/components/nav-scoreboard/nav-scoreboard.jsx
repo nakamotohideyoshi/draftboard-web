@@ -4,9 +4,7 @@ import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { bindActionCreators } from 'redux';
-import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
 import { fetchSportsIfNeeded } from '../../actions/sports';
-import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
 import { removeUnusedContests } from '../../actions/live-contests';
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
@@ -21,7 +19,6 @@ import { fetchCashBalanceIfNeeded } from '../../actions/user.js';
  */
 const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators({
-    fetchCurrentLineupsAndRelated,
     fetchSportsIfNeeded,
     removeUnusedContests,
     removeUnusedDraftGroups,
@@ -35,7 +32,6 @@ const mapDispatchToProps = (dispatch) => ({
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  myCurrentLineupsSelector: myCurrentLineupsSelector(state),
   sportsSelector: sportsSelector(state),
   cashBalance: state.user.cashBalance.amount,
 });
@@ -54,7 +50,6 @@ const NavScoreboard = React.createClass({
       React.PropTypes.string,
       React.PropTypes.number,
     ]),
-    myCurrentLineupsSelector: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
   },
 
@@ -63,9 +58,6 @@ const NavScoreboard = React.createClass({
     return {
       // whether the user is logged in or not, useful for parity checks
       user: window.dfs.user,
-
-      // whether or not we are on the live page (determines what data to load)
-      isLivePage: window.location.pathname.substring(0, 6) === '/live/',
     };
   },
 
@@ -77,12 +69,7 @@ const NavScoreboard = React.createClass({
     this.props.actions.fetchSportsIfNeeded();
 
     // if the user is logged in
-    if (this.state.user.username !== '') {
-      this.props.actions.fetchCashBalanceIfNeeded();
-      // if (!this.state.isLivePage) {
-      //   this.props.actions.fetchCurrentLineupsAndRelated();
-      // }
-    }
+    if (this.state.user.username !== '') this.props.actions.fetchCashBalanceIfNeeded();
 
     this.startListening();
   },
@@ -92,7 +79,7 @@ const NavScoreboard = React.createClass({
    */
   startListening() {
     // start parity checks
-    window.setInterval(() => this.props.actions.fetchSportsIfNeeded(), 5000);
+    window.setInterval(() => this.props.actions.fetchSportsIfNeeded(), 30 * 1000);
 
     // remove expired objects within Redux if you aren't on the results page
     if (window.location.pathname.substring(0, 9) !== '/results/') {
@@ -110,7 +97,6 @@ const NavScoreboard = React.createClass({
         <NavScoreboardStatic
           user={window.dfs.user}
           sportsSelector={this.props.sportsSelector}
-          myCurrentLineupsSelector={this.props.myCurrentLineupsSelector}
           cashBalance={this.props.cashBalance}
         />
         <PusherData />

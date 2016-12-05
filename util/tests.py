@@ -8,11 +8,12 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
-from sports.mlb.parser import PitchPbp
+# from sports.mlb.parser import PitchPbp
 from util.fairmatch import (
     FairMatch,
     FairMatchNoCancel,
 )
+
 
 class TestFairMatch(TestCase):
     """
@@ -73,7 +74,8 @@ class TestFairMatch(TestCase):
     """
 
     def setUp(self):
-        self.fm = FairMatch([1,2,3,4], 3)
+        self.fm = FairMatch([1, 2, 3, 4], 3)
+
 
 class TestFairMatchNoCancel(TestCase):
     """
@@ -84,22 +86,24 @@ class TestFairMatchNoCancel(TestCase):
 
     def setUp(self):
         self.entry_pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 21, 22, 22, 23, 23, 24,
-                      24, 25, 26, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33]
+                           24, 25, 26, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33]
         self.contest_size = 10
-        self.fmnc = FairMatchNoCancel([1,2,3,4], 3)
+        self.fmnc = FairMatchNoCancel([1, 2, 3, 4], 3)
+
 
 class ReducerTest(TestCase):
 
     def setUp(self):
-        pass # TODO
+        pass  # TODO
 
     def test_exception_remove_fields_not_set(self):
         """
         exception should be thrown if child class
         does not set 'remove_fields' list
         """
-        class TestReducer(Reducer): pass
-        data = {} # for this test, doesnt need any key values
+        class TestReducer(Reducer):
+            pass
+        data = {}  # for this test, doesnt need any key values
         self.assertRaises(
             Reducer.RemoveFieldsNotSetException,
             lambda: TestReducer(data)
@@ -112,7 +116,7 @@ class ReducerTest(TestCase):
         """
         class TestReducer(Reducer):
             remove_fields = []
-        data = 1 # purposely invalid for this test
+        data = 1  # purposely invalid for this test
 
         self.assertRaises(
             Reducer.InvalidDataType,
@@ -131,7 +135,7 @@ class ReducerTest(TestCase):
         """
         class TestReducer(Reducer):
             remove_fields = []
-        tr = TestReducer({}) # data doesnt matter for this test
+        tr = TestReducer({})  # data doesnt matter for this test
         # test if assertTrue returns true for things that arent booleans
 
         ######################################################################
@@ -147,9 +151,9 @@ class ReducerTest(TestCase):
         self.assertFalse(tr.str2bool(Reducer.str_false))
 
         # test on things not cast to bool
-        d = {} # str2bool should return a dict
+        d = {}  # str2bool should return a dict
         self.assertTrue(isinstance(tr.str2bool(d), dict))
-        l = [] # str2bool should return a list
+        l = []  # str2bool should return a list
         self.assertTrue(isinstance(tr.str2bool(l), list))
 
     def test_removes_specified_fields(self):
@@ -159,10 +163,11 @@ class ReducerTest(TestCase):
         this test also ensures the original data is not modified
         """
         data = {
-            'key1' : 'val1',
-            'key2' : 'val2',
+            'key1': 'val1',
+            'key2': 'val2',
         }
         orig = data.copy()
+
         class TestReducer(Reducer):
             remove_fields = ['key1']
 
@@ -190,15 +195,19 @@ class ReducerTest(TestCase):
         we can infer that pre_reduce() indeed happened before it, as expected.
         """
         data = {}
+
         class TestReducer(Reducer):
             remove_fields = ['key1']
+
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.pre_reduce_called = False
                 self.reduce_called = False
+
             def pre_reduce(self):
                 super().pre_reduce()
                 self.pre_reduce_called = True
+
             def reduce(self):
                 reduced = super().reduce()
                 self.reduce_called = self.pre_reduce_called and True
@@ -210,18 +219,20 @@ class ReducerTest(TestCase):
 
         self.assertTrue(tr.pre_reduce_called and tr.reduce_called)
 
+
 class ShrinkerTest(TestCase):
 
     def setUp(self):
-        pass # TODO
+        pass  # TODO
 
     def test_exception_fields_not_set(self):
         """
         creating an instance of a subclass that has not
         set the fields property raises exception
         """
-        class TestFieldsNotSetShrinker(Shrinker): pass
-        data = {} # for this test, doesnt need any key values
+        class TestFieldsNotSetShrinker(Shrinker):
+            pass
+        data = {}  # for this test, doesnt need any key values
         self.assertRaises(
             Shrinker.FieldsNotSetException,
             lambda: TestFieldsNotSetShrinker(data)
@@ -232,11 +243,12 @@ class ShrinkerTest(TestCase):
         shrinker should not rename a field to an existing key name
         """
         data = {
-            'key99':'val99',
-            'key1':'val1'
+            'key99': 'val99',
+            'key1': 'val1'
         }
+
         class TestShrinker(Shrinker):
-            fields = {'key99':'key1'}
+            fields = {'key99': 'key1'}
 
         ts = TestShrinker(data)
         shrunk = ts.shrink()
@@ -251,14 +263,15 @@ class ShrinkerTest(TestCase):
         shrinker should not rename a field to an existing key name
         """
         data = {
-            'key99':'val99',
-            'key1':'val1'
+            'key99': 'val99',
+            'key1': 'val1'
         }
         orig = data.copy()
+
         class TestShrinker(Shrinker):
             fields = {
-                'key99':'key9999',
-                'key1':'key1111'
+                'key99': 'key9999',
+                'key1': 'key1111'
             }
 
         ts = TestShrinker(data)
@@ -268,6 +281,7 @@ class ShrinkerTest(TestCase):
         # which is effectively how we know we didnt overwrite
         # the existing 'key1' value!
         self.assertTrue(ts.data == orig)
+
 
 class ManagerTest(TestCase):
 
@@ -321,6 +335,7 @@ class ManagerTest(TestCase):
 # tests below here are not really for the system so much as they are for quick examples
 ##################################################################################################
 
+
 class TestRawRequirements(TestCase):
 
     def setUp(self):
@@ -332,6 +347,7 @@ class TestRawRequirements(TestCase):
         self.at_bat = self.raw.get('at_bat')
         self.zone_pitches = self.raw.get('zone_pitches')
         self.runners = self.raw.get('runners')
+
 
 class TestRawRequirements2(TestCase):
 
@@ -374,11 +390,11 @@ class TestRawRequirements2(TestCase):
         class AtBatShrinker(Shrinker):
 
             fields = {
-                'at_bat__id' : 'srid',
-                'dd_updated__id' : 'ts',
-                'hitter_id' : 'srid_hitter',
-                'outcome_id' : 'oid',
-                'description' : 'oid_description',
+                'at_bat__id': 'srid',
+                'dd_updated__id': 'ts',
+                'hitter_id': 'srid_hitter',
+                'outcome_id': 'oid',
+                'description': 'oid_description',
             }
 
         r = AtBatReducer(self.at_bat)
@@ -388,6 +404,7 @@ class TestRawRequirements2(TestCase):
         s = AtBatShrinker(reduced)
         shrunk = s.shrink()
         print('shrunk:', str(shrunk))
+
 
 class TestLinkedParts(TestCase):
 
@@ -411,13 +428,20 @@ class TestLinkedParts(TestCase):
         #
         # 5269093 2016-06-29 21:57:39.860150+00:00 mlb.pitch {'dd_updated__id': 1467237448660, 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'outcome_id': 'bB', 'created_at': '2016-06-29T21:57:19Z', 'pitcher': '48347189-837d-4453-9e54-d3be3b9fc639', 'count__list': {'balls': 1.0, 'strikes': 0.0, 'outs': 1.0, 'pitch_count': 1.0}, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'runners__list': [{'runner': 'fb061c77-5253-4181-ad7b-c68ef18aa511'}, {'runner': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b'}], 'flags__list': {'is_wild_pitch': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false', 'is_hit': 'false', 'is_ab_over': 'false', 'is_passed_ball': 'false', 'is_on_base': 'false', 'is_double_play': 'false', 'is_bunt': 'false', 'is_ab': 'false'}, 'id': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp', 'updated_at': '2016-06-29T21:57:23Z', 'status': 'official', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVpZDQyNzVlODgxLWM3NDUtNDFlNC1hOTFjLWFiZDEyMzU4YmUxNg=='}
         #
-        # 5269094 2016-06-29 21:57:39.989930+00:00 mlb.at_bat {'hitter_id': 'd28626fe-94c6-4fdb-bcf3-ba7b1c5180e6', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGlkZTg2Nzg2MTctM2E5Yi00NGYxLWI5MGQtNjg5MTliMDY0Yzg1', 'dd_updated__id': 1467237448660, 'id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitch': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp'}
+        # 5269094 2016-06-29 21:57:39.989930+00:00 mlb.at_bat {'hitter_id':
+        # 'd28626fe-94c6-4fdb-bcf3-ba7b1c5180e6', '_id':
+        # 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGlkZTg2Nzg2MTctM2E5Yi00NGYxLWI5MGQtNjg5MTliMDY0Yzg1',
+        # 'dd_updated__id': 1467237448660, 'id':
+        # 'e8678617-3a9b-44f1-b90d-68919b064c85', 'game__id':
+        # '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitch':
+        # '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp'}
 
         self.zone_pitch = literal_eval("""{'dd_updated__id': 1467237448660, 'hitter_hand': 'R', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitcher_hand': 'R', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'id': '48347189-837d-4453-9e54-d3be3b9fc639', 'pitch_type': 'SL', 'pitch_count': 15.0, 'parent_api__id': 'pbp', 'pitch_zone': 12.0, 'pitch_speed': 85.0, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZpZDQ4MzQ3MTg5LTgzN2QtNDQ1My05ZTU0LWQzYmUzYjlmYzYzOQ=='}""")
         self.runner1 = literal_eval("""{'_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRmYjA2MWM3Ny01MjUzLTQxODEtYWQ3Yi1jNjhlZjE4YWE1MTE=', 'last_name': 'Pujols', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', 'starting_base': 1.0, 'id': 'fb061c77-5253-4181-ad7b-c68ef18aa511', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'parent_list__id': 'runners__list', 'parent_api__id': 'pbp', 'preferred_name': 'Albert', 'dd_updated__id': 1467237448660, 'ending_base': 1.0, 'jersey_number': 5.0, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'first_name': 'Jose', 'out': 'false'}""")
         self.runner2 = literal_eval("""{'jersey_number': 27.0, 'first_name': 'Michael', 'starting_base': 2.0, 'out': 'false', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'last_name': 'Trout', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ3ZjUxODYzMi0yZDVkLTQ4YzgtYjk5NC0yZDRkNDNhMWVmM2I=', 'ending_base': 2.0, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'preferred_name': 'Mike', 'parent_list__id': 'runners__list', 'id': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b', 'parent_api__id': 'pbp', 'dd_updated__id': 1467237448660}""")
         self.runners = [self.runner1, self.runner2]
-        self.pitch = literal_eval("""{'dd_updated__id': 1467237448660, 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'outcome_id': 'bB', 'created_at': '2016-06-29T21:57:19Z', 'pitcher': '48347189-837d-4453-9e54-d3be3b9fc639', 'count__list': {'balls': 1.0, 'strikes': 0.0, 'outs': 1.0, 'pitch_count': 1.0}, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'runners__list': [{'runner': 'fb061c77-5253-4181-ad7b-c68ef18aa511'}, {'runner': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b'}], 'flags__list': {'is_wild_pitch': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false', 'is_hit': 'false', 'is_ab_over': 'false', 'is_passed_ball': 'false', 'is_on_base': 'false', 'is_double_play': 'false', 'is_bunt': 'false', 'is_ab': 'false'}, 'id': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp', 'updated_at': '2016-06-29T21:57:23Z', 'status': 'official', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVpZDQyNzVlODgxLWM3NDUtNDFlNC1hOTFjLWFiZDEyMzU4YmUxNg=='}""")
+        self.pitch = literal_eval(
+            """{'dd_updated__id': 1467237448660, 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'outcome_id': 'bB', 'created_at': '2016-06-29T21:57:19Z', 'pitcher': '48347189-837d-4453-9e54-d3be3b9fc639', 'count__list': {'balls': 1.0, 'strikes': 0.0, 'outs': 1.0, 'pitch_count': 1.0}, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'runners__list': [{'runner': 'fb061c77-5253-4181-ad7b-c68ef18aa511'}, {'runner': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b'}], 'flags__list': {'is_wild_pitch': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false', 'is_hit': 'false', 'is_ab_over': 'false', 'is_passed_ball': 'false', 'is_on_base': 'false', 'is_double_play': 'false', 'is_bunt': 'false', 'is_ab': 'false'}, 'id': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp', 'updated_at': '2016-06-29T21:57:23Z', 'status': 'official', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVpZDQyNzVlODgxLWM3NDUtNDFlNC1hOTFjLWFiZDEyMzU4YmUxNg=='}""")
         self.at_bat = literal_eval("""{'hitter_id': 'd28626fe-94c6-4fdb-bcf3-ba7b1c5180e6', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGlkZTg2Nzg2MTctM2E5Yi00NGYxLWI5MGQtNjg5MTliMDY0Yzg1', 'dd_updated__id': 1467237448660, 'id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitch': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp'}""")
 
     def test_it(self):
@@ -431,23 +455,22 @@ class TestLinkedParts(TestCase):
         print('at_bat:', str(self.at_bat))
         print('')
 
-class TestBuildLinkedPbpStatsData(TestCase):
-
-    def setUp(self):
-        self.parser = PitchPbp()
-        self.raw = literal_eval("""{'at_bat_stats': None, 'stats': None, 'pitch': {'outcome_id': 'aD', 'dd_updated__id': 1467237502982, 'parent_api__id': 'pbp', 'hit_location': 9.0, 'id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'status': 'official', 'pitcher': '90aa4b7f-94b5-40e7-882f-5d2aa8fe2c95', 'hit_type': 'LD', 'updated_at': '2016-06-29T21:58:16Z', 'runners__list': [{'runner': '7c9c97fd-7a89-49e1-830b-0274a5c2209a'}, {'runner': 'd598fe0d-8402-4707-b05d-4663a1c3cbe7'}, {'runner': '468c82b9-425a-4986-a862-e1ae9de32a7c'}], 'count__list': {'balls': 1.0, 'pitch_count': 2.0, 'outs': 1.0, 'strikes': 0.0}, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRpZDYxNDM1NTNlLTJkOTUtNDdhNS1iYzk5LTIxZmI1NTUxZDQ5MA==', 'flags__list': {'is_triple_play': 'false', 'is_ab_over': 'true', 'is_passed_ball': 'false', 'is_bunt': 'false', 'is_wild_pitch': 'false', 'is_ab': 'true', 'is_bunt_shown': 'false', 'is_on_base': 'true', 'is_double_play': 'false', 'is_hit': 'true'}, 'created_at': '2016-06-29T21:58:12Z', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4'}, 'zone_pitches': [{'pitch_type': 'CU', 'dd_updated__id': 1467237484860, 'pitch_speed': 77.0, 'hitter_hand': 'R', 'parent_api__id': 'pbp', 'id': '90aa4b7f-94b5-40e7-882f-5d2aa8fe2c95', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'pitch__id': 'c580994b-d74e-4780-a694-ffdf1f08f0c3', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWRjNTgwOTk0Yi1kNzRlLTQ3ODAtYTY5NC1mZmRmMWYwOGYwYzNpZDkwYWE0YjdmLTk0YjUtNDBlNy04ODJmLTVkMmFhOGZlMmM5NQ==', 'pitch_count': 10.0, 'pitcher_hand': 'R', 'pitch_zone': 13.0}, {'dd_updated__id': 1467237548314, 'pitch_speed': 93.0, 'hitter_hand': 'R', 'parent_api__id': 'pbp', 'id': '90aa4b7f-94b5-40e7-882f-5d2aa8fe2c95', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', 'pitch_type': 'FA', 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBpZDkwYWE0YjdmLTk0YjUtNDBlNy04ODJmLTVkMmFhOGZlMmM5NQ==', 'pitch_count': 11.0, 'pitcher_hand': 'R', 'pitch_zone': 4.0}], 'runners': [{'outcome_id': 'AD2', 'dd_updated__id': 1467237502982, 'preferred_name': 'Paul', 'parent_api__id': 'pbp', 'jersey_number': 44.0, 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'starting_base': 0.0, 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'first_name': 'Paul', 'last_name': 'Goldschmidt', 'out': 'false', 'id': '7c9c97fd-7a89-49e1-830b-0274a5c2209a', 'parent_list__id': 'runners__list', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ3YzljOTdmZC03YTg5LTQ5ZTEtODMwYi0wMjc0YTVjMjIwOWE=', 'ending_base': 2.0, 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4'}, {'outcome_id': 'ERN', 'dd_updated__id': 1467237502982, 'preferred_name': 'Philip', 'parent_api__id': 'pbp', 'jersey_number': 15.0, 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'starting_base': 1.0, 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'first_name': 'Philip', 'last_name': 'Gosselin', 'out': 'false', 'id': 'd598fe0d-8402-4707-b05d-4663a1c3cbe7', 'parent_list__id': 'runners__list', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRkNTk4ZmUwZC04NDAyLTQ3MDctYjA1ZC00NjYzYTFjM2NiZTc=', 'description': 'Philip Gosselin scores.', 'ending_base': 4.0, 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4'}, {'outcome_id': 'ERN', 'dd_updated__id': 1467237502982, 'preferred_name': 'Michael', 'parent_api__id': 'pbp', 'id': '468c82b9-425a-4986-a862-e1ae9de32a7c', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'starting_base': 3.0, 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'first_name': 'Michael', 'last_name': 'Bourn', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', 'jersey_number': 1.0, 'parent_list__id': 'runners__list', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ0NjhjODJiOS00MjVhLTQ5ODYtYTg2Mi1lMWFlOWRlMzJhN2M=', 'description': 'Michael Bourn scores.', 'ending_base': 4.0, 'out': 'false'}], 'at_bat': {'dd_updated__id': 1467237502982, 'hitter_id': '7c9c97fd-7a89-49e1-830b-0274a5c2209a', 'parent_api__id': 'pbp', 'id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGlkNmUyM2IxMmItZGQ1Ni00YWI3LThkMzctOWRhNWUzNWM3YWQ0', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'description': 'Paul Goldschmidt doubles to deep right center field. Philip Gosselin scores. Michael Bourn scores.', 'pitchs': [{'pitch': 'c580994b-d74e-4780-a694-ffdf1f08f0c3'}, {'pitch': '6143553e-2d95-47a5-bc99-21fb5551d490'}]}}""")
-
-    def test_reconstruct_from_pitch(self):
-        # set the pitch srid, and the ts so the class thinks they were set up normally
-        # as they would have been during parse()
-        # self.parser.srid_pitch  = self.raw.get('pitch').get('id')
-        # self.parser.ts          = self.raw.get('pitch').get('dd_updated__id')
-
-        #
-        data = self.parser.build_linked_pbp_stats_data(self.raw)
-        print(str(data))
+# class TestBuildLinkedPbpStatsData(TestCase):
+#
+#     def setUp(self):
+#         self.parser = PitchPbp()
+#         self.raw = literal_eval("""{'at_bat_stats': None, 'stats': None, 'pitch': {'outcome_id': 'aD', 'dd_updated__id': 1467237502982, 'parent_api__id': 'pbp', 'hit_location': 9.0, 'id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'status': 'official', 'pitcher': '90aa4b7f-94b5-40e7-882f-5d2aa8fe2c95', 'hit_type': 'LD', 'updated_at': '2016-06-29T21:58:16Z', 'runners__list': [{'runner': '7c9c97fd-7a89-49e1-830b-0274a5c2209a'}, {'runner': 'd598fe0d-8402-4707-b05d-4663a1c3cbe7'}, {'runner': '468c82b9-425a-4986-a862-e1ae9de32a7c'}], 'count__list': {'balls': 1.0, 'pitch_count': 2.0, 'outs': 1.0, 'strikes': 0.0}, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRpZDYxNDM1NTNlLTJkOTUtNDdhNS1iYzk5LTIxZmI1NTUxZDQ5MA==', 'flags__list': {'is_triple_play': 'false', 'is_ab_over': 'true', 'is_passed_ball': 'false', 'is_bunt': 'false', 'is_wild_pitch': 'false', 'is_ab': 'true', 'is_bunt_shown': 'false', 'is_on_base': 'true', 'is_double_play': 'false', 'is_hit': 'true'}, 'created_at': '2016-06-29T21:58:12Z', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4'}, 'zone_pitches': [{'pitch_type': 'CU', 'dd_updated__id': 1467237484860, 'pitch_speed': 77.0, 'hitter_hand': 'R', 'parent_api__id': 'pbp', 'id': '90aa4b7f-94b5-40e7-882f-5d2aa8fe2c95', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'pitch__id': 'c580994b-d74e-4780-a694-ffdf1f08f0c3', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWRjNTgwOTk0Yi1kNzRlLTQ3ODAtYTY5NC1mZmRmMWYwOGYwYzNpZDkwYWE0YjdmLTk0YjUtNDBlNy04ODJmLTVkMmFhOGZlMmM5NQ==', 'pitch_count': 10.0, 'pitcher_hand': 'R', 'pitch_zone': 13.0}, {'dd_updated__id': 1467237548314, 'pitch_speed': 93.0, 'hitter_hand': 'R', 'parent_api__id': 'pbp', 'id': '90aa4b7f-94b5-40e7-882f-5d2aa8fe2c95', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', 'pitch_type': 'FA', 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBpZDkwYWE0YjdmLTk0YjUtNDBlNy04ODJmLTVkMmFhOGZlMmM5NQ==', 'pitch_count': 11.0, 'pitcher_hand': 'R', 'pitch_zone': 4.0}], 'runners': [{'outcome_id': 'AD2', 'dd_updated__id': 1467237502982, 'preferred_name': 'Paul', 'parent_api__id': 'pbp', 'jersey_number': 44.0, 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'starting_base': 0.0, 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'first_name': 'Paul', 'last_name': 'Goldschmidt', 'out': 'false', 'id': '7c9c97fd-7a89-49e1-830b-0274a5c2209a', 'parent_list__id': 'runners__list', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ3YzljOTdmZC03YTg5LTQ5ZTEtODMwYi0wMjc0YTVjMjIwOWE=', 'ending_base': 2.0, 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4'}, {'outcome_id': 'ERN', 'dd_updated__id': 1467237502982, 'preferred_name': 'Philip', 'parent_api__id': 'pbp', 'jersey_number': 15.0, 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'starting_base': 1.0, 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'first_name': 'Philip', 'last_name': 'Gosselin', 'out': 'false', 'id': 'd598fe0d-8402-4707-b05d-4663a1c3cbe7', 'parent_list__id': 'runners__list', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRkNTk4ZmUwZC04NDAyLTQ3MDctYjA1ZC00NjYzYTFjM2NiZTc=', 'description': 'Philip Gosselin scores.', 'ending_base': 4.0, 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4'}, {'outcome_id': 'ERN', 'dd_updated__id': 1467237502982, 'preferred_name': 'Michael', 'parent_api__id': 'pbp', 'id': '468c82b9-425a-4986-a862-e1ae9de32a7c', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'starting_base': 3.0, 'pitch__id': '6143553e-2d95-47a5-bc99-21fb5551d490', 'first_name': 'Michael', 'last_name': 'Bourn', 'at_bat__id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', 'jersey_number': 1.0, 'parent_list__id': 'runners__list', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGF0X2JhdF9faWQ2ZTIzYjEyYi1kZDU2LTRhYjctOGQzNy05ZGE1ZTM1YzdhZDRwaXRjaF9faWQ2MTQzNTUzZS0yZDk1LTQ3YTUtYmM5OS0yMWZiNTU1MWQ0OTBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ0NjhjODJiOS00MjVhLTQ5ODYtYTg2Mi1lMWFlOWRlMzJhN2M=', 'description': 'Michael Bourn scores.', 'ending_base': 4.0, 'out': 'false'}], 'at_bat': {'dd_updated__id': 1467237502982, 'hitter_id': '7c9c97fd-7a89-49e1-830b-0274a5c2209a', 'parent_api__id': 'pbp', 'id': '6e23b12b-dd56-4ab7-8d37-9da5e35c7ad4', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDlmZDg1Y2U4LWM2NTAtNGNkYi04ZmY2LWE1MjMzZTI3NmI3NGlkNmUyM2IxMmItZGQ1Ni00YWI3LThkMzctOWRhNWUzNWM3YWQ0', 'game__id': '9fd85ce8-c650-4cdb-8ff6-a5233e276b74', 'description': 'Paul Goldschmidt doubles to deep right center field. Philip Gosselin scores. Michael Bourn scores.', 'pitchs': [{'pitch': 'c580994b-d74e-4780-a694-ffdf1f08f0c3'}, {'pitch': '6143553e-2d95-47a5-bc99-21fb5551d490'}]}}""")
+#
+#     def test_reconstruct_from_pitch(self):
+#         # set the pitch srid, and the ts so the class thinks they were set up normally
+#         # as they would have been during parse()
+#         # self.parser.srid_pitch  = self.raw.get('pitch').get('id')
+#         # self.parser.ts          = self.raw.get('pitch').get('dd_updated__id')
+#
+#         #
+#         data = self.parser.build_linked_pbp_stats_data(self.raw)
+#         print(str(data))
 
     def test_send_because_of_runner_with_steal(self):
         # runner object with 'SB2' outcome ... 2nd base was stolen
         runner = literal_eval("""{'game__id': '5293a648-c570-440a-8230-9dba92249e5d', 'parent_api__id': 'pbp', 'pitch__id': 'b1139c07-d64a-4e62-931a-f0dd20adecf1', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDUyOTNhNjQ4LWM1NzAtNDQwYS04MjMwLTlkYmE5MjI0OWU1ZGF0X2JhdF9faWQ0ODk1ZWQxZS1jMTU1LTRlZmUtOWFkMi1mZWY2MzRhNTJlODJwaXRjaF9faWRiMTEzOWMwNy1kNjRhLTRlNjItOTMxYS1mMGRkMjBhZGVjZjFwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRkODIwMTc1Mi1jNjcwLTQxMDQtYjhiYy0xZmI4YWE3Y2IyNmY=', 'last_name': 'Arcia', 'description': 'Oswaldo Arcia steals second.', 'outcome_id': 'SB2', 'ending_base': 2.0, 'first_name': 'Oswaldo', 'preferred_name': 'Oswaldo', 'jersey_number': 9.0, 'out': 'false', 'dd_updated__id': 1467338190681, 'id': 'd8201752-c670-4104-b8bc-1fb8aa7cb26f', 'at_bat__id': '4895ed1e-c155-4efe-9ad2-fef634a52e82', 'starting_base': 1.0, 'parent_list__id': 'runners__list'}""")
-

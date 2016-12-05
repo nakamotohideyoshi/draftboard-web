@@ -42,6 +42,7 @@ export const Results = React.createClass({
     dispatch: React.PropTypes.func.isRequired,
     hasRelatedInfo: React.PropTypes.bool.isRequired,
     params: React.PropTypes.object,
+    route: React.PropTypes.object,
     results: React.PropTypes.object.isRequired,
     myCurrentLineupsSelector: React.PropTypes.object.isRequired,
     liveContestsSelector: React.PropTypes.object.isRequired,
@@ -58,7 +59,7 @@ export const Results = React.createClass({
       year: null,
       month: null,
       day: null,
-      dateIsToday: null,
+      isWatchingLive: null,
       formattedDate: null,
     };
   },
@@ -75,22 +76,26 @@ export const Results = React.createClass({
         parseInt(urlParams.month, 10),
         parseInt(urlParams.day, 10)
       );
+    } else if (this.props.route.path === '/results/live-with-lineups/') {
+      this.watchLiveLineups();
     } else {
-      let today = new Date(dateNow());
+      let theDate = new Date(dateNow());
+      let delta = 1;  // days
 
       // We change results, draft groups, everything over at 10AM UTC, so
       // until then show the yesterdays results.
-      if (today.getUTCHours() < 10) {
-        today.setDate(today.getDate() - 1);
+      if (theDate.getUTCHours() < 10) {
+        delta = 2;
       }
+      theDate.setDate(theDate.getDate() - delta);
 
       // for easier formatting
-      today = moment(today);
+      theDate = moment(theDate);
 
       this.handleSelectDate(
-        parseInt(today.format('YYYY'), 10),
-        parseInt(today.format('M'), 10),
-        parseInt(today.format('D'), 10)
+        parseInt(theDate.format('YYYY'), 10),
+        parseInt(theDate.format('M'), 10),
+        parseInt(theDate.format('D'), 10)
       );
     }
   },
@@ -99,7 +104,7 @@ export const Results = React.createClass({
     if (
       prevProps.hasRelatedInfo === false &&
       this.props.hasRelatedInfo === true &&
-      this.state.dateIsToday === true
+      this.state.isWatchingLive === true
     ) {
       this.props.dispatch(updateLiveMode({
         sport: map(
@@ -116,24 +121,39 @@ export const Results = React.createClass({
       month,
       day,
       formattedDate: `${year}-${month}-${day}`,
+      isWatchingLive: false,
     };
 
     this.setState(newState);
-
-    const today = moment(dateNow());
-    const todayFormatted = today.format('YYYY-M-D');
-
-    // if we are dealing with today, then get entries
-    if (newState.formattedDate === todayFormatted) {
-      this.setState({ dateIsToday: true });
-
-      this.props.dispatch(fetchCurrentLineupsAndRelated(true));
-    } else {
-      this.setState({ dateIsToday: false });
-      this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));
-    }
+    this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));
 
     this.props.dispatch(routerPush(`/results/${year}/${month}/${day}/`));
+  },
+
+  watchLiveLineups() {
+    this.props.dispatch(fetchCurrentLineupsAndRelated(true));
+
+    let theDate = new Date(dateNow());
+
+    // We change results, draft groups, everything over at 10AM UTC, so
+    // until then show the yesterdays results.
+    if (theDate.getUTCHours() < 10) {
+      theDate.setDate(theDate.getDate() - 1);
+    }
+
+    theDate = moment(theDate);
+
+    const newState = {
+      year: parseInt(theDate.format('YYYY'), 10),
+      month: parseInt(theDate.format('M'), 10),
+      day: parseInt(theDate.format('D'), 10),
+      isWatchingLive: true,
+    };
+    newState.formattedDate = `${newState.year}-${newState.month}-${newState.day}`;
+
+    this.setState(newState);
+
+    this.props.dispatch(routerPush('/results/live-with-lineups/'));
   },
 
   render() {
@@ -144,6 +164,7 @@ export const Results = React.createClass({
           resultsWithLive={this.props.resultsWithLive}
           onSelectDate={this.handleSelectDate}
           date={this.state}
+          watchLiveLineups={this.watchLiveLineups}
         />
     );
   },
@@ -162,6 +183,7 @@ renderComponent(
   <Provider store={store}>
     <Router history={history}>
       <Route path="/results/" component={ResultsConnected} />
+      <Route path="/results/live-with-lineups/" component={ResultsConnected} />
       <Route path="/results/:year/:month/:day/" component={ResultsConnected} />
     </Router>
   </Provider>,

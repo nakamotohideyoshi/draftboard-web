@@ -1,27 +1,25 @@
-#
-# sports/nba/models.py
-
 from django.db import models
-from django.core.cache import cache
 import sports.models
 import scoring.classes
 import push.classes
-from django.conf import settings
-from django.contrib.contenttypes.fields import GenericRelation
 from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
 
-class Season( sports.models.Season ):
+
+class Season(sports.models.Season):
     """
 
     """
+
     class Meta:
         abstract = False
 
-class Team( sports.models.Team ):
 
+class Team(sports.models.Team):
     # db.team.findOne({'parent_api__id':'hierarchy'})
     # {
-    #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWQ1NGRjNzM0OC1jMWQyLTQwZDgtODhiMy1jNGMwMTM4ZTA4NWRpZDU4M2VjZWE2LWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw==",
+    #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY
+    #               29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWQ1NGRjNzM0O
+    #               C1jMWQyLTQwZDgtODhiMy1jNGMwMTM4ZTA4NWRpZDU4M2VjZWE2LWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw==",
     #     "alias" : "MIA",
     #     "id" : "583ecea6-fb46-11e1-82cb-f4ce4684ea4c",
     #     "market" : "Miami",
@@ -34,73 +32,79 @@ class Team( sports.models.Team ):
     #     "venue" : "b67d5f09-28b2-5bc6-9097-af312007d2f4"
     # }
 
-    srid_league   = models.CharField(max_length=64, null=False,
-                            help_text='league sportsradar id')
-    srid_conference   = models.CharField(max_length=64, null=False,
-                            help_text='conference sportsradar id')
-    srid_division   = models.CharField(max_length=64, null=False,
-                            help_text='division sportsradar id')
-    market      = models.CharField(max_length=64)
+    srid_league = models.CharField(max_length=64, null=False,
+                                   help_text='league sportsradar id')
+    srid_conference = models.CharField(max_length=64, null=False,
+                                       help_text='conference sportsradar id')
+    srid_division = models.CharField(max_length=64, null=False,
+                                     help_text='division sportsradar id')
+    market = models.CharField(max_length=64)
 
     class Meta:
         abstract = False
 
-class Game( sports.models.Game ):
+
+class Game(sports.models.Game):
     """
     all we get from the inherited model is: 'start' and 'status'
     """
 
-    season      = models.ForeignKey(Season, null=False)
+    season = models.ForeignKey(Season, null=False)
 
-    home = models.ForeignKey( Team, null=False, related_name='game_hometeam')
-    srid_home   = models.CharField(max_length=64, null=False,
-                                help_text='home team sportsradar global id')
+    home = models.ForeignKey(Team, null=False, related_name='game_hometeam')
+    srid_home = models.CharField(max_length=64, null=False,
+                                 help_text='home team sportsradar global id')
 
-    away = models.ForeignKey( Team, null=False, related_name='game_awayteam')
-    srid_away   = models.CharField(max_length=64, null=False,
-                                help_text='away team sportsradar global id')
-    title       = models.CharField(max_length=128, null=True)
+    away = models.ForeignKey(Team, null=False, related_name='game_awayteam')
+    srid_away = models.CharField(max_length=64, null=False,
+                                 help_text='away team sportsradar global id')
+    title = models.CharField(max_length=128, null=True)
 
     class Meta:
         abstract = False
 
-class GameBoxscore( sports.models.GameBoxscore ):
 
+class GameBoxscore(sports.models.GameBoxscore):
     # srid_home   = models.CharField(max_length=64, null=False)
-    #home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
-    #away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
+    # home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
+    # away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
     # srid_away   = models.CharField(max_length=64, null=False)
     #
     # attendance  = models.IntegerField(default=0, null=False)
-    clock       = models.CharField(max_length=16, null=False, default='')
+    clock = models.CharField(max_length=16, null=False, default='')
     # coverage    = models.CharField(max_length=16, null=False, default='')
-    duration    = models.CharField(max_length=16, null=False, default='')
+    duration = models.CharField(max_length=16, null=False, default='')
     lead_changes = models.IntegerField(default=0, null=False)
-    quarter     = models.CharField(max_length=16, null=False, default='')
+    quarter = models.CharField(max_length=16, null=False, default='')
     # status      = models.CharField(max_length=64, null=False, default='')
-    times_tied  = models.IntegerField(default=0, null=False)
+    times_tied = models.IntegerField(default=0, null=False)
 
     class Meta:
         abstract = False
 
-class Player( sports.models.Player ):
+
+class Player(sports.models.Player):
     """
     inherited: 'srid', 'first_name', 'last_name'
     """
-    team        = models.ForeignKey(Team, null=False)
+    team = models.ForeignKey(Team, null=False)
     srid_team = models.CharField(max_length=64, null=False, default='')
     birth_place = models.CharField(max_length=64, null=False, default='')
-    birthdate   = models.CharField(max_length=64, null=False, default='')
-    college     = models.CharField(max_length=64, null=False, default='')
-    experience  = models.FloatField(default=0.0, null=False)
-    height      = models.FloatField(default=0.0, null=False, help_text='inches')
-    weight      = models.FloatField(default=0.0, null=False, help_text='lbs')
+    birthdate = models.CharField(max_length=64, null=False, default='')
+    college = models.CharField(max_length=64, null=False, default='')
+    experience = models.FloatField(default=0.0, null=False)
+    height = models.FloatField(default=0.0, null=False, help_text='inches')
+    weight = models.FloatField(default=0.0, null=False, help_text='lbs')
     jersey_number = models.CharField(max_length=64, null=False, default='')
 
-    #primary_position = models.CharField(max_length=64, null=False, default='')
+    # primary_position = models.CharField(max_length=64, null=False, default='')
 
-    status = models.CharField(max_length=64, null=False, default='',
-                help_text='roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!')
+    status = models.CharField(
+        max_length=64,
+        null=False,
+        default='',
+        help_text=('roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!')
+    )
 
     draft_pick = models.CharField(max_length=64, null=False, default='')
     draft_round = models.CharField(max_length=64, null=False, default='')
@@ -109,13 +113,15 @@ class Player( sports.models.Player ):
 
     class Meta:
         abstract = False
+        verbose_name = "NBA Player"
 
-class PlayerLineupName( Player ):
 
+class PlayerLineupName(Player):
     class Meta:
         proxy = True
 
-class PlayerStats( sports.models.PlayerStats ):
+
+class PlayerStats(sports.models.PlayerStats):
     """
     Model for all of a players statistics in a unique game.
     """
@@ -194,25 +200,27 @@ class PlayerStats( sports.models.PlayerStats ):
     def save(self, *args, **kwargs):
         # perform score update
         scorer = scoring.classes.NbaSalaryScoreSystem()
-        self.fantasy_points = scorer.score_player( self )
+        self.fantasy_points = scorer.score_player(self)
 
         #
         # send the pusher obj for fantasy points with scoring
         if kwargs.get('bulk', False):
-            #print('bulk = True skip player stats monkey business')
+            # print('bulk = True skip player stats monkey business')
             pass
         else:
             args = (self.get_cache_token(), push.classes.PUSHER_NBA_STATS, 'player', self.to_json())
             self.set_cache_token()
-            countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
+            countdown_send_player_stats_data.apply_async(args, countdown=COUNTDOWN)
 
         super().save(*args, **kwargs)
 
-class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
-    class Meta:
-        abstract = True # TODO
 
-class Injury( sports.models.Injury ):
+class PlayerStatsSeason(sports.models.PlayerStatsSeason):
+    class Meta:
+        abstract = True  # TODO
+
+
+class Injury(sports.models.Injury):
     #
     # nba injuries have ids
     srid = models.CharField(max_length=64, null=False, default='')
@@ -221,13 +229,16 @@ class Injury( sports.models.Injury ):
     class Meta:
         abstract = False
 
-class RosterPlayer( sports.models.RosterPlayer ):
-    class Meta:
-        abstract = True # TODO
 
-class Venue( sports.models.Venue ):
+class RosterPlayer(sports.models.RosterPlayer):
     class Meta:
-        abstract = True # TODO
+        abstract = True  # TODO
+
+
+class Venue(sports.models.Venue):
+    class Meta:
+        abstract = True  # TODO
+
 
 class GamePortion(sports.models.GamePortion):
     #
@@ -237,47 +248,53 @@ class GamePortion(sports.models.GamePortion):
     class Meta:
         abstract = False
 
+
 class PbpDescription(sports.models.PbpDescription):
     #
     # this is the srid of the event, aka specific pbp object
-    srid = models.CharField(max_length=64, null=False, default='', unique=True )
+    srid = models.CharField(max_length=64, null=False, default='', unique=True)
 
     class Meta:
         abstract = False
+
 
 class Pbp(sports.models.Pbp):
     class Meta:
         abstract = False
+
 
 class TsxNews(sports.models.TsxNews):
     """
     inherits from sports.models.TsxXXX of the same name
     """
 
-    #tsxplayers = GenericRelation('nba.TsxPlayer')
+    # tsxplayers = GenericRelation('nba.TsxPlayer')
 
     class Meta:
         abstract = False
+
 
 class TsxInjury(sports.models.TsxInjury):
     """
     inherits from sports.models.TsxXXX of the same name
     """
 
-    #tsxplayers = GenericRelation('nba.TsxPlayer')
+    # tsxplayers = GenericRelation('nba.TsxPlayer')
 
     class Meta:
         abstract = False
+
 
 class TsxTransaction(sports.models.TsxTransaction):
     """
     inherits from sports.models.TsxXXX of the same name
     """
 
-    #tsxplayers = GenericRelation('nba.TsxPlayer')
+    # tsxplayers = GenericRelation('nba.TsxPlayer')
 
     class Meta:
         abstract = False
+
 
 class TsxTeam(sports.models.TsxTeam):
     """
@@ -288,6 +305,7 @@ class TsxTeam(sports.models.TsxTeam):
 
     class Meta:
         abstract = False
+
 
 class TsxPlayer(sports.models.TsxPlayer):
     """

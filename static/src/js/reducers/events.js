@@ -5,6 +5,7 @@ import union from 'lodash/union';
 
 const initialState = {
   animationEvent: null,
+  bigEvents: [],
   queue: [],
   playerEventDescriptions: {},
   playerHistories: {},
@@ -22,6 +23,17 @@ module.exports = (state = initialState, action = {}) => {
       return merge({}, state, {
         showEventResult: true,
       });
+    }
+
+    case ActionTypes.EVENT_ADD_TO_BIG_QUEUE: {
+      const newState = merge({}, state);
+
+      newState.bigEvents.push(action.value);
+
+      // limit the size of the queue to 50
+      if (newState.bigEvents.length > 50) newState.bigEvents.shift();
+
+      return newState;
     }
 
     case ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION:
