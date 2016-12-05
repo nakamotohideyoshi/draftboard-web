@@ -12,6 +12,10 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 
+from account.models import (
+    UserEmailNotification,
+    Information,
+)
 from contest.models import Entry
 # /password/reset/confirm/{uid}/{token}
 
@@ -59,4 +63,5 @@ def check_not_active_users(self):
         filter(Q(last_login__lt=day) | Q(id__in=entries_users))
     if users.exists():
         inactive_users_email.delay(users)
-    users.update(inactive=True)
+        UserEmailNotification.objects.filter(user__in=users).update(enabled=False)
+        Information.objects.filter(user__in=users).update(inactive=True)
