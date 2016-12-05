@@ -1,33 +1,29 @@
 from __future__ import generators
-#
-# dataden/classes.py
-
 from django.db import IntegrityError
 from django.utils import timezone
-from datetime import timedelta
 import time
 import requests
 import xml.etree.ElementTree as ET
-from pymongo import MongoClient, ASCENDING, DESCENDING
+from pymongo import MongoClient, DESCENDING
 import dataden.cache.caches
 import dataden.models
 from django.conf import settings
 from util.slack import Webhook
 
-class FeedTestWebhook(Webhook):
 
-    # https://hooks.slack.com/services/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
-    #identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT' # #scheduler-logs
-    identifier = 'T03UVUNP8/B141P6N2C/9TMse3utYJSqICg1iXdcaOPZ'
+class FeedTestWebhook(Webhook):
+    # https://hooks.slack.com/services/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
+    # identifier = 'T02S3E1FD/B3B1UL152/DvKjpIZf7ywKCgfq43MD8CmL' # #scheduler-logs
+    identifier = 'T02S3E1FD/B3B1UL152/DvKjpIZf7ywKCgfq43MD8CmL'
+
 
 class FeedTest(object):
-
     def __init__(self, game_srid, url, apikey):
         self.game_srid = game_srid
         self.url = url
         self.apikey = apikey
         self.session = requests.Session()
-        self.r = None # the HttpResponse from the last download()
+        self.r = None  # the HttpResponse from the last download()
         self.feed_model_class = dataden.models.PbpDebug
         self.et = None
 
@@ -58,7 +54,7 @@ class FeedTest(object):
 
             if i % 10 == 0:
                 print('%s of %s' % (str(i), str(iterations)))
-            time.sleep(float(float(delay_ms)/float(1000.0))) # divide millis by 1000 to get values in seconds
+            time.sleep(float(float(delay_ms) / float(1000.0)))  # divide millis by 1000 to get values in seconds
             i += 1
 
     def download(self):
@@ -72,32 +68,32 @@ class FeedTest(object):
         for node in root:
             if 'quarter' in node.tag:
                 q = node.get('number')
-                #print('quarter', node.get('number'))
+                # print('quarter', node.get('number'))
 
                 for events in node:
-                    #if 'events' in events.tag:
+                    # if 'events' in events.tag:
 
-                        for event in events:
-                            #print( event.get('id'), event.get('clock') )
+                    for event in events:
+                        # print( event.get('id'), event.get('clock') )
 
-                            srid = event.get('id')
-                            if srid in self.srids:
-                                continue # dont even both trying to go further
+                        srid = event.get('id')
+                        if srid in self.srids:
+                            continue  # dont even both trying to go further
 
-                            clock = str(event.get('clock'))
-                            print( event.get('id'), clock )
-                            self.events.append(event)
-                            self.srids.append(srid)
+                        clock = str(event.get('clock'))
+                        print(event.get('id'), clock)
+                        self.events.append(event)
+                        self.srids.append(srid)
 
-                            desc = 'Q%s ' % str(q)
-                            desc += clock + ' - '
-                            for description in event:
-                                if 'description' in description.tag:
-                                    desc = description.text
-                                    #print(desc)
-                                    self.descriptions.append(description)
+                        desc = 'Q%s ' % str(q)
+                        desc += clock + ' - '
+                        for description in event:
+                            if 'description' in description.tag:
+                                desc = description.text
+                                # print(desc)
+                                self.descriptions.append(description)
 
-                            self.add_to_db(srid=srid, description=desc, xml_str=None)
+                        self.add_to_db(srid=srid, description=desc, xml_str=None)
 
     def add_to_db(self, srid, description, xml_str=None):
         """
@@ -125,9 +121,10 @@ class FeedTest(object):
 
         if created:
             print('new pbp:', str(description))
-            self.slack.send('%s:'%str(timezone.now())+' ' +description)
+            self.slack.send('%s:' % str(timezone.now()) + ' ' + description)
 
         return created
+
 
 class Trigger(object):
     """
@@ -152,6 +149,7 @@ class Trigger(object):
             if t.db == sport:
                 t.enabled = True
                 t.save()
+
     enable = staticmethod(enable)
 
     def disable(sport):
@@ -163,6 +161,7 @@ class Trigger(object):
             if t.db == sport:
                 t.enabled = False
                 t.save()
+
     disable = staticmethod(disable)
 
     def __str__(self):
@@ -179,26 +178,29 @@ class Trigger(object):
         self.t.enabled = enable
         self.t.save()
 
-    def create( db, collection, parent_api, enable=False ):
+    def create(db, collection, parent_api, enable=False):
         try:
-            trig = dataden.models.Trigger.objects.get( db=db,
-                    collection=collection, parent_api=parent_api)
+            trig = dataden.models.Trigger.objects.get(db=db,
+                                                      collection=collection, parent_api=parent_api)
         except dataden.models.Trigger.DoesNotExist:
             trig = dataden.models.Trigger()
-            trig.db             = db
-            trig.collection     = collection
-            trig.parent_api     = parent_api
-            trig.enabled        = enable
+            trig.db = db
+            trig.collection = collection
+            trig.parent_api = parent_api
+            trig.enabled = enable
             trig.save()
-        return Trigger( pk=trig.pk )
-    create = staticmethod( create )
+        return Trigger(pk=trig.pk)
+
+    create = staticmethod(create)
+
 
 class DataDen(object):
     """
     caleb: im intending on this being the thru-point for rest_api calls
     """
 
-    class InvalidTypeException(Exception): pass
+    class InvalidTypeException(Exception):
+        pass
 
     DB_CONFIG = 'config'
 
@@ -224,7 +226,7 @@ class DataDen(object):
 
     def connect(self):
         if self.client:
-            #print('connected to mongo')
+            # print('connected to mongo')
             return
         #
         # else
@@ -240,7 +242,7 @@ class DataDen(object):
             raise self.InvalidTypeException(type(self).__name__, type(db_name).__name__)
 
         self.connect()
-        return self.client.get_database( db_name )
+        return self.client.get_database(db_name)
 
     def find(self, db, coll, parent_api, target={}, projection={}):
         """
@@ -251,15 +253,15 @@ class DataDen(object):
         :return:
         """
 
-        coll = self.db( db ).get_collection(coll)
-        target[ self.PARENT_API__ID ] = parent_api
+        coll = self.db(db).get_collection(coll)
+        target[self.PARENT_API__ID] = parent_api
         if projection and projection.keys():
             #
             # if the projection has any keys, use it
-            return coll.find( filter=target, projection=projection, no_cursor_timeout=self.no_cursor_timeout )
+            return coll.find(filter=target, projection=projection, no_cursor_timeout=self.no_cursor_timeout)
 
         # by default, dont apply projection
-        return coll.find( filter=target, no_cursor_timeout=self.no_cursor_timeout )
+        return coll.find(filter=target, no_cursor_timeout=self.no_cursor_timeout)
 
     def find_recent(self, db, coll, parent_api, target={}):
         """
@@ -285,7 +287,7 @@ class DataDen(object):
             #
             # get all the most recently parsed injury objects from dataden.
             #  use '$gte' in case new objects have been added recently !
-            target[self.DD_UPDATED__ID] = {'$gte':ts_last_parse }
+            target[self.DD_UPDATED__ID] = {'$gte': ts_last_parse}
             # return self.find(db, coll, parent_api, {self.DD_UPDATED__ID:{'$gte':ts_last_parse }})
             return self.find(db, coll, parent_api, target)
         #
@@ -344,7 +346,7 @@ class DataDen(object):
         :return:
         """
         if sport:
-            walk_sports = [ sport ]
+            walk_sports = [sport]
         else:
             walk_sports = self.enabled_sports()
 
@@ -356,10 +358,11 @@ class DataDen(object):
                 print('    ' + collection_name)
                 parent_apis = coll.distinct(self.PARENT_API__ID)
                 for parent_api in parent_apis:
-                    print('        ' + parent_api )
+                    print('        ' + parent_api)
                     if examples:
-                        ex = coll.find_one({ self.PARENT_API__ID : parent_api })
-                        print( '            ' + str(ex) )
+                        ex = coll.find_one({self.PARENT_API__ID: parent_api})
+                        print('            ' + str(ex))
+
 
 class Season(DataDen):
     """
@@ -375,20 +378,22 @@ class Season(DataDen):
     """
 
     # raised if a regular season not found for specified year
-    class SeasonNotFoundException(Exception): pass
+    class SeasonNotFoundException(Exception):
+        pass
 
     # raised if multiple regular season objects for the specified year
-    class MultipleSeasonObjectsReturnedException(Exception): pass
+    class MultipleSeasonObjectsReturnedException(Exception):
+        pass
 
     # subclasses must override:
     sport = None
 
     # subclasses may override:
-    schedule_collection = 'season_schedule'     #
-    parent_api          = 'schedule'            #
-    season_type_reg     = 'REG'                 #
-    season_type_field   = 'type'                #
-    season_year_field   = 'year'                #
+    schedule_collection = 'season_schedule'  #
+    parent_api = 'schedule'  #
+    season_type_reg = 'REG'  #
+    season_type_field = 'type'  #
+    season_year_field = 'year'  #
 
     # Create based on class name:
     def factory(type):
@@ -397,6 +402,7 @@ class Season(DataDen):
         if type == "nhl": return NhlSeason()
         if type == "mlb": return MlbSeason()
         assert 0, "invalid Season: " + type
+
     factory = staticmethod(factory)
 
     def get_game_ids_regular_season(self, season):
@@ -410,7 +416,7 @@ class Season(DataDen):
         """
 
         seasons = self.get_seasons(season)
-        self.validate_season(season, seasons) # make sure there is exactly 1 or raise exception
+        self.validate_season(season, seasons)  # make sure there is exactly 1 or raise exception
         # if num_season_objects == 0:
         #     raise self.SeasonNotFoundException('no seasons for %s' % title )
         #
@@ -420,9 +426,9 @@ class Season(DataDen):
         game_ids = []
         games_list = seasons[0].get('games__list')
         for g in games_list:
-            game_ids.append( g.get('game') )
+            game_ids.append(g.get('game'))
 
-        #print('... %s game_ids from the regular season' % (len(game_ids)))
+        # print('... %s game_ids from the regular season' % (len(game_ids)))
         return game_ids
 
     def validate_season(self, year, seasons_found):
@@ -457,28 +463,28 @@ class Season(DataDen):
         """
         # default to this target query
         target = {
-            self.season_type_field : self.season_type_reg,
-            self.season_year_field : int(season),
+            self.season_type_field: self.season_type_reg,
+            self.season_year_field: int(season),
         }
 
         return self.find(self.sport, self.schedule_collection, self.parent_api, target=target)
 
-class NbaSeason(Season):
 
+class NbaSeason(Season):
     sport = 'nba'
 
-class NhlSeason(NbaSeason):
 
+class NhlSeason(NbaSeason):
     sport = 'nhl'
 
-class MlbSeason(Season):
 
+class MlbSeason(Season):
     sport = 'mlb'
 
-    parent_api          = 'schedule_reg'        # for mlb its part of the parent_api
+    parent_api = 'schedule_reg'  # for mlb its part of the parent_api
     schedule_collection = 'season_schedule'
-    season_type_field   = 'type'                # in the 'season_schedule' collection
-    season_year_field   = 'year'                # in the 'season_schedule' collection
+    season_type_field = 'type'  # in the 'season_schedule' collection
+    season_year_field = 'year'  # in the 'season_schedule' collection
 
     def __get_game_srids(self, season_schedule_obj):
         """
@@ -494,7 +500,7 @@ class MlbSeason(Season):
         :return:
         """
         games_list = season_schedule_obj.get('games__list', [])
-        return [ g.get('game') for g in games_list if 'game' in g.keys() ]
+        return [g.get('game') for g in games_list if 'game' in g.keys()]
 
     def get_game_ids_regular_season(self, season):
         """
@@ -504,8 +510,8 @@ class MlbSeason(Season):
         :return:
         """
         target = {
-            self.season_type_field : self.season_type_reg,
-            self.season_year_field : int(season),
+            self.season_type_field: self.season_type_reg,
+            self.season_year_field: int(season),
         }
         seasons = self.find(self.sport, self.schedule_collection, self.parent_api, target=target)
         # a little error checking to ensure we have the object we want (and only 1 of them)
@@ -514,13 +520,13 @@ class MlbSeason(Season):
         # build and return a list of game srids from the season object
         return self.__get_game_srids(seasons[0])
 
-class NflSeason(Season):
 
+class NflSeason(Season):
     sport = 'nfl'
 
     schedule_collection = 'season'
-    season_type_field   = 'type'                #
-    season_year_field   = 'season'              #
+    season_type_field = 'type'  #
+    season_year_field = 'season'  #
 
     def get_game_ids_regular_season(self, season):
         """
@@ -539,11 +545,10 @@ class NflSeason(Season):
         for week_obj in weeks:
             inner_week = week_obj.get('week')
             week_number = inner_week.get('week')
-            #print( 'week_number:', str(week_number) )
+            # print( 'week_number:', str(week_number) )
             games = inner_week.get('games')
             for game in games:
-                game_ids.append( game.get('game') )
+                game_ids.append(game.get('game'))
 
-        #print('%s game_ids' % (len(game_ids)))
+        # print('%s game_ids' % (len(game_ids)))
         return game_ids
-
