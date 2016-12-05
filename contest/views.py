@@ -77,6 +77,7 @@ import logging
 
 logger = logging.getLogger('contest.views')
 
+
 # test the generic add view
 
 
@@ -84,6 +85,7 @@ class ContestCreate(CreateView):
     model = Contest
     form_class = ContestFormAdd
     # fields      = ['name','ends_tonight','start']
+
 
 # testing the generic edit view
 
@@ -153,7 +155,6 @@ class LobbyAPIView(generics.ListAPIView):
 
 
 class UserEntryAPIView(generics.ListAPIView):
-
     contest_model = None  # child class must set this, see UserUpcomingAPIView for example
 
     permission_classes = (IsAuthenticated,)
@@ -429,7 +430,7 @@ class RegisteredUsersAPIView(generics.ListAPIView):
         get the registered user information
         """
         return Entry.objects.filter(
-                contest__pk=self.kwargs['contest_id']).select_related('lineup__user__username')
+            contest__pk=self.kwargs['contest_id']).select_related('lineup__user__username')
 
 
 class ContestRanksAPIView(generics.GenericAPIView):
@@ -634,8 +635,7 @@ class UserPlayHistoryAPIView(APIView):
         end = start + timedelta(days=1)
 
         # get a list of the lineups in historical entries for the day
-        history_entries = ClosedEntry.objects.filter(user=self.request.user,
-                                                     contest__start__range=(start, end))
+        history_entries = ClosedEntry.objects.filter(user=self.request.user, contest__start__range=(start, end))
         payouts = Payout.objects.filter(entry__in=history_entries)
         # distinct_lineup_ids = [e.lineup.pk for e in history_entries]
         lineup_map = {}
@@ -649,7 +649,7 @@ class UserPlayHistoryAPIView(APIView):
         winnings = 0
         possible = 0
         contest_map = {}
-        for lineup in list(lineup_map.values()):     # for each distinct lineup
+        for lineup in list(lineup_map.values()):  # for each distinct lineup
             for history_entry in history_entries.filter(lineup=lineup):
                 total_buyins += history_entry.contest.buyin
                 num_entries += 1
@@ -712,7 +712,7 @@ class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
         winnings = 0
         possible = 0
         contest_map = {}
-        for lineup in list(lineup_map.values()):     # for each distinct lineup
+        for lineup in list(lineup_map.values()):  # for each distinct lineup
             for current_entry in current_entries.filter(lineup=lineup):
                 if current_entry.contest is None:
                     # this means the lineup is not yet live. skip it.
