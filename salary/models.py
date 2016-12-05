@@ -46,7 +46,7 @@ class SalaryConfig(models.Model):
                                                  verbose_name="Trailing Games")
 
     def __str__(self):
-        return '%s: %s' % (str(self.id), self.name)
+        return '<SalaryConfig> %s: %s' % (self.id, self.name)
 
     class Meta:
         verbose_name = 'Algorithm'
@@ -113,8 +113,8 @@ class Pool(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: active[%s] : %s : %s' % (str(self.id), self.active,
-                                             str(self.site_sport), self.created.strftime('%Y-%m-%d %H:%M'))
+        return '<Pool> %s: active[%s] : %s : %s' % (
+            self.id, self.active, self.site_sport, self.created.strftime('%Y-%m-%d %H:%M'))
 
     class Meta:
         ordering = ('-active', 'site_sport', '-created')
@@ -174,7 +174,7 @@ class Salary(models.Model):
                                              help_text='the amount of ($) salary +/- applied before final rounding.')
 
     def __str__(self):
-        return "Salary for player_id: %s - amount: %s fppg: %s pool: %s" % (
+        return "<Salary> player_id: %s - amount: %s fppg: %s pool: %s" % (
             self.player_id, self.amount, self.fppg, self.pool)
 
     class Meta:
