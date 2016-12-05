@@ -27,8 +27,7 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-#    command: dumb-init celery flower -A mysite worker -l info --purge -basic_auth=dev:devflower,user2:password2
-    command: dumb-init celery -A mysite worker -l info --purge -basic_auth=dev:devflower,user2:password2
+    command: dumb-init celery -A mysite worker -l info --purge
     links:
       - postgres
       - redis
@@ -37,8 +36,6 @@ services:
     environment:
       # allows celery to run as the root user.
       - C_FORCE_ROOT=true
-#    ports:
-#      - "5555:5555"
 
   # run `docker-compose up celery_beat` to start the process
   # then `docker-compose scale celery_beat=[x]` to add x number of processes!
@@ -56,8 +53,6 @@ services:
     environment:
       # allows celery to run as the root user.
       - C_FORCE_ROOT=true
-    ports:
-      - "5555:5555"
 
 
   # Run `docker-compose up django` to start up runserver process
