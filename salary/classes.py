@@ -254,7 +254,7 @@ class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
         self.sal_fd = sal_fd
 
     def __str__(self):
-        return "SalaryPlayerStatsProjectionObject for %s - fantasy_points (projected from stats.com): %s" % (
+        return "<SalaryPlayerStatsProjectionObject>  %s - projected fantasy_points (stats.com): %s" % (
             self.player, self.fantasy_points)
 
 
@@ -279,12 +279,8 @@ class SalaryPlayerObject(object):
         self.flagged = False
 
     def __str__(self):
-        string_ret = str(self.player_id) + " SalaryPlayerObject w_points=" + str(self.fantasy_weighted_average) + \
-                     " flagged=" + str(self.flagged) + ": \n"
-        string_ret += '%s total playerstats instances\n' % str(len(self.player_stats_list))
-        for player in self.player_stats_list:
-            string_ret += "\t" + str(player) + "\n"
-        return string_ret
+        return "<SalaryPlayerObject> player: %s w_points: %s flagged: %s \ntotal playerstats instances: %s" % (
+            self.player, self.fantasy_weighted_average, self.flagged, len(self.player_stats_list))
 
     def get_fantasy_average(self):
         if self.fantasy_average is None:
@@ -1378,8 +1374,8 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             )
                         # If the player's salary is less than the minimum, set them to the min.
                         if salary.amount < self.salary_conf.min_player_salary:
-                            logger.info('player: %s was below the minimum salary, setting to minimum. salary: %s' % (
-                                player, salary))
+                            logger.info(('player was below the minimum salary, setting to minimum. player: %s  '
+                                         'salary: %s') % (player, salary))
                             salary.amount = self.salary_conf.min_player_salary
 
                         salary.flagged = player.flagged
@@ -1394,7 +1390,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         salary.avg_fppg_for_position = average_weighted_fantasy_points_for_pos
                         salary.num_games_included = len(player.player_stats_list)
 
-                        logger.info('setting player: %s salary to %s' % (player, salary.amount))
+                        logger.info('setting salary to %s for player: %s' % (salary.amount, player))
                         salary.save()
 
     def get_salary_for_player(self, player):
