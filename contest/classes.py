@@ -1,6 +1,3 @@
-#
-# contest/classes.py
-
 from util.dicts import DictTools
 from collections import (
     OrderedDict,
@@ -11,14 +8,10 @@ from django.db.transaction import atomic
 import os
 import struct
 from .models import (
-    Contest,
     ContestPool,
     SkillLevel,
 )
-from sports.models import (
-    SiteSport,
-    PlayerStats,
-)
+from sports.models import SiteSport
 from mysite.exceptions import (
     IncorrectVariableTypeException,
 )
@@ -27,7 +20,6 @@ from datetime import (
     datetime,
     timedelta,
     time,
-    date,
 )
 from django.utils import timezone
 from sports.classes import SiteSportManager as SSM
@@ -37,7 +29,6 @@ from contest.models import (
     Contest,
     Entry,
     ClosedContest,
-    ClosedEntry,
 )
 from lineup.classes import LineupManager
 import lineup.models
@@ -48,10 +39,16 @@ from draftgroup.classes import DraftGroupManager
 from roster.classes import RosterManager
 from contest.buyin.models import Buyin
 from util.dfsdate import DfsDate
+from logging import getLogger
+from util.slack import WebhookContestInfo
+
+logger = getLogger('contests.classes')
+slack = WebhookContestInfo()
+
 
 class SkillLevelManager(object):
-
-    class CanNotEnterSkillLevel(Exception): pass
+    class CanNotEnterSkillLevel(Exception):
+        pass
 
     # the main model class
     model_class = SkillLevel
@@ -88,7 +85,7 @@ class SkillLevelManager(object):
         # the contest attempting to be joined
         target_skill_level = contest_pool.skill_level
         if target_skill_level.enforced == False:
-            return # the skill level of this contest is not enforced -- anyone can join no matter what
+            return  # the skill level of this contest is not enforced -- anyone can join no matter what
 
         # find any enforced skill_levels we have an entry in not matching our target.
         # if any are found, that means we cant join and must raise exception
@@ -101,10 +98,10 @@ class SkillLevelManager(object):
         if entries.count() > 0:
             raise self.CanNotEnterSkillLevel()
 
-class ContestPoolCreator(object):
 
-    USER_ENTRY_LIMIT    = 3
-    ENTRY_CAP           = 0     # 0 means there is no cap on the total # of entries
+class ContestPoolCreator(object):
+    USER_ENTRY_LIMIT = 3
+    ENTRY_CAP = 0  # 0 means there is no cap on the total # of entries
 
     def __init__(self, sport, prize_structure, start, duration,
                  draft_group=None, user_entry_limit=None, entry_cap=None, set_name=True):
@@ -192,8 +189,8 @@ class ContestPoolCreator(object):
         """
 
         # format the buyin amount
-        buyin_dollars   = self.prize_structure.buyin
-        buyin_cents     = self.prize_structure.buyin - float(buyin_dollars)
+        buyin_dollars = self.prize_structure.buyin
+        buyin_cents = self.prize_structure.buyin - float(buyin_dollars)
         buyin_str = '$%s' % str(int(buyin_dollars))
         if buyin_cents >= 0.01:
             buyin_str += '%.2f' % buyin_cents
@@ -218,7 +215,7 @@ class ContestPoolCreator(object):
 
     def validate_start(self, start):
         if not isinstance(start, datetime):
-           raise IncorrectVariableTypeException(self.__class__.__name__, 'start')
+            raise IncorrectVariableTypeException(self.__class__.__name__, 'start')
         return start
 
     def validate_prize_structure(self, prize_structure):
@@ -233,8 +230,8 @@ class ContestPoolCreator(object):
         # else raise exception that this is not the proper type
         raise IncorrectVariableTypeException(self.__class__.__name__, 'draft_group')
 
-class ContestPoolManager(object):
 
+class ContestPoolManager(object):
     def __init__(self, contest_pool):
         self.contest_pool = contest_pool
 
@@ -244,11 +241,11 @@ class ContestPoolManager(object):
         """
         contest_creator = ContestCreator(self.contest_pool.name, self.contest_pool.site_sport,
                                          self.contest_pool.prize_structure,
-                                         self.contest_pool.start, self.contest_pool.end )
+                                         self.contest_pool.start, self.contest_pool.end)
         return contest_creator.create()
 
     def add_entry(self, contest, entry):
-        pass # TODO remove
+        pass  # TODO remove
         # TODO - we are going to need the ContestPool to set the Contest(s)
         # TODO   it creates when it starts into the Entry and Buyin objects
         # TODO   which point to it. this way we
@@ -302,32 +299,34 @@ class ContestPoolManager(object):
         cpf = ContestPoolFiller(self.contest_pool)
         cpf.fair_match()
 
-class AbstractContestCreator(object):
 
+class AbstractContestCreator(object):
     def __init__(self, name, site_sport, prize_structure, start=None, end=None):
-        self.name               = name
-        self.site_sport         = site_sport
+        self.name = name
+        self.site_sport = site_sport
         if isinstance(site_sport, str):
             self.site_sport = SiteSport.objects.get(name=site_sport)
-        self.prize_structure    = prize_structure
+        self.prize_structure = prize_structure
         slm = SkillLevelManager()
         skill_level = slm.get_for_amount(self.prize_structure.buyin)
-        self.skill_level        = skill_level
-        self.start              = start  # start of the contest
-        self.end                = end  # live games must start before this datetime
+        self.skill_level = skill_level
+        self.start = start  # start of the contest
+        self.end = end  # live games must start before this datetime
 
     def create(self):
         """
         Validate all the internal fields which will make this contest.
         Then create the underlying model and return it.
         """
-        c =  Contest.objects.create(name=self.name,
-                     site_sport=self.site_sport,
-                     prize_structure=self.prize_structure,
-                     start=self.start,
-                     end=self.end,
-                     skill_level=self.skill_level)
+        c = Contest.objects.create(name=self.name,
+                                   site_sport=self.site_sport,
+                                   prize_structure=self.prize_structure,
+                                   start=self.start,
+                                   end=self.end,
+                                   skill_level=self.skill_level)
+        logger.info('Contest created: %s' % c)
         return c
+
 
 class ContestCreator(AbstractContestCreator):
     """
@@ -343,6 +342,7 @@ class ContestCreator(AbstractContestCreator):
     def __init__(self, name, site_sport, prize_structure, start, end):
         super().__init__(name, site_sport, prize_structure, start, end)
 
+
 class Dummy(object):
     """
     Create for the current day that starts in the evening
@@ -352,24 +352,24 @@ class Dummy(object):
 
     @staticmethod
     def create(sport='nfl'):
-
         TicketManager.create_default_ticket_amounts()
         ticket_amount = TicketAmount.objects.all()[0]
-        #ticket_amount.amount
+        # ticket_amount.amount
         ticket_prize_creator = TicketPrizeStructureCreator(ticket_value=5.00,
-                                    number_of_prizes=1, name='contest-dummy-prize-structure')
+                                                           number_of_prizes=1, name='contest-dummy-prize-structure')
         prize_structure = ticket_prize_creator.save()
-        #prize_structure.name
+        # prize_structure.name
         now = timezone.now()
-        start = DfsDateTimeUtil.create( now.date(), time(23,0) )
-        end = DfsDateTimeUtil.create( now.date() + timedelta(days=1), time(0,0) )
-        creator = ContestCreator( name=Dummy.DEFAULT_NAME,
-                                  sport=sport,
-                                  prize_structure=prize_structure,
-                                  start=start, end=end )
+        start = DfsDateTimeUtil.create(now.date(), time(23, 0))
+        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0, 0))
+        creator = ContestCreator(name=Dummy.DEFAULT_NAME,
+                                 sport=sport,
+                                 prize_structure=prize_structure,
+                                 start=start, end=end)
         contest = creator.create()
-        print('created new dummy contest with pk:', contest.pk)
+        logger.info('created new dummy contest with pk: %s' % contest.pk)
         return contest
+
 
 class ContestLineupManager(object):
     """
@@ -379,15 +379,15 @@ class ContestLineupManager(object):
     """
 
     # invalid player or no player
-    PLAYER_INVALID      = 0
-    PLAYER_NOT_STARTED  = 65535
+    PLAYER_INVALID = 0
+    PLAYER_NOT_STARTED = 65535
 
     # size in bytes of these portions of the payload
-    SIZE_LINEUPS                = 4
-    SIZE_PLAYERS_PER_LINEUP     = 2
+    SIZE_LINEUPS = 4
+    SIZE_PLAYERS_PER_LINEUP = 2
 
-    SIZE_LINEUP_ID              = 4
-    SIZE_PLAYER                 = 2     # a single player is 2 bytes
+    SIZE_LINEUP_ID = 4
+    SIZE_PLAYER = 2  # a single player is 2 bytes
 
     def __init__(self, contest=None, contest_id=None):
         """
@@ -402,14 +402,14 @@ class ContestLineupManager(object):
         """
 
         if contest_id is not None:
-            self.contest = Contest.objects.get( pk=contest_id )
+            self.contest = Contest.objects.get(pk=contest_id)
         elif contest is not None:
             self.contest = contest
         else:
             raise Exception('contest must not be None')
 
         dgm = DraftGroupManager()
-        self.draft_group_players    = dgm.get_players( self.contest.draft_group )
+        self.draft_group_players = dgm.get_players(self.contest.draft_group)
 
         # a map where the player id points to their own id if their game
         # has started, or to 0xffff if they havent started yet
@@ -418,10 +418,10 @@ class ContestLineupManager(object):
         self.starter_map = self.get_starter_map(self.draft_group_players)
 
         # determine the size of a lineup in bytes
-        rm = RosterManager( self.contest.site_sport )
+        rm = RosterManager(self.contest.site_sport)
         self.players_per_lineup = rm.get_roster_spots_count()
 
-        self.entries = Entry.objects.filter( contest=self.contest )
+        self.entries = Entry.objects.filter(contest=self.contest)
 
     def get_starter_map(self, draft_group_players):
         """
@@ -437,9 +437,9 @@ class ContestLineupManager(object):
         for p in self.draft_group_players:
             # print( str(now), ' >= ', str(p.start))
             if now >= p.start:
-                self.starter_map[ p.salary_player.player_id ] = p.salary_player.player_id
+                self.starter_map[p.salary_player.player_id] = p.salary_player.player_id
             else:
-                self.starter_map[ p.salary_player.player_id ] = self.PLAYER_NOT_STARTED
+                self.starter_map[p.salary_player.player_id] = self.PLAYER_NOT_STARTED
         return self.starter_map
 
     def is_player_game_started(self, player_id):
@@ -449,7 +449,7 @@ class ContestLineupManager(object):
         :param player_id:
         :return:
         """
-        return self.starter_map[ player_id ] < self.PLAYER_NOT_STARTED
+        return self.starter_map[player_id] < self.PLAYER_NOT_STARTED
 
     def get_lineup_data(self, user, lineup_id):
         """
@@ -485,7 +485,7 @@ class ContestLineupManager(object):
         return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.entries.count()
 
     def get_size_in_bytes(self):
-        #print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
+        # print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
         return self.__header_size() + self.__payload_size()
 
     def pack_into_h(self, fmt, bytes, offset, val):
@@ -505,9 +505,9 @@ class ContestLineupManager(object):
         :return:
         """
 
-        size = struct.calcsize( fmt )
-        #print('<size so far>', str(size), 'raw:', str(bytes))
-        struct.pack_into( fmt, bytes, offset, val )
+        size = struct.calcsize(fmt)
+        # print('<size so far>', str(size), 'raw:', str(bytes))
+        struct.pack_into(fmt, bytes, offset, val)
         new_offset = offset + size
         return (new_offset, bytes)
 
@@ -528,25 +528,25 @@ class ContestLineupManager(object):
         if self.contest.draft_group.start > timezone.now():
             return bytearray()
 
-        bytes = bytearray( self.get_size_in_bytes() )
-        #print( '# contest entries:', str(self.contest.entries))
-        offset, bytes = self.pack_into_h( '>i', bytes, 0, self.contest.entries )
-        #print( '# players per lineup:', str(self.players_per_lineup))
-        offset, bytes = self.pack_into_h( '>H', bytes, offset, self.players_per_lineup )
+        bytes = bytearray(self.get_size_in_bytes())
+        # print( '# contest entries:', str(self.contest.entries))
+        offset, bytes = self.pack_into_h('>i', bytes, 0, self.contest.entries)
+        # print( '# players per lineup:', str(self.players_per_lineup))
+        offset, bytes = self.pack_into_h('>H', bytes, offset, self.players_per_lineup)
 
         for e in self.entries:
             # pack the lineup id
-            #print( '    <add lineup> %s' % str(e.lineup.pk), '  : bytes[%s]' % str(len(bytes) ) )
-            offset, bytes = self.pack_into_h('>i', bytes, offset, e.lineup.pk )
+            # print( '    <add lineup> %s' % str(e.lineup.pk), '  : bytes[%s]' % str(len(bytes) ) )
+            offset, bytes = self.pack_into_h('>i', bytes, offset, e.lineup.pk)
 
             # pack in each player in the lineup, in order of course
-            lm = LineupManager( e.user )
-            for pid in lm.get_player_ids( e.lineup ):
-                #print( '        pid:', str(pid ))
+            lm = LineupManager(e.user)
+            for pid in lm.get_player_ids(e.lineup):
+                # print( '        pid:', str(pid ))
                 # offset, bytes = self.pack_into_h( '>h', bytes, offset, pid )
-                #print( 'pid:', str( pid ) )
+                # print( 'pid:', str( pid ) )
 
-                offset, bytes = self.pack_into_h( '>H', bytes, offset, pid )
+                offset, bytes = self.pack_into_h('>H', bytes, offset, pid)
 
         # all the bytes should be packed in there now!
         return bytes
@@ -569,33 +569,35 @@ class ContestLineupManager(object):
             player_ids = []
 
             # pack in each player in the lineup, in order of course
-            lm = LineupManager( e.user )
-            for pid in lm.get_player_ids( e.lineup ):
-                #player_ids.append( self.starter_map[ pid ] ) # masks out no-yet-started players
-                player_ids.append( pid )
+            lm = LineupManager(e.user)
+            for pid in lm.get_player_ids(e.lineup):
+                # player_ids.append( self.starter_map[ pid ] ) # masks out no-yet-started players
+                player_ids.append(pid)
 
-            lineups.append( {
-                'lineup_id'     : lineup_id,
-                'player_ids'    : player_ids,
-            } )
+            lineups.append({
+                'lineup_id': lineup_id,
+                'player_ids': player_ids,
+            })
 
         data = {
-            'endpoint'                      : '/contest/all-lineups/%s?json' % int( contest_id ),
-            'bytes_for_condensed_response'  : self.get_size_in_bytes(),
-            'total_lineups'                 : self.contest.entries,
-            'players_per_lineup'            : self.players_per_lineup,
-            'lineups'                       : lineups,
+            'endpoint': '/contest/all-lineups/%s?json' % int(contest_id),
+            'bytes_for_condensed_response': self.get_size_in_bytes(),
+            'total_lineups': self.contest.entries,
+            'players_per_lineup': self.players_per_lineup,
+            'lineups': lineups,
         }
         return data
 
     def get_http_payload(self):
-        return ''.join('{:02x}'.format(x) for x in self.get_raw_bytes() )
+        return ''.join('{:02x}'.format(x) for x in self.get_raw_bytes())
+
 
 class FairMatch(object):
+    class ZeroEntriesException(Exception):
+        pass
 
-    class ZeroEntriesException(Exception): pass
-
-    class NotEnoughEntriesException(Exception): pass
+    class NotEnoughEntriesException(Exception):
+        pass
 
     def __init__(self, entries=[], contest_size=2):  # size / prize_structure will come from ContestPool instance
         # instance of random number generator
@@ -638,7 +640,7 @@ class FairMatch(object):
         ss = ''
         if force:
             ss = '** = superlay is possible here.'
-        print('    making contest:', str(entries), 'force:', str(force), '%s'%ss)
+        logger.info('making contest: %s force: %s %s' % (entries, force, ss))
         # TODO fill c
 
         self.__add_contest_debug(entries, size, force=force)
@@ -646,10 +648,10 @@ class FairMatch(object):
     def __add_contest_debug(self, entries, size, force=False):
         if force:
             # entries we need to enter into a contest no matter what (first entries)
-            self.contests['contests_forced'].append( entries )
+            self.contests['contests_forced'].append(entries)
         else:
             # this
-            self.contests['contests'].append( entries )
+            self.contests['contests'].append(entries)
         self.contests['contest_size'] = size
 
     @atomic
@@ -660,10 +662,10 @@ class FairMatch(object):
         """
 
         self.contests = {
-            'entry_pool_size'   : len(list(self.original_entries)),
-            'entry_pool'        : list(self.original_entries),
-            'contests'          : [],
-            'contests_forced'   : []
+            'entry_pool_size': len(list(self.original_entries)),
+            'entry_pool': list(self.original_entries),
+            'contests': [],
+            'contests_forced': []
         }
 
         # run the algorithm, starting it all off by passing
@@ -671,8 +673,9 @@ class FairMatch(object):
         all_entries = list(self.original_entries)
         self.run_h(all_entries, 1, [], verbose=True)
 
-        # now set the unused entries
+        # now remove the unused entries
         unused_entries = self.contests['entry_pool']
+        logger.info('%s unmatched entries are being discarded' % len(unused_entries))
         for c in self.contests['contests']:
             for entry in c:
                 unused_entries.remove(entry)
@@ -713,13 +716,13 @@ class FairMatch(object):
         """
 
         additional_uniques = list(set(entries))
-        print('        get %sx entry from %s ignoring entries in %s' % (str(n), str(additional_uniques), str(exclude)))
+        logger.info('get %sx entry from %s ignoring entries in %s' % (n, additional_uniques, exclude))
         # excludes the entries we already have
         for e in exclude:
             try:
                 additional_uniques.remove(e)
             except ValueError:
-                pass # e didnt exist
+                pass  # e didnt exist
         shuffle(additional_uniques)
         additional_uniques = additional_uniques[:n]
 
@@ -742,22 +745,22 @@ class FairMatch(object):
         """
         if entries == [] and exclude == []:
             if verbose:
-                print('done!')
-            return # we are done
+                logger.info('done!')
+            return  # we are done
 
         if verbose:
-            print('')
-            print('++++ beginning of round %s ++++' % str(round))
-            print('(pre-round) entry pool:', str(entries))
+            logger.info('++++ beginning of round %s ++++' % round)
+            logger.info('(pre-round) entry pool: %s' % entries)
 
         # get the unique entries for this round
         round_uniques, remaining_entries = self.get_and_remove_uniques(entries, exclude)
         remaining_uniques = list(set(remaining_entries) - set(exclude))
         if verbose:
-            print('excluded(for fairness):', str(exclude))
-            print('round uniques         :', str(round_uniques))
-            print('remaining entries     :', str(remaining_entries), 'including any entries in exclude (debug)')
-            print('remaining uniques     :', str(remaining_uniques), 'not including excludes. potential additional entries this round')
+            logger.info('excluded(for fairness): %s' % exclude)
+            logger.info('round uniques: %s' % round_uniques)
+            logger.info('remaining entries: %s including any entries in exclude (debug)' % remaining_entries)
+            logger.info('remaining uniques: %s not including excludes. potential additional entries this round' % (
+                        remaining_uniques))
 
         exclude_users_for_fairness = []
         while True:
@@ -788,11 +791,11 @@ class FairMatch(object):
                 selected_additional_entries = additional_uniques[:n]
 
                 if verbose:
-                    print('        -> %s didnt get filled.' % str(round_uniques))
+                    logger.info('-> %s didnt get filled.' % round_uniques)
                     # print('        -> selected_additional_entries = '
                     #       'list(set(remaining_uniques) - set(round_uniques))[:n]')
-                    print('        -> randomly chose:', str(selected_additional_entries), 'from', str(additional_uniques), ''
-                                        '(avoiding these obviously:', str(round_uniques),')')
+                    logger.info('-> randomly chose: %s from %s (avoiding these obviously: %s' % (
+                                selected_additional_entries, additional_uniques, round_uniques))
 
                 # now make the last contest of the round, or issue refunds
                 first_round = round == 1
@@ -810,22 +813,25 @@ class FairMatch(object):
                 entries = self.remove_from_list(entries, exclude_users_for_fairness)
                 break
 
-        if verbose: print('    (exclude %s in round %s)' % (str(exclude_users_for_fairness),str(round+1)))
+        if verbose:
+            logger.info('(exclude %s in round %s)' % (exclude_users_for_fairness, str(round + 1)))
 
         # post while loop
-        self.run_h(entries, round+1, exclude_users_for_fairness, verbose=verbose)
+        self.run_h(entries, round + 1, exclude_users_for_fairness, verbose=verbose)
 
     def print_debug_info(self):
-        print('*** post run() information ***')
+        logger.info('*** post run() information ***')
         # print(self.contests)
-        for k,v in self.contests.items():
-            print('%-16s:'%k, v)
-        print(len(self.contests['contests']), 'contests created')
-        #unused_entries = self.contests['entry_pool']
-        # for c in self.contests['contests']:
-        #     for entry in c:
-        #         unused_entries.remove(entry)
-        print('unused entries:', str(self.contests['unused_entries']))
+        for k, v in self.contests.items():
+            logger.info('%s: %s' % (k, v))
+            logger.info('%s contests created' % len(self.contests['contests']))
+            # This removes unused entries, but has been commented out. I have no idea why it is. (zach)
+            # unused_entries = self.contests['entry_pool']
+            # for c in self.contests['contests']:
+            #     for entry in c:
+            #         unused_entries.remove(entry)
+            logger.info('unused entries: %s' % self.contests['unused_entries'])
+
 
 # from contest.classes import ContestPoolCreator
 # creator = ContestPoolCreator('nba', ps, start, duration)
@@ -864,6 +870,7 @@ class FairMatch(object):
 #         rlc.create(contest_pool_id=contest_pool.pk)
 #     fair_match = FairMatch(entries=Entry.objects.filter(contest_pool=contest_pool))
 
+
 class ContestPoolFiller(object):
     """
     uses FairMatch object to determine how to fill contests based on all the entries of the ContestPool
@@ -885,6 +892,7 @@ class ContestPoolFiller(object):
 
     @atomic
     def fair_match(self):
+        logger.info('Starting FairMatch for %s' % self.contest_pool)
         """
         create all required contests using the FairMatch algorithm
         with the given user entries.
@@ -892,14 +900,18 @@ class ContestPoolFiller(object):
         self.new_contests = []
 
         contest_size = self.contest_pool.prize_structure.get_entries()
-        entry_pool = [ e.user.pk for e in self.entries ]
+        entry_pool = [e.user.pk for e in self.entries]
+        count_msg = '\t%s unique users and %s total entries for `%s`' % (
+                        len(entry_pool), contest_size, self.contest_pool)
+        logger.info(count_msg)
+        slack.send(count_msg)
 
         self.user_entries = {}
         for e in self.entries:
             try:
-                self.user_entries[ e.user.pk ].append( e )
+                self.user_entries[e.user.pk].append(e)
             except KeyError:
-                self.user_entries[ e.user.pk ] = [ e ]
+                self.user_entries[e.user.pk] = [e]
 
         # run the FairMatch algorithm to get the
         # information on how to fill the contests
@@ -914,22 +926,26 @@ class ContestPoolFiller(object):
         # user id we find along the way
         contest_entry_lists = fm.get_contests()
         for contest_entries in contest_entry_lists:
-            print('creating contest for users', str(contest_entries))
+            msg = 'creating contest for users %s' % contest_entries
+            logger.info(msg)
+            slack.send(msg)
             c = self.create_contest_from_entry_list(contest_entries)
-            self.new_contests.append( c )
+            self.new_contests.append(c)
 
         #
         # create any of the superlay contests if there are unfilled first-entries
         superlay_contest_entry_lists = fm.get_contests_forced()
         for contest_entries in superlay_contest_entry_lists:
-            print('creating contest for users (unfilled first-entries)', str(contest_entries))
+            msg = 'creating contest for users (unfilled first-entries) %s' % contest_entries
+            logger.info(msg)
+            slack.send(msg)
             c = self.create_contest_from_entry_list(contest_entries)
-            self.new_contests.append( c )
+            self.new_contests.append(c)
 
         # change the status of the contest pool to created now
         self.contest_pool.status = ContestPool.CREATED
         self.contest_pool.save()
-        #self.contest_pool.refresh_from_db()
+        # self.contest_pool.refresh_from_db()
         return self.new_contests
 
     def create_contest_from_entry_list(self, entry_list):
@@ -941,7 +957,7 @@ class ContestPoolFiller(object):
 
         # 2. enter them into the contest
         for user_id in entry_list:
-            entry = self.user_entries[ user_id ].pop()
+            entry = self.user_entries[user_id].pop()
 
             # find the contest pool entry for this user
             entry.contest = contest
@@ -963,19 +979,20 @@ class ContestPoolFiller(object):
         # return the newly created (and filled) contest
         return contest
 
+
 class ContestPlayerOwnership(object):
     """
     gathers the data about player ownership for the given contest
     """
 
     def __init__(self, contest):
-        if not isinstance( contest, Contest ):
+        if not isinstance(contest, Contest):
             err_msg = 'contest param [%s] must be a contest.models.Contest' % type(contest)
             raise Exception(err_msg)
         self.contest = contest
 
-        self.entries        = None
-        self.lineups        = None
+        self.entries = None
+        self.lineups = None
         self.lineup_players = None
 
         # store the results in a collections.Counter instance.
@@ -994,7 +1011,7 @@ class ContestPlayerOwnership(object):
         with sums of occurences of players, and the # of lineups
         """
         self.entries = Entry.objects.filter(contest=self.contest)
-        self.lineups = [ e.lineup for e in self.entries ]
+        self.lineups = [e.lineup for e in self.entries]
         self.lineup_players = lineup.models.Player.objects.filter(lineup__in=self.lineups)
 
         # add players to the data with an initial count of 1.
@@ -1020,6 +1037,7 @@ class ContestPlayerOwnership(object):
             self.update()
 
         return self.player_counter.get(srid)
+
 
 class RecentPlayerOwnership(object):
     """
@@ -1086,7 +1104,6 @@ class RecentPlayerOwnership(object):
             # day will be a collections.Counter() class (ie: a dict, basically)
             lineup_count = day.get_lineup_count()
             for player_srid, occurrences in day.get_ownerships().items():
-                #print()
                 data[player_srid] = occurrences / lineup_count
         return data
 
@@ -1109,10 +1126,10 @@ class RecentPlayerOwnership(object):
         i = 0
         while i < self.recent_days:
             # get the current datetime range for the dfs day. offset_hours should be negative
-            start, end = DfsDate.get_current_dfs_date_range(offset_hours=24*i*-1)
+            start, end = DfsDate.get_current_dfs_date_range(offset_hours=24 * i * -1)
             # get the 'group', ie: the DraftGroups (a subset of our self.draft_groups) for the day.
             group = draftgroup.models.DraftGroup.objects.filter(start__range=(start, end),
-                                                pk__in=[dg.pk for dg in self.draft_groups])
+                                                                pk__in=[dg.pk for dg in self.draft_groups])
             # print('%s draft groups added' % len(group))
             draft_groups_by_day.append(group)
             i += 1
@@ -1136,7 +1153,7 @@ class RecentPlayerOwnership(object):
             # what you might expect!) to merge the overall 'player_ownerships'
             # and the 'day_ownerships' without replacing existing keys in 'player_ownerships'
             new_day_ownerships = DictTools.subtract(day_ownerships.copy(), player_ownerships)
-            #print('new_day_ownerships', str(new_day_ownerships))
+            # print('new_day_ownerships', str(new_day_ownerships))
             dfs_day_ownership_list.append(self.DfsDayOwnership(num_lineups_in_group, new_day_ownerships))
             day_ownerships.update(player_ownerships)
             # replace player_ownerships with the updated copy of all ownerships we've seen thus far
@@ -1158,5 +1175,5 @@ class RecentPlayerOwnership(object):
         for contest in contests:
             dg = contest.draft_group
             if dg.pk not in draft_group_map:
-                draft_group_map[ dg.pk ] = dg
+                draft_group_map[dg.pk] = dg
         return list(draft_group_map.values())

@@ -49,12 +49,17 @@ def spawn_contest_pool_contests(self):
     if acquire_lock():
         try:
             contest_pools = LiveContestPool.objects.all()
-            # contest_pools.count()
             for cp in contest_pools:
-                slack.send("Attempting to spawn contests for ContestPool: %s" % cp)
+                msg = "Attempting to spawn contests for `%s`" % cp
+                logger.info(msg)
+                slack.send(msg)
                 cpf = ContestPoolFiller(cp)
                 # create all its Contests using FairMatch
                 new_contests = cpf.fair_match()
+                for new_contest in new_contests:
+                    msg = "\tSpawned `%s`" % new_contest
+                    logger.info(msg)
+                    slack.send(msg)
         finally:
             release_lock()
 
@@ -192,7 +197,7 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     if contests_to_pay.count() > 0:
         msg_str = '%s completed contests have automatically paid out:' % num_contests
         for contest in contests_to_pay:
-            msg_str += '\n\t%s' % contest
+            msg_str += '\n\t`%s`' % contest
         logger.info(msg_str)
         slack.send(msg_str)
         send_mail("Contest Auto Payout Time!",
