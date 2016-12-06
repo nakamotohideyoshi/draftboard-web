@@ -63,5 +63,4 @@ def check_not_active_users(self):
         filter(Q(last_login__lt=day) | Q(id__in=entries_users))
     if users.exists():
         inactive_users_email.delay(users)
-        UserEmailNotification.objects.filter(user__in=users).update(enabled=False)
         Information.objects.filter(user__in=users).update(inactive=True)
