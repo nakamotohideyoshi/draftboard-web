@@ -1064,9 +1064,9 @@ class ExclusionFormView(FormView):
 
     def get_context_data(self, **kwargs):
         kwargs = super().get_context_data()
-        date = date.today()
+        cur_date = date.today()
         for month in self.months:
-            kwargs['%s_month' % month] = add_months(date, month)
+            kwargs['%s_month' % month] = add_months(cur_date, month)
         return kwargs
 
     def get_form_kwargs(self):
@@ -1079,5 +1079,6 @@ class ExclusionFormView(FormView):
         entries = CurrentEntry.objects.filter(user=information.user)
         for entry in entries:
             unregister_entry_task.delay(entry)
+            UserEmailNotification.objects.filter(user=information.user).update(enabled=False)
             logout(self.request)
         return super().form_valid(form)
