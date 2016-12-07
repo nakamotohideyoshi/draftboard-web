@@ -58,3 +58,19 @@ class HasVerifiedIdentity(permissions.BasePermission):
 
         # Check if their identity is verified.
         return request.user.information.has_verified_identity
+
+
+class IsConfirmed(permissions.BasePermission):
+    """
+    Has the user verified their identity with Trulioo? If they have there will be a
+    user.identity model.
+    """
+    def has_permission(self, request, view):
+        # If the user has permission to bypass location checks, pass them.
+        if request.user.has_perm('account.email_confirmation'):
+            logger.info(
+                'User: %s has bypassed the email confirmation via permissions.' % request.user.username)
+            return True
+
+        # Check if their identity is verified.
+        return request.user.information.is_confirmed

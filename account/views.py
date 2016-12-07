@@ -6,10 +6,14 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views.generic.base import TemplateView
 from django.http import Http404
+from django.shortcuts import render
 from braces.views import LoginRequiredMixin
 from account.models import (
     Information,
@@ -17,12 +21,14 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
     Identity,
+    Confirmation
 )
 from account.forms import LoginForm
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
     HasVerifiedIdentity,
+    IsConfirmed
 )
 from account.serializers import (
     LoginSerializer,
@@ -56,7 +62,7 @@ from cash.classes import (
     CashTransaction,
 )
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import login as authLogin
 from django.contrib.auth import authenticate, logout
@@ -190,8 +196,10 @@ class RegisterAccountAPIView(generics.CreateAPIView):
             user.save()
             # Make sure each user gets an information model.
             Information.objects.create(user=user)
+            Confirmation.objects.create(user=user)
             newUser = authenticate(username=user.username, password=password)
             if newUser is not None:
+                account.tasks.send_confirmation_email.delay(user)
                 authLogin(request, newUser)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -821,7 +829,7 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, IsConfirmed)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -1037,3 +1045,18 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
         response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
         return response
+
+
+class ConfirmUserView(LoginRequiredMixin, TemplateView):
+    template_name = 'frontend/confirmation.html'
+
+    def get(self, request, *args, **kwargs):
+        uid = force_text(urlsafe_base64_decode(kwargs.get('uid')))
+        try:
+            confirmation = Confirmation.objects.get(pk=uid)
+        except Confirmation.DoesNotExist:
+            return self.render_to_response({'message': 'Confirmation key not found'},)
+        if confirmation:
+            confirmation.confirmed = True
+            confirmation.save()
+            return self.render_to_response({'message': 'Successful confirmation'},)
