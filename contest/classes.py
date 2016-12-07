@@ -901,8 +901,8 @@ class ContestPoolFiller(object):
 
         contest_size = self.contest_pool.prize_structure.get_entries()
         entry_pool = [e.user.pk for e in self.entries]
-        count_msg = '\t%s unique users and %s total entries for `%s`' % (
-                        len(entry_pool), contest_size, self.contest_pool)
+        count_msg = '  %s unique users and %s total entries for `%s`' % (
+                    contest_size, len(entry_pool), self.contest_pool)
         logger.info(count_msg)
         slack.send(count_msg)
 
@@ -926,7 +926,7 @@ class ContestPoolFiller(object):
         # user id we find along the way
         contest_entry_lists = fm.get_contests()
         for contest_entries in contest_entry_lists:
-            msg = 'creating contest for users %s' % contest_entries
+            msg = '  Creating contest for users %s' % contest_entries
             logger.info(msg)
             slack.send(msg)
             c = self.create_contest_from_entry_list(contest_entries)

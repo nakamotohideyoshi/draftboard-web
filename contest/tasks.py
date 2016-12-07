@@ -57,7 +57,7 @@ def spawn_contest_pool_contests(self):
                 # create all its Contests using FairMatch
                 new_contests = cpf.fair_match()
                 for new_contest in new_contests:
-                    msg = "\tSpawned `%s`" % new_contest
+                    msg = "  Spawned `%s`" % new_contest
                     logger.info(msg)
                     slack.send(msg)
         finally:
