@@ -44,13 +44,21 @@ def send_password_reset_email(self, user, https=True):
     send_mail('password reset email', 'hey, heres your password reset link: ' + url, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
+@app.task(bind=True)
+def send_confirmation_email(self, user, https=True):
+    uid         = encode_uid(user.confirmation.pk)
+    site        = settings.SITE
+    protocol    = 'https' if https else 'http'
+    url         = '%s://%s/user-joined-confirm/%s/' % (protocol, site, uid)
+    print( url )
+    send_mail('user confirmation', 'hey, you have joined the site, go to following link to confirm your registration: ' + url, settings.DEFAULT_FROM_EMAIL, [user.email])
+
 @app.task
 def inactive_users_email(users):
     if settings.INACTIVE_USERS_EMAILS:
         subject = 'Inactive users'
         body = settings.SITE + reverse('admin:auth_user_changelist') + '?id__in=' + ','.join([str(x.id) for x in users])
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, settings.INACTIVE_USERS_EMAILS)
-
 
 
 @app.task(bind=True)
