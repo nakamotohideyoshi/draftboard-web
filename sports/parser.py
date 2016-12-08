@@ -1,7 +1,3 @@
-#
-
-#from django.core import serializers
-
 from dataden.watcher import OpLogObjWrapper
 from dataden.classes import Trigger, DataDen
 from dataden.signals import Update
@@ -21,6 +17,7 @@ import sports.nfl.models
 
 from pprint import PrettyPrinter
 
+
 class DataDenParser(object):
     """
     returns a parser for a sport
@@ -28,15 +25,15 @@ class DataDenParser(object):
     NAMESPACE = 'ns'
 
     parsers = {
-        'nba'   : sports.nba.parser.DataDenNba,
+        'nba': sports.nba.parser.DataDenNba,
 
-        'mlb'   : sports.mlb.parser.DataDenMlb,
+        'mlb': sports.mlb.parser.DataDenMlb,
 
-        'nhl'   : sports.nhl.parser.DataDenNhl,   # 'nhl' and 'nhlo' use the same parser!
-        'nhlo'  : sports.nhl.parser.DataDenNhl,
+        'nhl': sports.nhl.parser.DataDenNhl,  # 'nhl' and 'nhlo' use the same parser!
+        'nhlo': sports.nhl.parser.DataDenNhl,
 
-        'nfl'   : sports.nfl.parser.DataDenNfl,   # 'nfl' and 'nflo' use the same parser!
-        'nflo'  : sports.nfl.parser.DataDenNfl,
+        'nfl': sports.nfl.parser.DataDenNfl,  # 'nfl' and 'nflo' use the same parser!
+        'nflo': sports.nfl.parser.DataDenNfl,
     }
 
     #
@@ -54,19 +51,19 @@ class DataDenParser(object):
     PBP_TRIGGERS = [
         #
         # MLB
-        ('mlb','pitch','pbp'),
-        ('mlb','pitcher','pbp'),        # see mlb parser class ZonePitchPbp
-        ('mlb','runner','pbp'),         # baserunners
+        ('mlb', 'pitch', 'pbp'),
+        ('mlb', 'pitcher', 'pbp'),  # see mlb parser class ZonePitchPbp
+        ('mlb', 'runner', 'pbp'),  # baserunners
 
         #
         # NBA
-        ('nba','quarter','pbp'),        # parent of the following
-        ('nba','event','pbp'),          # contains the play data, including players
+        ('nba', 'quarter', 'pbp'),  # parent of the following
+        ('nba', 'event', 'pbp'),  # contains the play data, including players
 
         #
         # NHL
-        ('nhl','period','pbp'),        # parent of the following
-        ('nhl','event','pbp'),         # contains the play data, including players
+        ('nhl', 'period', 'pbp'),  # parent of the following
+        ('nhl', 'event', 'pbp'),  # contains the play data, including players
 
         #
         # NFL - is in its own parser class in its package
@@ -76,38 +73,38 @@ class DataDenParser(object):
     # list of default triggers for the basic needs of the four major sports
     DEFAULT_TRIGGERS = [
         # mlb
-        ('mlb','team','hierarchy'),	                # 1
-        ('mlb','season_schedule','schedule_pre'),
-        ('mlb','season_schedule','schedule_reg'),
-        ('mlb','season_schedule','schedule_pst'),
-        ('mlb','game','schedule_pre'),              # 2
-        ('mlb','game','schedule_reg'),              # 2
-        ('mlb','game','schedule_pst'),              # 2
-        ('mlb','player','team_profile'),            # 3
-        ('mlb','game','boxscores'),
-        ('mlb','home','summary'),
-        ('mlb','away','summary'),
-        ('mlb','player','summary'),
-        ('mlb','probable_pitcher','daily_summary'), # PP info
-        ('mlb','at_bat','pbp'),                     # for pbp efficiency
+        ('mlb', 'team', 'hierarchy'),  # 1
+        ('mlb', 'season_schedule', 'schedule_pre'),
+        ('mlb', 'season_schedule', 'schedule_reg'),
+        ('mlb', 'season_schedule', 'schedule_pst'),
+        ('mlb', 'game', 'schedule_pre'),  # 2
+        ('mlb', 'game', 'schedule_reg'),  # 2
+        ('mlb', 'game', 'schedule_pst'),  # 2
+        ('mlb', 'player', 'team_profile'),  # 3
+        ('mlb', 'game', 'boxscores'),
+        ('mlb', 'home', 'summary'),
+        ('mlb', 'away', 'summary'),
+        ('mlb', 'player', 'summary'),
+        ('mlb', 'probable_pitcher', 'daily_summary'),  # PP info
+        ('mlb', 'at_bat', 'pbp'),  # for pbp efficiency
 
         # nba
-        ('nba','team','hierarchy'),             # 1
-        ('nba','season_schedule','schedule'),
-        ('nba','game','schedule'),              # 2
-        ('nba','player','rosters'),             # 3
-        ('nba','game','boxscores'),
-        ('nba','team','boxscores'),
-        ('nba','player','stats'),
+        ('nba', 'team', 'hierarchy'),  # 1
+        ('nba', 'season_schedule', 'schedule'),
+        ('nba', 'game', 'schedule'),  # 2
+        ('nba', 'player', 'rosters'),  # 3
+        ('nba', 'game', 'boxscores'),
+        ('nba', 'team', 'boxscores'),
+        ('nba', 'player', 'stats'),
 
         # nhl
-        ('nhl','season_schedule','schedule'),
-        ('nhl','team','hierarchy'),             # 1
-        ('nhl','game','schedule'),              # 2
-        ('nhl','player','rosters'),             # 3
-        ('nhl','game','boxscores'),
-        ('nhl','team','boxscores'),
-        ('nhl','player','stats'),
+        ('nhl', 'season_schedule', 'schedule'),
+        ('nhl', 'team', 'hierarchy'),  # 1
+        ('nhl', 'game', 'schedule'),  # 2
+        ('nhl', 'player', 'rosters'),  # 3
+        ('nhl', 'game', 'boxscores'),
+        ('nhl', 'team', 'boxscores'),
+        ('nhl', 'player', 'stats'),
 
         # # nfl (classic feed data - deprecated)
         # ('nfl','team','hierarchy'),             # 1
@@ -135,7 +132,7 @@ class DataDenParser(object):
         :param sport:
         :return:
         """
-        parser = DataDenParser.parsers.get( sport, None )
+        parser = DataDenParser.parsers.get(sport, None)
         if parser is None:
             raise Exception('parser does not exist for sport: ' + str(sport))
 
@@ -143,19 +140,19 @@ class DataDenParser(object):
 
     def get_sport_from_namespace(self, obj):
         ns = obj.get_ns()
-        return ns.split('.')[0] # sport always on the left side of the dot
+        return ns.split('.')[0]  # sport always on the left side of the dot
 
     def __get_parser(self, sport):
-        dataden_sport_parser = self.parsers[ sport ]
+        dataden_sport_parser = self.parsers[sport]
         return dataden_sport_parser()
 
     def parse(self, obj):
         """
         inspect the namespace of the object, and pass it to the proper sport parser
         """
-        self.sport = self.get_sport_from_namespace( obj )
-        parser = self.__get_parser( self.sport )
-        parser.parse( obj ) # the sub parser will infer what type of object it is
+        self.sport = self.get_sport_from_namespace(obj)
+        parser = self.__get_parser(self.sport)
+        parser.parse(obj)  # the sub parser will infer what type of object it is
 
     def setup_triggers(self, sport=None, enable=True, pbp=False):
         """
@@ -176,29 +173,29 @@ class DataDenParser(object):
         :return:
         """
         if sport:
-            self.__valid_sport(sport) # exception if it is not valid
+            self.__valid_sport(sport)  # exception if it is not valid
 
         parser = self.__get_parser(sport)
         print('type(parser):', str(type(parser)))
 
         # create all the default triggers
         for t in parser.get_triggers():
-            db          = t[0]
-            coll        = t[1]
-            parent_api  = t[2]
-            trg = Trigger.create( db, coll, parent_api, enable=enable )
+            db = t[0]
+            coll = t[1]
+            parent_api = t[2]
+            trg = Trigger.create(db, coll, parent_api, enable=enable)
 
         print('created triggers')
 
         # create all the pbp triggers (or for the specified sport!
         for t in self.PBP_TRIGGERS:
             if sport and sport != t[0]:
-                #print('skipping pbp triggers %s because it didnt match %s' % (str(t), str(sport)))
-                continue # skip all that dont match, if sport is specified
-            db          = t[0]
-            coll        = t[1]
-            parent_api  = t[2]
-            trg = Trigger.create( db, coll, parent_api, enable=enable )
+                # print('skipping pbp triggers %s because it didnt match %s' % (str(t), str(sport)))
+                continue  # skip all that dont match, if sport is specified
+            db = t[0]
+            coll = t[1]
+            parent_api = t[2]
+            trg = Trigger.create(db, coll, parent_api, enable=enable)
 
     def setup(self, sport, async=False, replay=False, force_triggers=None, target={}):
         """
@@ -233,9 +230,9 @@ class DataDenParser(object):
         :return:
         """
 
-        self.__valid_sport(sport) # make sure we can set it up
+        self.__valid_sport(sport)  # make sure we can set it up
         self.setup_triggers(sport)
-        dataden = DataDen(no_cursor_timeout=True) # dont let cursor timeout for setup()
+        dataden = DataDen(no_cursor_timeout=True)  # dont let cursor timeout for setup()
 
         parser = self.__get_parser(sport)
         triggers = parser.get_triggers()
@@ -250,13 +247,13 @@ class DataDenParser(object):
         for t in triggers:
             #
             # as a debug, print out the 'ns' and the 'parent_api', and count
-            db          = t[0]
-            coll        = t[1]
-            parent_api  = t[2]
-            print( 'ns:%s.%s, parent_api:%s, target:%s' % (db, coll, parent_api, str(target)) )
-            cursor = dataden.find(db,coll,parent_api, target=target)
+            db = t[0]
+            coll = t[1]
+            parent_api = t[2]
+            print('ns:%s.%s, parent_api:%s, target:%s' % (db, coll, parent_api, str(target)))
+            cursor = dataden.find(db, coll, parent_api, target=target)
             size = cursor.count()
-            print( ' ... count: ' + str(size))
+            print(' ... count: ' + str(size))
 
             i = 1
             for mongo_obj in cursor:
@@ -268,35 +265,35 @@ class DataDenParser(object):
                     msg = '(%s / %s)' % (str(i), str(size))
                     print(msg)
 
-                self.parse_obj( db, coll, mongo_obj, async=async )
+                self.parse_obj(db, coll, mongo_obj, async=async)
 
                 i += 1
 
     def setup_score_players_for_sport(self, sport):
         if sport == 'nfl':
             self.setup_score_players(score_system_class=scoring.classes.NflSalaryScoreSystem,
-                                            player_stats_model=sports.nfl.models.PlayerStats)
+                                     player_stats_model=sports.nfl.models.PlayerStats)
         elif sport == 'nhl':
             self.setup_score_players(score_system_class=scoring.classes.NhlSalaryScoreSystem,
-                                            player_stats_model=sports.nhl.models.PlayerStats)
+                                     player_stats_model=sports.nhl.models.PlayerStats)
         elif sport == 'nba':
             self.setup_score_players(score_system_class=scoring.classes.NbaSalaryScoreSystem,
-                                            player_stats_model=sports.nba.models.PlayerStats)
+                                     player_stats_model=sports.nba.models.PlayerStats)
         elif sport == 'mlb':
             self.setup_score_players(score_system_class=scoring.classes.MlbSalaryScoreSystem,
-                                            player_stats_model=sports.mlb.models.PlayerStats)
+                                     player_stats_model=sports.mlb.models.PlayerStats)
 
     def setup_score_players(self, score_system_class, player_stats_model):
-        #from scoring.classes import NflSalaryScoreSystem
-        #from sports.nfl.models import PlayerStats
+        # from scoring.classes import NflSalaryScoreSystem
+        # from sports.nfl.models import PlayerStats
         sport_scorer = score_system_class()
         stats = player_stats_model.objects.all()
         size = len(stats)
-        for i,s in enumerate(stats):
-            #print( '(%s of %s)', i+1, size)
-            s.fantasy_points = sport_scorer.score_player( s, verbose=True )
+        for i, s in enumerate(stats):
+            # print( '(%s of %s)', i+1, size)
+            s.fantasy_points = sport_scorer.score_player(s, verbose=True)
             print('')
-            print( '(%s of %s)' % (str(i+1), size), 'total', s.fantasy_points, '|', sport_scorer.get_str_stats() )
+            print('(%s of %s)' % (str(i + 1), size), 'total', s.fantasy_points, '|', sport_scorer.get_str_stats())
             s.save()
 
     def parse_obj(self, db, coll, mongo_obj, async=False):
@@ -312,7 +309,7 @@ class DataDenParser(object):
         :return:
         """
         try:
-            Update( OpLogObjWrapper( db, coll, mongo_obj ) ).send( async=async )
+            Update(OpLogObjWrapper(db, coll, mongo_obj)).send(async=async)
         except Exception as e:
             print('ns: %s.%s | mongo_obj: %s' % (db, coll, str(mongo_obj)))
             raise Exception(e)
@@ -325,7 +322,7 @@ class DataDenParser(object):
         """
         sports = self.__get_valid_sports()
         for sport in sports:
-            self.setup( sport )
+            self.setup(sport)
 
     def __get_valid_sports(self):
         """
@@ -345,14 +342,15 @@ class DataDenParser(object):
         if sport in self.__get_valid_sports():
             return True
         raise Exception('invalid sport >>> %s <<< ! sport must be in: %s' % (sport,
-                                                        str(self.__get_valid_sports())))
+                                                                             str(self.__get_valid_sports())))
+
 
 class ProviderParser(object):
     """
     get an object that can parse our providers objects
     """
     parsers = {
-        'dataden' : DataDenParser,
+        'dataden': DataDenParser,
 
         # ... implement and add more providers here
     }
@@ -365,19 +363,22 @@ class ProviderParser(object):
 
         return provider_parser()
 
+
 class ObjectPrinter(object):
     """
     helper class that has a self.print() method
     that uses pprint.PrettyPrinter(indent=4) to print objects
     """
+
     def __init__(self, indent=4):
         self.pp = PrettyPrinter(indent=indent)
 
     def print(self, obj, msg='', use_header=True):
         if use_header:
             print('--------------------------%s--------------------------' % str(msg))
-        self.pp.pprint( obj )
+        self.pp.pprint(obj)
         print('')
+
 
 class PbpPushStatPrinter(ObjectPrinter):
     """
@@ -386,36 +387,37 @@ class PbpPushStatPrinter(ObjectPrinter):
 
     def __init__(self):
         super().__init__()
-        self.dataden            = DataDen()
-        self.examples           = 2             # number of printed examples per type
-        self.categories         = [
+        self.dataden = DataDen()
+        self.examples = 2  # number of printed examples per type
+        self.categories = [
             #  db,  coll,  parent_api,  distinct types
-            #('nba','event','pbp',       'event_type'),
-            ('nhl','event','pbp',       'event_type'),
+            # ('nba','event','pbp',       'event_type'),
+            ('nhl', 'event', 'pbp', 'event_type'),
             # 'player',
             # 'boxscores'
         ]
 
     def print_examples(self):
         for db, coll, parent_api, distinct in self.categories:
-            event_types = self.dataden.find( db, coll, parent_api ).distinct( distinct )
+            event_types = self.dataden.find(db, coll, parent_api).distinct(distinct)
 
             # print the array of event types
             print('')
             print('[%s] example object(s) for distinct values of field: %s ...' % (str(self.examples), distinct))
-            self.print( event_types, distinct )
+            self.print(event_types, distinct)
 
             # print the unique values for the 'distinct' field
             for event_type in event_types:
                 # get the objects of this type (probably many thousands!)
-                events = self.dataden.find( db, coll, parent_api, target={ distinct : event_type } )
+                events = self.dataden.find(db, coll, parent_api, target={distinct: event_type})
                 # print X examples
                 for n, event in enumerate(events):
                     if n >= self.examples: break
                     # now print it
-                    self.print( event, '%s example %s' % (event_type, str(n+1)) )
+                    self.print(event, '%s example %s' % (event_type, str(n + 1)))
 
-#pbp_printer = PbpPushStatPrinter()
+
+# pbp_printer = PbpPushStatPrinter()
 
 class PlayerPushStatPrinter(ObjectPrinter):
     """
@@ -431,16 +433,17 @@ class PlayerPushStatPrinter(ObjectPrinter):
     def print_examples(self, sport):
         site_sport = self.ssm.get_site_sport(sport)
         # the the list of <sport>.models.PlayerStats objects for the sport specified
-        player_stats_models = self.ssm.get_player_stats_class( site_sport )
+        player_stats_models = self.ssm.get_player_stats_class(site_sport)
 
         # get some objects and print them
         for player_stats_model in player_stats_models:
             player_stats = player_stats_model.objects.all()
             for n, player_stat_obj in enumerate(player_stats):
                 #
-                self.print( player_stat_obj.to_json(), 'example %s' % (str(n+1)) )
+                self.print(player_stat_obj.to_json(), 'example %s' % (str(n + 1)))
 
-#player_printer = PlayerPushStatPrinter()
+
+# player_printer = PlayerPushStatPrinter()
 
 class BoxscorePushStatPrinter(ObjectPrinter):
     """
@@ -456,16 +459,15 @@ class BoxscorePushStatPrinter(ObjectPrinter):
     def print_examples(self, sport):
         site_sport = self.ssm.get_site_sport(sport)
         # the the list of <sport>.models.GameBoxscore objects for the sport specified
-        game_boxscore_model = self.ssm.get_game_boxscore_class( site_sport )
+        game_boxscore_model = self.ssm.get_game_boxscore_class(site_sport)
 
         print('')
-        print('[%s] example object(s) for: %s ...' % (str(self.examples), str(game_boxscore_model) ))
+        print('[%s] example object(s) for: %s ...' % (str(self.examples), str(game_boxscore_model)))
 
         # get some objects and print them
         boxscores = game_boxscore_model.objects.all()
         for n, boxscore in enumerate(boxscores):
             #
-            self.print( boxscore.to_json(), 'example %s' % (str(n+1)) )
+            self.print(boxscore.to_json(), 'example %s' % (str(n + 1)))
 
-#boxscore_printer = BoxscorePushStatPrinter()
-
+# boxscore_printer = BoxscorePushStatPrinter()

@@ -873,7 +873,8 @@ class FairMatch(object):
 
 class ContestPoolFiller(object):
     """
-    uses FairMatch object to determine how to fill contests based on all the entries of the ContestPool
+    uses FairMatch object to determine how to fill contests based on all the entries of the
+    ContestPool
     """
 
     def __init__(self, contest_pool):
@@ -901,8 +902,8 @@ class ContestPoolFiller(object):
 
         contest_size = self.contest_pool.prize_structure.get_entries()
         entry_pool = [e.user.pk for e in self.entries]
-        count_msg = '  💁 %s unique users and %s total entries for `%s`' % (
-                    contest_size, len(entry_pool), self.contest_pool)
+        count_msg = '> 💁 %s unique users and %s total entries' % (
+            len(entry_pool), len(self.entries))
         logger.info(count_msg)
         slack.send(count_msg)
 
@@ -926,7 +927,7 @@ class ContestPoolFiller(object):
         # user id we find along the way
         contest_entry_lists = fm.get_contests()
         for contest_entries in contest_entry_lists:
-            msg = '  🐣 Creating contest for users %s' % contest_entries
+            msg = '> 🐣 Creating contest for users %s' % contest_entries
             logger.info(msg)
             slack.send(msg)
             c = self.create_contest_from_entry_list(contest_entries)
@@ -936,7 +937,7 @@ class ContestPoolFiller(object):
         # create any of the superlay contests if there are unfilled first-entries
         superlay_contest_entry_lists = fm.get_contests_forced()
         for contest_entries in superlay_contest_entry_lists:
-            msg = '  🐣 creating contest for users (unfilled first-entries) %s' % contest_entries
+            msg = '> 🐣 Creating contest for users (unfilled first-entries) %s' % contest_entries
             logger.info(msg)
             slack.send(msg)
             c = self.create_contest_from_entry_list(contest_entries)
@@ -1064,7 +1065,8 @@ class RecentPlayerOwnership(object):
             return self.ownerships
 
         def __str__(self):
-            return '%s Lineups | ("player_srid":"occurrences") %s' % (str(self.lineups), str(self.ownerships))
+            return '%s Lineups | ("player_srid":"occurrences") %s' % (
+                str(self.lineups), str(self.ownerships))
 
     # maximum number of days we will search for players,
     # looking back thru historical days of lineups.
