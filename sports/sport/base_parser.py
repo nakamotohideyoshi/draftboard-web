@@ -463,8 +463,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         start = DataDenDatetime.from_string(start_str)
         status = o.get('status')
         if status is None or status == '':
-            err_msg = 'mongo game object %s has a "status" of None or empty string!' % str(
-                o)
+            err_msg = 'mongo game object %s has a "status" of None or empty string!' % o
             raise Exception(err_msg)
 
         srid_season = o.get(self.field_season_srid)
@@ -508,9 +507,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         self.game.title = title
 
         # parsing boxscores will update this Game's 'status' field
-        # so dont allow this class to ever move to an older status.
-        # only allow it to progress the status, ie:
-        # scheduled -> inprogress | inprogress -> complete | complete -> closed
+        # If the game is already closed, don't let it become active again.
         if self.game.status != GameStatus.closed:
             self.game.status = status
 
