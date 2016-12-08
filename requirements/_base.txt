@@ -36,6 +36,7 @@ pycrypto==2.6.1
 Pygments==2.0.2
 pystache==0.5.4
 pytz==2016.3
+py-KISSmetrics==1.0.1
 #redis==2.10.3
 requests==2.10.0
 six==1.9.0

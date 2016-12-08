@@ -73,6 +73,8 @@ def __on_game_closed( draft_group ):
         Contest = contest.models.Contest
         contests = Contest.objects.filter( draft_group=draft_group ).exclude( status__in=Contest.STATUS_HISTORY )
         num_updated = contests.update( status=Contest.COMPLETED )
+        from contest.tasks import track_contests
+        track_contests.delay(contests)
         print( str(num_updated), 'contests updated to status[%s]' % Contest.COMPLETED )
 
 @app.task(bind=True)
