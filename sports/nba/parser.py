@@ -1,5 +1,4 @@
-# sports/nba/models.py
-
+from logging import getLogger
 from django.db.utils import IntegrityError
 from django.db.transaction import atomic
 import sports.nba.models
@@ -37,6 +36,8 @@ from util.dicts import (
     Manager,
 )
 
+logger = getLogger('sports.nba.parser')
+
 
 class TeamBoxscoreReducer(Reducer):
     remove_fields = [
@@ -59,7 +60,6 @@ class TeamBoxscoreManager(Manager):
 
 
 class TeamBoxscores(DataDenTeamBoxscores):
-
     gameboxscore_model = GameBoxscore
 
     # setting manager_class will cause it to
@@ -87,12 +87,10 @@ class TeamBoxscores(DataDenTeamBoxscores):
 
 
 class GameBoxscoreReducer(Reducer):
-
     remove_fields = []
 
 
 class GameBoxscoreShrinker(Shrinker):
-
     """ in underlying data, rename key to value for all key-value-pairs in 'fields' """
     fields = {
         'id': 'srid_game'
@@ -100,7 +98,6 @@ class GameBoxscoreShrinker(Shrinker):
 
 
 class GameBoxscoreManager(Manager):
-
     """
     get_data() method calls reduce() and shrink() automatically
     """
@@ -177,11 +174,13 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         self.boxscore.title = o.get('title', '')
 
         self.boxscore.save()
+        logger.info('nba.GameBoxscore Parsed: %s', self.boxscore)
 
     def update_boxscore_data_in_game(self, boxscore_data):
         game = sports.nba.models.Game.objects.get(
             srid=self.o.get(self.field_srid_game))
         game.boxscore_data = boxscore_data
+        logger.info('Updating boxscore data: %s - %s' % (game, boxscore_data))
         game.save()
 
     def send(self, *args, **kwargs):
@@ -205,7 +204,6 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
 
 class PlayerRosters(DataDenPlayerRosters):
-
     team_model = Team
     player_model = Player
 
@@ -234,7 +232,6 @@ class PlayerRosters(DataDenPlayerRosters):
 
 
 class SeasonSchedule(DataDenSeasonSchedule):
-
     """
     """
 
@@ -253,7 +250,6 @@ class SeasonSchedule(DataDenSeasonSchedule):
 
 
 class TeamHierarchy(DataDenTeamHierarchy):
-
     """
     Parse an object from which represents a Team for this sport into the db.
     """
@@ -270,7 +266,6 @@ class TeamHierarchy(DataDenTeamHierarchy):
             return
 
         self.team.save()
-
 
 
 class PlayerStats(DataDenPlayerStats):
@@ -432,7 +427,6 @@ class QuarterPbp(DataDenPbpDescription):
 
 
 class EventPbp(DataDenPbpDescription):
-
     game_model = Game
     pbp_model = Pbp
     portion_model = GamePortion
@@ -477,11 +471,10 @@ class EventPbp(DataDenPbpDescription):
         else:
             # print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
-        # self.timer_stop()
+
 
 
 class Injury(DataDenInjury):
-
     player_model = Player
     injury_model = sports.nba.models.Injury
 
@@ -578,7 +571,7 @@ class DataDenNba(AbstractDataDenParser):
             #
             # handle a play by play event from dataden.
             event_pbp = EventPbp()
-            event_pbp.parse(obj)      # takes care of pushering the data too.
+            event_pbp.parse(obj)  # takes care of pushering the data too.
             # pushers the pbp + stats data as one piece of data
             event_pbp.send()
 
