@@ -14,6 +14,16 @@ import logging
 logger = logging.getLogger('account.utils')
 
 
+def encode_uid(pk):
+    try:
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        return urlsafe_base64_encode(force_bytes(pk)).decode()
+    except ImportError:
+        from django.utils.http import int_to_base36
+        return int_to_base36(pk)
+
+
 def create_user_log(request=None, type=None, action=None, metadata={}, user=None):
     from .models import UserLog
     """

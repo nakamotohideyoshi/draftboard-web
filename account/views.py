@@ -1051,7 +1051,7 @@ class ConfirmUserView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/confirmation.html'
 
     def get(self, request, *args, **kwargs):
-        uid = force_text(urlsafe_base64_decode(kwargs.get('uid')))
+        uid = force_text(urlsafe_base64_decode(kwargs.get('uid'))).replace(settings.ENCODE_SECRET_KEY, "")
         try:
             confirmation = Confirmation.objects.get(pk=uid)
         except Confirmation.DoesNotExist:
