@@ -172,3 +172,24 @@ class Identity(models.Model):
 
     class Meta:
         verbose_name = 'Trulioo User Identity'
+
+
+class Limit(models.Model):
+    DEPOSIT, ENTRY_ALERT, ENTRY_LIMIT, ENTRY_FEE = range(0, 4)
+    TYPES = (
+        (DEPOSIT, 'Deposit Limit'),
+        (ENTRY_ALERT, 'Contest Entry Alert'),
+        (ENTRY_LIMIT, 'Contest Entry Limit'),
+        (ENTRY_FEE, 'Entry Fee Limit'),
+
+    )
+    PERIODS = (
+        (0, 'Monthly'),
+
+    )
+    user = models.ForeignKey(User, related_name='limits')
+    type = models.SmallIntegerField(choices=TYPES)
+    value = models.IntegerField(blank=True)
+    time_period = models.SmallIntegerField(choices=PERIODS)
+    updated = models.DateTimeField(auto_now=True)
+    # values = model
