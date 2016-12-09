@@ -188,7 +188,8 @@ class Game(DirtyFieldsMixin, models.Model):
         return self.status == self.STATUS_INPROGRESS
 
     def __str__(self):
-        return '<Game> pk: %s | status: %s | start: %s | srid: %s' % (self.pk, self.status, self.start, self.srid)
+        return '<Game> pk: %s | status: %s | start: %s | srid: %s' % (
+        self.pk, self.status, self.start, self.srid)
 
     class Meta:
         abstract = True
@@ -254,6 +255,14 @@ class GameBoxscore(models.Model):
     def to_json(self):
         return json.loads(serializers.serialize('json', [self]))[0]  # always only 1
 
+    def __str__(self):
+        return "<GameBoxscore> id: %s | srid_game: %s | status: %s | updated: %s" % (
+            self.id,
+            self.srid_game,
+            self.status,
+            self.updated,
+        )
+
     class Meta:
         abstract = True
 
@@ -269,7 +278,8 @@ class Injury(models.Model):
     iid = models.CharField(max_length=128, unique=True, null=False,
                            help_text='custom injury id')
 
-    player_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_injured_player')
+    player_type = models.ForeignKey(ContentType,
+                                    related_name='%(app_label)s_%(class)s_injured_player')
     player_id = models.PositiveIntegerField()
     player = GenericForeignKey('player_type', 'player_id')
 
@@ -283,7 +293,8 @@ class Injury(models.Model):
     def get_serializer_class(self):
         """
         """
-        raise Exception('Injury get_serializer_class() error - inheriting model must override this method')
+        raise Exception(
+            'Injury get_serializer_class() error - inheriting model must override this method')
 
     class Meta:
         abstract = True
@@ -299,10 +310,12 @@ class Player(models.Model):
     last_name = models.CharField(max_length=32)
 
     # reference the position
-    position = models.ForeignKey(Position, null=False, related_name='%(app_label)s_%(class)s_player_position')
+    position = models.ForeignKey(Position, null=False,
+                                 related_name='%(app_label)s_%(class)s_player_position')
 
     # the GFK to the Game
-    injury_type = models.ForeignKey(ContentType, null=True, related_name='%(app_label)s_%(class)s_players_injury')
+    injury_type = models.ForeignKey(ContentType, null=True,
+                                    related_name='%(app_label)s_%(class)s_players_injury')
     injury_id = models.PositiveIntegerField(null=True)
     injury = GenericForeignKey('injury_type', 'injury_id')
 
@@ -329,8 +342,9 @@ class Player(models.Model):
 
     def __str__(self):
         return '<Player> %s %s | position: %s | on_active_roster: %s' % (self.first_name,
-                                                                self.last_name, str(self.position),
-                                                                str(self.on_active_roster))
+                                                                         self.last_name,
+                                                                         str(self.position),
+                                                                         str(self.on_active_roster))
 
     class Meta:
         abstract = True
@@ -389,7 +403,8 @@ class PlayerStats(models.Model):
     game = GenericForeignKey('game_type', 'game_id')
 
     # the GFK to the Player
-    player_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_sport_player')
+    player_type = models.ForeignKey(ContentType,
+                                    related_name='%(app_label)s_%(class)s_sport_player')
     player_id = models.PositiveIntegerField()
     player = GenericForeignKey('player_type', 'player_id')
 
@@ -425,7 +440,8 @@ class PlayerStats(models.Model):
         a list of fields they want to SCORING_FIELDS
         """
         if self.SCORING_FIELDS is None:
-            raise Exception('sports.PlayerStats.get_scoring_fields() must be overridden in child class!')
+            raise Exception(
+                'sports.PlayerStats.get_scoring_fields() must be overridden in child class!')
         return self.SCORING_FIELDS
 
     def to_json(self):
@@ -443,11 +459,12 @@ class PlayerStats(models.Model):
         unique_together = ('srid_player', 'srid_game')
 
     def __str__(self):
-        return '<PlayerStats> game %s | player %s | fantasy_points %s | %s | last change (%s)' % (self.srid_game,
-                                                                                    self.srid_player,
-                                                                                    self.fantasy_points,
-                                                                                    str(self.player),
-                                                                                    str(self.fp_change))
+        return '<PlayerStats> game %s | player %s | fantasy_points %s | %s | last change (%s)' % (
+        self.srid_game,
+        self.srid_player,
+        self.fantasy_points,
+        str(self.player),
+        str(self.fp_change))
 
     def save(self, *args, **kwargs):
         if self.FANTASY_POINTS_OVERRIDE in kwargs:
@@ -510,7 +527,8 @@ class PbpDescription(models.Model):
     pbp_id = models.PositiveIntegerField()
     pbp = GenericForeignKey('pbp_type', 'pbp_id')
 
-    portion_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_pbpdesc_portion')
+    portion_type = models.ForeignKey(ContentType,
+                                     related_name='%(app_label)s_%(class)s_pbpdesc_portion')
     portion_id = models.PositiveIntegerField()
     portion = GenericForeignKey('portion_type', 'portion_id')
 
@@ -564,7 +582,8 @@ class TsxContent(models.Model):
     sport = models.CharField(max_length=32, null=False)
 
     def __str__(self):
-        return '<Pbp> sport: %s | srid: %s | created:%s' % (self.sport, self.srid, str(self.created))
+        return '<Pbp> sport: %s | srid: %s | created:%s' % (
+        self.sport, self.srid, str(self.created))
 
     class Meta:
         unique_together = ('srid', 'sport')
@@ -669,7 +688,8 @@ class AbstractTsxItemReference(models.Model):
     name = models.CharField(max_length=128, null=False)
 
     # GenericForeignKey to be inherited by the child which should point to the Content
-    tsxitem_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_tsxitem_tsxitemref')
+    tsxitem_type = models.ForeignKey(ContentType,
+                                     related_name='%(app_label)s_%(class)s_tsxitem_tsxitemref')
     tsxitem_id = models.PositiveIntegerField()
     tsxitem = GenericForeignKey('tsxitem_type', 'tsxitem_id')
 

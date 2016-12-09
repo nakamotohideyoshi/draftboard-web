@@ -1,6 +1,4 @@
-#
-# sports/sport/base_parser.py
-
+from raven.contrib.django.raven_compat.models import client
 import re
 from logging import getLogger
 from django.core.cache import cache
@@ -616,6 +614,7 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
 
         logger.info('Parsed PlayerRoster: %s' % self.player)
 
+
 class DataDenPlayerStats(AbstractDataDenParseable):
     game_model = None
     player_model = None
@@ -734,11 +733,13 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         """
         try:
             game = self.game_model.objects.get(srid=srid_game)
-        except self.game_model.DoesNotExist:
+        except self.game_model.DoesNotExist as e:
+            logger.error(e);
             return  # go no further
 
         # if the game instance has a status of 'closed', dont change it
         if game.status == self.game_status.closed:
+            logger.info("Game is already 'closed', not updating status. %s" % game)
             return  # go no further
 
         # convert a granular status to one of the primary, overarching statuses
@@ -788,15 +789,17 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         try:
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Away_team does not exist, not creating GameBoxscore for '
+                          'game srid: %s') % srid_game)
+            client.captureException()
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Home_team does not exist, not creating GameBoxscore for '
+                          'game srid: %s') % srid_game)
+            client.captureException()
             return
 
         try:
@@ -824,6 +827,7 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         # real-time especially
         self.update_schedule_game_status(srid_game, game_boxscore_status)
         logger.info('Parsed GameBoxscore: %s' % self.boxscore)
+
 
 class DataDenTeamBoxscores(AbstractDataDenParseable):
     gameboxscore_model = None

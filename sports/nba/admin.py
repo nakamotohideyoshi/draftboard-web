@@ -11,10 +11,10 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nba.models.Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ['srid', 'status', 'start', 'home', 'away']
+    list_display = ['id', 'srid', 'status', 'start', 'home', 'away']
     list_filter = sports.admin.GameAdmin.list_filter
     search_fields = sports.admin.GameAdmin.search_fields
-
+    ordering = ['-start']
 
 @admin.register(sports.nba.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
@@ -58,9 +58,10 @@ class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
 
 @admin.register(sports.nba.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):
-    list_display = ['srid_game', 'status', 'title', 'home_score', 'home',
+    list_display = ['id', 'srid_game', 'status', 'title', 'home_score', 'home',
                     'away', 'away_score', 'quarter', 'clock', 'coverage',
                     'home_scoring_json', 'away_scoring_json']
+    ordering = ['id']
 
 
 @admin.register(sports.nba.models.GamePortion)

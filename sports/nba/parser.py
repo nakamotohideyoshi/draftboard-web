@@ -1,7 +1,9 @@
+from raven.contrib.django.raven_compat.models import client
 from logging import getLogger
 from django.db.utils import IntegrityError
 from django.db.transaction import atomic
 import sports.nba.models
+from sports.game_status import GameStatus
 from sports.nba.models import (
     Team,
     Game,
@@ -13,7 +15,7 @@ from sports.nba.models import (
     Season,
 )
 from sports.sport.base_parser import (
-    AbstractDataDenParseable,
+    DataDenGameBoxscores,
     AbstractDataDenParser,
     DataDenPlayerStats,
     DataDenSeasonSchedule,
@@ -105,27 +107,34 @@ class GameBoxscoreManager(Manager):
     reducer_class = GameBoxscoreReducer
 
 
-class GameBoxscoreParser(AbstractDataDenParseable):
+class GameBoxscoreParser(DataDenGameBoxscores):
     gameboxscore_model = GameBoxscore
+    # the Game model
+    game_model = Game
     team_model = Team
-
+    # an instance of GameStatus helps us determine the "primary" status
+    game_status = GameStatus(GameStatus.nba)
+    # setting manager_class will cause it to
+    # reduce and shrink the data before getting sent to client
     manager_class = GameBoxscoreManager
-
-    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
+    # 'boxscores' pusher channel
+    channel = push.classes.PUSHER_BOXSCORES
     event = 'game'
-
     field_srid_game = 'id'
     field_status = 'status'
-
     status_halftime = 'halftime'
+    boxscore = None
 
     def __init__(self):
         super().__init__()
 
-    def parse(self, obj, target):
+    def parse(self, obj, target=None):
         """
-        :param obj:
-        :return:
+        Args:
+            obj:
+            target:
+
+        Returns:
         """
 
         # parse triggered object will set original_obj
@@ -133,25 +142,30 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         # and set the self.o (to the unwrapped object)
         self.parse_triggered_object(obj)
         o = self.o  # everything uses 'o already
-
-        summary_list = o.get('summary__list', {})
+        logger.info(self.o)
+        # summary_list = o.get('summary__list', {})
 
         srid_game = o.get(self.field_srid_game, None)
-        srid_home = summary_list.get('home', None)
-        srid_away = summary_list.get('away', None)
+        # srid_home = o.get(self.HOME, None)
+        # srid_away = o.get(self.AWAY, None)
+
+        srid_home = o.get(self.HOME, None)
+        srid_away = o.get(self.AWAY, None)
 
         try:
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Home_team does not exist, not creating GameBoxscore for '
+                          'srid_game: %s | srid_home: %s') % (srid_game, srid_home))
+            client.captureException()
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Away_team does not exist, not creating GameBoxscore for '
+                          'srid_game: %s | srid_away: %s') % (srid_game, srid_away))
+            client.captureException()
             return
 
         try:
@@ -174,13 +188,19 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         self.boxscore.title = o.get('title', '')
 
         self.boxscore.save()
-        logger.info('nba.GameBoxscore Parsed: %s', self.boxscore)
+        logger.info('nba.GameBoxscore Parsed: %s' % self.boxscore)
+
+        # use the boxscore status to update the Game object
+        # because the boxscore will be updated much more frequently in
+        # real-time especially
+        self.update_schedule_game_status(srid_game, self.boxscore.status)
 
     def update_boxscore_data_in_game(self, boxscore_data):
         game = sports.nba.models.Game.objects.get(
             srid=self.o.get(self.field_srid_game))
         game.boxscore_data = boxscore_data
-        logger.info('Updating boxscore data: %s - %s' % (game, boxscore_data))
+        logger.info(
+            'Updating game.boxscore data. game: %s -- boxscore_data: %s' % (game, boxscore_data))
         game.save()
 
     def send(self, *args, **kwargs):
@@ -192,10 +212,9 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         try:
             if is_halftime and int(data['quarter']) <= 2:
                 data['quarter'] = 3
-        except Exception as e:
-            # debug this because i want to know about problems with different
-            # scenarios
-            print(e)
+        except Exception:
+            # debug this because i want to know about problems with different scenarios
+            client.captureException()
 
         self.update_boxscore_data_in_game(data)
 
@@ -471,7 +490,6 @@ class EventPbp(DataDenPbpDescription):
         else:
             # print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
-
 
 
 class Injury(DataDenInjury):
