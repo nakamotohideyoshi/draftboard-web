@@ -28,7 +28,7 @@ from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
     HasVerifiedIdentity,
-    IsConfirmed
+    EmailConfirmed
 )
 from account.serializers import (
     LoginSerializer,
@@ -829,7 +829,7 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, IsConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -1047,11 +1047,11 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         return response
 
 
-class ConfirmUserView(LoginRequiredMixin, TemplateView):
+class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/confirmation.html'
 
     def get(self, request, *args, **kwargs):
-        uid = force_text(urlsafe_base64_decode(kwargs.get('uid'))).replace(settings.ENCODE_SECRET_KEY, "")
+        uid = force_text(urlsafe_base64_decode(kwargs.get('uid'))).replace(settings.SECRET_KEY, "")
         try:
             confirmation = Confirmation.objects.get(pk=uid)
         except Confirmation.DoesNotExist:

@@ -38,7 +38,7 @@ from mysite.celery_app import TaskHelper
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
-    IsConfirmed,
+    EmailConfirmed,
 )
 from account import const as _account_const
 from account.utils import create_user_log
@@ -48,7 +48,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, IsConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
     serializer_class = CreateLineupSerializer
 
     def post(self, request, format=None):
@@ -196,7 +196,7 @@ class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, IsConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
     serializer_class = EditLineupSerializer
 
     def post(self, request, format=None):

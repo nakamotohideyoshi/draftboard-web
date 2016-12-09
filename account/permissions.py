@@ -60,7 +60,7 @@ class HasVerifiedIdentity(permissions.BasePermission):
         return request.user.information.has_verified_identity
 
 
-class IsConfirmed(permissions.BasePermission):
+class EmailConfirmed(permissions.BasePermission):
     """
     Has the user verified their identity with Trulioo? If they have there will be a
     user.identity model.

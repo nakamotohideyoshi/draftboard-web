@@ -39,7 +39,7 @@ def send_password_reset_email(self, user, https=True):
 
 @app.task(bind=True)
 def send_confirmation_email(self, user, https=True):
-    uid = encode_uid(str(user.confirmation.pk)+settings.ENCODE_SECRET_KEY)
+    uid = encode_uid(str(user.confirmation.pk)+settings.SECRET_KEY)
     site = settings.SITE
     protocol = 'https' if https else 'http'
     url = '%s://%s/%s' % (protocol, site, reverse('join-confirmation', kwargs={'uid': uid}))
