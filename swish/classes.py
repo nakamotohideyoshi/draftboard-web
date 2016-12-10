@@ -1,7 +1,4 @@
-#
-# classes.py
-
-import time
+from logging import getLogger
 import requests
 import json
 import dateutil
@@ -14,6 +11,8 @@ from swish.models import (
     History,
     PlayerLookup,
 )
+
+logger = getLogger('swish.classes')
 
 
 class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
@@ -232,7 +231,7 @@ class SwishAnalytics(object):
 
     def call_api(self, url):
         """ retrieve the api as json """
-        print('swish url:', str(url))
+        logger.info('swish url: %s' % url)
         self.r = self.session.get(url)
 
         # save the response in the database
@@ -273,6 +272,6 @@ class SwishAnalytics(object):
                 update_data.update(extra_data)
             self.updates.append(UpdateData(update_data))
 
-        print('%s UpdateData(s)' % str(len(self.updates)))
+        logger.info('%s UpdateData(s)' % len(self.updates))
 
         return self.updates
