@@ -944,13 +944,15 @@ class SalaryGenerator(FppgGenerator):
         """
         try:
             player_type = ContentType.objects.get_for_model(player)
-            salary_obj = Salary.objects.get(pool=self.pool,
-                                            player_type=player_type,
-                                            player_id=player.id)
+            salary_obj = Salary.objects.get(
+                pool=self.pool, player_type=player_type, player_id=player.id)
 
             return salary_obj
         except Salary.DoesNotExist:
-            return Salary()
+            logger.warning('Player has no Salary, creating one. %s' % player)
+            # If a player has no Salary, create one.
+            player_type = ContentType.objects.get_for_model(player)
+            return Salary(pool=self.pool, player_type=player_type, player_id=player.id)
 
     def __round_salary(self, val):
         # return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) *
@@ -1374,7 +1376,8 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             )
                         # If the player's salary is less than the minimum, set them to the min.
                         if salary.amount < self.salary_conf.min_player_salary:
-                            logger.info(('player was below the minimum salary, setting to minimum. player: %s  '
+                            logger.info(('player was below the 1372'
+                                         ', setting to minimum. player: %s  '
                                          'salary: %s') % (player, salary))
                             salary.amount = self.salary_conf.min_player_salary
 
@@ -1409,7 +1412,10 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
             return salary_obj
         except Salary.DoesNotExist:
-            return Salary()
+            logger.warning('Player has no Salary, creating one. %s' % player)
+            # If a player has no Salary, create one.
+            player_type = ContentType.objects.get_for_model(player)
+            return Salary(pool=self.pool, player_type=player_type, player_id=player.id)
 
     def __round_salary(self, val):
         # return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) *
