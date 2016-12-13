@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deposit Receipt</title>
+</head>
+<body>
+<p>Dear {{ username }},</p>
+
+<p>Your deposit was a success! Here are the details for your records:</p>
+
+<p>{{ date }} (EDT)</p>
+<p>Transaction:	Deposit</p>
+<p>Amount:	${{ amount }}</p>
+<p>Payment Type:	PayPal</p>
+<p>Available Balance:	${{ balance }}*</p>
+
+<p>Thanks for playing!</p>
+
+<p>Draftboard Team</p>
+
+
+<p>* Note that this balance amount is as of the time this email was generated and may not reflect your most recent activity.</p>
+</body>
+</html>

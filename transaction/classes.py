@@ -1,3 +1,4 @@
+import datetime
 from transaction.models import Transaction, TransactionDetail, Balance, TransactionType
 from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException, AmountZeroException
 from django.contrib.auth.models import User
@@ -6,6 +7,9 @@ from dfslog.classes import Logger, ErrorCodes
 from mysite.classes import  AbstractSiteUserClass
 from django.db.models import F
 from django.db.transaction import atomic
+from .tasks import send_deposit_receipt
+
+
 class AbstractTransaction (AbstractSiteUserClass):
     """
     This class is to be implemented by any of the financial
@@ -111,6 +115,8 @@ class AbstractTransaction (AbstractSiteUserClass):
                                                            self.balance.amount)
 
         Logger.log(ErrorCodes.INFO, "Balance Update", msg )
+        transaction_date = datetime.datetime.now().strftime("%b %d %Y %H:%M%p")
+        send_deposit_receipt.delay(self, amount, transaction_date)
 
     def __get_balance(self):
         """
