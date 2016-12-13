@@ -9,8 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormView
-from django.http import Http404
+from django.forms import modelformset_factory
+from django import forms
+from django.http import Http404, JsonResponse
 from braces.views import LoginRequiredMixin
 from account.models import (
     Information,
@@ -18,8 +19,9 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
     Identity,
+    Limit
 )
-from account.forms import LoginForm
+from account.forms import LoginForm, LimitForm
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
@@ -1040,24 +1042,51 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         return response
 
 
-# class LimitsFormView(LoginRequiredMixin, FormView):
 class LimitsFormView(LoginRequiredMixin, TemplateView):
-    """
-    A view that, if you have access, sets a cookie to let you view other Run It Once sites in development.
-    """
+
+
     template_name = 'frontend/account/user_limits.html'
 
-    # def render_to_response(self, context, **response_kwargs):
-    #     """
-    #     If user is logged in, redirect them to their feed
-    #     """
-    #     response = super(AccessSubdomainsTemplateView, self).render_to_response(context, **response_kwargs)
-    #
-    #     if not self.request.user.has_perm('sites.access_subdomains'):
-    #         raise Http404
-    #
-    #     days_expire = 7
-    #     max_age = days_expire * 24 * 60 * 60
-    #     expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
-    #     response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
-    #     return response
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, request, **kwargs):
+        # Call the base implementation first to get a context
+        html_attrs = [['', 'curr_deposit_limit'],
+                           ['entry_alert', 'curr_contests_alert'],
+                           ['', 'curr_contest_limit'],
+                           ['', 'curr_fee_limit']]
+        context = super(LimitsFormView, self).get_context_data(**kwargs)
+        # Add in a QuerySet of all the books
+        LimitFormSet = modelformset_factory(
+            Limit,
+            form=LimitForm,
+            extra=4,
+            max_num=4,
+            widgets={'user': forms.HiddenInput(attrs={'value': request.user.pk}),
+                     'type': forms.HiddenInput(attrs={'value': 0})},)
+
+        formset = LimitFormSet(initial=[{'type': i[0], 'type_name': i[1]} for i in Limit.TYPES])
+
+        for i, form in enumerate(formset):
+            form.fields['value'].choices = Limit.VALUES[i]
+        context['formset'] = formset
+        context['types'] = Limit.TYPES
+        context['html_attrs'] = html_attrs
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        LimitFormSet = modelformset_factory(
+            Limit,
+            form=LimitForm,)
+        formset = LimitFormSet(request.POST)
+
+        if formset.is_valid():
+            instances = formset.save()
+            for instance in instances:
+                instance.save()
+            return JsonResponse(data={"detail": "OK"}, status=200)
+        else:
+            return JsonResponse(formset.errors, status=400, safe=False)

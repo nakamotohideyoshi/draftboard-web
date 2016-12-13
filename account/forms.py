@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import AuthenticationForm
 from django import forms
-from .models import UserLog
+from .models import UserLog, Limit
 from .utils import CheckUserAccess
 from account.utils import create_user_log
 
@@ -17,3 +17,9 @@ class LoginForm(AuthenticationForm):
         # if not access:
         #     raise forms.ValidationError(msg)
         return cleaned_data
+
+
+class LimitForm(forms.ModelForm):
+    class Meta:
+        model = Limit
+        fields = ['type', 'value', 'time_period', 'user']

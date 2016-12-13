@@ -183,13 +183,41 @@ class Limit(models.Model):
         (ENTRY_FEE, 'Entry Fee Limit'),
 
     )
+    DEPOSIT_MAX = (
+        (0, '$50'),
+        (1, '$100'),
+        (2, '$250'),
+        (3, '$500'),
+        (4, '$750'),
+        (5, '$1000'),
+
+    )
+    ENTRY_ALERT_MAX = (
+        (0, '25'),
+        (1, '50'),
+        (2, '100'),
+
+    )
+    ENTRY_LIMIT_MAX = (
+        (0, '50'),
+        (1, '100'),
+        (2, '250'),
+        (3, '500'),
+
+    )
+    ENTRY_FEE_MAX = (
+        (0, '$25'),
+        (1, '$50'),
+
+    )
+
+    VALUES = [DEPOSIT_MAX, ENTRY_ALERT_MAX,  ENTRY_LIMIT_MAX, ENTRY_FEE_MAX]
     PERIODS = (
         (0, 'Monthly'),
 
     )
     user = models.ForeignKey(User, related_name='limits')
     type = models.SmallIntegerField(choices=TYPES)
-    value = models.IntegerField(blank=True)
+    value = models.IntegerField(blank=True, choices=DEPOSIT_MAX)
     time_period = models.SmallIntegerField(choices=PERIODS)
     updated = models.DateTimeField(auto_now=True)
-    # values = model
