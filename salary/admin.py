@@ -1,25 +1,27 @@
-from raven.contrib.django.raven_compat.models import client
+from logging import getLogger
+
+import celery.states
+import django.db.utils
 from django.contrib import (
     admin,
     messages,
 )
 from django.db.transaction import atomic
-from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
-import sports.classes
-from sports.models import Player
+from django.utils.html import format_html
+from raven.contrib.django.raven_compat.models import client
+
 import mysite.mixins.generic_search
-import django.db.utils
+import sports.classes
+from salary.classes import (
+    OwnershipPercentageAdjuster,
+)
+from sports.models import Player
+from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from .tasks import (
     generate_salaries_for_sport,
     generate_salaries_from_statscom_projections_nfl,
     generate_salaries_from_statscom_projections_nba,
 )
-import celery.states
-from django.utils.html import format_html
-from salary.classes import (
-    OwnershipPercentageAdjuster,
-)
-from logging import getLogger
 
 logger = getLogger('salary.admin')
 
@@ -47,10 +49,9 @@ class SalaryInline(admin.TabularInline):
     model = Salary
     can_delete = False
     extra = 0
+    ordering = ('-amount',)
     readonly_fields = (
         'updated_at',
-        'sal_dk',
-        'sal_fd',
         'player',
         'primary_roster',
         # 'fppg_pos_weighted',      # deprecated, doesnt apply to stats.com projections
@@ -59,20 +60,26 @@ class SalaryInline(admin.TabularInline):
         # 'num_games_included',     # deprecated, doesnt apply to stats.com projections
         'amount_unadjusted',
         'ownership_percentage',
-
         'random_adjust_amount',
-
     )
-    # + ('flagged','amount','amount_unadjusted','ownership_percentage')
+    exclude = (
+        'flagged',
+        'player_id',
+        'player_type',
+        'fppg_pos_weighted',
+        'num_games_included',
+        # Since we never fetch projections late enough to get useful DK+FD salaries, ignore these.
+        'sal_dk',
+        'sal_fd',
+    )
 
-    exclude = ('player_id', 'player_type', 'player', 'fppg_pos_weighted', 'num_games_included')
+    @staticmethod
+    def player(obj):
+        return '%s %s' % (obj.player.first_name, obj.player.last_name)
 
     def get_queryset(self, request):
-        # select_related('priced_product__product')
-        return super().get_queryset(request).prefetch_related('player', 'pool', 'primary_roster').order_by('-amount')
-
-    def player(self, obj):
-        return obj.player
+        return super().get_queryset(request).prefetch_related(
+            'player', 'pool', 'primary_roster')
 
     def has_add_permission(self, request):
         return False
@@ -220,17 +227,24 @@ class PoolAdmin(admin.ModelAdmin):
 
 @admin.register(Salary)
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
-    list_display = ['player', 'amount', 'flagged', 'pool',
-                    'primary_roster', 'random_adjust_amount', 'fppg_pos_weighted', 'fppg', 'avg_fppg_for_position',
+    list_display = ['player', 'amount', 'salary_locked', 'pool',
+                    'primary_roster', 'random_adjust_amount', 'fppg',
+                    'avg_fppg_for_position',
                     'num_games_included', 'updated_at']
-    list_editable = ['amount', 'flagged']
+    list_editable = ['amount', 'salary_locked']
+    readonly_fields = ('pool',)
     model = Salary
-    list_filter = ['primary_roster', 'flagged', 'pool']
+    list_filter = ['primary_roster', 'salary_locked', 'pool']
     raw_id_admin = ('pool',)
     search_fields = ('player__first_name', 'player__last_name')
 
     def has_add_permission(self, request):
         return False
+
+    @staticmethod
+    def player(obj):
+        return '%s %s' % (obj.player.first_name, obj.player.last_name)
+
 
     try:
         related_search_mapping = {
@@ -242,4 +256,5 @@ class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAd
         }
     except (django.db.utils.OperationalError, django.db.utils.ProgrammingError):
         # relation "django_content_type" does not exist
-        print('relation "django_content_type" does not exist - this should only happen on the first migrate!')
+        logger.info('relation "django_content_type" does not exist - this should only happen on '
+                    'the first migrate!')

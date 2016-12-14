@@ -1,32 +1,28 @@
 import csv
-from collections import (
-    OrderedDict,
-    Counter,
-)
+from logging import getLogger
+from math import ceil
 from random import Random
 from statistics import mean
+
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.db.transaction import atomic
+from django.utils import timezone
+from pytz import timezone as pytz_timezone
+
+from contest.classes import RecentPlayerOwnership
+from dataden.classes import Season
+from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesException
+from roster.models import RosterSpot, RosterSpotPosition
+from sports.classes import SiteSportManager
+from sports.mlb.models import PlayerStatsHitter, PlayerStatsPitcher
+from sports.models import PlayerStats
+from util.slack import Webhook
 from .exceptions import (
     NoPlayersAtRosterSpotException,
     NoPlayerStatsClassesFoundException,
 )
-from sports.models import PlayerStats, Player, Game, SiteSport, Position
-from sports.mlb.models import PlayerStatsHitter, PlayerStatsPitcher
-from roster.models import RosterSpot, RosterSpotPosition
-from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesException
-from django.contrib.contenttypes.models import ContentType
-from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
-from django.utils import timezone
-from pytz import timezone as pytz_timezone
-from datetime import timedelta
-from math import ceil
-from django.db.transaction import atomic
-from sports.classes import SiteSportManager
-from dataden.classes import DataDen, Season
-from util.dfsdate import DfsDate
-from contest.classes import RecentPlayerOwnership
-from util.slack import Webhook
-from logging import getLogger
+from .models import TrailingGameWeight, Pool, Salary
 
 logger = getLogger('salary.classes')
 
@@ -45,7 +41,8 @@ class SalaryRounder(object):
     ROUND_TO_NEAREST = 100.0
 
     def round(self, salary_amount):
-        return (int)(ceil((salary_amount / SalaryRounder.ROUND_TO_NEAREST)) * SalaryRounder.ROUND_TO_NEAREST)
+        return (int)(
+            ceil((salary_amount / SalaryRounder.ROUND_TO_NEAREST)) * SalaryRounder.ROUND_TO_NEAREST)
 
 
 class OwnershipPercentageAdjuster(object):
@@ -116,7 +113,8 @@ class OwnershipPercentageAdjuster(object):
                 increments = (salary.ownership_percentage -
                               self.pool.ownership_threshold_high_cutoff)
                 high_sal_adjustment = (
-                                          (increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
+                                          (
+                                          increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
                 print('high sal adjustment:', high_sal_adjustment, str(salary))
                 salary.amount += self.rounder.round(high_sal_adjustment)
                 salary.save()
@@ -127,7 +125,8 @@ class OwnershipPercentageAdjuster(object):
                 increments = (self.pool.ownership_threshold_low_cutoff -
                               salary.ownership_percentage)
                 low_sal_adjustment = (
-                                         (increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
+                                         (
+                                         increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
                 print('low sal adjustment:', low_sal_adjustment, str(salary))
                 salary.amount -= self.rounder.round(low_sal_adjustment)
                 salary.save()
@@ -254,7 +253,7 @@ class SalaryPlayerStatsProjectionObject(SalaryPlayerStatsObject):
         self.sal_fd = sal_fd
 
     def __str__(self):
-        return "<SalaryPlayerStatsProjectionObject>  %s - projected fantasy_points (stats.com): %s" % (
+        return "<SalaryPlayerStatsProjectionObject  %s - projected fp (stats.com): %s>" % (
             self.player, self.fantasy_points)
 
 
@@ -279,8 +278,10 @@ class SalaryPlayerObject(object):
         self.flagged = False
 
     def __str__(self):
-        return "<SalaryPlayerObject> player: %s w_points: %s flagged: %s \ntotal playerstats instances: %s" % (
-            self.player, self.fantasy_weighted_average, self.flagged, len(self.player_stats_list))
+        return ("<SalaryPlayerObject: player: %s | w_points: %s | flagged: %s "
+                "\ntotal playerstats instances: %s>") % (
+                   self.player, self.fantasy_weighted_average, self.flagged,
+                   len(self.player_stats_list))
 
     def get_fantasy_average(self):
         if self.fantasy_average is None:
@@ -617,7 +618,8 @@ class SalaryGenerator(FppgGenerator):
                     trailing_games = int(trailing_games / 5)
 
                 else:
-                    err_msg = 'SalaryGenerator() - Unknown MLB PlayerStats type: %s' % str(class_name)
+                    err_msg = 'SalaryGenerator() - Unknown MLB PlayerStats type: %s' % str(
+                        class_name)
                     raise Exception(err_msg)
 
             elif SiteSportManager.NHL in self.site_sport.name:
@@ -744,7 +746,8 @@ class SalaryGenerator(FppgGenerator):
                 delta = timezone.now() - player.player_stats_list[0].start
                 if delta.days > self.salary_conf.days_since_last_game_flag:
                     logger.debug(
-                        'days since last game: %s -- last game %s' % (delta.days, player.player_stats_list[0].start))
+                        'days since last game: %s -- last game %s' % (
+                        delta.days, player.player_stats_list[0].start))
                     player.flagged = True
 
                 #
@@ -818,24 +821,26 @@ class SalaryGenerator(FppgGenerator):
         :return:
         """
 
+        # We don't want to reset everyone to the minimum, so this is disabled.
+
         # initialize the salaries by setting everyone to the minimum
-        min_salary = self.salary_conf.min_player_salary
+        # min_salary = self.salary_conf.min_player_salary
         # Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
         # count = 0
-        for sal_obj in Salary.objects.filter(pool=self.pool):
-            old_sal = sal_obj.amount
-            sal_obj.amount = min_salary
-            sal_obj.save()
-            sal_obj.refresh_from_db()
-            # print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
+        # for sal_obj in Salary.objects.filter(pool=self.pool, salary_locked=False):
+        #     old_sal = sal_obj.amount
+        #     sal_obj.amount = min_salary
+        #     sal_obj.save()
+        #     sal_obj.refresh_from_db()
+        # print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
 
         printed_players = []
         roster_spots = RosterSpot.objects.filter(site_sport=self.site_sport)
         for roster_spot in roster_spots:
             #
             # creates a list of the primary positions for the roster spot
-            roster_maps = RosterSpotPosition.objects.filter(roster_spot=roster_spot,
-                                                            is_primary=True)
+            roster_maps = RosterSpotPosition.objects.filter(
+                roster_spot=roster_spot, is_primary=True)
             #
             # If the query returns any roster maps it means that the roster spot
             # is a primary spot for one or more positions.
@@ -866,7 +871,7 @@ class SalaryGenerator(FppgGenerator):
                 sum = 0.0
                 average_weighted_fantasy_points_for_pos = 0.0
                 for player in players:
-                    if (player.player_stats_list[0].position in pos_arr):
+                    if player.player_stats_list[0].position in pos_arr:
                         if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
                             sum += player.fantasy_weighted_average
                             count += 1
@@ -889,14 +894,22 @@ class SalaryGenerator(FppgGenerator):
 
                     if player.player_stats_list[0].position in pos_arr:
                         salary = self.get_salary_for_player(player.player)
+
+                        # If the player's salary is locked, exit out of this loop iteration and
+                        # don't update the salary amount.
+                        if salary.salary_locked:
+                            logger.info('Player salary is locked, not updating. %s' % player)
+                            continue
+
                         if average_weighted_fantasy_points_for_pos == 0.0:
                             salary.amount = self.salary_conf.min_player_salary
                         else:
-                            salary.amount = ((player.fantasy_weighted_average /
-                                              average_weighted_fantasy_points_for_pos) * average_salary)
+                            salary.amount = (
+                                (player.fantasy_weighted_average /
+                                    average_weighted_fantasy_points_for_pos) * average_salary)
 
                         salary.amount = self.__round_salary(salary.amount)
-                        if (salary.amount < self.salary_conf.min_player_salary):
+                        if salary.amount < self.salary_conf.min_player_salary:
                             salary.amount = self.salary_conf.min_player_salary
                             logger.info(
                                 "Player %s's salary is below the minimum of %s" % (
@@ -1027,7 +1040,10 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         # apply hardcoded minimum salaries.
         # this method must be run AFTER salaries are complete, and the final rounding has been done.
         # it ALSO must be run BEFORE update_unadjusted_salaries() !
-        self.update_position_minimum_salaries(self.pool)
+
+        # We don't want to do this... we want the previous salary to be sticky, and if we don't get
+        # any projections from stats.com, just keep the player's last one
+        # self.update_position_minimum_salaries(self.pool)
 
         # Save this original salary into the 'amount_unadjusted' field to be able to reset
         self.update_unadjusted_salaries(self.pool)
@@ -1331,6 +1347,13 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                     if player.player_stats_list[0].position in pos_arr:
                         #
                         salary = self.get_salary_for_player(player.player)
+
+                        # If the player's salary is locked, exit out of this loop iteration and
+                        # don't update the salary amount.
+                        if salary.salary_locked:
+                            logger.info('Player salary is locked, not updating. %s' % player)
+                            continue
+
                         if average_weighted_fantasy_points_for_pos == 0.0:
                             logger.info(
                                 'the average_weighted_fantasy_points_for_pos is 0, setting to min player: %s salary: %s'
@@ -1438,7 +1461,8 @@ class SportSalaryGenerator(SalaryGenerator):
         site_sport = ssm.get_site_sport(sport)
         player_stats_classes = ssm.get_player_stats_classes(site_sport)
         pool = Pool.objects.get(site_sport=site_sport, active=True)
-        super().__init__(player_stats_classes, pool, season_types=None, slack_updates=True, debug_srid=debug_srid)
+        super().__init__(player_stats_classes, pool, season_types=None, slack_updates=True,
+                         debug_srid=debug_srid)
 
 
 class PlayerFppgGenerator(FppgGenerator):
@@ -1572,7 +1596,8 @@ class SalaryPool2Csv(object):
     #         return value
 
     columns = ['id', 'last_name', 'first_name', 'price_draftboard', 'position',
-               'fppg', 'avg_fppg_for_position', 'num_games_included', 'sal_dk', 'sal_fd', 'team', 'alias']
+               'fppg', 'avg_fppg_for_position', 'num_games_included', 'sal_dk', 'sal_fd', 'team',
+               'alias']
 
     def __init__(self, salary_pool_id, httpresponse=None):
         self.httpresponse = httpresponse  # set streaming to True when returning this csv in an http response

@@ -213,6 +213,14 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
 
 @app.task
 def track_contests(contests):
+    """
+    Send an analytics event to Kissmetrics with contest data.
+
+    Args:
+        contests: List of Contest objects
+
+    Returns: None
+    """
     for contest in contests:
         base_data = {
             'Total Fees/Money Entered': contest.prize_structure.prize_pool,

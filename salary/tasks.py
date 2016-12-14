@@ -1,29 +1,30 @@
 from __future__ import absolute_import
-from raven.contrib.django.raven_compat.models import client
-import sports.classes
-from django.conf import settings
-from mysite.celery_app import app
-from django.core.cache import cache
+
 from hashlib import md5
-from statscom.classes import (
-    FantasyProjectionsNFL,
-    FantasyProjectionsNBA,
-    ProjectionsWeekWebhook,
-)
-from salary.classes import (
-    SalaryGeneratorFromProjections,
-    SalaryGenerator,
-    PlayerProjection,
-    PlayerFppgGenerator,
-)
-from salary.models import Pool
 from logging import getLogger
+
+from django.conf import settings
+from django.core.cache import cache
+from raven.contrib.django.raven_compat.models import client
+
+import sports.classes
+from mysite.celery_app import app
+from salary.models import Pool
+
+"""
+Note: Many imports happen at the task level because of circular import issues.
+"""
 
 logger = getLogger('salary.tasks')
 
 
 @app.task(name='salary.tasks.check_current_projections_week', bind=True)
 def check_current_projections_week(self):
+    from statscom.classes import (
+        FantasyProjectionsNFL,
+        ProjectionsWeekWebhook,
+    )
+
     api = FantasyProjectionsNFL()
     data = api.get_projections()
     week = data.get('week')
@@ -35,6 +36,12 @@ def check_current_projections_week(self):
 
 @app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nfl', bind=True)
 def generate_salaries_from_statscom_projections_nfl(self):
+    from salary.classes import (
+        SalaryGeneratorFromProjections,
+        PlayerProjection,
+    )
+    from statscom.classes import FantasyProjectionsNFL
+
     """ NFL """
     # from statscom.classes import FantasyProjectionsNFL
     api = FantasyProjectionsNFL()
@@ -83,6 +90,12 @@ def generate_salaries_from_statscom_projections_nba(self):
      First it runs FantasyProjectionsNBA to fetch all of tomorrow's NBA game projections from STATS.com,
      then generates salaries based on those projections in SalaryGeneratorFromProjections.
     """
+    from statscom.classes import FantasyProjectionsNBA
+    from salary.classes import (
+        SalaryGeneratorFromProjections,
+        PlayerProjection,
+    )
+
     logger.info('action: generate_salaries_from_statscom_projections_nba')
     sport = 'nba'
 
@@ -122,11 +135,14 @@ def generate_salaries_from_statscom_projections_nba(self):
         print(msg)
         client.captureMessage(msg)
 
+
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 
 @app.task(name='salary.tasks.generate_salaries_for_sport', bind=True)
 def generate_salaries_for_sport(self, sport):
+    from salary.classes import SalaryGenerator
+
     ssm = sports.classes.SiteSportManager()
     site_sport = ssm.get_site_sport(sport)
     pool = Pool.objects.get(site_sport=site_sport, active=True)
@@ -151,7 +167,8 @@ def generate_salaries_for_sport(self, sport):
     else:
         err_msg = 'a task is already generating salaries for sport: %s' % sport
         print(err_msg)
-        #raise Exception(err_msg)
+        # raise Exception(err_msg)
+
 
 # @app.task
 # def generate_salary(pool):
@@ -168,6 +185,7 @@ def generate_season_fppgs(sport=None):
     """
     calculates and sets 'season_fppg' for all sports
     """
+    from salary.classes import PlayerFppgGenerator
 
     season_fppg_generator = PlayerFppgGenerator()
     if sport is None:
@@ -178,3 +196,26 @@ def generate_season_fppgs(sport=None):
         season_fppg_generator.update_sport(sport)
     else:
         raise Exception('salary.tasks.generate_season_fppgs() - unknown sport[%s]' % sport)
+
+
+@app.task(name='salary.tasks.clear_salary_locked_flags_for_draftgroup')
+def clear_salary_locked_flags_for_draftgroup(draft_group=None):
+    from salary.models import Salary
+    from draftgroup.models import Player as DraftgroupPlayer
+
+    if draft_group is None:
+        client.captureMessage('No draft_group was supplied!')
+        logger.error('No draft_group was supplied!')
+
+    # Find all players in the draftgroup that have salaries. Return it in a flat list Salary IDs
+    player_ids = DraftgroupPlayer.objects.filter(
+        draft_group=draft_group,
+        salary_player__isnull=False
+    ).values_list('salary_player', flat=True)
+
+    # Find all of matching Salary objects for thees players and reset
+    # their `salary_locked` flags.
+    salaries = Salary.objects.filter(id__in=player_ids).update(salary_locked=False)
+
+    logger.info('%s of %s players have had their salary locks reset. DraftGroup: %s' % (
+        len(player_ids), salaries, draft_group))
