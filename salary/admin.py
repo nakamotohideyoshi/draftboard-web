@@ -51,7 +51,6 @@ class SalaryInline(admin.TabularInline):
     extra = 0
     ordering = ('-amount',)
     readonly_fields = (
-        'updated_at',
         'player',
         'primary_roster',
         # 'fppg_pos_weighted',      # deprecated, doesnt apply to stats.com projections
@@ -61,6 +60,7 @@ class SalaryInline(admin.TabularInline):
         'amount_unadjusted',
         'ownership_percentage',
         'random_adjust_amount',
+        'updated_at',
     )
     exclude = (
         'flagged',
