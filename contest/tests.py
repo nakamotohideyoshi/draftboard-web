@@ -1,38 +1,26 @@
-#
-# contest/tests.py
-
 import unittest
-from mysite.exceptions import (
-    IncorrectVariableTypeException,
-)
-from test.classes import (
-    AbstractTest,
-    ResetDatabaseMixin,
-)
-from salary.dummy import Dummy
-from prize.classes import CashPrizeStructureCreator
-from prize.models import (
-    PrizeStructure,
-)
+
 from django.utils import timezone
-from contest.models import (
-    Contest,
-    ContestPool,
-    LiveContest,
-    HistoryContest,
-)
+
 from contest.classes import (
-    ContestCreator,
     ContestPoolCreator,
     FairMatch,
     SkillLevelManager,
 )
-from sports.classes import SiteSportManager
+from contest.models import (
+    ContestPool,
+)
+from mysite.exceptions import (
+    IncorrectVariableTypeException,
+)
+from prize.models import (
+    PrizeStructure,
+)
 from sports.models import (
     SiteSport,
 )
-from contest.views import (
-    EnterLineupAPIView,
+from test.classes import (
+    AbstractTest,
 )
 from test.classes import (
     BuildWorldMixin,
@@ -161,7 +149,8 @@ class ContestPoolManagerTest(AbstractTest):  # , BuildWorldMixin):
         self.custom_invalid_type_class = CustomInvalidType
         self.invalid_type_obj = self.custom_invalid_type_class()
 
-    def __call_creator_constructor_test(self, sport=None, prize_structure=None, start=None, duration=None,
+    def __call_creator_constructor_test(self, sport=None, prize_structure=None, start=None,
+                                        duration=None,
                                         draft_group=None):
         """
         This method is simply to test that the constructor
@@ -190,7 +179,8 @@ class ContestPoolManagerTest(AbstractTest):  # , BuildWorldMixin):
         try:
             # print('sport:', str(sport))
             self.assertRaises(IncorrectVariableTypeException,
-                              lambda: ContestPoolCreator(sport, prize_structure, start, duration, draft_group))
+                              lambda: ContestPoolCreator(sport, prize_structure, start, duration,
+                                                         draft_group))
         except:
             # there might be other exceptions from
             # inner objects, but those arent tested here!
@@ -246,7 +236,8 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         for ss in all_site_sports:
             print(str(ss))
 
-    def __call_construct(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
+    def __call_construct(self, sport=None, prize_structure=None, start=None, duration=None,
+                         draft_group=None):
         """
         If any value is None, we will use a known good default value.
         """
@@ -259,7 +250,8 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         if duration is None:
             duration = int(300)
 
-        contest_pool_creator = ContestPoolCreator(sport, prize_structure, start, duration, draft_group)
+        contest_pool_creator = ContestPoolCreator(sport, prize_structure, start, duration,
+                                                  draft_group)
         return contest_pool_creator
 
     def test_create_simple_default_values_existing_draft_group(self):
@@ -270,7 +262,8 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         creator = self.__call_construct(draft_group=self.draft_group)
         contest_pool, created = creator.get_or_create()
 
-        target_skill_level = self.skill_level_manager.get_for_amount(contest_pool.prize_structure.buyin)
+        target_skill_level = self.skill_level_manager.get_for_amount(
+            contest_pool.prize_structure.buyin)
 
         # the only comparison that doesnt really matter is the pk
         self.assertEquals(target_skill_level.name, contest_pool.skill_level.name)
