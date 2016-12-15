@@ -541,7 +541,6 @@ class BlockCreator(object):
 
         def __init__(self, message):
             logger.error('Block already exists! %s' % message)
-            client.captureException()
             pass
 
     def __init__(self, sport_day):
