@@ -114,7 +114,7 @@ class OwnershipPercentageAdjuster(object):
                               self.pool.ownership_threshold_high_cutoff)
                 high_sal_adjustment = (
                                           (
-                                          increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
+                                              increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
                 print('high sal adjustment:', high_sal_adjustment, str(salary))
                 salary.amount += self.rounder.round(high_sal_adjustment)
                 salary.save()
@@ -126,7 +126,7 @@ class OwnershipPercentageAdjuster(object):
                               salary.ownership_percentage)
                 low_sal_adjustment = (
                                          (
-                                         increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
+                                             increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
                 print('low sal adjustment:', low_sal_adjustment, str(salary))
                 salary.amount -= self.rounder.round(low_sal_adjustment)
                 salary.save()
@@ -747,7 +747,7 @@ class SalaryGenerator(FppgGenerator):
                 if delta.days > self.salary_conf.days_since_last_game_flag:
                     logger.debug(
                         'days since last game: %s -- last game %s' % (
-                        delta.days, player.player_stats_list[0].start))
+                            delta.days, player.player_stats_list[0].start))
                     player.flagged = True
 
                 #
@@ -906,7 +906,7 @@ class SalaryGenerator(FppgGenerator):
                         else:
                             salary.amount = (
                                 (player.fantasy_weighted_average /
-                                    average_weighted_fantasy_points_for_pos) * average_salary)
+                                 average_weighted_fantasy_points_for_pos) * average_salary)
 
                         salary.amount = self.__round_salary(salary.amount)
                         if salary.amount < self.salary_conf.min_player_salary:
@@ -1313,7 +1313,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                 average_salary = (((sum / ((float)(count))) / sum_average_points)
                                   * ((float)(self.salary_conf.max_team_salary)))
                 average_salary = self.__round_salary(average_salary)
-                print(roster_spot.name + " average salary " + str(average_salary))
+                logger.info(roster_spot.name + " average salary " + str(average_salary))
 
                 #
                 # Get the average weighted fantasy points for the specific positions
@@ -1342,10 +1342,10 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         # keep track so we dont double-send
                         printed_players.append(player.player.srid)
 
-                    # look in each SalaryPlayerObject's list for the only SalaryPlayerStatsProjectionObject
-                    # and extract the projection + actual salary information
+                    # look in each SalaryPlayerObject's list for the only
+                    # SalaryPlayerStatsProjectionObject and extract the projection + actual salary
+                    # information
                     if player.player_stats_list[0].position in pos_arr:
-                        #
                         salary = self.get_salary_for_player(player.player)
 
                         # If the player's salary is locked, exit out of this loop iteration and
@@ -1353,16 +1353,6 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         if salary.salary_locked:
                             logger.info('Player salary is locked, not updating. %s' % player)
                             continue
-
-                        if average_weighted_fantasy_points_for_pos == 0.0:
-                            logger.info(
-                                'the average_weighted_fantasy_points_for_pos is 0, setting to min player: %s salary: %s'
-                                % (player, salary)
-                            )
-                            salary.amount = self.salary_conf.min_player_salary
-                        else:
-                            salary.amount = ((player.fantasy_weighted_average /
-                                              average_weighted_fantasy_points_for_pos) * average_salary)
 
                         # retrieve the DK + FD actual salaries for this players
                         # SalaryPlayerStatsProjectionObject
@@ -1372,34 +1362,47 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         salary.sal_dk = sal_dk
                         salary.sal_fd = sal_fd
 
-                        # apply randomization, if pool.random_percent_adjust is non-zero
-                        if self.pool.random_percent_adjust != 0.0:
-                            r_pct = self.pool.random_percent_adjust
-                            #
-                            decimal_places = 1000000
-                            r = Random()
-                            # divide by 100, because its entered as 1.75 for 1.75% on the admin
-                            plus_minus = int(r_pct * decimal_places) / 100
-                            random_pct = r.randrange(plus_minus * -1, plus_minus) / decimal_places
-                            # its + or -, but truncate decimals
-                            random_amount = float(int(salary.amount * random_pct))
-                            salary.random_adjust_amount = random_amount
-                            # print('salary: %s random_adjust: %s' % (str(salary.amount), str(random_amount)))
-                            salary.amount += salary.random_adjust_amount
-
-                        # Only update the player's salary if we DON'T have a 0 fpp projection from stats.com.
-                        # This will make previous salaries 'sticky'.
+                        # Only update the player's salary if we DON'T have a 0 fpp projection
+                        # from stats.com. This will make previous salaries 'sticky'. This is done
+                        # so that if stats thinks a player isn't starting, their salary doesn't
+                        # get set to the minimum.
                         if salary.fppg > 0:
+                            # Add random salary adjustments.
+                            # We can't divide by 0, so if it is 0, So ignore adjustments if it is.
+                            if average_weighted_fantasy_points_for_pos > 0.0:
+                                salary.amount = (
+                                    (player.fantasy_weighted_average /
+                                        average_weighted_fantasy_points_for_pos) * average_salary)
+
                             salary.amount = self.__round_salary(salary.amount)
+
+                            # apply randomization, if pool.random_percent_adjust is non-zero
+                            if self.pool.random_percent_adjust != 0.0:
+                                r_pct = self.pool.random_percent_adjust
+                                #
+                                decimal_places = 1000000
+                                r = Random()
+                                # divide by 100, because its entered as 1.75 for 1.75% on the admin
+                                plus_minus = int(r_pct * decimal_places) / 100
+                                random_pct = r.randrange(plus_minus * -1,
+                                                         plus_minus) / decimal_places
+                                # its + or -, but truncate decimals
+                                random_amount = float(int(salary.amount * random_pct))
+                                salary.random_adjust_amount = random_amount
+                                logger.info("Applying random_adjust %s to %s" % (
+                                    random_amount, player))
+                                salary.amount += salary.random_adjust_amount
+                        # If stats says they aren't playing. Leave their salary as-is and exit.
                         else:
                             logger.warning(
-                                'Skipping salary update because stats.com gave us 0 fpp. Salary: %s Projection: %s' % (
-                                    salary, player
-                                )
+                                ('Skipping salary update because stats.com gave us 0 fpp. '
+                                 'Salary: %s Projection: %s') % (salary, player)
                             )
+                            continue
+
                         # If the player's salary is less than the minimum, set them to the min.
                         if salary.amount < self.salary_conf.min_player_salary:
-                            logger.info(('player was below the 1372'
+                            logger.info(('player was below the min_player_salary'
                                          ', setting to minimum. player: %s  '
                                          'salary: %s') % (player, salary))
                             salary.amount = self.salary_conf.min_player_salary
