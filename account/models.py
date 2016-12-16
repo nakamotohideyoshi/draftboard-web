@@ -1,3 +1,5 @@
+import datetime
+import calendar
 from logging import getLogger
 from django.db import models
 from django.contrib.postgres.fields import JSONField
@@ -37,6 +39,22 @@ class Information(models.Model):
         """
         cash_transaction = CashTransaction(self.user)
         return cash_transaction.get_balance_amount()
+
+    @cached_property
+    def deposits_limit(self):
+        """
+        Get the user's deposit limit.
+        """
+        return self.user.limits.get(type=Limit.DEPOSIT).value
+
+    @cached_property
+    def deposits_for_period(self):
+        """
+        Get the user's deposits for period of time.
+        """
+        cash_transaction = CashTransaction(self.user)
+        deposit_limit = self.user.limits.get(type=Limit.DEPOSIT)
+        return cash_transaction.get_all_deposits(date_range=deposit_limit.time_period_boundaries)['amount__sum']
 
     @cached_property
     def has_verified_identity(self):
@@ -184,40 +202,72 @@ class Limit(models.Model):
 
     )
     DEPOSIT_MAX = (
-        (0, '$50'),
-        (1, '$100'),
-        (2, '$250'),
-        (3, '$500'),
-        (4, '$750'),
-        (5, '$1000'),
+        (50, '$50'),
+        (100, '$100'),
+        (250, '$250'),
+        (500, '$500'),
+        (750, '$750'),
+        (1000, '$1000'),
 
     )
     ENTRY_ALERT_MAX = (
-        (0, '25'),
-        (1, '50'),
-        (2, '100'),
+        (25, '25'),
+        (50, '50'),
+        (100, '100'),
 
     )
     ENTRY_LIMIT_MAX = (
-        (0, '50'),
-        (1, '100'),
-        (2, '250'),
-        (3, '500'),
+        (50, '50'),
+        (100, '100'),
+        (250, '250'),
+        (500, '500'),
 
     )
     ENTRY_FEE_MAX = (
-        (0, '$25'),
-        (1, '$50'),
+        (25, '$25'),
+        (50, '$50'),
 
     )
 
     VALUES = [DEPOSIT_MAX, ENTRY_ALERT_MAX,  ENTRY_LIMIT_MAX, ENTRY_FEE_MAX]
+    MONTHLY, WEEKLY, DAILY = [30, 7, 1]
     PERIODS = (
-        (0, 'Monthly'),
+        (MONTHLY, 'Monthly'),
+        (WEEKLY, 'Weekly'),
+        (DAILY, 'Daily'),
 
     )
     user = models.ForeignKey(User, related_name='limits')
     type = models.SmallIntegerField(choices=TYPES)
-    value = models.IntegerField(blank=True, choices=DEPOSIT_MAX)
-    time_period = models.SmallIntegerField(choices=PERIODS)
+    value = models.IntegerField(blank=True, choices=DEPOSIT_MAX+ENTRY_ALERT_MAX)
+    time_period = models.SmallIntegerField(blank=True, null=True, choices=PERIODS)
     updated = models.DateTimeField(auto_now=True)
+
+    @cached_property
+    def time_period_boundaries(self):
+        month = datetime.datetime.now().month
+        year = datetime.datetime.now().year
+        time_period = self.time_period
+        time_range = []
+        if time_period == self.MONTHLY:
+            _, num_days = calendar.monthrange(year, month)
+            first_day = datetime.date(year, month, 1)
+            last_day = datetime.date(year, month, num_days)
+            time_range = [first_day, last_day]
+        elif time_period == self.WEEKLY:
+            today = datetime.date.today()
+            current_weekday = today.isoweekday()
+            first_day = today - datetime.timedelta(days=current_weekday)
+            last_day = first_day + datetime.timedelta(days=6)
+            time_range = [first_day, last_day]
+        elif time_period == self.DAILY:
+            today = datetime.date.today()
+            tomorrow = today + datetime.timedelta(days=1)
+            time_range = [today, tomorrow]
+
+        return time_range
+
+
+
+
+

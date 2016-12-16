@@ -29,7 +29,7 @@
 
                 <div class="selects_description">
                     <div>
-                        <span class="description_head">{% if form.instance.get_type_display%}{{ form.instance.get_type_display }}{% else %}{{ form.initial.type_name}}{% endif %}: </span><span id="{{ html_attrs|index:forloop.counter0|index:0 }}">Please select a deposit limit that you would like applied to your account.</span>
+                        <span class="description_head">{% if form.instance.get_type_display%}{{ form.instance.get_type_display }}{% else %}{{ form.initial.type_name}}{% endif %}: </span><span id="{{ html_attrs|index:forloop.counter0|index:0 }}">{{ html_attrs|index:forloop.counter0|index:2 }}</span>
                     </div>
                     <div>
                         <span class="current_value">Current Limit Set: </span><span class="current_value_text"
@@ -39,22 +39,15 @@
                 <div class="container-line-block">
                     <div class="line-block">
                         <label><sup>MAXIMUM</sup></label>
-{#                        <select>#}
-{#                            <option value="1000">$1,000</option>#}
-{#                        </select>#}
                         {{ form.value }}
                     </div>
+                    {% if form.type.value != 3%}
                     <div class="line-block">
                         <label><sup>TIME PERIOD</sup></label>
-{#                        <select>#}
-{#                            <option value="1">Monthly</option>#}
-{#                        </select>#}
+
                         {{ form.time_period }}
                     </div>
-{#                    #}
-{#                    <input type="hidden" name="{{ form.user.name }}" value="{{ request.user.pk }}">#}
-
-{#                    {{ form.user }}#}
+                    {% endif %}
                 </div>
             {{ form.type }}
             {{ form.user }}

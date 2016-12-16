@@ -75,7 +75,6 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
             user = admin_specified_user
 
         #
-        # if the start_ts & end_ts params exist:
         if start_ts > end_ts:
             return Response(
                 status=409,
@@ -104,7 +103,6 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         return Response(return_json)
 
 
-
 class BalanceAPIView(generics.GenericAPIView):
     """
     Gets the cash balance as a string for the logged in user formatted like '5.50'.
@@ -120,8 +118,9 @@ class BalanceAPIView(generics.GenericAPIView):
     def get(self, request, format=None):
         user = self.request.user
         cash_transaction = CashTransaction(user)
-        content = {'cash_balance': cash_transaction.get_balance_amount()}
-        return Response(content)
+
+        serializer = self.serializer_class(cash_transaction)
+        return Response(serializer.data)
 
 
 class DepositView( LoginRequiredMixin, FormView ):
