@@ -9,15 +9,15 @@
     "consistent-return": 0,  // TODO - this is good, but would need to refactor a bunch of functions
     "no-duplicate-imports": 0, // TODO - need to go through code to fix
     "array-callback-return": 0, // TODO - this is good, but would need to refactor a bunch of functions,
-    "promise/always-return": "error",
+    "promise/always-return": "warn",
     "promise/no-return-wrap": "error",
     "promise/param-names": "error",
-    "promise/catch-or-return": "error",
+    "promise/catch-or-return": "warn",
     "promise/no-native": "off",
-    "promise/no-nesting": "warn",
+    "promise/no-nesting": "off",
     "promise/no-promise-in-callback": "warn",
     "promise/no-callback-in-promise": "warn",
-    "promise/avoid-new": "warn"
+    "promise/avoid-new": "off"
   },
   "env": {
       "mocha": true
