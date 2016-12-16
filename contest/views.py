@@ -1,5 +1,6 @@
 #
 # contest/views.py
+import logging
 from raven.contrib.django.raven_compat.models import client
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
@@ -73,7 +74,9 @@ from contest.forms import ContestForm, ContestFormAdd
 from mysite.celery_app import TaskHelper
 from util.dfsdate import DfsDate
 from account.utils import create_user_log
-import logging
+from account.models import Limit
+from account.tasks import send_entry_alert_email
+
 
 logger = logging.getLogger('contest.views')
 
@@ -487,7 +490,32 @@ class EnterLineupAPIView(generics.CreateAPIView):
         except SkillLevelManager.CanNotEnterSkillLevel:
             raise APIException('You may not enter this Skill Level.')
 
+        try:
+            contest_entry_alert = request.user.limits.get(type=Limit.ENTRY_ALERT)
+            entries_count = Entry.objects.filter(
+                user=request.user,
+                created__range=contest_entry_alert.time_period_boundaries,
+                contest_pool__draft_group=contest_pool.draft_group,
+            ).count()
+            if entries_count == contest_entry_alert.value:
+                send_entry_alert_email.delay(user=request.user)
+        except Limit.DoesNotExist:
+            pass
+
+        try:
+            contest_entry_limit = request.user.limits.get(type=Limit.ENTRY_LIMIT)
+            entries_count = Entry.objects.filter(
+                user=request.user,
+                created__range=contest_entry_limit.time_period_boundaries,
+                contest_pool__draft_group=contest_pool.draft_group,
+            ).count()
+            if entries_count == contest_entry_limit.value:
+                raise APIException('You have reached your contest entry limit of {} entries.'.format(contest_entry_limit.value))
+        except Limit.DoesNotExist:
+            pass
+
         task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
+
         # get() blocks the view from returning until the task completes its work
         try:
             task_result.get()
@@ -500,7 +528,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
             raise APIException({"detail": "Unable to enter contest."})
 
         task_helper = TaskHelper(buyin_task, task_result.id)
-        # print('task_helper.get_data()', task_helper.get_data())
         data = task_helper.get_data()
         # dont break what was there by adding this extra field
         data['buyin_task_id'] = task_result.id

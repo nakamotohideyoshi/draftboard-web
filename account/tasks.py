@@ -64,3 +64,9 @@ def check_not_active_users(self):
     if users.exists():
         inactive_users_email.delay(users)
         Information.objects.filter(user__in=users).update(inactive=True)
+
+
+@app.task(bind=True)
+def send_entry_alert_email(self, user):
+
+    send_mail('entry alert', 'hey, you have reached your entry alert: ', settings.DEFAULT_FROM_EMAIL, [user.email])

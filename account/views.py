@@ -162,7 +162,6 @@ class PasswordResetAPIView(APIView):
         uid = args.get('uid')
         token = args.get('token')
 
-        print(uid, token)
         if uid and token:
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
@@ -770,8 +769,7 @@ class SetSavedCardDefaultAPIView(APIView):
         user = self.request.user
         args = self.request.data
         token = args.get('token')
-        print('args:', str(args))
-        print('token:', str(token))
+
         # if token is None: # TODO raise error if token is not set
         #     raise rest_framework
 
@@ -1044,7 +1042,6 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
 
 class LimitsFormView(LoginRequiredMixin, TemplateView):
 
-
     template_name = 'frontend/account/user_limits.html'
 
     def get(self, request, *args, **kwargs):
@@ -1052,13 +1049,13 @@ class LimitsFormView(LoginRequiredMixin, TemplateView):
         return self.render_to_response(context)
 
     def get_context_data(self, request, **kwargs):
-        # Call the base implementation first to get a context
-        html_attrs = [['', 'curr_deposit_limit'],
-                           ['entry_alert', 'curr_contests_alert'],
-                           ['', 'curr_contest_limit'],
-                           ['', 'curr_fee_limit']]
+        html_attrs = [
+            ['', 'curr_deposit_limit', 'Please select a deposit limit that you would like applied to your account.'],
+            ['entry_alert', 'curr_contests_alert', 'Please select the number of entries and period for which you\'d like to be alerted.'],
+            ['', 'curr_contest_limit', 'Please select a limit for the number of contests you may enter in a time period.'],
+            ['', 'curr_fee_limit', 'Please select the appropriate contest entry fee.']]
         context = super(LimitsFormView, self).get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
+
         LimitFormSet = modelformset_factory(
             Limit,
             form=LimitForm,
@@ -1068,16 +1065,19 @@ class LimitsFormView(LoginRequiredMixin, TemplateView):
                      'type': forms.HiddenInput(attrs={'value': 0})},)
 
         formset = LimitFormSet(initial=[{'type': i[0], 'type_name': i[1]} for i in Limit.TYPES])
-
         for i, form in enumerate(formset):
             form.fields['value'].choices = Limit.VALUES[i]
+            if not Limit.TYPES[i][0] == Limit.ENTRY_FEE:
+                form.fields['time_period'].choices = Limit.PERIODS
+            else:
+                form.fields['time_period'].value = None
+
         context['formset'] = formset
         context['types'] = Limit.TYPES
         context['html_attrs'] = html_attrs
         return context
 
     def post(self, request, *args, **kwargs):
-
         LimitFormSet = modelformset_factory(
             Limit,
             form=LimitForm,)
