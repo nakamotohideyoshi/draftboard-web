@@ -18,7 +18,7 @@ DATABASES = {
     'default': heroku_db_config()
 }
 DATABASES['default']['autocommit'] = True
-DATABASES['default']['CONN_MAX_AGE'] = 60
+DATABASES['default']['CONN_MAX_AGE'] = 500
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True

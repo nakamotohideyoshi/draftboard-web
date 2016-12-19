@@ -16,7 +16,7 @@ DATABASES = {
     'default': heroku_db_config()
 }
 DATABASES['default']['autocommit'] = True
-DATABASES['default']['CONN_MAX_AGE'] = 60
+DATABASES['default']['CONN_MAX_AGE'] = 500
 
 # RedisCloud redis - used primarily for live stats
 REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
