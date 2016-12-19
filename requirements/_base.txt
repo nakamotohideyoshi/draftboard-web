@@ -12,7 +12,7 @@ dj-database-url==0.3.0
 django-braces==1.8.0
 django-celery==3.1.17
 django-lockdown==1.2 # django 1.9.7 uses 1.2 hopefully # for django 1.8 its 1.1
-django-redis==4.3.0
+django-redis==4.4.4
 django-rest-swagger==2.0.3
 djangorestframework==3.4.3
 djangorestframework-jwt==1.8
