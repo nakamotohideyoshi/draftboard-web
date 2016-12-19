@@ -514,6 +514,14 @@ class EnterLineupAPIView(generics.CreateAPIView):
         except Limit.DoesNotExist:
             pass
 
+        try:
+            entry_fee_limit = request.user.limits.get(type=Limit.ENTRY_FEE)
+            if contest_pool.prize_structure.buyin > entry_fee_limit.value:
+                raise APIException(
+                    'You have reached your entry fee limit of {}.'.format(entry_fee_limit.value))
+        except Limit.DoesNotExist:
+            pass
+
         task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
 
         # get() blocks the view from returning until the task completes its work
