@@ -266,11 +266,14 @@ class SwishAnalytics(object):
         results = response_data.get('data', {}).get('results', [])
         self.updates = []
         for update_data in results:
-            status = update_data.get('swishStatusId')
-            if status == self.STARTING:
-                extra_data = self.get_player_extra_data(update_data.get('playerId'), update_data.get('teamId'))
-                update_data.update(extra_data)
-            self.updates.append(UpdateData(update_data))
+            source = update_data.get('source')
+            confidence = update_data.get('swishStatusConfidence')
+            if confidence > 0.8 and source in settings.TRUSTED_SOURCES:
+                status = update_data.get('swishStatusId')
+                if status == self.STARTING:
+                    extra_data = self.get_player_extra_data(update_data.get('playerId'), update_data.get('teamId'))
+                    update_data.update(extra_data)
+                self.updates.append(UpdateData(update_data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
 
