@@ -123,8 +123,8 @@ const DraftPlayerDetailGameLogs = (props) => {
           <td key="10">{game.blocks}</td>
           <td key="5">{game.steals}</td>
           <td key="11">{game.minutes}</td>
-          <td key="11">{game.turnovers}</td>
-          <td key="11">{game.fp}</td>
+          <td key="12">{game.turnovers}</td>
+          <td key="13">{game.fp}</td>
         </tr>
       ));
 

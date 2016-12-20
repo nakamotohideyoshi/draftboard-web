@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import * as actionTypes from '../action-types';
 import request from 'superagent';
 import Cookies from 'js-cookie';
@@ -28,11 +29,14 @@ export const fetchPayPalClientToken = () => (dispatch) => {
   apiActionResponse.then((action) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
-      dispatch({
+      return dispatch({
         type: actionTypes.FETCH_PAYPAL_CLIENT_TOKEN_FAIL,
         response: action.error,
       });
     }
+    return true;
+  }).catch((exception) => {
+    Raven.captureException(exception);
   });
 
   // Return the promise chain in case we want to use it elsewhere.

@@ -1,16 +1,22 @@
-#
-# draftgroup/classes.py
-
+import datetime
+from logging import getLogger
 from django.contrib.contenttypes.models import ContentType
+from django.db.transaction import atomic
 from django.dispatch import receiver
+from django.utils import timezone
 import mysite.exceptions
+from draftgroup.tasks import on_game_closed
+from roster.models import RosterSpotPosition
+from salary.models import Pool, Salary
+from salary.tasks import clear_salary_locked_flags_for_draftgroup
+from sports.classes import SiteSportManager
+from sports.models import SiteSport, GameStatusChangedSignal
 from .exceptions import (
     EmptySalaryPoolException,
     NotEnoughGamesException,
     NoGamesAtStartTimeException,
     FantasyPointsAlreadyFinalizedException,
 )
-from django.db.transaction import atomic
 from .models import (
     DraftGroup,
     UpcomingDraftGroup,  # proxy model which limits DraftGroup models to upcoming only
@@ -19,16 +25,8 @@ from .models import (
     PlayerUpdate,
     GameUpdate,
 )
-from sports.models import Game, SiteSport, GameStatusChangedSignal
-from salary.models import Pool, Salary
-from sports.classes import SiteSportManager
-import datetime
-from django.utils import timezone
-from draftgroup.tasks import on_game_closed
-from draftgroup.signals import (
-    CheckForGameUpdatesSignal,
-)
-from roster.models import RosterSpotPosition
+
+logger = getLogger('draftgroup.classes')
 
 
 class AbstractDraftGroupManager(object):
@@ -75,21 +73,23 @@ class AbstractDraftGroupManager(object):
 
         active_pools = Pool.objects.filter(site_sport=site_sport, active=True)
         if len(active_pools) == 0:
-            raise mysite.exceptions.SalaryPoolException('could not find active salary pool for given site_sport')
+            raise mysite.exceptions.SalaryPoolException(
+                'could not find active salary pool for given site_sport')
 
         pool = active_pools[0]
         players = []
         salaried_players = Salary.objects.filter(pool=pool)
         # remove players not on active roster
         for sp in salaried_players:
-            print('is position.name[%s] in valid_positions[%s]' % (str(sp.player.position.name), str(valid_positions)))
+            logger.info('is position.name[%s] in valid_positions[%s]' % (
+                sp.player.position.name, valid_positions))
             if sp.player.position.name not in valid_positions:
                 continue  # ignore players who cant fit on the roster anyways.
             if sp.player.on_active_roster == True:
                 players.append(sp)
-                print('added player:', str(sp), 'len(players) --> %s' % str(len(players)))
+                logger.info('player count: %s. Added player: %s' % (len(players), sp))
             else:
-                print('didnt add player')
+                logger.info('didnt add player')
         # return active players
         return self.Salaries(pool, list(players))
 
@@ -179,11 +179,11 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         # get the draft group and then get its players
         draft_group = self.get_draft_group(draft_group_id)
-        print(str(draft_group), 'pk:', str(draft_group.pk))
+        logger.info("Updating final fantasy points for %s" % draft_group)
 
         # check if the draft_group has already finalized fantasy_points...
         if draft_group.fantasy_points_finalized is not None:
-            err_msg = 'draft_group id: %s' % str(draft_group_id)
+            err_msg = 'draft_group id: %s' % draft_group_id
             raise FantasyPointsAlreadyFinalizedException(err_msg)
 
         # get the site sport, and the draft group players
@@ -201,7 +201,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         score_system = salary_score_system_class()
         game_srids = [x.game_srid for x in self.get_game_teams(draft_group=draft_group)]
-        game_srids = list(set(game_srids))  # itll have the same games twice. this removes duplicates
+        game_srids = list(
+            set(game_srids))  # itll have the same games twice. this removes duplicates
 
         # get the PlayerStats model(s) for the sport.
         # and get an instance of the sports scoring.classes.<Sport>SalaryScoreSystem
@@ -210,7 +211,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
             # get the sports.<sport>.player  -- we'll need it later
             sport_player = draft_group_player.salary_player.player
             # determine the PlayerStats class to retrieve the fantasy_points from
-            player_stats_class = score_system.get_primary_player_stats_class_for_player(sport_player)
+            player_stats_class = score_system.get_primary_player_stats_class_for_player(
+                sport_player)
 
             try:
                 player_stats = player_stats_class.objects.get(srid_game__in=game_srids,
@@ -230,8 +232,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
             #     raise self.StartEndRangeException(err_msg)
 
             except player_stats_class.DoesNotExist:
-                print('game_srids:', str(game_srids))
-                print('sport_player.srid:', str(sport_player.srid))
+                logger.info('game_srids: %s' % game_srids)
+                logger.info('sport_player.srid: %s' % sport_player.srid)
                 player_stats = None
                 continue
 
@@ -253,10 +255,12 @@ class DraftGroupManager(AbstractDraftGroupManager):
         :return:
         """
 
-        print(str(site_sport), start, 'to', end)  # TODO remove
         # return the most recently created draftgroup for the site_sport
-        dgs = DraftGroup.objects.filter(salary_pool__site_sport=site_sport,
-                                        start=start, end=end).order_by('-created')
+        dgs = DraftGroup.objects.filter(
+            salary_pool__site_sport=site_sport,
+            start=start, end=end
+        ).order_by('-created')
+
         if len(dgs) == 0:
             #
             # no matching draftgroups? create a new one! PlayerPool must exist
@@ -380,7 +384,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         # get the sports game_model (ie: sports.<sport>.Game)
         ssm = SiteSportManager()
-        pbp_description_model = ssm.get_pbp_description_class(sport=draft_group.salary_pool.site_sport)
+        pbp_description_model = ssm.get_pbp_description_class(
+            sport=draft_group.salary_pool.site_sport)
         # return pbp_description_model.objects.filter( description__srid_game__in=game_srids )[:15]
         return pbp_description_model.objects.filter()[:15]
 
@@ -433,11 +438,16 @@ class DraftGroupManager(AbstractDraftGroupManager):
         :return:
         """
         if not isinstance(site_sport, SiteSport):
-            raise mysite.exceptions.InvalidSiteSportTypeException('site_sport param must be an instance of SiteSport')
+            raise mysite.exceptions.InvalidSiteSportTypeException(
+                'site_sport param must be an instance of SiteSport')
         if not isinstance(start, datetime.datetime):
-            raise mysite.exceptions.InvalidStartTypeException('start param must be a datetime object')
+            raise mysite.exceptions.InvalidStartTypeException(
+                'start param must be a datetime object')
         if not isinstance(end, datetime.datetime):
             raise mysite.exceptions.InvalidEndTypeException('end param must be a datetime object')
+
+        logger.info('Creating DraftGroup for sport: %s | start: %s | end: %s' % (
+            site_sport, start, end))
 
         #
         # we will use the SiteSportManager the model class for player, game
@@ -466,8 +476,13 @@ class DraftGroupManager(AbstractDraftGroupManager):
             # we dont want to allow a draft group without players!
             raise EmptySalaryPoolException()
 
-        draft_group = DraftGroup.objects.create(salary_pool=salary.get_pool(),
-                                                start=start, end=end, num_games=0)
+        # Create the draft group.
+        draft_group = DraftGroup.objects.create(
+            salary_pool=salary.get_pool(),
+            start=start,
+            end=end,
+            num_games=0
+        )
 
         #
         # build lists of all the teams, and all the player srids in the draft group
@@ -477,6 +492,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
         for g in games:
             # add each game srid as a key, using the game itself as the value
             game_srids[g.srid] = g
+
+            logger.warning(g)
 
             #
             # make sure we do not encounter the same team multiple times!
@@ -504,11 +521,16 @@ class DraftGroupManager(AbstractDraftGroupManager):
                 self.create_player(draft_group, p, p.amount,
                                    team_srids.get(p.player.team.srid),
                                    game_teams[p.player.team.srid])
-        #
+
         draft_group.num_games = len(games)
         draft_group.category = DraftGroup.DEFAULT_CATEGORY
         draft_group.save()
         draft_group.refresh_from_db()
+
+        logger.info('Created DraftGroup: %s' % draft_group)
+
+        # Unlock all player's salaries from this draft group.
+        clear_salary_locked_flags_for_draftgroup.delay(draft_group=draft_group)
 
         # #
         # # as a final step, signal that this DraftGroup
@@ -766,10 +788,12 @@ class PlayerUpdateManager(AbstractUpdateManager):
             err_msg = 'could not find draftboard player with srid: %s' % str(player_srid)
             raise self.PlayerDoesNotExist(err_msg)
         ctype = ContentType.objects.get_for_model(p)
-        Player.objects.filter(salary_player__player_type__pk=ctype.pk, salary_player__player_id=p.pk)
-        draft_group_players = Player.objects.filter(draft_group__in=UpcomingDraftGroup.objects.all(),
-                                                    salary_player__player_type__pk=ctype.pk,
-                                                    salary_player__player_id=p.pk).distinct('draft_group')
+        Player.objects.filter(salary_player__player_type__pk=ctype.pk,
+                              salary_player__player_id=p.pk)
+        draft_group_players = Player.objects.filter(
+            draft_group__in=UpcomingDraftGroup.objects.all(),
+            salary_player__player_type__pk=ctype.pk,
+            salary_player__player_id=p.pk).distinct('draft_group')
         return [dgp.draft_group for dgp in draft_group_players]
 
         # TODO we should determine the player's srid in here, not outside this class!
@@ -827,7 +851,8 @@ class PlayerUpdateManager(AbstractUpdateManager):
         return self.get_player_srid_for_name(name)
 
 
-class GameUpdateManager(AbstractUpdateManager):  # TODO need to fix this to be more like PlayerUpdateManager
+class GameUpdateManager(
+    AbstractUpdateManager):  # TODO need to fix this to be more like PlayerUpdateManager
     """
     This class should exclusively be used as the interface
     to adding draftgroup.models.GameUpdate objects to draftgroups.
@@ -852,7 +877,7 @@ class GameUpdateManager(AbstractUpdateManager):  # TODO need to fix this to be m
             self.now = timezone.now()
 
         self.draft_groups = self.get_draft_groups(self.game_srid)
-        print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
+        logger.info('found %s draft_groups: %s' % (len(self.draft_groups), self.draft_groups))
 
     def add_probable_pitcher(self, team_srid, player_srid):
         """
