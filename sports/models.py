@@ -188,8 +188,8 @@ class Game(DirtyFieldsMixin, models.Model):
         return self.status == self.STATUS_INPROGRESS
 
     def __str__(self):
-        return '<Game> pk: %s | status: %s | start: %s | srid: %s' % (
-        self.pk, self.status, self.start, self.srid)
+        return '<Game> %s | pk: %s | status: %s | start: %s | srid: %s' % (
+            self.get_home_at_away_str(), self.pk, self.status, self.start, self.srid)
 
     class Meta:
         abstract = True
@@ -341,7 +341,7 @@ class Player(models.Model):
         return False
 
     def __str__(self):
-        return '<Player> %s %s | position: %s | on_active_roster: %s' % (self.first_name,
+        return '<Player: %s %s | position: %s | on_active_roster: %s>' % (self.first_name,
                                                                          self.last_name,
                                                                          str(self.position),
                                                                          str(self.on_active_roster))
@@ -364,7 +364,10 @@ class Team(models.Model):
                              help_text='the abbreviation for the team, ie: for Boston Celtic alias == "BOS"')
 
     def __str__(self):
-        return '%s | %s' % (self.name, self.alias)
+        if self.alias:
+            return self.alias
+        else:
+            return self.name
 
     class Meta:
         abstract = True

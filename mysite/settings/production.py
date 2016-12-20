@@ -23,7 +23,7 @@ DATABASES = {
     'default': heroku_db_config()
 }
 DATABASES['default']['autocommit'] = True
-DATABASES['default']['CONN_MAX_AGE'] = 60
+DATABASES['default']['CONN_MAX_AGE'] = 500
 
 # SSL - we redirect all traffic to HTTPS at domain level, no need at application level
 SESSION_COOKIE_SECURE = True
@@ -51,7 +51,7 @@ CACHES = {
             REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {'max_connections': 10}
+            'CONNECTION_POOL_KWARGS': {'max_connections': 5}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000

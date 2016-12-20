@@ -5,8 +5,9 @@ from django.core.cache import cache
 from django.utils import timezone
 import contest.models
 
-LOCK_EXPIRE = 60 # Lock expires in 5 minutes
+LOCK_EXPIRE = 60  # Lock expires in 5 minutes
 SHARED_LOCK_NAME = "draftgroup_task__on_game_closed"
+
 
 @app.task(bind=True)
 def on_game_closed(self, draft_group):
@@ -21,13 +22,13 @@ def on_game_closed(self, draft_group):
     It is important that this task be unique PER DRAFTGROUP.
     """
 
-    lock_id = '%s-LOCK-[%s]'%(SHARED_LOCK_NAME, draft_group.pk)
+    lock_id = '%s-LOCK-[%s]' % (SHARED_LOCK_NAME, draft_group.pk)
 
     acquire_lock = lambda: cache.add(lock_id, True, LOCK_EXPIRE)
     release_lock = lambda: cache.delete(lock_id)
 
     if acquire_lock():
-        #print('got lock')
+        # print('got lock')
         try:
             # dgm = DraftGroupManager()
             # # get all the Games
@@ -42,15 +43,16 @@ def on_game_closed(self, draft_group):
             #     #
             #     # update all Contest's with this draft_group, to be completed
             #     Contest.objects.filter( draft_group=draft_group ).update( status=Contest.COMPLETED )
-            __on_game_closed( draft_group )
+            __on_game_closed(draft_group)
 
         finally:
             release_lock()
     else:
-        #print('could not get lock')
+        # print('could not get lock')
         self.retry(countdown=3, max_retries=100)
 
-def __on_game_closed( draft_group ):
+
+def __on_game_closed(draft_group):
     """
     this method should only be called inside of the lock in on_game_closed()
     """
@@ -71,16 +73,18 @@ def __on_game_closed( draft_group ):
         #
         # update all Contest's with this draft_group, to be completed
         Contest = contest.models.Contest
-        contests = Contest.objects.filter( draft_group=draft_group ).exclude( status__in=Contest.STATUS_HISTORY )
-        num_updated = contests.update( status=Contest.COMPLETED )
+        contests = Contest.objects.filter(draft_group=draft_group).exclude(
+            status__in=Contest.STATUS_HISTORY)
+        num_updated = contests.update(status=Contest.COMPLETED)
         from contest.tasks import track_contests
         track_contests.delay(contests)
-        print( str(num_updated), 'contests updated to status[%s]' % Contest.COMPLETED )
+        print(str(num_updated), 'contests updated to status[%s]' % Contest.COMPLETED)
+
 
 @app.task(bind=True)
 def on_game_inprogress(self, draft_group):
     """
-    checks to see if there are any Contest's that need to be
+    checks to see if there are any Contests that need to be
     cancelled and refunded every time a live game goes to "inprogress"
 
     Contests which are not guaranteed prize pools (contest.gpp=True),
@@ -88,16 +92,14 @@ def on_game_inprogress(self, draft_group):
     be cancelled and refunded by this task.
     """
     import contest.refund.tasks
-    contests = contest.models.LiveContest.objects.filter( gpp=False )
+    contests = contest.models.LiveContest.objects.filter(gpp=False)
     refund_task_results = []
     for c in contests:
         if not c.is_filled():
             #
             # call the refund_task with the contest
-            res = contest.refund.tasks.refund_task.delay( c )
+            res = contest.refund.tasks.refund_task.delay(c)
 
             #
             # create a list of tuples, of pairs of (DraftGroup, taskresult)
-            refund_task_results.append( (draft_group, res) )
-
-
+            refund_task_results.append((draft_group, res))
