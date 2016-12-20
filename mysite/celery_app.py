@@ -310,8 +310,8 @@ app.conf.update(
 
     # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
     # setting that actually caps the max connections when were viewing
-    # connections on the redis side
-    # CELERY_REDIS_MAX_CONNECTIONS = 200,
+    # connections on the redis side.
+    CELERY_REDIS_MAX_CONNECTIONS = 5,
 
     #
     #
