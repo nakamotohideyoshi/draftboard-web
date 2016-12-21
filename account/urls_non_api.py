@@ -2,10 +2,12 @@ from django.conf.urls import include
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+# from debreach.decorators import csrf_protect, csrf_decrypt
 from account.views import (
     login,
     RegisterView,
     schema_view,
+    ExclusionFormView,
     AccessSubdomainsTemplateView,
 )
 
@@ -26,8 +28,8 @@ urlpatterns = [
 
     # frontend templates, will eventually be separated out
     url(r'', include('frontend.urls', namespace='frontend')),
-
+    url(r'^self-exclusion/$', ExclusionFormView.as_view(), name='self-exclusion'),
+    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(), name='site-subdomains-access'),
     # TODO swagger docs should not be on production
     url(r'^docs/', schema_view),
-    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(), name='site-subdomains-access'),
 ]

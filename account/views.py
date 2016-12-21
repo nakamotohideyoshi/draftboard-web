@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+import calendar
+from datetime import datetime, date, timedelta
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,6 +12,9 @@ from django.conf import settings
 from django.views.generic.base import TemplateView
 from django.http import Http404
 from braces.views import LoginRequiredMixin
+from django.views.generic.edit import FormView
+from django.contrib.auth.views import logout
+
 from account.models import (
     Information,
     EmailNotification,
@@ -18,7 +22,10 @@ from account.models import (
     SavedCardDetails,
     Identity,
 )
-from account.forms import LoginForm
+from account.forms import (
+    LoginForm,
+    SelfExclusionForm
+)
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
@@ -55,6 +62,8 @@ from pp.serializers import (
 from cash.classes import (
     CashTransaction,
 )
+from contest.models import CurrentEntry
+from contest.refund.tasks import unregister_entry_task
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import views as auth_views
@@ -1037,3 +1046,39 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
         response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
         return response
+
+
+def add_months(sourcedate, months):
+    month = sourcedate.month - 1 + months
+    year = int(sourcedate.year + month / 12 )
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year,month)[1])
+    return date(year,month,day)
+
+
+class ExclusionFormView(FormView):
+    template_name = 'frontend/self-exclusion.html'
+    form_class = SelfExclusionForm
+    success_url = '/'
+    months = [3, 6, 9, 12]
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data()
+        cur_date = date.today()
+        for month in self.months:
+            kwargs['%s_month' % month] = add_months(cur_date, month)
+        return kwargs
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.request.user.information
+        return kwargs
+
+    def form_valid(self, form):
+        information = form.save()
+        entries = CurrentEntry.objects.filter(user=information.user)
+        for entry in entries:
+            unregister_entry_task.delay(entry)
+            UserEmailNotification.objects.filter(user=information.user).update(enabled=False)
+            logout(self.request)
+        return super().form_valid(form)
