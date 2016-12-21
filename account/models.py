@@ -1,5 +1,5 @@
-import datetime
 import calendar
+import datetime
 from logging import getLogger
 from django.db import models
 from django.contrib.postgres.fields import JSONField
@@ -191,6 +191,12 @@ class Identity(models.Model):
     class Meta:
         verbose_name = 'Trulioo User Identity'
 
+    @cached_property
+    def state(self):
+        # That is issue of zipcode module
+        import zipcode
+        return zipcode.isequal(self.postal_code).state
+
 
 class Limit(models.Model):
     DEPOSIT, ENTRY_ALERT, ENTRY_LIMIT, ENTRY_FEE = range(0, 4)
@@ -224,6 +230,10 @@ class Limit(models.Model):
 
     )
     ENTRY_FEE_MAX = (
+        (1, '$1'),
+        (2, '$2'),
+        (5, '$5'),
+        (10, '$10'),
         (25, '$25'),
         (50, '$50'),
 
@@ -239,9 +249,9 @@ class Limit(models.Model):
     )
     user = models.ForeignKey(User, related_name='limits')
     type = models.SmallIntegerField(choices=TYPES)
-    value = models.IntegerField(blank=True, choices=DEPOSIT_MAX+ENTRY_ALERT_MAX)
+    value = models.IntegerField(blank=True)
     time_period = models.SmallIntegerField(blank=True, null=True, choices=PERIODS)
-    updated = models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(auto_now=True, editable=False)
 
     @cached_property
     def time_period_boundaries(self):
