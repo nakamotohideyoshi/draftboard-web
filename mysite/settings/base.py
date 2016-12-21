@@ -426,3 +426,6 @@ RAVEN_CONFIG = {
 
 # access domain
 COOKIE_ACCESS_DOMAIN = '.draftboard.com'
+
+# once limits applied, residents of specific states will not be able to increase this limit for days respectively.
+LIMIT_DAYS_RESTRAINT = {'MA': 90}
