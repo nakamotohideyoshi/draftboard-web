@@ -20,6 +20,7 @@ class Information(models.Model):
     """
     user = models.OneToOneField(User, primary_key=True)
     inactive = models.BooleanField(default=False)
+    exclude_date = models.DateField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Information'

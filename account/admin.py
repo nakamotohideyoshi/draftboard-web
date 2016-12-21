@@ -10,6 +10,9 @@ class InformationAdminInline(admin.TabularInline):
     model = Information
     list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 class IdentityAdminInline(admin.TabularInline):
     model = Identity
