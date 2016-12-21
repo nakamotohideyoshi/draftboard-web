@@ -678,21 +678,15 @@ class DataDenPlayerStats(AbstractDataDenParseable):
                 srid_player=srid_player
             )
         except self.player_stats_model.DoesNotExist:
-            # TODO: (zach) I don't think this is catching the exception that it should be.
-            # Update: it is catching, but it's also throwing another exception and is bombing out
-            # celery.
-            # sports.nba.models.DoesNotExist: PlayerStats matching query does not exist.
-
-            # one of these tasks maybe:
-            # sports.tasks.countdown_send_player_stats_data[17dc8d72-92d7-474c-80a2-e749aef2bb9c]
-            # Task mysite.celery_app.stat_update[dcb67cba-4a17-4c8b-9173-afea231f100d]
-
-            self.ps = self.player_stats_model()
+            # We don't have a playerStats model for this player, so let's make one.
+            logger.info('Attempting to crate new PlayerStats model: %s' % self.ps)
+            self.ps = self.player_stats_model
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
             self.ps.player = self.p
             self.ps.game = self.g
-            #
+
+            # Zach: I don't know why this is commented out, but I'm going to leave it here.
             # #
             # # only setup the position inside "except" so that we dont perform extra
             # # queries after it has been created. because we really only care the first time.
@@ -711,7 +705,6 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # # set it but it wont be saved until child performs save()
             self.ps.position = self.p.position
 
-            logger.info('creating new PlayerStats model (hopefully):', str(self.ps))
         logger.info('Parsed PlayerStats: %s' % self.ps)
 
 
