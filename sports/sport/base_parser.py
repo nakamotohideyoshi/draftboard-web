@@ -8,6 +8,7 @@ from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
 import json
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.base import ObjectDoesNotExist
 from sports.models import SiteSport, Position
 from dataden.classes import DataDen
 import sports.classes
@@ -677,10 +678,10 @@ class DataDenPlayerStats(AbstractDataDenParseable):
                 srid_game=srid_game,
                 srid_player=srid_player
             )
-        except self.player_stats_model.DoesNotExist:
+        except ObjectDoesNotExist:
             # We don't have a playerStats model for this player, so let's make one.
             logger.info('Attempting to crate new PlayerStats model: %s' % self.ps)
-            self.ps = self.player_stats_model
+            self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
             self.ps.player = self.p
