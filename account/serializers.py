@@ -1,12 +1,10 @@
 #
 # serializers.py
 
-import mmap
-import os
 from re import search
 from rest_framework import serializers
-from django.conf import settings
 from django.contrib.auth.models import User
+from account.blacklist import BLACKLIST
 from account.models import (
     EmailNotification,
     UserEmailNotification,
@@ -115,10 +113,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         """
         UserModel = get_user_model()
 
-        if os.stat(settings.BLACK_LIST_FILE).st_size != 0:
-            with open(settings.BLACK_LIST_FILE, 'rb', 0) as file, mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as s:
-                if s.find(bytes(value, encoding="UTF-8")) != -1:
-                    raise serializers.ValidationError('This username is in a black list.')
+        if value in BLACKLIST:
+            raise serializers.ValidationError('This username is in a black list.')
 
         if UserModel.objects.filter(username__iexact=value):
             # notice how i don't say the email already exists, prevents people from
