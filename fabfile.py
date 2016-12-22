@@ -253,13 +253,15 @@ def generate_replayer():
         bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
 
         # download start
-        startS3Filename = '%s-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        startS3Filename = '%s-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        print("Downloading: %s" % startS3Filename)
         keyStart = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
         keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
         operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
 
         # download end
-        endS3Filename = '%s-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        endS3Filename = '%s-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        print("Downloading: %s" % startS3Filename)
         keyEnd = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
         keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
         operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
