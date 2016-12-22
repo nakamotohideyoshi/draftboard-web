@@ -4,6 +4,7 @@
 from re import search
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from account.blacklist import BLACKLIST
 from account.models import (
     EmailNotification,
     UserEmailNotification,
@@ -99,6 +100,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         UserModel = get_user_model()
 
         if UserModel.objects.filter(email__iexact=value):
+
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
@@ -110,6 +112,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         Validation method to ensure that the username is valid, of proper length and unique
         """
         UserModel = get_user_model()
+
+        if value in BLACKLIST:
+            raise serializers.ValidationError('This username is in a black list.')
 
         if UserModel.objects.filter(username__iexact=value):
             # notice how i don't say the email already exists, prevents people from
