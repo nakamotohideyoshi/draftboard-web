@@ -1,22 +1,16 @@
-#
-# sports/trigger.py
-
+from logging import getLogger
 from django.core.cache import cache
 from dataden.cache.caches import LiveStatsCache
-import dataden.models
 from dataden.watcher import (
     OpLogObj,
     Trigger,
-    TriggerAll,
 )
-import time
-from random import Random
-from threading import Thread
-#from sports.parser import DataDenParser
 import sports.parser
 
-class SportTrigger(Trigger):
+logger = getLogger('sports.trigger')
 
+
+class SportTrigger(Trigger):
     def __init__(self, sport, *args, **kwargs):
         self.sport = sport
 
@@ -50,10 +44,10 @@ class SportTrigger(Trigger):
 
             # print them to the screen so we know exactly which are about to be used
             for t in self.triggers:
-                print('    ', t)
+                logger.info('  Reloaded trigger: %s' % t)
+
 
 class MlbOpLogObj(OpLogObj):
-
     object_namespace = 'mlb.at_bat'
 
     def override_new(self):
@@ -68,6 +62,7 @@ class MlbOpLogObj(OpLogObj):
             return True
         return False
 
+
 class TriggerMlb(SportTrigger):
     """
     nearly identical to the default Trigger, but sets
@@ -78,13 +73,15 @@ class TriggerMlb(SportTrigger):
 
     oplogobj_class = MlbOpLogObj
 
+
 class CacheList(object):
     """
     a list implementation. the list is stored in cache using a combination
     of the unique_name __init__() param as well as the key in the add() method
     """
 
-    class UniqueNameException(Exception): pass
+    class UniqueNameException(Exception):
+        pass
 
     # unique_name cannot include this because its used
     # to index into the cache used by CacheList
@@ -131,7 +128,7 @@ class CacheList(object):
         l.append(val)
         # set it in the cache, with the specified timeout
         k = self.__get_key(key)
-        #print('k[%s] cache[%s] set timeout[%s] zonepitch [%s]' % (k, str(self.cache), str(self.timeout), str(val)))
+        # print('k[%s] cache[%s] set timeout[%s] zonepitch [%s]' % (k, str(self.cache), str(self.timeout), str(val)))
         self.cache.set(k, l, self.timeout)
 
     def __get_key(self, key):
@@ -147,12 +144,15 @@ class CacheList(object):
         """
         return self.cache.get(self.__get_key(key), [])
 
+
 class DjangoCacheList(CacheList):
     """
     for testing, uses the default django cache
     """
+
     def __init__(self):
         super().__init__(cache)
+
 
 class MlbCache(LiveStatsCache):
     """
@@ -192,8 +192,8 @@ class MlbCache(LiveStatsCache):
 
         return was_added
 
-class MlbTrigger(SportTrigger):
 
+class MlbTrigger(SportTrigger):
     live_stats_cache_class = MlbCache
 
     def __init__(self):

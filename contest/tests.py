@@ -1,42 +1,31 @@
-#
-# contest/tests.py
-
 import unittest
-from mysite.exceptions import (
-    IncorrectVariableTypeException,
-)
-from test.classes import (
-    AbstractTest,
-    ResetDatabaseMixin,
-)
-from salary.dummy import Dummy
-from prize.classes import CashPrizeStructureCreator
-from prize.models import (
-    PrizeStructure,
-)
+
 from django.utils import timezone
-from contest.models import (
-    Contest,
-    ContestPool,
-    LiveContest,
-    HistoryContest,
-)
+
 from contest.classes import (
-    ContestCreator,
     ContestPoolCreator,
     FairMatch,
     SkillLevelManager,
 )
-from sports.classes import SiteSportManager
+from contest.models import (
+    ContestPool,
+)
+from mysite.exceptions import (
+    IncorrectVariableTypeException,
+)
+from prize.models import (
+    PrizeStructure,
+)
 from sports.models import (
     SiteSport,
 )
-from contest.views import (
-    EnterLineupAPIView,
+from test.classes import (
+    AbstractTest,
 )
 from test.classes import (
     BuildWorldMixin,
 )
+
 
 class FairMatchTest(unittest.TestCase):
     """
@@ -45,7 +34,7 @@ class FairMatchTest(unittest.TestCase):
 
     def test_simple_h2h_contest_1(self):
         #            = [1   2 3 4 5     6 7 8 9            ]
-        test_entries = [1,1,2,3,4,5,5,5,6,7,8,9,9,9,9,9,9,9]
+        test_entries = [1, 1, 2, 3, 4, 5, 5, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9]
         contest_size = 2
         fm = FairMatch(test_entries, contest_size)
         fm.run()
@@ -54,7 +43,7 @@ class FairMatchTest(unittest.TestCase):
 
     def test_simple_h2h_contest_2(self):
         #            = [1     2     3   4   5 6 7 8 9
-        test_entries = [1,1,1,2,2,2,3,3,4,4,5,6,7,8,9]
+        test_entries = [1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9]
         contest_size = 2
         fm = FairMatch(test_entries, contest_size)
         fm.run()
@@ -72,7 +61,7 @@ class FairMatchTest(unittest.TestCase):
 
     def test_simple_h2h_contest_2_superlay(self):
         #
-        test_entries = [1,2,3]
+        test_entries = [1, 2, 3]
         contest_size = 2
         fm = FairMatch(test_entries, contest_size)
         fm.run()
@@ -81,7 +70,7 @@ class FairMatchTest(unittest.TestCase):
 
     def test_simple_3man_contest_1(self):
         #
-        test_entries = [1,2,3]
+        test_entries = [1, 2, 3]
         contest_size = 3
         fm = FairMatch(test_entries, contest_size)
         fm.run()
@@ -90,15 +79,15 @@ class FairMatchTest(unittest.TestCase):
 
     def test_simple_3man_contest_2(self):
         #
-        test_entries = [1,2,3,9]
+        test_entries = [1, 2, 3, 9]
         contest_size = 3
         fm = FairMatch(test_entries, contest_size)
         fm.run()
         self.assertEqual(True, True)
         fm.print_debug_info()
 
-class SkillLevelManagerTest(AbstractTest):
 
+class SkillLevelManagerTest(AbstractTest):
     def setUp(self):
         super().setUp()
         # check if it migrations the initial SkillLevels
@@ -106,7 +95,7 @@ class SkillLevelManagerTest(AbstractTest):
 
     def test_1(self):
         """ default db has some SkillLevel objects """
-        self.assertTrue( len(self.slm.skill_levels) > 0 )
+        self.assertTrue(len(self.slm.skill_levels) > 0)
 
     def test_2(self):
         """
@@ -117,11 +106,11 @@ class SkillLevelManagerTest(AbstractTest):
         # expectations
         expected_data = [
             # amount   # skill_level
-            (11.0,  'veteran'),
-            (10.0,  'veteran'),
-            (9.0,   'rookie'),
-            (1.0,   'rookie'),
-            (0.0,   'rookie'),
+            (11.0, 'veteran'),
+            (10.0, 'veteran'),
+            (9.0, 'rookie'),
+            (1.0, 'rookie'),
+            (0.0, 'rookie'),
         ]
 
         manager = SkillLevelManager()
@@ -135,13 +124,8 @@ class SkillLevelManagerTest(AbstractTest):
             print('    amount: %s | expected_name[%s] name[%s]' % (amount, expected_name, name))
             self.assertEquals(expected_name, name)
 
-    def test_3(self):
-        """
 
-        """
-        pass
-
-class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
+class ContestPoolManagerTest(AbstractTest):  # , BuildWorldMixin):
     """
     test the constructor arguments to ensure we raise
     exceptions if they are not the proper type.
@@ -152,19 +136,22 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     def setUp(self):
         super().setUp()
         # setup a salary pool and draft group
-        self.sport = 'test' # build_world() should create a sport called 'test'
+        self.sport = 'test'  # build_world() should create a sport called 'test'
 
         # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
-        ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
+        ContestPool.objects.all().delete()  # so we can run with --keepdb locally for quicker testing
 
         # create a custom class for an invalid type of object to pass as params
         class CustomInvalidType:
             def __init__(self):
                 pass
+
         self.custom_invalid_type_class = CustomInvalidType
         self.invalid_type_obj = self.custom_invalid_type_class()
 
-    def __call_creator_constructor_test(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
+    def __call_creator_constructor_test(self, sport=None, prize_structure=None, start=None,
+                                        duration=None,
+                                        draft_group=None):
         """
         This method is simply to test that the constructor
         properly validates the parameters passed to it.
@@ -181,6 +168,7 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
             class PrizeStructureChild(PrizeStructure):
                 def __init__(self):
                     pass
+
             prize_structure = PrizeStructureChild
         if start is None:
             start = timezone.now()
@@ -189,9 +177,10 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
 
         # try to construct a ContestPool
         try:
-            #print('sport:', str(sport))
-            self.assertRaises( IncorrectVariableTypeException,
-                lambda:ContestPoolCreator(sport, prize_structure, start, duration, draft_group) )
+            # print('sport:', str(sport))
+            self.assertRaises(IncorrectVariableTypeException,
+                              lambda: ContestPoolCreator(sport, prize_structure, start, duration,
+                                                         draft_group))
         except:
             # there might be other exceptions from
             # inner objects, but those arent tested here!
@@ -212,6 +201,7 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     def test_constructor_arg_draft_group(self):
         self.__call_creator_constructor_test(duration=self.invalid_type_obj)
 
+
 class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
     """
     Test functionality of ContestPoolManager.create()
@@ -225,8 +215,8 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
     def setUp(self):
         super().setUp()
         # setup a salary pool and draft group
-        #print("WTF")
-        self.sport = 'nfl' # build_world() should create a sport called 'test'
+        # print("WTF")
+        self.sport = 'nfl'  # build_world() should create a sport called 'test'
         self.build_world()
         self.draft_group = self.world.draftgroup
 
@@ -237,7 +227,7 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         self.skill_level_manager = SkillLevelManager()
 
         # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
-        ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
+        ContestPool.objects.all().delete()  # so we can run with --keepdb locally for quicker testing
 
         #
         ####### print some debug stuff so we know it exists (or doesnt ####
@@ -245,9 +235,9 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         print('%s existing SiteSport objects' % all_site_sports.count())
         for ss in all_site_sports:
             print(str(ss))
-            print('')
 
-    def __call_construct(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
+    def __call_construct(self, sport=None, prize_structure=None, start=None, duration=None,
+                         draft_group=None):
         """
         If any value is None, we will use a known good default value.
         """
@@ -260,7 +250,8 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         if duration is None:
             duration = int(300)
 
-        contest_pool_creator = ContestPoolCreator(sport, prize_structure, start, duration, draft_group)
+        contest_pool_creator = ContestPoolCreator(sport, prize_structure, start, duration,
+                                                  draft_group)
         return contest_pool_creator
 
     def test_create_simple_default_values_existing_draft_group(self):
@@ -271,12 +262,14 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         creator = self.__call_construct(draft_group=self.draft_group)
         contest_pool, created = creator.get_or_create()
 
-        target_skill_level = self.skill_level_manager.get_for_amount(contest_pool.prize_structure.buyin)
+        target_skill_level = self.skill_level_manager.get_for_amount(
+            contest_pool.prize_structure.buyin)
 
         # the only comparison that doesnt really matter is the pk
         self.assertEquals(target_skill_level.name, contest_pool.skill_level.name)
         self.assertEquals(target_skill_level.gte, contest_pool.skill_level.gte)
         self.assertEquals(target_skill_level.enforced, contest_pool.skill_level.enforced)
+
 
 class ContestManagerTest(AbstractTest):
     """
@@ -286,23 +279,28 @@ class ContestManagerTest(AbstractTest):
         LiveContest     - contests with live real-life games happening
         HistoryContest  - contests in a final state, such as having been cancelled or paid out.
     """
+
     def setUp(self):
         super().setUp()
         # TODO
+
 
 class ContestCreatorClone(AbstractTest):
     """
     test cloning a Contest does what we expect.
     """
+
     def setUp(self):
         super().setUp()
         # TODO
+
 
 class ContestCreatorRespawn(AbstractTest):
     """
     test respawn functionality (similar to clone,
     but should only work on upcoming contests.
     """
+
     def setUp(self):
         super().setUp()
         # TODO

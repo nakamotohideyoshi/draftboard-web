@@ -143,7 +143,7 @@ export default class Sprite {
    */
   playOnce(flip = false, start = 1, length = -1) {
     if (!this.isLoaded()) {
-      Promise.reject('No image data loaded.');
+      return Promise.reject('No image data loaded.');
     }
 
     return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, flip, start, length);

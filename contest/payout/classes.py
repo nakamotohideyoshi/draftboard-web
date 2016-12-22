@@ -1,20 +1,14 @@
-#
-# contest/payout/classes.py
-
+from logging import getLogger
+import math
+import decimal
 import mysite.exceptions
 from contest.models import Contest, Entry, ClosedContest
 from prize.models import Rank
-from django.db.models import Q, F
-from transaction.models import  AbstractAmount
-import mysite.exceptions
-from transaction.classes import  CanDeposit
+from transaction.models import AbstractAmount
+from transaction.classes import CanDeposit
 from .models import Payout, Rake, FPP
-from cash.classes import CashTransaction
-import decimal
 from draftgroup.classes import DraftGroupManager
-from draftgroup.exceptions import (
-    FantasyPointsAlreadyFinalizedException,
-)
+from draftgroup.exceptions import FantasyPointsAlreadyFinalizedException
 from dfslog.classes import Logger, ErrorCodes
 from cash.classes import CashTransaction
 from django.db.transaction import atomic
@@ -24,13 +18,12 @@ from rakepaid.classes import RakepaidTransaction
 from mysite.classes import AbstractManagerClass
 from rakepaid.classes import LoyaltyStatusManager
 from fpp.classes import FppTransaction
-from lineup.classes import (
-    LineupManager,
-)
-from lineup.models import (
-    Lineup,
-)
-import math
+from lineup.classes import LineupManager
+from lineup.models import Lineup
+
+
+logger = getLogger('contest.payout.classes')
+
 
 class PayoutManager(AbstractManagerClass):
     """
@@ -80,13 +73,13 @@ class PayoutManager(AbstractManagerClass):
             #
             # get the unique draft group ids within this queryset of contests.
             # update the final scoring for the players in the distinct draft groups.
-            draft_group_ids = list(set([ c.draft_group.pk for c in contests if c.draft_group != None ]))
+            draft_group_ids = list(set([c.draft_group.pk for c in contests if c.draft_group != None]))
             for draft_group_id in draft_group_ids:
                 draft_group_manager = DraftGroupManager()
                 try:
                     draft_group_manager.update_final_fantasy_points(draft_group_id)
                 except FantasyPointsAlreadyFinalizedException:
-                    pass # its possible the contest we are trying to payout was already finalized
+                    pass  # its possible the contest we are trying to payout was already finalized
 
             #
             # update the fantasy_points for each unique Lineup.
@@ -94,8 +87,8 @@ class PayoutManager(AbstractManagerClass):
             # so we're not doing extra processing...
             lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
             for lineup in lineups:
-                lineup_manager = LineupManager( lineup.user )
-                lineup_manager.update_fantasy_points( lineup )
+                lineup_manager = LineupManager(lineup.user)
+                lineup_manager.update_fantasy_points(lineup)
 
         #
         # finally, we can pay out the contests!
@@ -111,9 +104,9 @@ class PayoutManager(AbstractManagerClass):
         """
 
         try:
-            c = ClosedContest.objects.get( pk=contest.pk )
-            #print('%s already closed & paid out.'%str(contest))
-            return # go no further
+            c = ClosedContest.objects.get(pk=contest.pk)
+            # print('%s already closed & paid out.'%str(contest))
+            return  # go no further
         except:
             pass
 
@@ -144,24 +137,23 @@ class PayoutManager(AbstractManagerClass):
                     type(self).__name__,
                     'transaction_class')
 
-
-        #print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
+        # print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
         #
         # perform the payouts by going through each entry and finding
         # ties and ranks for the ties to chop.
-        #print('======= ranks [%s] =======' % (str(ranks)))
+        # print('======= ranks [%s] =======' % (str(ranks)))
 
         #
         # we now need to check which is shorter: the list of ranks or the list of entries,
         # and only use that many ranks for calculating winners! (its possible for
         # fewer entries than the total number of ranks!
-    
+
         if len(entries) < len(ranks):
-            print('SUPERLAY PAYOUT CONTEST:', str(contest))
+            logger.info('SUPERLAY PAYOUT CONTEST: %s' % contest)
 
         i = 0
         while i < len(ranks[:len(entries)]):
-            #print('++++ i (rank): %s +++++' % str(i) )
+            # print('++++ i (rank): %s +++++' % str(i) )
             entries_to_pay = list()
             ranks_to_pay = list()
             entries_to_pay.append(entries[i])
@@ -170,7 +162,7 @@ class PayoutManager(AbstractManagerClass):
             #
             # For each tie add the user to the list to chop the payment
             # and add the next payout to be split with the ties.
-            while i+1 < len(entries) and score == entries[i+1].lineup.fantasy_points:
+            while i + 1 < len(entries) and score == entries[i + 1].lineup.fantasy_points:
                 i += 1
                 entries_to_pay.append(entries[i])
                 if len(ranks) > i:
@@ -200,13 +192,13 @@ class PayoutManager(AbstractManagerClass):
             except KeyError:
                 entry_fantasy_points_map[entry.lineup.fantasy_points] = [entry.pk]
         # sort the fantasy points map on the map key (ascending)
-        sorted_list = sorted( entry_fantasy_points_map.items(), key=lambda x: x[0] )
-        sorted_list.reverse() # so its descending ie: [(75.5, [432, 213]), (50.25, [431234, 234534]), (25.0, [1, 123])]
+        sorted_list = sorted(entry_fantasy_points_map.items(), key=lambda x: x[0])
+        sorted_list.reverse()  # so its descending ie: [(75.5, [432, 213]), (50.25, [431234, 234534]), (25.0, [1, 123])]
 
         entry_rank = 1
         for fantasy_points, entry_id_list in sorted_list:
             count_at_rank = len(entry_id_list)
-            Entry.objects.filter( pk__in=entry_id_list ).update(final_rank=entry_rank)
+            Entry.objects.filter(pk__in=entry_id_list).update(final_rank=entry_rank)
             entry_rank += count_at_rank
 
         #
@@ -251,7 +243,8 @@ class PayoutManager(AbstractManagerClass):
         #
         # if there are the same number of ranks and entries to pay
         # and the ranks to pay are all equal, we can divide evenly
-        if (self.array_objects_are_equal(ranks_to_pay) and len(ranks_to_pay) == len(entries_to_pay)) or len(entries_to_pay) == 1:
+        if (self.array_objects_are_equal(ranks_to_pay) and len(ranks_to_pay) == len(entries_to_pay)) or len(
+                entries_to_pay) == 1:
             place = ranks_to_pay[0].rank
             for i in range(0, len(ranks_to_pay)):
                 rank = ranks_to_pay[i]
@@ -263,16 +256,16 @@ class PayoutManager(AbstractManagerClass):
         else:
             place = ranks_to_pay[0].rank
             cash_to_chop = decimal.Decimal(0.0)
-            print(str(ranks_to_pay))
+            logger.info('ranks to pay: %s' % ranks_to_pay)
             for rank in ranks_to_pay:
                 cash_to_chop += decimal.Decimal(rank.amount.get_cash_value())
-            share_split_pre_rounded = ((cash_to_chop/ decimal.Decimal(len(entries_to_pay))) - decimal.Decimal(.005))
+            share_split_pre_rounded = ((cash_to_chop / decimal.Decimal(len(entries_to_pay))) - decimal.Decimal(.005))
             share_split_pre_rounded = round(share_split_pre_rounded, 3)
             share_split = round(share_split_pre_rounded, 2)
 
             #
             # The extra free pennies that could not be divided
-            extra_pennies = cash_to_chop - (share_split*len(entries_to_pay))
+            extra_pennies = cash_to_chop - (share_split * len(entries_to_pay))
             if extra_pennies < 0:
                 extra_pennies = 0
             #
@@ -280,7 +273,7 @@ class PayoutManager(AbstractManagerClass):
             # be divided
 
             for entry in entries_to_pay:
-                self.__update_accounts(place, contest, entry, share_split+ extra_pennies)
+                self.__update_accounts(place, contest, entry, share_split + extra_pennies)
                 if extra_pennies > 0:
                     extra_pennies = 0
 
@@ -310,8 +303,6 @@ class PayoutManager(AbstractManagerClass):
         user = payout.entry.lineup.user
         rake_paid = contest.buyin * .10
 
-
-
         #
         # Pays out FPP
         lsm = LoyaltyStatusManager(user)
@@ -323,7 +314,6 @@ class PayoutManager(AbstractManagerClass):
         fpp.transaction = ct.transaction
         fpp.save()
 
-
         #
         # convert the bonus_cash for the user
         self.__convert_bonus_cash(user, rake_paid, payout.transaction)
@@ -333,7 +323,8 @@ class PayoutManager(AbstractManagerClass):
         rpt = RakepaidTransaction(user)
         rpt.deposit(rake_paid, trans=payout.transaction)
 
-        msg = "User["+payout.entry.lineup.user.username+"] was ranked #"+str(payout.rank)+" for contest #"+str(payout.contest.pk)+" and was paid out."
+        msg = "User[" + payout.entry.lineup.user.username + "] was ranked #" + str(
+            payout.rank) + " for contest #" + str(payout.contest.pk) + " and was paid out."
         Logger.log(ErrorCodes.INFO, "Contest Payout", msg)
 
     def __convert_bonus_cash(self, user, rake_paid, transaction):
@@ -373,8 +364,6 @@ class PayoutManager(AbstractManagerClass):
             ct = CashTransaction(user)
             ct.deposit(amount, trans=bct.transaction)
 
-
-
     def array_objects_are_equal(self, arr):
         prev = None
         for obj in arr:
@@ -385,4 +374,3 @@ class PayoutManager(AbstractManagerClass):
                 return False
 
         return True
-

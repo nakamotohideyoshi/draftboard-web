@@ -8,9 +8,21 @@
     "react/jsx-no-bind": 0, // TODO - this is a good thing but it means we have to create a handful of new components, let's address this later.
     "consistent-return": 0,  // TODO - this is good, but would need to refactor a bunch of functions
     "no-duplicate-imports": 0, // TODO - need to go through code to fix
-    "array-callback-return": 0 // TODO - this is good, but would need to refactor a bunch of functions
+    "array-callback-return": 0, // TODO - this is good, but would need to refactor a bunch of functions,
+    "promise/always-return": "warn",
+    "promise/no-return-wrap": "error",
+    "promise/param-names": "error",
+    "promise/catch-or-return": "warn",
+    "promise/no-native": "off",
+    "promise/no-nesting": "off",
+    "promise/no-promise-in-callback": "warn",
+    "promise/no-callback-in-promise": "warn",
+    "promise/avoid-new": "off"
   },
   "env": {
       "mocha": true
   },
+  "plugins": [
+    "promise"
+  ]
 }
