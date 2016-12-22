@@ -8,7 +8,7 @@ from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
 import json
 from django.contrib.contenttypes.models import ContentType
-from django.db.models.base import ObjectDoesNotExist
+# from django.db.models.base import ObjectDoesNotExist
 from sports.models import SiteSport, Position
 from dataden.classes import DataDen
 import sports.classes
@@ -662,15 +662,15 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # first_name  = o.get('first_name', None)
             # last_name   = o.get('last_name', None)
             # full_name   = '%s %s' % (str(first_name), str(last_name))
-            print(obj, target)
-            print('Player object for PlayerStats DoesNotExist')
+            logger.error('Player object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
+                obj, target))
             return  # dont create the playerstats then
 
         try:
             self.g = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
-            print(obj, target)
-            print('Game object for PlayerStats DoesNotExist')
+            logger.error('Game object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
+                obj, target))
             return  # dont create the playerstats then
 
         try:
@@ -678,9 +678,11 @@ class DataDenPlayerStats(AbstractDataDenParseable):
                 srid_game=srid_game,
                 srid_player=srid_player
             )
-        except ObjectDoesNotExist:
+        except self.player_stats_model.DoesNotExist:
             # We don't have a playerStats model for this player, so let's make one.
-            logger.info('Attempting to crate new PlayerStats model: %s' % self.ps)
+            logger.info((
+                'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
+                '| game: %s') % (srid_player, srid_game, self.p, self.g))
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
