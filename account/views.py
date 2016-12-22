@@ -1078,15 +1078,21 @@ class LimitsFormView(LoginRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
+        state = request.user.identity.state
+        days = settings.LIMIT_DAYS_RESTRAINT.get(state)
         LimitFormSet = modelformset_factory(
             Limit,
             form=LimitForm,)
         formset = LimitFormSet(request.POST)
-
         if formset.is_valid():
-            instances = formset.save()
-            for instance in instances:
-                instance.save()
+            instances = formset.save(commit=False)
+
+            change_allowed_on = instances[0].updated + timedelta(days=days)
+            if instances[0].updated.replace(tzinfo=None) < datetime.now() < change_allowed_on.replace(tzinfo=None):
+                return JsonResponse(data={"detail": "not allowed to change limits"}, status=400, safe=False)
+            else:
+                for instance in instances:
+                    instance.save()
             return JsonResponse(data={"detail": "OK"}, status=200)
         else:
             return JsonResponse(formset.errors, status=400, safe=False)
