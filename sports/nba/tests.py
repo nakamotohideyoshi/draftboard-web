@@ -1,7 +1,7 @@
-# sports/nba/tests.py
-
 from ast import literal_eval
-from test.classes import AbstractTest
+
+from model_mommy import mommy
+
 import sports.nba.models
 from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nba.parser import (
@@ -9,8 +9,9 @@ from sports.nba.parser import (
     GameSchedule,
     TeamHierarchy,
     EventPbp,
-    # GameBoxscoreParser,
+    GameBoxscoreParser,
 )
+from test.classes import AbstractTest
 
 
 class TestSeasonScheduleParser(AbstractTest):
@@ -94,51 +95,62 @@ class TestGameScheduleParser(AbstractTest):
 # This is because the update is looking for the game to already
 # exist in the database, but we haven't set that up yet for this test
 
-# class TestGameBoxscoreParser(AbstractTest):
-#     """ tests the send() part only """
+class TestGameBoxscoreParser(AbstractTest):
+    """ tests the send() part only """
 
-#     def setUp(self):
-#         self.parser = GameBoxscoreParser()
+    def setUp(self):
+        self.parser = GameBoxscoreParser()
 
-#     def __parse_and_send(self, unwrapped_obj, target):
-#         parts = target[0].split('.')
-#         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-#         self.parser.parse(oplog_obj, target=target)
-#         print('self.o:', str(self.parser.o))
-#         print('about to call send()...')
-#         self.parser.send()
-#         print('... called send()')
+    def __parse_and_send(self, unwrapped_obj, target):
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        print('self.o:', str(self.parser.o))
+        print('about to call send()...')
+        self.parser.send()
+        print('... called send()')
 
-#     def test_1(self):
-#         sport_db = 'nba'
-#         parent_api = 'boxscores'
+    def test_1(self):
+        sport_db = 'nba'
+        parent_api = 'boxscores'
 
-#         data = {
-#             "id": "a7078756-0963-4c68-872c-9b677f786a5e",
-#             "status": "closed",
-#             "coverage": "full",
-#             "scheduled": "2016-10-27T00:00:00+00:00",
-#             "duration": "2:30",
-#             "attendance": 18119,
-#             "lead_changes": 11,
-#             "times_tied": 5,
-#             "clock": "00:00",
-#             "quarter": 4,
-#             "home": {
-#                 "name": "Grizzlies",
-#                 "market": "Memphis",
-#                 "id": "583eca88-fb46-11e1-82cb-f4ce4684ea4c",
-#                 "points": 102
-#             },
-#             "away": {
-#                 "name": "Timberwolves",
-#                 "market": "Minnesota",
-#                 "id": "583eca2f-fb46-11e1-82cb-f4ce4684ea4c",
-#                 "points": 98
-#             }
-#         }
+        # I believe This is a typical game boxscore object we get from dataden.
+        data = {
+            'away_team': '583ecf50-fb46-11e1-82cb-f4ce4684ea4c',
+            '_id': 'cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDkyMTkzMWQ2LWYxMzctNGJhNy1iMjM3LTYwOTU3YTdkZmY5Yg==',
+            'quarter': 4.0,
+            'parent_api__id': 'boxscores',
+            'dd_updated__id': 1482384853598,
+            'teams': [
+                {'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c'},
+                {'team': '583ecf50-fb46-11e1-82cb-f4ce4684ea4c'}
+            ],
+            'coverage': 'full',
+            'home_team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+            'id': '921931d6-f137-4ba7-b237-60957a7dff9b',
+            'xmlns': 'http://feed.elasticstats.com/schema/basketball/game-v2.0.xsd',
+            'clock': '00:00',
+            'scheduled': '2016-12-22T03:00:00+00:00',
+            'neutral_site': 'false',
+            'status': 'inprogress'
+        }
 
-#         self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+        # Create a nba.Team models
+        mommy.make(
+            sports.nba.models.Team,
+            srid=data['home_team']
+        )
+        mommy.make(
+            sports.nba.models.Team,
+            srid=data['away_team']
+        )
+        # Create a Game model so this boxcore can be parsed.
+        mommy.make(
+            sports.nba.models.Game,
+            srid=data['id']
+        )
+        # Parse it!
+        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
 
 class TestEventPbp(AbstractTest):
@@ -150,8 +162,34 @@ class TestEventPbp(AbstractTest):
 
     def setUp(self):
         super().setUp()
-        # ignoring E501 line too long PEP8 warning
-        self.obj_str = """{'o': {'parent_list__id': 'events__list', 'location__list': {'coord_x': 370.0, 'coord_y': 209.0}, 'parent_api__id': 'pbp', 'quarter__id': '715a0977-ab1e-4d13-9425-7d776b69615e', 'game__id': 'dcecc6c6-d6f8-40e2-a83c-d22953e55112', 'id': 'fb8be809-6822-439e-aaf0-e5d334ed25aa', 'dd_updated__id': 1454641970660, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjZWNjNmM2LWQ2ZjgtNDBlMi1hODNjLWQyMjk1M2U1NTExMnF1YXJ0ZXJfX2lkNzE1YTA5NzctYWIxZS00ZDEzLTk0MjUtN2Q3NzZiNjk2MTVlcGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWRmYjhiZTgwOS02ODIyLTQzOWUtYWFmMC1lNWQzMzRlZDI1YWE=', 'updated': '2016-02-05T03:12:41+00:00', 'clock': '11:41', 'statistics__list': {'fieldgoal__list': {'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c', 'made': 'false', 'three_point_shot': 'true', 'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd', 'shot_type': 'jump shot'}}, 'event_type': 'threepointmiss', 'attribution': '583ed056-fb46-11e1-82cb-f4ce4684ea4c', 'description': 'Damian Lillard misses three point jump shot'}, 'ns': 'nba.event', 'ts': 1454659978}"""  # noqa
+        self.obj_str = """{'o':  {
+            'ns': 'nba.event',
+            'ts': 1454659978,
+            'event_type': 'threepointmiss',
+            'attribution': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+            'description': 'Damian Lillard misses three point jump shot',
+            'parent_list__id': 'events__list',
+            'location__list': {'coord_x': 370.0,
+            'coord_y': 209.0},
+            'parent_api__id': 'pbp',
+            'quarter__id': '715a0977-ab1e-4d13-9425-7d776b69615e',
+            'game__id': 'dcecc6c6-d6f8-40e2-a83c-d22953e55112',
+            'id': 'fb8be809-6822-439e-aaf0-e5d334ed25aa',
+            'dd_updated__id': 1454641970660,
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjZWNjNmM2LWQ2ZjgtNDBlMi1hODNjLWQy',
+            'updated': '2016-02-05T03:12:41+00:00',
+            'clock': '11:41',
+            'statistics__list': {
+              'fieldgoal__list': {
+                'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+                'made': 'false',
+                'three_point_shot': 'true',
+                'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd',
+                'shot_type': 'jump shot'
+              }
+            },
+          }
+        }"""  # noqa
         self.data = literal_eval(self.obj_str)  # convert to dict
         self.oplog_obj = OpLogObj(self.data)
 
