@@ -1,11 +1,8 @@
-#
-# sports/sport/base_parser.py
-
+from raven.contrib.django.raven_compat.models import client
 import re
+from logging import getLogger
 from django.core.cache import cache
-from mysite.celery_app import locking
 from django.utils import timezone
-from dataden.util.hsh import Hashable
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
@@ -18,9 +15,10 @@ import dateutil.parser
 import push.classes
 from sports.game_status import GameStatus
 
+logger = getLogger('sports.sport.base_parser')
+
 
 class PatternFinder(object):
-
     def __init__(self, s):
         self.s = s
 
@@ -29,7 +27,6 @@ class PatternFinder(object):
 
 
 class SridFinder(PatternFinder):
-
     """
     has methods to find global ids from a dictionary.
     global ids are simply long strings of alpha-numeric
@@ -39,7 +36,7 @@ class SridFinder(PatternFinder):
     class InvalidArgumentTypeException(Exception):
         pass
 
-    srid_pattern = r"'([^']*)'"    # will match anything between single quotes
+    srid_pattern = r"'([^']*)'"  # will match anything between single quotes
 
     def __init__(self, data):
         if not isinstance(data, dict):
@@ -59,7 +56,6 @@ class SridFinder(PatternFinder):
 
 
 class AbstractDataDenParser(object):
-
     """
     for parsing each individual sport, which will have some differences
     """
@@ -153,7 +149,6 @@ class AbstractDataDenParser(object):
 
 
 class AbstractDataDenParseable(object):
-
     """
     Essentially provides an interface via the 'parse()' method,
     for parsing a specific object from dataden mongo db,
@@ -263,7 +258,6 @@ class AbstractDataDenParseable(object):
 
 
 class DataDenSeasonSchedule(AbstractDataDenParseable):
-
     """
     parse a sports "season schedule" object. this is the object
     which contains an srid, year, and season-type for the sport.
@@ -358,7 +352,6 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
 
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
-
     """
     Parse a team object form the hieraarchy feed (parent_api).
 
@@ -399,14 +392,14 @@ class DataDenTeamHierarchy(AbstractDataDenParseable):
 
         o = self.o
 
-        srid = o.get('id',               None)
-        srid_league = o.get('league__id',       None)
-        srid_conference = o.get('conference__id',   None)
-        srid_division = o.get('division__id',     None)
-        market = o.get('market',           None)
-        name = o.get('name',             None)
-        alias = o.get('alias',            None)
-        srid_venue = o.get('venue',            '')
+        srid = o.get('id', None)
+        srid_league = o.get('league__id', None)
+        srid_conference = o.get('conference__id', None)
+        srid_division = o.get('division__id', None)
+        market = o.get('market', None)
+        name = o.get('name', None)
+        alias = o.get('alias', None)
+        srid_venue = o.get('venue', '')
 
         try:
             self.team = self.team_model.objects.get(srid=srid)
@@ -428,7 +421,6 @@ class DataDenTeamHierarchy(AbstractDataDenParseable):
 
 
 class DataDenGameSchedule(AbstractDataDenParseable):
-
     """
     Requires: the game_model & team_model to be set by inheriting classes
 
@@ -469,8 +461,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         start = DataDenDatetime.from_string(start_str)
         status = o.get('status')
         if status is None or status == '':
-            err_msg = 'mongo game object %s has a "status" of None or empty string!' % str(
-                o)
+            err_msg = 'mongo game object %s has a "status" of None or empty string!' % o
             raise Exception(err_msg)
 
         srid_season = o.get(self.field_season_srid)
@@ -514,15 +505,14 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         self.game.title = title
 
         # parsing boxscores will update this Game's 'status' field
-        # so dont allow this class to ever move to an older status.
-        # only allow it to progress the status, ie:
-        # scheduled -> inprogress | inprogress -> complete | complete -> closed
+        # If the game is already closed, don't let it become active again.
         if self.game.status != GameStatus.closed:
             self.game.status = status
 
+        logger.info('Parsed GameSchedule: %s' % self.game)
+
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
-
     class PositionDoesNotExist(Exception):
         pass
 
@@ -561,8 +551,8 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         except ValueError:
             experience = 0.0
 
-        height = o.get('height', 0.0)      # inches
-        weight = o.get('weight', 0.0)      # lbs.
+        height = o.get('height', 0.0)  # inches
+        weight = o.get('weight', 0.0)  # lbs.
         jersey_number = o.get('jersey_number', 0.0)
 
         # nfl will want to override this
@@ -607,7 +597,7 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
             self.player = self.player_model()
             self.player.srid = srid
 
-        self.player.team = t             # team could easily change of course
+        self.player.team = t  # team could easily change of course
         self.player.first_name = first_name
         self.player.last_name = last_name
 
@@ -622,9 +612,10 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
 
         # self.player.save() is done in inheriting class!
 
+        logger.info('Parsed PlayerRoster: %s' % self.player)
+
 
 class DataDenPlayerStats(AbstractDataDenParseable):
-
     game_model = None
     player_model = None
     player_stats_model = None
@@ -651,9 +642,12 @@ class DataDenPlayerStats(AbstractDataDenParseable):
 
         sub-classes must take care of settings the actual per-sport stats!
 
-        :param obj:
-        :param target:
-        :return:
+        Args:
+            obj: An OpLog object
+            target:
+
+        Returns:
+
         """
         super().parse(obj, target)
 
@@ -680,8 +674,19 @@ class DataDenPlayerStats(AbstractDataDenParseable):
 
         try:
             self.ps = self.player_stats_model.objects.get(
-                srid_game=srid_game, srid_player=srid_player)
+                srid_game=srid_game,
+                srid_player=srid_player
+            )
         except self.player_stats_model.DoesNotExist:
+            # TODO: (zach) I don't think this is catching the exception that it should be.
+            # Update: it is catching, but it's also throwing another exception and is bombing out
+            # celery.
+            # sports.nba.models.DoesNotExist: PlayerStats matching query does not exist.
+
+            # one of these tasks maybe:
+            # sports.tasks.countdown_send_player_stats_data[17dc8d72-92d7-474c-80a2-e749aef2bb9c]
+            # Task mysite.celery_app.stat_update[dcb67cba-4a17-4c8b-9173-afea231f100d]
+
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
@@ -706,11 +711,11 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # # set it but it wont be saved until child performs save()
             self.ps.position = self.p.position
 
-            print('creating new PlayerStats model (hopefully):', str(self.ps))
+            logger.info('creating new PlayerStats model (hopefully):', str(self.ps))
+        logger.info('Parsed PlayerStats: %s' % self.ps)
 
 
 class DataDenGameBoxscores(AbstractDataDenParseable):
-
     gameboxscore_model = None
     team_model = None
 
@@ -742,11 +747,13 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         """
         try:
             game = self.game_model.objects.get(srid=srid_game)
-        except self.game_model.DoesNotExist:
+        except self.game_model.DoesNotExist as e:
+            logger.error(e);
             return  # go no further
 
         # if the game instance has a status of 'closed', dont change it
         if game.status == self.game_status.closed:
+            logger.info("Game is already 'closed', not updating status. %s" % game)
             return  # go no further
 
         # convert a granular status to one of the primary, overarching statuses
@@ -756,6 +763,8 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         if game.status != primary_status:
             game.status = primary_status
             game.save()
+
+        logger.info('Updated game status: %s' % game)
 
     def parse(self, obj, target=None):
         super().parse(obj, target)
@@ -794,15 +803,17 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         try:
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Away_team does not exist, not creating GameBoxscore for '
+                          'game srid: %s') % srid_game)
+            client.captureException()
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Home_team does not exist, not creating GameBoxscore for '
+                          'game srid: %s') % srid_game)
+            client.captureException()
             return
 
         try:
@@ -829,10 +840,10 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         # because the boxscore will be updated much more frequently in
         # real-time especially
         self.update_schedule_game_status(srid_game, game_boxscore_status)
+        logger.info('Parsed GameBoxscore: %s' % self.boxscore)
 
 
 class DataDenTeamBoxscores(AbstractDataDenParseable):
-
     gameboxscore_model = None
 
     def __init__(self):
@@ -913,7 +924,6 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
 
 
 class DataDenPbpDescription(AbstractDataDenParseable):
-
     """
     Parses the pbp text description objects.
     """
@@ -924,16 +934,16 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     class SridGameMultipleSridsFoundException(Exception):
         pass
 
-    game_model = None      # fields: srid
+    game_model = None  # fields: srid
     portion_model = None
     pbp_model = None
     pbp_description_model = None
     #
-    player_stats_model = None      # example: sports.<sport>.models.PlayerStats
-    pusher_sport_pbp = None      # example: push.classes.PUSHER_NBA_PBP
+    player_stats_model = None  # example: sports.<sport>.models.PlayerStats
+    pusher_sport_pbp = None  # example: push.classes.PUSHER_NBA_PBP
     # default 'event' value. ie: { ..., 'event':'event'}
     pusher_sport_pbp_event = 'event'
-    pusher_sport_stats = None      # example: push.classes.PUSHER_NBA_STATS
+    pusher_sport_stats = None  # example: push.classes.PUSHER_NBA_STATS
     linked_pbp_field = 'pbp'
     linked_stats_field = 'stats'
 
@@ -1018,8 +1028,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             # GamePortions are unique based on their srid_game, category, &
             # sequence!
             desc = self.pbp_description_model.objects.get(idx=idx,
-                                                          portion_type__pk=portion_ctype.id, portion_id=portion.id,
-                                                          pbp_type__pk=self.pbp_ctype.id, pbp_id=self.pbp.id)
+                                                          portion_type__pk=portion_ctype.id,
+                                                          portion_id=portion.id,
+                                                          pbp_type__pk=self.pbp_ctype.id,
+                                                          pbp_id=self.pbp.id)
         except self.pbp_description_model.DoesNotExist:
             desc = self.pbp_description_model()
             desc.pbp = self.pbp
@@ -1117,7 +1129,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # if len(player_stats) == 0:
         # solely push pbp object
         push.classes.DataDenPush(self.pusher_sport_pbp,
-                                 self.pusher_sport_pbp_event).send(self.get_send_data())  # pusher_sport_pbp_event
+                                 self.pusher_sport_pbp_event).send(
+            self.get_send_data())  # pusher_sport_pbp_event
 
         # else:
         #     # push combined pbp+stats data
@@ -1188,7 +1201,6 @@ class DataDenPbpDescription(AbstractDataDenParseable):
 
 
 class DataDenInjury(AbstractDataDenParseable):
-
     """
     Ensures the player associated with the injury exists, and sets
     up both objects for subclasses.
@@ -1271,6 +1283,8 @@ class DataDenInjury(AbstractDataDenParseable):
         self.injury.player = self.player
 
         # subclass will need to perform the save() to create/update !
+
+
 #
 # class ContentItemDb:
 #     """
@@ -1297,7 +1311,6 @@ class DataDenInjury(AbstractDataDenParseable):
 
 
 class TsxContentParser(AbstractDataDenParseable):
-
     """
     Parses The Sports Xchange news, injuries, and transactions
     from dataden objects into site models.
@@ -1394,7 +1407,7 @@ class TsxContentParser(AbstractDataDenParseable):
         tsxcontent, c = self.get_or_create_tsxcontent()
         if verbose:
             print(str(tsxcontent))
-        tsxitems = self.update_tsxitems(tsxcontent)        # update its items
+        tsxitems = self.update_tsxitems(tsxcontent)  # update its items
 
         #
         # return the created and/or update models in a 3-tuple!
@@ -1530,7 +1543,7 @@ class TsxContentParser(AbstractDataDenParseable):
         tsxitem.title = item_obj.get('title')
         # ie: 'The Sports Xchange'
         tsxitem.byline = item_obj.get('byline')
-        tsxitem.dateline = item_obj.get('dateline', '')   # ie: '12/14/2015'
+        tsxitem.dateline = item_obj.get('dateline', '')  # ie: '12/14/2015'
         tsxitem.credit = item_obj.get('credit')
         tsxitem.content = content_obj.get('long')
         # print('')

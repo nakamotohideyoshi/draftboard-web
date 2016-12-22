@@ -3,11 +3,10 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { updateUserInfo, updateUserEmailPass, fetchEmailNotificationSettings,
-          updateEmailNotificationSettings, fetchUserInfo }
+          updateEmailNotificationSettings }
   from '../../actions/user';
 import EmailPassForm from './subcomponents/email-pass-form.jsx';
 import SettingsEmailNotifications from './subcomponents/settings-email-notifications.jsx';
-import SettingsAddress from './subcomponents/settings-address.jsx';
 const { Provider, connect } = ReactRedux;
 
 
@@ -28,7 +27,6 @@ function mapDispatchToProps(dispatch) {
     updateUserInfo: (formData) => dispatch(updateUserInfo(formData)),
     updateEmailNotificationSettings: (formData) => dispatch(updateEmailNotificationSettings(formData)),
     fetchEmailNotificationSettings: () => dispatch(fetchEmailNotificationSettings()),
-    fetchUserInfo: () => dispatch(fetchUserInfo()),
   };
 }
 
@@ -50,12 +48,10 @@ const Settings = React.createClass({
     fetchEmailNotificationSettings: React.PropTypes.func.isRequired,
     updateEmailNotificationSettings: React.PropTypes.func.isRequired,
     emailNotificationFormErrors: React.PropTypes.array,
-    fetchUserInfo: React.PropTypes.func.isRequired,
   },
 
   componentWillMount() {
     this.props.fetchEmailNotificationSettings();
-    this.props.fetchUserInfo();
   },
 
   render() {
@@ -76,15 +72,6 @@ const Settings = React.createClass({
           handleSubmit={this.props.updateEmailNotificationSettings}
           emailNotificationSettings = {this.props.notificationSettings.email}
         />
-
-        <legend className="form__legend">User Profile</legend>
-
-        <SettingsAddress
-          info={this.props.user}
-          errors={this.props.infoFormErrors}
-          onHandleSubmit={this.props.updateUserInfo}
-        />
-
       </div>
     );
   },
