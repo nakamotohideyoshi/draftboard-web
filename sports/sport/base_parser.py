@@ -656,6 +656,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         srid_game = o.get('game__id', None)
         srid_player = o.get('id', None)
 
+
         try:
             self.p = self.player_model.objects.get(srid=srid_player)
         except self.player_model.DoesNotExist:
@@ -680,9 +681,11 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             )
         except self.player_stats_model.DoesNotExist:
             # We don't have a playerStats model for this player, so let's make one.
-            logger.info((
+            logger.warning((
                 'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
-                '| game: %s') % (srid_player, srid_game, self.p, self.g))
+                '| game: %s | obj: %s | target: %s'
+                ) % (srid_player, srid_game, self.p, self.g, obj, target)
+            )
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
