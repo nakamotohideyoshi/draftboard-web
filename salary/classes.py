@@ -358,7 +358,7 @@ class FppgGenerator(object):
         # TODO
 
         # TODO fix this code to use 'num_trailing_games'
-        print('num_trailing_games:', str(num_trailing_games))
+        logger.info('num_trailing_games: %s' % num_trailing_games)
         salary_player_stats = []
         for player_stat in player_stats:
             #
@@ -803,7 +803,7 @@ class SalaryGenerator(FppgGenerator):
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
-                print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
+                logger.error('repeated NoPlayersAtRosterSpotExceptions could indicate you '
                       'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
                 raise NoPlayersAtRosterSpotException(msg)
 
@@ -1142,7 +1142,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
         for key in position_average_list:
             position_average_list[key].update_average()
-            print("\n" + str(position_average_list[key]))
+            logger.info("\n %s" % position_average_list[key])
         return position_average_list
 
     def helper_apply_weight_and_flag(self, players):
@@ -1234,7 +1234,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
-                print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
+                logger.error('repeated NoPlayersAtRosterSpotExceptions could indicate you '
                       'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
                 raise NoPlayersAtRosterSpotException(msg)
 

@@ -10,6 +10,7 @@ from sports.nba.parser import (
     TeamHierarchy,
     EventPbp,
     GameBoxscoreParser,
+    PlayerStats,
 )
 from test.classes import AbstractTest
 
@@ -105,12 +106,9 @@ class TestGameBoxscoreParser(AbstractTest):
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
         self.parser.parse(oplog_obj, target=target)
-        print('self.o:', str(self.parser.o))
-        print('about to call send()...')
         self.parser.send()
-        print('... called send()')
 
-    def test_1(self):
+    def test_parse(self):
         sport_db = 'nba'
         parent_api = 'boxscores'
 
@@ -224,3 +222,90 @@ class TestEventPbp(AbstractTest):
         # filter()
         player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
         self.assertTrue(set(self.target_player_srids) <= set(player_srids))
+
+
+class TestPlayerStats(AbstractTest):
+    """
+    Test the PlayerStats Parser. It should take an update object from mongo and create a PlayerStat
+    from it.
+    """
+    def setUp(self):
+        super().setUp()
+        self.parser = PlayerStats()
+        # some info needed for the parser
+        self.sport_db = 'nba'
+        self.parent_api = 'stats'
+
+        # An example nba.player stats object from mongo.
+        self.obj = {
+            'team__id': '583ec97e-fb46-11e1-82cb-f4ce4684ea4c',
+            'dd_updated__id': 1482278107385,
+            'first_name': 'Michael',
+            'id': 'ea8a18e4-1341-48f1-b75d-5bbac8d789d4',
+            'position': 'F',
+            'game__id': '7a4cc8a0-1ab1-4f76-8d7c-7b1017518c8d',
+            'parent_api__id': 'stats',
+            '_id': 'cGFyZW50X2FwaV9faWRzdGF0c2dhbWVfX2lkN2E0Y2M4YTAtMWFiMS00=',
+            'full_name': 'Michael Kidd-Gilchrist',
+            'active': 'true',
+            'starter': 'true',
+            'statistics__list': {
+                'defensive_rebounds': 1.0, 'two_points_made': 0.0,
+                'free_throws_pct': 0.0, 'field_goals_made': 0.0, 'blocks': 0.0,
+                'pls_min': 0.0, 'free_throws_made': 0.0, 'two_points_pct': 0.0,
+                'three_points_att': 0.0, 'points': 0.0,
+                'three_points_made': 0.0, 'field_goals_pct': 0.0,
+                'blocked_att': 0.0, 'assists_turnover_ratio': 0.0,
+                'flagrant_fouls': 0.0, 'assists': 0.0, 'two_points_att': 0.0,
+                'three_points_pct': 0.0, 'tech_fouls': 0.0,
+                'field_goals_att': 0.0, 'personal_fouls': 0.0, 'steals': 0.0,
+                'free_throws_att': 0.0, 'minutes': '00:00',
+                'offensive_rebounds': 0.0, 'rebounds': 0.0, 'turnovers': 0.0
+            },
+            'last_name': 'Kidd-Gilchrist',
+            'played': 'true',
+            'parent_list__id': 'players__list',
+            'primary_position': 'SF',
+            'jersey_number': 14.0
+        }
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        self.parser.send()
+
+    def test_parse(self):
+        # Create the Player this update is for
+        player = mommy.make(
+            sports.nba.models.Player,
+            srid=self.obj['id']
+        )
+        # Create the Game this update is for.
+        game = mommy.make(
+            sports.nba.models.Game,
+            srid=self.obj['game__id']
+        )
+
+        # Fetch any existing PlayerStats. should be none.
+        existing_player_stat = self.parser.player_stats_model.objects.filter(
+                srid_game=game.srid,
+                srid_player=player.srid
+        )
+        # Ensure none exist.
+        self.assertEquals(existing_player_stat.count(), 0)
+
+        # Parse the update object.
+        self.__parse_and_send(self.obj, ('%s.game' % self.sport_db, self.parent_api))
+
+        # Fetch the new PlayerStat that was created.
+        new_player_stat = self.parser.player_stats_model.objects.filter(
+                srid_game=game.srid,
+                srid_player=player.srid
+        )
+        # Make sure it exists.
+        self.assertEquals(new_player_stat.count(), 1)
+
+        # Now send another update just to make sure it doesn't bomb out.
+        self.__parse_and_send(self.obj, ('%s.game' % self.sport_db, self.parent_api))
+        self.assertEquals(new_player_stat.count(), 1)
