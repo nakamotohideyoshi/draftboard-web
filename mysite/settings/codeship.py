@@ -105,3 +105,7 @@ INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False
 #
 # dont actually send objects out with codeship!
 PUSHER_ENABLED = False
+
+# Have celery run in a sort of "async" mode.
+# http://docs.celeryproject.org/projects/django-celery/en/2.4/cookbook/unit-testing.html
+CELERY_ALWAYS_EAGER = True
