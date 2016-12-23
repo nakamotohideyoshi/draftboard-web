@@ -10,7 +10,7 @@ import replayer.classes
 from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
 from ast import literal_eval
-from djcelery.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, PeriodicTasks
 import requests
 
 # change the datetime to show seconds for replayer/admin.py
@@ -23,6 +23,7 @@ def enable_contest_pool_contest_spawner():
     pt = PeriodicTask.objects.get(name='generate_contest_pool_contests')
     pt.enabled = True
     pt.save()
+    PeriodicTasks.changed()
 
 @admin.register(replayer.models.Replay)
 class ReplayAdmin(admin.ModelAdmin):

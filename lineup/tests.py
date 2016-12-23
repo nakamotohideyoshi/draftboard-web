@@ -355,8 +355,7 @@ class LineupConcurrentTest(AbstractTest, BuildWorldMixin):
         super().setUp()
         self.build_world()
 
-    @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
-                       CELERY_ALWAYS_EAGER=True,
+    @override_settings(CELERY_ALWAYS_EAGER=True,
                        CELERYD_CONCURRENCY=3)
     def test_edit_lineup_as_task(self):
         self.create_valid_lineup()
@@ -370,8 +369,7 @@ class LineupConcurrentTest(AbstractTest, BuildWorldMixin):
         self.concurrent_test(3, run_test, self.user, team, self.lineup)
         self.assertTrue(task.successful())
 
-    @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
-                       CELERY_ALWAYS_EAGER=True,
+    @override_settings(CELERY_ALWAYS_EAGER=True,
                        CELERYD_CONCURRENCY=3)
     def test_edit_entry_as_task(self):
         self.create_valid_lineup()

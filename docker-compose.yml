@@ -47,7 +47,7 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-    command: dumb-init celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler -l debug
+    command: dumb-init celery -A mysite beat -l debug -S django
     links:
       - postgres
       - redis

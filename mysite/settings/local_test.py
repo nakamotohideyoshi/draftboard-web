@@ -43,4 +43,3 @@ PUSHER_CHANNEL_PREFIX = 'local_test_'
 # Have celery run in a sort of "async" mode.
 # http://docs.celeryproject.org/projects/django-celery/en/2.4/cookbook/unit-testing.html
 CELERY_ALWAYS_EAGER = True
-CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
