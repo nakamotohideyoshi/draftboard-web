@@ -1,6 +1,11 @@
 from os import environ
 from .local import *
 from urllib import parse
+import logging
+
+# Disable any logging less than WARNING.
+logging.disable(logging.INFO)
+
 
 DATABASES = {
     'default': {

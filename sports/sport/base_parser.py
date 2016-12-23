@@ -665,6 +665,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # full_name   = '%s %s' % (str(first_name), str(last_name))
             logger.error('Player object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
                 obj, target))
+            client.captureException()
             return  # dont create the playerstats then
 
         try:
@@ -672,6 +673,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         except self.game_model.DoesNotExist:
             logger.error('Game object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
                 obj, target))
+            client.captureException()
             return  # dont create the playerstats then
 
         try:
