@@ -203,7 +203,12 @@ class Stats(object):
         :param r: http response from a requests Session.get() call
         :return:
         """
-        if r.status_code >= 400:
+        # The API 404s for a number of reasons, mainly if there are no games for the day
+        # or if the games aren't up yet. It's bad and dumb, but unfortunately we are forced to
+        # ignore these.
+        if r.status_code == 404:
+            logger.warning('404 response from stats.com: %s' % r.url)
+        elif r.status_code >= 400:
             w = ApiFailureWebhook()
             err_msg = 'STATS.com api gave us an http status code: %s - %s' % (r.status_code, r.text)
             w.send(err_msg)
