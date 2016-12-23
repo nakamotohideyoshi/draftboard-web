@@ -37,7 +37,7 @@ import datetime
 
 
 class ResetDatabaseMixin(object):
-    exclude_apps = ['admin', 'auth', 'contenttypes', 'sessions', 'djcelery']
+    exclude_apps = ['admin', 'auth', 'contenttypes', 'sessions', 'django_celery_beat']
 
     def setUp(self):
         self.reset_db()
@@ -165,8 +165,6 @@ class ForceAuthenticateAndRequestMixin(object):
 
 
 class MasterAbstractTest():
-    CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
-
     PASSWORD = 'password'
 
     def get_user(self, username='username', is_superuser=False,

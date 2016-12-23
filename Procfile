@@ -3,23 +3,14 @@ web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.
 #
 # runs the celerybeat scheduled tasks from the CELERYBEAT_SCHEDULE
 # which should be found in mysite.celery_app.py
-celerybeat: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
-#celerybeat: celery -A mysite beat -S celery.beat.PersistentScheduler
-
-#
-# the celery flag:  "-l info"   is required so that sumologic can parse tasks
-
-#
-# a worker for misc, very short-lived tasks (ie: milliseconds, hopefully).
-#celery: celery -A mysite worker -l info -n celery1.%h
-celery: celery -A mysite worker -l info
+celerybeat: celery -A mysite beat -S django
 
 # respawn after X tasks, w/ autoscaler
-celery2: celery -A mysite worker -l info --maxtasksperchild=10 --autoscale=2,8
+celery: celery -A mysite worker -l info --maxtasksperchild=10 --autoscale=2,8
 
 # another - if eacher worker spawns a celeryd, we dont need many of them thats for sure
-celery60: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=60 --maxtasksperchild=10
-celery300: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=300 --maxtasksperchild=10
+# celery60: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=60 --maxtasksperchild=10
+# celery300: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=300 --maxtasksperchild=10
 
 # celery workers for realtime stat updates from the trigger
 celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --maxtasksperchild=20

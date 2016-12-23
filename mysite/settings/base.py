@@ -99,7 +99,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'djcelery',
+    'django_celery_beat',
     'rest_framework',  # for api stuff
     'braces',
     'django_extensions',  # shell_plus

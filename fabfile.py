@@ -302,7 +302,7 @@ def generate_replayer():
     )
 
     # remove all scheduled tasks except for contest pools
-    operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+    operations.local('%s psql -d %s -c "update django_celery_beat_periodictask set enabled=\'f\';"' % (
         psql_user,
         temp_db
     ))
@@ -319,7 +319,7 @@ def generate_replayer():
             temp_db
         ))
         operations.local('''
-            %s psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where
+            %s psql -d %s -c "update django_celery_beat_periodictask set enabled=\'t\' where
             task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"
         ''' % (
             psql_user,

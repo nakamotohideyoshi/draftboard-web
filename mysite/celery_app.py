@@ -6,24 +6,26 @@
 #
 #   *4. If you want to be able to add periodic tasks using the django admin, run:
 #
-#       $> celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
+#       $> celery -A mysite beat -S django
 #
-#       then visit: http://localhost/admin/djcelery/periodictask/
+#       then visit: http://localhost/admin/django_celery_beat/periodictask/
 #
 # Of course, this is only an example of how to run celery concurrently in your terminals...
 
 from __future__ import absolute_import
+
+import os
+import time
+from datetime import timedelta
+from logging import getLogger
+
+import celery.states
+import redis
 from celery import Celery
 from celery.schedules import crontab
-from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
 from django.core.cache import caches
-from logging import getLogger
-import celery.states
-import os
-import redis
-import time
 from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
 
@@ -67,18 +69,31 @@ logger.info('Celery starting using broker_url:', broker_url)
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    CELERY_RESULT_BACKEND=broker_url,
-    BROKER_URL=broker_url,
+    broker_url=broker_url,
 
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
-    CELERY_ACCEPT_CONTENT=['pickle'],  # ['json'],
-    CELERY_TASK_SERIALIZER='pickle',  # 'json',
-    CELERY_RESULT_SERIALIZER='pickle',  # 'json',
+    accept_content=['pickle'],  # ['json'],
+    task_serializer='pickle',  # 'json',
+    result_serializer='pickle',  # 'json',
+    enable_utc=True,
+    timezone='UTC',
+    task_track_started=True,
 
-    # CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
+    # testing this out, but the broker_transport_options seems to be the
+    # setting that actually caps the max connections when were viewing
+    # connections on the redis side.
+    redis_max_connections=5,
 
-    CELERYBEAT_SCHEDULE={
+    # # testing this out
+    # broker_transport_options = {
+    #     'max_connections': 5,
+    # },
+    # # None causes a connection to be created and closed for each use
+    # broker_pool_limit = None,  # default: 10
+
+    beat_scheduler='django',
+    beat_schedule={
         #
         #
         'notify_withdraws': {
@@ -303,26 +318,6 @@ app.conf.update(
             'schedule': crontab(minute=0, hour='17'),  # ~ noon
         },
     },
-
-    CELERY_ENABLE_UTC=True,
-    CELERY_TIMEZONE='UTC',
-    CELERY_TRACK_STARTED=True,
-
-    # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
-    # setting that actually caps the max connections when were viewing
-    # connections on the redis side.
-    CELERY_REDIS_MAX_CONNECTIONS = 5,
-
-    #
-    #
-    # # testing this out
-    # BROKER_TRANSPORT_OPTIONS = {
-    #     'max_connections': 5,
-    # },
-    #
-    # # None causes a connection to be created and closed for each use
-    # BROKER_POOL_LIMIT = None,  # default: 10
-
 )
 
 
@@ -432,7 +427,7 @@ class TaskHelper(object):
         elif status == 'RECEIVED':
             return 'Task was received by a worker.'
         elif status == 'STARTED':
-            return 'Task was started by a worker (CELERY_TRACK_STARTED).'
+            return 'Task was started by a worker (task_track_started).'
         elif status == 'SUCCESS':
             return 'Task succeeded'
         elif status == 'FAILURE':
@@ -514,11 +509,11 @@ class TaskHelper(object):
 
 
 #
-# BROKER_URL = 'amqp://guest:guest@localhost//'
+# broker_url = 'amqp://guest:guest@localhost//'
 #
 # #: Only add pickle to this list if your broker is secured
 # #: from unwanted access (see userguide/security.html)
-# CELERY_ACCEPT_CONTENT = ['json']
+# accept_content = ['json']
 
 
 @app.task(bind=True)
