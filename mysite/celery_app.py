@@ -69,6 +69,7 @@ logger.info('Celery starting using broker_url:', broker_url)
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
+    result_backend=broker_url,
     broker_url=broker_url,
 
     #: Only add pickle to this list if your broker is secured
