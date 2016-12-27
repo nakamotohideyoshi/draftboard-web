@@ -962,7 +962,7 @@ class SalaryGenerator(FppgGenerator):
 
             return salary_obj
         except Salary.DoesNotExist:
-            logger.warning('Player has no Salary, creating one. %s' % player)
+            logger.info('Player has no Salary, creating one. %s' % player)
             # If a player has no Salary, create one.
             player_type = ContentType.objects.get_for_model(player)
             return Salary(pool=self.pool, player_type=player_type, player_id=player.id)
@@ -1438,7 +1438,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
             return salary_obj
         except Salary.DoesNotExist:
-            logger.warning('Player has no Salary, creating one. %s' % player)
+            logger.info('Player has no Salary, creating one. %s' % player)
             # If a player has no Salary, create one.
             player_type = ContentType.objects.get_for_model(player)
             return Salary(pool=self.pool, player_type=player_type, player_id=player.id)

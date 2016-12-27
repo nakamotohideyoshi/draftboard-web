@@ -68,8 +68,8 @@ ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    result_backend=settings.REDISCLOUD_URL_CELERY,
-    broker_url=settings.REDISCLOUD_URL_CELERY,
+    result_backend=settings.REDIS_URL_CELERY,
+    broker_url=settings.REDIS_URL_CELERY,
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
     accept_content=['pickle'],  # ['json'],

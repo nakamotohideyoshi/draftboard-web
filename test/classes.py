@@ -367,11 +367,12 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
         exceptions = []
 
         def call_test_func():
-            try:
-                test_func(*args, **kwargs)
-            except Exception as e:
-                exceptions.append(e)
-                print(str(e))
+            test_func(*args, **kwargs)
+
+            # try:
+            # except Exception as e:
+            #     exceptions.append(e)
+            #     print(str(e))
                 # print(traceback.format_exc())
 
             for conn in connections.all():
