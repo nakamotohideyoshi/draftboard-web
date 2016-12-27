@@ -39,16 +39,14 @@ API_CACHE_NAME = 'api'
 
 # RedisCloud redis - used primarily for live stats
 REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
-REDIS_URL = parse.urlparse(REDISCLOUD_URL)
+REDISCLOUD_URL_CELERY = environ.get('REDISCLOUD_URL_CELERY')
+
 
 CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDISCLOUD_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 5}
@@ -56,32 +54,10 @@ CACHES = {
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-    # Celery cache
-    'celery': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-    },
-    # separate one to invalidate all of cachalot if need be
-    'cachalot': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-    },
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDISCLOUD_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -89,10 +65,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDISCLOUD_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },

@@ -245,8 +245,7 @@ API_CACHE_NAME = 'default'
 DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
 DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from triggers
 
-# Mailchimp/Mandrill
-# TODO: Remove mandrill settings
+# Sparkpost Mail
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.sparkpostmail.com'
 EMAIL_HOST_USER = 'SMTP_Injection'
