@@ -229,8 +229,7 @@ TEST_SETUP = None
 # defaults to false, though we made turn this on in production.py
 SLACK_UPDATES = False
 
-REDISCLOUD_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
-HEROKU_REDIS_URL = REDISCLOUD_URL  # for caching pages/views, same place locally
+REDIS_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 
 # defaults to use the default cache, but
 # if server has Heroku Redis add-on should be set to

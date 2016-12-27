@@ -21,7 +21,6 @@ PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
 )
 
-
 # docker redis locations
 # REDIS_CELERY_LOCATION = 'redis://redis:6379/0'
 # REDIS_CACHE_LOCATION = 'redis://redis:6379/1'
@@ -39,7 +38,8 @@ PUSHER_ENABLED = False
 # interfere with any legit events.
 PUSHER_CHANNEL_PREFIX = 'local_test_'
 
-
 # Have celery run in a sort of "async" mode.
 # http://docs.celeryproject.org/projects/django-celery/en/2.4/cookbook/unit-testing.html
 CELERY_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True

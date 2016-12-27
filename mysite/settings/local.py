@@ -1,5 +1,4 @@
 from subprocess import check_output
-from urllib import parse
 
 from .base import *
 
@@ -38,8 +37,8 @@ DATABASES = {
 }
 
 # Use the local Docker redis location in place of redis cloud.
-REDISCLOUD_URL = 'redis://redis:6379/0'
-REDISCLOUD_URL_CELERY = 'redis://redis:6379/1'
+REDIS_URL = 'redis://redis:6379/0'
+REDIS_URL_CELERY = 'redis://redis:6379/1'
 
 
 # Run the command `redis-server` in another window to start up caching.
@@ -49,7 +48,7 @@ CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDISCLOUD_URL,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 5}
@@ -60,7 +59,7 @@ CACHES = {
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDISCLOUD_URL,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -68,7 +67,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDISCLOUD_URL,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },

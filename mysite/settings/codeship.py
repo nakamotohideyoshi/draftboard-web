@@ -19,8 +19,8 @@ DATABASES = {
 }
 
 # Use codeship's redis location in place of redis cloud.
-REDISCLOUD_URL = 'redis://127.0.0.1:6379/0'
-REDISCLOUD_URL_CELERY = 'redis://127.0.0.1:6379/1'
+REDIS_URL = 'redis://127.0.0.1:6379/0'
+REDIS_URL_CELERY = 'redis://127.0.0.1:6379/1'
 
 # Run the command `redis-server` in another window to start up caching.
 # Notice that none of these entries have passwords, because the local docker
@@ -29,7 +29,7 @@ CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDISCLOUD_URL,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 5}
@@ -40,7 +40,7 @@ CACHES = {
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDISCLOUD_URL,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -48,7 +48,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDISCLOUD_URL,
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -84,3 +84,5 @@ PUSHER_ENABLED = False
 # Have celery run in a sort of "async" mode.
 # http://docs.celeryproject.org/projects/django-celery/en/2.4/cookbook/unit-testing.html
 CELERY_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
