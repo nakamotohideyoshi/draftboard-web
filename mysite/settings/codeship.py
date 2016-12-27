@@ -1,11 +1,9 @@
-from os import environ
-from .local import *
-from urllib import parse
 import logging
+
+from .local import *
 
 # Disable any logging less than WARNING.
 logging.disable(logging.INFO)
-
 
 DATABASES = {
     'default': {
@@ -16,13 +14,13 @@ DATABASES = {
         'HOST': '127.0.0.1',
 
         # https://codeship.com/documentation/databases/postgresql/
-        'PORT': 5434,    # currently using 5434 uses postgres 9.4
+        'PORT': 5434,  # currently using 5434 uses postgres 9.4
     }
 }
 
 # Use codeship's redis location in place of redis cloud.
-REDISCLOUD_URL = 'redis://127.0.0.1:6379'
-REDIS_URL = parse.urlparse(REDISCLOUD_URL)
+REDISCLOUD_URL = 'redis://127.0.0.1:6379/0'
+REDISCLOUD_URL_CELERY = 'redis://127.0.0.1:6379/1'
 
 # Run the command `redis-server` in another window to start up caching.
 # Notice that none of these entries have passwords, because the local docker
@@ -31,9 +29,7 @@ CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://%s:%s/0' % (
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDISCLOUD_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 5}
@@ -41,29 +37,10 @@ CACHES = {
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-    # Celery cache
-    'celery': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://%s:%s/1' % (
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-    },
-    # separate one to invalidate all of cachalot if need be
-    'cachalot': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://%s:%s/2' % (
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-    },
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://%s:%s/3' % (
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDISCLOUD_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -71,9 +48,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://%s:%s/4' % (
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDISCLOUD_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
