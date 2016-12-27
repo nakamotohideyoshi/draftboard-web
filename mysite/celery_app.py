@@ -25,7 +25,6 @@ from celery import Celery
 from celery.schedules import crontab
 from django.conf import settings
 from django.core.cache import cache
-from django.core.cache import caches
 from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
 
@@ -55,23 +54,22 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
 
 app = Celery('mysite')
 
-# Using a string here means the worker will not have to
-# pickle the object when using Windows.
-app.config_from_object('django.conf:settings')
-app.autodiscover_tasks(settings.INSTALLED_APPS)
+# Using a string here means the worker don't have to serialize
+# the configuration object to child processes.
+# - namespace='CELERY' means all celery-related configuration keys
+#   should have a `CELERY_` prefix.
+app.config_from_object('django.conf:settings', namespace='CELERY')
+# Load task modules from all registered Django app configs.
+app.autodiscover_tasks()
 
 #
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
-broker_url = caches['celery']._server
-logger.info('Celery starting using broker_url:', broker_url)
-
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    result_backend=broker_url,
-    broker_url=broker_url,
-
+    result_backend=settings.REDISCLOUD_URL_CELERY,
+    broker_url=settings.REDISCLOUD_URL_CELERY,
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
     accept_content=['pickle'],  # ['json'],
@@ -80,20 +78,10 @@ app.conf.update(
     enable_utc=True,
     timezone='UTC',
     task_track_started=True,
-
-    # testing this out, but the broker_transport_options seems to be the
-    # setting that actually caps the max connections when were viewing
-    # connections on the redis side.
     redis_max_connections=5,
-
-    # # testing this out
-    # broker_transport_options = {
-    #     'max_connections': 5,
-    # },
-    # # None causes a connection to be created and closed for each use
-    # broker_pool_limit = None,  # default: 10
-
     beat_scheduler='django',
+
+    # Scheduled Tasks
     beat_schedule={
         #
         #
