@@ -158,7 +158,7 @@ class Identity(models.Model):
     Stores Trulioo identity information. We need to store this in order to check if someone has
     already 'claimed' an identity. Trulioo provides no mechanism for us to check with their service.
     """
-    user = models.OneToOneField(User, primary_key=True)
+    user = models.OneToOneField(User, primary_key=True, related_name='identity')
     first_name = models.CharField(max_length=100, null=False)
     last_name = models.CharField(max_length=100, null=False)
     # I know it seems dumb to store a date like this, but Trulioo accepts them
