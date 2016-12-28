@@ -79,7 +79,7 @@ app.conf.update(
     timezone='UTC',
     task_track_started=True,
     redis_max_connections=5,
-    beat_scheduler='django',
+    beat_scheduler='django_celery_beat.schedulers:DatabaseScheduler',
 
     # Scheduled Tasks
     beat_schedule={
