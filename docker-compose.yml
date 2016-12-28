@@ -30,7 +30,7 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-    command: dumb-init celery -A mysite worker -l info --purge
+    command: dumb-init celery worker -A mysite -l info --purge
     links:
       - postgres
       - redis
@@ -47,7 +47,7 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-    command: dumb-init celery -A mysite beat -l debug -S django
+    command: dumb-init celery beat -A mysite -l debug
     links:
       - postgres
       - redis
