@@ -3,7 +3,7 @@ web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.
 #
 # runs the celerybeat scheduled tasks from the CELERYBEAT_SCHEDULE
 # which should be found in mysite.celery_app.py
-celerybeat: celery -A mysite beat -S django
+celerybeat: celery -A mysite beat
 
 # respawn after X tasks, w/ autoscaler
 celery: celery -A mysite worker -l info --maxtasksperchild=10 --autoscale=2,8
