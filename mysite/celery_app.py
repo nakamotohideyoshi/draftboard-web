@@ -58,9 +58,9 @@ app = Celery('mysite')
 # the configuration object to child processes.
 # - namespace='CELERY' means all celery-related configuration keys
 #   should have a `CELERY_` prefix.
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object('django.conf:settings')
 # Load task modules from all registered Django app configs.
-app.autodiscover_tasks()
+app.autodiscover_tasks(settings.INSTALLED_APPS)
 
 #
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
@@ -68,6 +68,9 @@ ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
+    # Store task results in redis rather than our DB. - This means we can't see them
+    # in the django admin, but that's fine.
+    # result_backend='django-db',
     result_backend=settings.REDIS_URL_CELERY,
     broker_url=settings.REDIS_URL_CELERY,
     #: Only add pickle to this list if your broker is secured
@@ -79,10 +82,13 @@ app.conf.update(
     timezone='UTC',
     task_track_started=True,
     redis_max_connections=5,
-    beat_scheduler='django_celery_beat.schedulers:DatabaseScheduler',
+    beat_scheduler='django',
 
     # Scheduled Tasks
-    beat_schedule={
+
+    # Ok, this is kinda hairy...
+    # TODO: (zach) explain why this is disabled.
+    beat_schedule_DISABLED_README_ABOVE={
         #
         #
         'notify_withdraws': {
@@ -526,7 +532,7 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 
 @app.task(bind=True)
 def heartbeat(self):
-    print('heartbeat')
+    print('Celery heartbeat')
 
 
 @app.task(bind=True, time_limit=300)
