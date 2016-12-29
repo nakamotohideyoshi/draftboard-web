@@ -23,6 +23,23 @@ services:
     expose:
       - "6379"
 
+
+  #  Celery Flower - To monitor local Celery workers.
+  #  To use: run 'docker-compose up flower', then visit localhost:5555
+  flower:
+    build:
+      context: .
+      args:
+        - DRAFTBOARD_SETTINGS
+    command: celery flower -A mysite --broker=redis://redis:6379/1 --port=5555
+    links:
+      - redis
+    volumes:
+      - .:/code
+    ports:
+      - "5555:5555"
+
+
   # run `docker-compose up celery` to start the process
   # then `docker-compose scale celery=[x]` to add x number of processes!
   celery:
@@ -41,7 +58,6 @@ services:
       - C_FORCE_ROOT=true
 
   # run `docker-compose up celery_beat` to start the process
-  # then `docker-compose scale celery_beat=[x]` to add x number of processes!
   celery_beat:
     build:
       context: .
