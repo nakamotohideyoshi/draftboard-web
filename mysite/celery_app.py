@@ -79,7 +79,8 @@ app.conf.update(
     task_serializer='pickle',  # 'json',
     result_serializer='pickle',  # 'json',
     enable_utc=True,
-    timezone='UTC',
+    # This uses 'America/New York'
+    timezone=settings.TIME_ZONE,
     task_track_started=True,
     redis_max_connections=10,
     broker_pool_limit=None,
@@ -87,14 +88,17 @@ app.conf.update(
 
     # Scheduled Tasks
 
-    # Ok, this is kinda hairy...
-    # TODO: (zach) explain why this is disabled.
+    # Ok, this is kinda weird...
+    # On Celery 3.x & djcelery you can specify tasks here, then manage them via the admin panel.
+    # on Celery 4.x & django-celery-beat, if you have these here and they have already been added
+    # to the DB, they will not run. I'm leaving this here in case we need to re-add them to the DB
+    # for some reason, but they will stay disabled and ignored.
     beat_schedule_DISABLED_README_ABOVE={
         #
         #
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule': crontab(minute=0, hour='17'),  # ~ noon
+            'schedule': crontab(minute=0, hour='12'),  # ~ noon
         },
 
         #
@@ -246,25 +250,25 @@ app.conf.update(
         # update the season_fppg for each sport
         'nba_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4'),  # 4 AM EST
             'args': ('nba',),
         },
 
         'nhl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4', minute='10'),  # ~ 4 AM EST
             'args': ('nhl',),
         },
 
         'nfl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4', minute='20'),  # ~ 4 AM EST
             'args': ('nfl',),
         },
 
         'mlb_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4', minute='30'),  # ~ 4 AM EST
             'args': ('mlb',),
 
         },
@@ -279,19 +283,19 @@ app.conf.update(
         # cleanup rosters
         'nba_cleanup_rosters': {
             'task': 'sports.nba.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5'),  # ~ 5 AM EST
         },
         'nhl_cleanup_rosters': {
             'task': 'sports.nhl.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5', minute='10'),  # ~ 5 AM EST
         },
         'nfl_cleanup_rosters': {
             'task': 'sports.nfl.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5', minute='20'),  # ~ 5 AM EST
         },
         'mlb_cleanup_rosters': {
             'task': 'sports.mlb.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5', minute='30'),  # ~ 5 AM EST
         },
 
         #
@@ -311,7 +315,7 @@ app.conf.update(
         # Check for inactive users and send an email report to settings.INACTIVE_USERS_EMAILS
         'inactive_users': {
             'task': 'account.tasks.check_not_active_users',
-            'schedule': crontab(minute=0, hour='17'),  # ~ noon
+            'schedule': crontab(minute=0, hour='12'),  # ~ noon
         },
     },
 )
