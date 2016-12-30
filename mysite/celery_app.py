@@ -81,7 +81,8 @@ app.conf.update(
     enable_utc=True,
     timezone='UTC',
     task_track_started=True,
-    redis_max_connections=5,
+    redis_max_connections=10,
+    broker_pool_limit=None,
     beat_scheduler='django',
 
     # Scheduled Tasks
