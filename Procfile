@@ -6,20 +6,20 @@ web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.
 celerybeat: celery -A mysite beat
 
 # respawn after X tasks, w/ autoscaler
-celery: celery -A mysite worker -l info --autoscale=2,4 -n worker@%n
+celery: celery -A mysite worker -l info --autoscale=2,4 -n Standard
 
 # another - if eacher worker spawns a celeryd, we dont need many of them thats for sure
 # celery60: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=60 --maxtasksperchild=10
 # celery300: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=300 --maxtasksperchild=10
 
 # celery workers for realtime stat updates from the trigger
-celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,4 -n realtime@%n
+celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,4 -n Realtime
 
 #
 # purger is also a normal celery worker.
 # this worker always wipes out the brokers existing/pending tasks on startup.
 # without startup purge, its possible we will have WAY too to consume initially.
-purger: celery -A mysite worker -l info --purge -n purger
+purger: celery -A mysite worker -l info --purge -n Purger
 
 #
 # the mandatory (and the only) worker responsible for running dataden.
