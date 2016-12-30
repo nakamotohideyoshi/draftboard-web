@@ -10,9 +10,9 @@ services:
       - "5432"
     ports:
       - "5432:5432"
-
     volumes:
       - draftboard_postgres:/var/lib/postgresql/data
+
 
   # when linked container is up, this will also be running
   # you can see this by running `docker-compose ps` to view active containers
@@ -22,6 +22,8 @@ services:
     restart: unless-stopped
     expose:
       - "6379"
+    ports:
+      - "6379:6379"
 
 
   #  Celery Flower - To monitor local Celery workers.
@@ -57,6 +59,7 @@ services:
       # allows celery to run as the root user.
       - C_FORCE_ROOT=true
 
+
   # run `docker-compose up celery_beat` to start the process
   celery_beat:
     build:
@@ -89,6 +92,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/code
+
 
 # declare the named volumes so that they persist
 # need to create this before running services
