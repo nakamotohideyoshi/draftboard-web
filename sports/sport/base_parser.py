@@ -114,7 +114,6 @@ class AbstractDataDenParser(object):
         teams = team_class.objects.all()
 
         for team in teams:
-            print('cleanup_rosters:', str(team))
             # get all the sports players for that team
             players = player_class.objects.filter(
                 team=team, on_active_roster=True)
@@ -122,7 +121,6 @@ class AbstractDataDenParser(object):
                 team=team, on_active_roster=False)
 
             player_srids = [p.srid for p in players]
-            print('    # player_srids:', str(len(player_srids)))
 
             # from dataden, get all the players recently parsed for this team.
             dd_recent_players = dd.find_recent(
@@ -130,8 +128,11 @@ class AbstractDataDenParser(object):
             dd_recent_player_srids = []
             for p in dd_recent_players:
                 dd_recent_player_srids.append(p.get('id'))
-            print('    # dd_recent_player_srids:',
-                  str(len(dd_recent_player_srids)))
+
+            logger.info(
+                "%s.cleanup_rosters team: %s | player_srids: %s |  dd_recent_player_srids: %s" % (
+                    sport, team, len(player_srids), len(dd_recent_player_srids)
+                ))
 
             # subtract the set of dd-recent players from the set of team
             # players

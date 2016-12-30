@@ -99,6 +99,7 @@ app.conf.update(
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
             'schedule': crontab(minute=0, hour='12'),  # ~ noon
+            'options': {'queue': 'long_running'},
         },
 
         #
@@ -252,24 +253,28 @@ app.conf.update(
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='4'),  # 4 AM EST
             'args': ('nba',),
+            'options': {'queue': 'long_running'},
         },
 
         'nhl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='4', minute='10'),  # ~ 4 AM EST
             'args': ('nhl',),
+            'options': {'queue': 'long_running'},
         },
 
         'nfl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='4', minute='20'),  # ~ 4 AM EST
             'args': ('nfl',),
+            'options': {'queue': 'long_running'},
         },
 
         'mlb_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
             'schedule': crontab(hour='4', minute='30'),  # ~ 4 AM EST
             'args': ('mlb',),
+            'options': {'queue': 'long_running'},
 
         },
 
@@ -284,38 +289,45 @@ app.conf.update(
         'nba_cleanup_rosters': {
             'task': 'sports.nba.tasks.cleanup_rosters',
             'schedule': crontab(hour='5'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
         'nhl_cleanup_rosters': {
             'task': 'sports.nhl.tasks.cleanup_rosters',
             'schedule': crontab(hour='5', minute='10'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
         'nfl_cleanup_rosters': {
             'task': 'sports.nfl.tasks.cleanup_rosters',
             'schedule': crontab(hour='5', minute='20'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
         'mlb_cleanup_rosters': {
             'task': 'sports.mlb.tasks.cleanup_rosters',
             'schedule': crontab(hour='5', minute='30'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
 
         #
         # swish updates
         'nfl_swish_update_injury_feed': {
             'task': 'swish.tasks.update_injury_feed',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
             'args': ('nfl',),
+            'options': {'queue': 'long_running'},
         },
 
         'nba_swish_update_injury_feed': {
             'task': 'swish.tasks.update_injury_feed',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
             'args': ('nba',),
+            'options': {'queue': 'long_running'},
         },
 
         # Check for inactive users and send an email report to settings.INACTIVE_USERS_EMAILS
         'inactive_users': {
             'task': 'account.tasks.check_not_active_users',
             'schedule': crontab(minute=0, hour='12'),  # ~ noon
+            'options': {'queue': 'long_running'},
         },
     },
 )
