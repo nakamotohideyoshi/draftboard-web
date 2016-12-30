@@ -5,6 +5,7 @@ const initialState = {
   user: {
     isFetching: false,
     isIdentityVerified: false,
+    identity: {},
   },
   username: window.dfs.user.username,
   identityFormErrors: {},
