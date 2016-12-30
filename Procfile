@@ -6,16 +6,16 @@ celerybeat: celery -A mysite beat
 
 
 # Standard celery worker.
-celery: celery -A mysite worker -l info --autoscale=2,4 -n Standard
+celery: celery -A mysite worker -l info --autoscale=2,4 -n Standard@%n
 
 
 # Long-running celery task queue for things like <sport>.cleanup_roster that take a while.
 # soft time limit of 6 mins, hard cutoff at 9 mins.
-celery_long: celery -A mysite worker -Q long_running -l info --time-limit=540 --soft-time-limit=360 -Ofair --autoscale=2,4 -n Long
+celery_long: celery -A mysite worker -Q long_running -l info --time-limit=540 --soft-time-limit=360 -Ofair --autoscale=2,4 -n Long@%n
 
 
 # celery workers for realtime stat updates from the trigger
-celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,4 -n Realtime
+celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,4 -n Realtime@%n
 
 
 # purger is also a normal celery worker.
