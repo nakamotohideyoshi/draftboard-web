@@ -49,7 +49,7 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-    command: dumb-init celery worker -A mysite -l info --purge -Q long_running,realtime
+    command: dumb-init celery worker -A mysite -l info --purge -Q long_running,realtime,celery
     links:
       - postgres
       - redis

@@ -755,7 +755,8 @@ class FantasyProjectionsNBA(FantasyProjections):
                         stats_projections=player_projection,
                         stat_map=self.stat_map
                     )
-                    logger.info('player: %s - stats.com projections: %s' % (player, player_projection))
+                    logger.info('player: %s | calculated FP: %s | stats.com projections: %s' % (
+                        player, our_projected_fp, player_projection))
 
                     # iterate the list of sites which we have projections for until we find
                     # the one we want
