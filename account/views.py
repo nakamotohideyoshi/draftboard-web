@@ -44,6 +44,7 @@ from account.serializers import (
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
     TruliooVerifyUserSerializer,
+    UserLimitsSerializer
 )
 import account.tasks
 from pp.classes import (
@@ -1096,3 +1097,15 @@ class LimitsFormView(LoginRequiredMixin, TemplateView):
             return JsonResponse(data={"detail": "OK"}, status=200)
         else:
             return JsonResponse(formset.errors, status=400, safe=False)
+
+
+class UserLimitsAPIView(APIView):
+    authentication_classes = (BasicAuthentication,)
+    serializer_class = UserLimitsSerializer
+
+    def get(self, request, *args, **kwargs):
+        limits = User.objects.get(pk=6).limits
+        # limits = request.user.limits
+        serializer = self.serializer_class(limits, many=True)
+
+        return Response(serializer.data)
