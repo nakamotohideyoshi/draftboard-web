@@ -1,12 +1,13 @@
-#
-# sports/management/commands/sport_trigger.py
-
+from logging import getLogger
 from django.core.management.base import BaseCommand, CommandError
 from sports.trigger import (
     SportTrigger,
     TriggerMlb,
 )
 from raven.contrib.django.raven_compat.models import client
+
+logger = getLogger('sports.management.commands.sport_trigger')
+
 
 class Command(BaseCommand):
     """
@@ -56,6 +57,6 @@ class Command(BaseCommand):
                 sport_trigger.run()
 
             except Exception as e:
-                print(str(e))
-                print('exception caught in ./manage.py sport_trigger [%s]... restarting trigger!' % sport)
-                #client.captureException()
+                logger.error(str(e))
+                logger.error('exception caught in ./manage.py sport_trigger [%s]... restarting trigger!' % sport)
+                client.captureException()

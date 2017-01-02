@@ -1,6 +1,8 @@
 from __future__ import absolute_import
+
 from django.core.cache import cache
 from mysite.celery_app import app
+from mysite.kissmetrics import track_contest_end
 from datetime import timedelta
 from django.utils import timezone
 from contest.models import (
@@ -10,6 +12,7 @@ from contest.models import (
 )
 from contest.classes import ContestPoolFiller
 from contest.payout.tasks import payout_task
+from contest.payout.models import Payout
 from draftgroup.models import DraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
@@ -49,12 +52,17 @@ def spawn_contest_pool_contests(self):
     if acquire_lock():
         try:
             contest_pools = LiveContestPool.objects.all()
-            # contest_pools.count()
             for cp in contest_pools:
-                slack.send("Attempting to spawn contests for ContestPool: %s" % cp)
+                msg = "🏁 Attempting to spawn contests from ContestPool: ```%s```" % cp
+                logger.info(msg)
+                slack.send(msg)
                 cpf = ContestPoolFiller(cp)
                 # create all its Contests using FairMatch
                 new_contests = cpf.fair_match()
+                for new_contest in new_contests:
+                    msg = "> 🐥 Spawned ```%s```" % new_contest
+                    logger.info(msg)
+                    slack.send(msg)
         finally:
             release_lock()
 
@@ -128,11 +136,11 @@ def notify_admin_draft_groups_not_completed(self, hours=5, *args, **kwargs):
     contests = Contest.objects.filter(draft_group__in=draft_groups)
 
     msg_str = (
-                  '%s contests are live >>> %s <<< hours after the last game(s) started. It\'s been %s hours since the last'
-                  'game started, but the DraftGroup is still not closed, because most games never take that long.') % (
-                  contests.count(), hours, hours)
+        '%s contests are live >>> %s <<< hours after the last game(s) started. It\'s been %s hours '
+        'since the last game started, but the DraftGroup is still not closed, because most games '
+        'never take that long.') % (contests.count(), hours, hours)
     for contest in contests:
-        msg_str += '\n\t%s' % contest
+        msg_str += '\n  %s' % contest
 
     logger.info(msg_str)
     slack.send(msg_str)
@@ -190,12 +198,46 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     task = payout_task.delay(contests=list(contests_to_pay))
 
     if contests_to_pay.count() > 0:
-        msg_str = '%s completed contests have automatically paid out:' % num_contests
+        msg_str = '💰 %s completed contests have automatically paid out:' % num_contests
         for contest in contests_to_pay:
-            msg_str += '\n\t%s' % contest
+            msg_str += '> ```%s```' % contest
         logger.info(msg_str)
         slack.send(msg_str)
-        send_mail("Contest Auto Payout Time!",
-                  msg_str,
-                  HIGH_PRIORITY_FROM_EMAIL,
-                  HIGH_PRIORITY_EMAILS)
+        send_mail(
+            "Contest Auto Payout Time!",
+            msg_str,
+            HIGH_PRIORITY_FROM_EMAIL,
+            HIGH_PRIORITY_EMAILS
+        )
+
+
+@app.task
+def track_contests(contests):
+    """
+    Send an analytics event to Kissmetrics with contest data.
+
+    Args:
+        contests: List of Contest objects
+
+    Returns: None
+    """
+    for contest in contests:
+        base_data = {
+            'Total Fees/Money Entered': contest.prize_structure.prize_pool,
+            'Sport': contest.sport,
+            'Total Entries': contest.current_entries,
+            'Contest Type': contest.prize_structure.get_format_str(),
+        }
+        users = [x.user for x in contest.contests.distinct('users')]
+        for user in users:
+            payment = Payout.objects.filter(entry__contest=contest,
+                                            entry__user=user).first()
+            data = base_data.copy()
+            data.update({
+                'Total Lineups': contest.contests.filter(user=user).count(),
+                'In Money': True if payment else False,
+            })
+            if payment:
+                data['Money Won'] = payment.amount
+                data['Place'] = payment.rank
+            track_contest_end(user.username, data)

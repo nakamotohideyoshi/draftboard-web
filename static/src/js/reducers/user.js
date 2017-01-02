@@ -15,7 +15,6 @@ const initialState = {
   },
   infoFormErrors: {},
   infoFormSaved: false,
-  addressFormErrors: {},
   emailPassFormErrors: {},
   emailPassFormSaved: false,
   cashBalance: {
@@ -53,33 +52,6 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state);
       newState.user = action.response;
       newState.user.isFetching = false;
-      return newState;
-    }
-
-
-    // Fetch user info (name, address, dob)
-    case actionTypes.FETCH_USER_INFO_SUCCESS: {
-      const newState = merge({}, state, {
-        info: action.body,
-      });
-      newState.infoFormErrors = {};
-      return newState;
-    }
-
-
-    case actionTypes.UPDATE_USER_INFO_SUCCESS: {
-      // TODO: update user with the response
-      const newState = merge({}, state, {
-        info: action.body,
-      });
-      newState.infoFormErrors = {};
-      return newState;
-    }
-
-
-    case actionTypes.UPDATE_USER_INFO_FAIL: {
-      const newState = merge({}, state, {});
-      newState.infoFormErrors = action.body;
       return newState;
     }
 

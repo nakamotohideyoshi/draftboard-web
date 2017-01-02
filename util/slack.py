@@ -56,6 +56,9 @@ class Webhook(object):
     # ex: 'webhookbot'   (that is the default)
     username = 'server'
 
+    # is filled out in send()
+    data = {}
+
     def __init__(self):
 
         self.icon = 'spiral_calendar_pad'  # a little clock icon at 7pm on the dial
@@ -78,13 +81,13 @@ class Webhook(object):
         url = '%s/%s' % (self.base_url, self.identifier)
 
         if settings.SLACK_UPDATES is False:
-            logger.warn('Not posting to Slack webhook due to settings.SLACK_UPDATES')
-            logger.warn('Suppressed: Posting to Slack: %s' % json.dumps(self.data))
+            logger.warning('Not posting to Slack webhook due to settings.SLACK_UPDATES')
+            logger.warning('Suppressed: Posting to Slack: %s' % json.dumps(self.data))
             return
 
         res = self.session.post(url, json.dumps(self.data))
-        logger.info('Posting to Slack: %s' % json.dumps(self.data))
-        logger.info('Slack response: status code: %s, text: %s ' % (str(res.status_code), res.text))
+        logger.debug('Posting to Slack: %s' % json.dumps(self.data))
+        logger.debug('Slack response: status code: %s, text: %s ' % (res.status_code, res.text))
         return res
 
     def add_attachment(self, attachment):

@@ -1,8 +1,9 @@
-# sports/nba/models.py
-
+from raven.contrib.django.raven_compat.models import client
+from logging import getLogger
 from django.db.utils import IntegrityError
 from django.db.transaction import atomic
 import sports.nba.models
+from sports.game_status import GameStatus
 from sports.nba.models import (
     Team,
     Game,
@@ -14,7 +15,7 @@ from sports.nba.models import (
     Season,
 )
 from sports.sport.base_parser import (
-    AbstractDataDenParseable,
+    DataDenGameBoxscores,
     AbstractDataDenParser,
     DataDenPlayerStats,
     DataDenSeasonSchedule,
@@ -36,6 +37,8 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
+
+logger = getLogger('sports.nba.parser')
 
 
 class TeamBoxscoreReducer(Reducer):
@@ -59,7 +62,6 @@ class TeamBoxscoreManager(Manager):
 
 
 class TeamBoxscores(DataDenTeamBoxscores):
-
     gameboxscore_model = GameBoxscore
 
     # setting manager_class will cause it to
@@ -87,12 +89,10 @@ class TeamBoxscores(DataDenTeamBoxscores):
 
 
 class GameBoxscoreReducer(Reducer):
-
     remove_fields = []
 
 
 class GameBoxscoreShrinker(Shrinker):
-
     """ in underlying data, rename key to value for all key-value-pairs in 'fields' """
     fields = {
         'id': 'srid_game'
@@ -100,7 +100,6 @@ class GameBoxscoreShrinker(Shrinker):
 
 
 class GameBoxscoreManager(Manager):
-
     """
     get_data() method calls reduce() and shrink() automatically
     """
@@ -108,27 +107,34 @@ class GameBoxscoreManager(Manager):
     reducer_class = GameBoxscoreReducer
 
 
-class GameBoxscoreParser(AbstractDataDenParseable):
+class GameBoxscoreParser(DataDenGameBoxscores):
     gameboxscore_model = GameBoxscore
+    # the Game model
+    game_model = Game
     team_model = Team
-
+    # an instance of GameStatus helps us determine the "primary" status
+    game_status = GameStatus(GameStatus.nba)
+    # setting manager_class will cause it to
+    # reduce and shrink the data before getting sent to client
     manager_class = GameBoxscoreManager
-
-    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
+    # 'boxscores' pusher channel
+    channel = push.classes.PUSHER_BOXSCORES
     event = 'game'
-
     field_srid_game = 'id'
     field_status = 'status'
-
     status_halftime = 'halftime'
+    boxscore = None
 
     def __init__(self):
         super().__init__()
 
-    def parse(self, obj, target):
+    def parse(self, obj, target=None):
         """
-        :param obj:
-        :return:
+        Args:
+            obj:
+            target:
+
+        Returns:
         """
 
         # parse triggered object will set original_obj
@@ -136,25 +142,30 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         # and set the self.o (to the unwrapped object)
         self.parse_triggered_object(obj)
         o = self.o  # everything uses 'o already
-
-        summary_list = o.get('summary__list', {})
+        logger.info(self.o)
+        # summary_list = o.get('summary__list', {})
 
         srid_game = o.get(self.field_srid_game, None)
-        srid_home = summary_list.get('home', None)
-        srid_away = summary_list.get('away', None)
+        # srid_home = o.get(self.HOME, None)
+        # srid_away = o.get(self.AWAY, None)
+
+        srid_home = o.get(self.HOME, None)
+        srid_away = o.get(self.AWAY, None)
 
         try:
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Home_team does not exist, not creating GameBoxscore for '
+                          'srid_game: %s | srid_home: %s') % (srid_game, srid_home))
+            client.captureException()
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            logger.error(('Away_team does not exist, not creating GameBoxscore for '
+                          'srid_game: %s | srid_away: %s') % (srid_game, srid_away))
+            client.captureException()
             return
 
         try:
@@ -177,11 +188,19 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         self.boxscore.title = o.get('title', '')
 
         self.boxscore.save()
+        logger.info('nba.GameBoxscore Parsed: %s' % self.boxscore)
+
+        # use the boxscore status to update the Game object
+        # because the boxscore will be updated much more frequently in
+        # real-time especially
+        self.update_schedule_game_status(srid_game, self.boxscore.status)
 
     def update_boxscore_data_in_game(self, boxscore_data):
         game = sports.nba.models.Game.objects.get(
             srid=self.o.get(self.field_srid_game))
         game.boxscore_data = boxscore_data
+        logger.info(
+            'Updating game.boxscore data. game: %s -- boxscore_data: %s' % (game, boxscore_data))
         game.save()
 
     def send(self, *args, **kwargs):
@@ -193,10 +212,9 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         try:
             if is_halftime and int(data['quarter']) <= 2:
                 data['quarter'] = 3
-        except Exception as e:
-            # debug this because i want to know about problems with different
-            # scenarios
-            print(e)
+        except Exception:
+            # debug this because i want to know about problems with different scenarios
+            client.captureException()
 
         self.update_boxscore_data_in_game(data)
 
@@ -205,7 +223,6 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
 
 class PlayerRosters(DataDenPlayerRosters):
-
     team_model = Team
     player_model = Player
 
@@ -234,7 +251,6 @@ class PlayerRosters(DataDenPlayerRosters):
 
 
 class SeasonSchedule(DataDenSeasonSchedule):
-
     """
     """
 
@@ -253,7 +269,6 @@ class SeasonSchedule(DataDenSeasonSchedule):
 
 
 class TeamHierarchy(DataDenTeamHierarchy):
-
     """
     Parse an object from which represents a Team for this sport into the db.
     """
@@ -272,7 +287,6 @@ class TeamHierarchy(DataDenTeamHierarchy):
         self.team.save()
 
 
-
 class PlayerStats(DataDenPlayerStats):
     game_model = Game
     player_model = Player
@@ -289,55 +303,55 @@ class PlayerStats(DataDenPlayerStats):
 
         o = obj.get_o()
         o = o.get('statistics__list', {})
-        #   { 'defensive_rebounds': 1.0,
+        # { 'defensive_rebounds': 1.0,
         self.ps.defensive_rebounds = o.get('defensive_rebounds', 0.0)
-        #         'two_points_pct': 0.6,
+        # 'two_points_pct': 0.6,
         self.ps.two_points_pct = o.get('two_points_pct', 0.0)
-        #         'assists': 0.0,
+        # 'assists': 0.0,
         self.ps.assists = o.get('assists', 0.0)
-        #         'free_throws_att': 2.0,
+        # 'free_throws_att': 2.0,
         self.ps.free_throws_att = o.get('free_throws_att', 0.0)
-        #         'flagrant_fouls': 0.0,
+        # 'flagrant_fouls': 0.0,
         self.ps.flagrant_fouls = o.get('flagrant_fouls', 0.0)
-        #         'offensive_rebounds': 1.0,
+        # 'offensive_rebounds': 1.0,
         self.ps.offensive_rebounds = o.get('offensive_rebounds', 0.0)
-        #         'personal_fouls': 0.0,
+        # 'personal_fouls': 0.0,
         self.ps.personal_fouls = o.get('personal_fouls', 0.0)
-        #         'field_goals_att': 5.0,
+        # 'field_goals_att': 5.0,
         self.ps.field_goals_att = o.get('field_goals_att', 0.0)
-        #         'three_points_att': 0.0,
+        # 'three_points_att': 0.0,
         self.ps.three_points_att = o.get('three_points_att', 0.0)
-        #         'field_goals_pct': 60.0,
+        # 'field_goals_pct': 60.0,
         self.ps.field_goals_pct = o.get('field_goals_pct', 0.0)
-        #         'turnovers': 0.0,
+        # 'turnovers': 0.0,
         self.ps.turnovers = o.get('turnovers', 0.0)
-        #         'points': 8.0,
+        # 'points': 8.0,
         self.ps.points = o.get('points', 0.0)
-        #         'rebounds': 2.0,
+        # 'rebounds': 2.0,
         self.ps.rebounds = o.get('rebounds', 0.0)
-        #         'two_points_att': 5.0,
+        # 'two_points_att': 5.0,
         self.ps.two_points_att = o.get('two_points_att', 0.0)
-        #         'field_goals_made': 3.0,
+        # 'field_goals_made': 3.0,
         self.ps.field_goals_made = o.get('field_goals_made', 0.0)
-        #         'blocked_att': 0.0,
+        # 'blocked_att': 0.0,
         self.ps.blocked_att = o.get('blocked_att', 0.0)
-        #         'free_throws_made': 2.0,
+        # 'free_throws_made': 2.0,
         self.ps.free_throws_made = o.get('free_throws_made', 0.0)
-        #         'blocks': 0.0,
+        # 'blocks': 0.0,
         self.ps.blocks = o.get('blocks', 0.0)
-        #         'assists_turnover_ratio': 0.0,
+        # 'assists_turnover_ratio': 0.0,
         self.ps.assists_turnover_ratio = o.get('assists_turnover_ratio', 0.0)
-        #         'tech_fouls': 0.0,
+        # 'tech_fouls': 0.0,
         self.ps.tech_fouls = o.get('tech_fouls', 0.0)
-        #         'three_points_made': 0.0,
+        # 'three_points_made': 0.0,
         self.ps.three_points_made = o.get('three_points_made', 0.0)
-        #         'steals': 0.0,
+        # 'steals': 0.0,
         self.ps.steals = o.get('steals', 0.0)
-        #         'two_points_made': 3.0,
+        # 'two_points_made': 3.0,
         self.ps.two_points_made = o.get('two_points_made', 0.0)
-        #         'free_throws_pct': 100.0,
+        # 'free_throws_pct': 100.0,
         self.ps.free_throws_pct = o.get('free_throws_pct', 0.0)
-        #         'three_points_pct': 0.0
+        # 'three_points_pct': 0.0
         self.ps.three_points_pct = o.get('three_points_pct', 0.0)
 
         # minutes will be in the form '20:13'   (20 minutes, 13 seconds)
@@ -432,7 +446,6 @@ class QuarterPbp(DataDenPbpDescription):
 
 
 class EventPbp(DataDenPbpDescription):
-
     game_model = Game
     pbp_model = Pbp
     portion_model = GamePortion
@@ -477,11 +490,9 @@ class EventPbp(DataDenPbpDescription):
         else:
             # print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
-        # self.timer_stop()
 
 
 class Injury(DataDenInjury):
-
     player_model = Player
     injury_model = sports.nba.models.Injury
 
@@ -578,7 +589,7 @@ class DataDenNba(AbstractDataDenParser):
             #
             # handle a play by play event from dataden.
             event_pbp = EventPbp()
-            event_pbp.parse(obj)      # takes care of pushering the data too.
+            event_pbp.parse(obj)  # takes care of pushering the data too.
             # pushers the pbp + stats data as one piece of data
             event_pbp.send()
 

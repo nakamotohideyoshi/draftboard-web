@@ -69,7 +69,8 @@ class DraftGroup(models.Model):
         return timezone.now() >= self.start
 
     def __str__(self):
-        return '%s id:%s' % (self.salary_pool.site_sport.name, self.pk)
+        return '<DraftGroup: id: %s | sport: %s | start: %s | end: %s | # games: %s>' % (
+            self.pk, self.salary_pool.site_sport.name, self.start, self.end, self.num_games)
 
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)
@@ -177,7 +178,7 @@ class Player(models.Model):
     # os = models.CharField(max_length=2048, null=True)
 
     def __str__(self):
-        return '%s $%.2f' % (self.player, self.salary)
+        return '<DraftGroup.Player: player: %s | salary: $%.2f>' % (self.player, self.salary)
 
     # we need to create the draft group player associated with a certain team
     game_team = models.ForeignKey(GameTeam, null=False)
@@ -325,7 +326,7 @@ class PlayerUpdate(AbstractUpdate):
         abstract = False
 
     def __str__(self):
-        return 'pk:%s | %s | %s' % (self.pk, self.player_srid, self.category)
+        return '<PlayerUpdate: pk:%s | %s | %s>' % (self.pk, self.player_srid, self.category)
 
 
 class GameUpdate(AbstractUpdate):

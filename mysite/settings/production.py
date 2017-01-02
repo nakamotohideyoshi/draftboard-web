@@ -23,7 +23,7 @@ DATABASES = {
     'default': heroku_db_config()
 }
 DATABASES['default']['autocommit'] = True
-DATABASES['default']['CONN_MAX_AGE'] = 60
+DATABASES['default']['CONN_MAX_AGE'] = 500
 
 # SSL - we redirect all traffic to HTTPS at domain level, no need at application level
 SESSION_COOKIE_SECURE = True
@@ -51,7 +51,7 @@ CACHES = {
             REDIS_URL.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {'max_connections': 10}
+            'CONNECTION_POOL_KWARGS': {'max_connections': 5}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
@@ -152,3 +152,5 @@ TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
 TRULIOO_USER = 'Draftboard_API'
 TRULIOO_PASSWORD = 'b8)8=799yf&#jN,'
 TRULIOO_DEMO_MODE = False
+
+KISS_ANALYTICS_CODE = '38999ef9bc7158192a6d6dfcc27004c48ed13538'
