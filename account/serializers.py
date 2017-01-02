@@ -8,6 +8,7 @@ from account.models import (
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
+    Limit,
 )
 from django.contrib.auth import get_user_model
 
@@ -237,3 +238,12 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     postal_code = serializers.CharField(max_length=16)
     # This is 11 to allow the use of separator dashes.
     ssn = serializers.CharField(max_length=11)
+
+
+class UserLimitsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user limits.
+    """
+
+    class Meta:
+        model = Limit
