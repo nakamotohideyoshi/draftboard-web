@@ -427,5 +427,13 @@ RAVEN_CONFIG = {
 # access domain
 COOKIE_ACCESS_DOMAIN = '.draftboard.com'
 
+
+# ANALYTICS settings
+# ----------------------------------------------------------
+KISS_ANALYTICS_CODE = 'db1235e51a9c6ea2d7bb2d3d1bdf93cbd2efaeff'
+GOOGLE_ANALYTICS_CODE = 'UA-85293033-1'
+
+# Trusted sources for swish update
+TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
 # once limits applied, residents of specific states will not be able to increase this limit for days respectively.
 LIMIT_DAYS_RESTRAINT = {'MA': 90}

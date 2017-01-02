@@ -78,17 +78,18 @@ export const Register = React.createClass({
       // only redirect if success is true, otherwise is error that got caught in action
       response => {
         if (response.success === true) window.location.href = '/contests/';
+        return true;
       }).catch(
       // reject = show errors
       errors => {
         logComponent.info('Register.handleSubmit error', errors);
 
         // if string, then was already taken care of by handleError
-        if (typeof errors === 'string') return;
+        if (typeof errors === 'string') return false;
 
         const newState = merge({}, this.state);
         Object.keys(errors).forEach(field => {
-          if (!(field in newState.fields)) return;
+          if (!(field in newState.fields)) return false;
 
           newState.fields[field].error = errors[field][0] || null;
           logComponent.warn(errors[field][0]);

@@ -1,15 +1,12 @@
-#
-# contest/models.py
-
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+
 from draftgroup.classes import DraftGroupManager
 from sports.classes import SiteSportManager
-from django.utils.crypto import get_random_string
-from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
-from django.utils import timezone
-from django.utils.html import format_html
 
 
 class SkillLevel(models.Model):
@@ -20,20 +17,34 @@ class SkillLevel(models.Model):
         all:        $0(na)      False             # special level, wont/cant/shouldnt block Entries ever
 
     """
+    created = models.DateTimeField(
+        auto_now_add=True
+    )
 
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(
+        auto_now=True
+    )
 
-    name = models.CharField(unique=True, max_length=32, null=False)
+    name = models.CharField(
+        unique=True,
+        max_length=32,
+        null=False
+    )
 
-    gte = models.FloatField(default=0.0, null=False,
-                            help_text='this SkillLevel is for buyins Greater-than-or-Equal (gte) to this value.')
+    gte = models.FloatField(
+        default=0.0,
+        null=False,
+        help_text='this SkillLevel is for buyins Greater-than-or-Equal (gte) to this value.'
+    )
 
-    enforced = models.BooleanField(default=True, null=False)
+    enforced = models.BooleanField(
+        default=True,
+        null=False
+    )
 
     def __str__(self):
-        return '<SkillLevel> [pk=%s]: %s, >= %s, enforced: %s' % (self.pk,
-                                                                self.name, self.gte, self.enforced)
+        return '<SkillLevel: [pk=%s]: %s, >= %s, enforced: %s>' % (
+            self.pk, self.name, self.gte, self.enforced)
 
 
 class AbstractContest(models.Model):
@@ -44,7 +55,7 @@ class AbstractContest(models.Model):
     DEFAULT_CID_LENGTH = 6  # the default number of characters in the contest 'cid'
 
     def __str__(self):
-        return '<AbstractContest> pk:%s | status:%s | name:%s | start:%s | end:%s' % (
+        return '<AbstractContest: pk:%s | status:%s | name:%s | start:%s | end:%s>' % (
             self.pk, self.status, self.name, self.start, self.end)
 
     created = models.DateTimeField(
@@ -272,9 +283,8 @@ class ContestPool(AbstractContest):
         null=False)
 
     def __str__(self):
-        return '<ContestPool> pk:%s | status:%s | name:%s | start:%s | end:%s' % (
+        return '<ContestPool: pk:%s | status:%s | name:%s | start:%s | end:%s>' % (
             self.pk, self.status, self.name, self.start, self.end)
-
 
     class Meta:
         abstract = False
@@ -349,7 +359,8 @@ class LiveContestPool(ContestPool):
             # print('ContestPool.SCHEDULED [%s]' % ContestPool.SCHEDULED,
             #        'start__lte= [%s]' % str(now))
             # qs2 = qs.filter(
-            return super().get_queryset().filter(status=ContestPool.SCHEDULED, start__lte=timezone.now())
+            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
+                                                 start__lte=timezone.now())
 
     objects = LiveContestPoolManager()
 
@@ -424,7 +435,8 @@ class Contest(AbstractContest):
         (
             'History', (
                 (CLOSED, 'Closed'),  # game is paid out, this is a final status
-                (CANCELLED, 'Cancelled'),  # game has been refunded, and closed. was not, and wont pay out
+                (CANCELLED, 'Cancelled'),
+                # game has been refunded, and closed. was not, and wont pay out
             )
         ),
 
@@ -435,7 +447,7 @@ class Contest(AbstractContest):
     status = models.CharField(max_length=32, choices=STATUS, default=INPROGRESS, null=False)
 
     def __str__(self):
-        return '<Contest> pk:%s | status:%s | name:%s | start:%s | end:%s' % (
+        return '<Contest: pk:%s | status:%s | name:%s | start:%s | end:%s>' % (
             self.pk, self.status, self.name, self.start, self.end)
 
     class Meta:
@@ -501,7 +513,8 @@ class LiveContest(Contest):
 
         def get_queryset(self):
             now = timezone.now()
-            return super().get_queryset().filter(start__lte=now).exclude(status__in=Contest.STATUS_HISTORY)
+            return super().get_queryset().filter(start__lte=now).exclude(
+                status__in=Contest.STATUS_HISTORY)
 
     objects = LiveContestManager()
 
@@ -566,8 +579,10 @@ class Entry(models.Model):
     )
 
     def __str__(self):
-        return '<Entry> user: %s lineup: %s rank: %s created: %s \n\tcontest_pool: %s \n\tcontest: %s' % (
-            self.user, self.lineup, self.final_rank, self.created, self.contest_pool, self.contest)
+        return ('<Entry: user:%s | lineup:%s | rank:%s | created:%s '
+                '\n\tcontest_pool:%s \n\tcontest:%s>') % (
+                   self.user, self.lineup, self.final_rank, self.created, self.contest_pool,
+                   self.contest)
 
     class Meta:
         verbose_name = 'Entry'
@@ -636,5 +651,6 @@ class Action(models.Model):
         return self.transaction.user
 
     def to_json(self):
-        return {"created": str(self.created), "contest": self.contest.pk, "type": self.__class__.__name__,
+        return {"created": str(self.created), "contest": self.contest.pk,
+                "type": self.__class__.__name__,
                 "id": self.pk}
