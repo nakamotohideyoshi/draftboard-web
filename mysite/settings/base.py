@@ -145,10 +145,10 @@ INSTALLED_APPS = (
     'replayer',
     'pp',                       # our implementation of a few required paypal apis
     'lobby',
+    'raven.contrib.django.raven_compat',  # sentry
     'statscom',                 # STATS.com api parsers, models, projections, etc...
     'swish',                    # Swish Analytics
     'trulioo',
-
     'rest_framework_swagger',
 )
 TEMPLATES = [{
@@ -226,8 +226,12 @@ DISABLE_REPLAYER_UPDATE_RECORDING = False
 # for testing purposes, defaults to None, unless otherwise specified in child settings file
 TEST_SETUP = None
 
-# defaults to false, though we made turn this on in production.py
+# Allow Slack notifications for various events.
+# Defaults to false, though we made turn this on with environment variables.
 SLACK_UPDATES = False
+slack_updates = environ.get('SLACK_UPDATES', None)
+if slack_updates is not None and 't' in str(slack_updates).lower():
+    SLACK_UPDATES = True
 
 REDIS_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 
