@@ -1,5 +1,5 @@
 # sports/views.py
-
+from django.core.cache import cache
 from django.db import connection
 from rest_framework.response import Response
 from django.shortcuts import render
@@ -38,9 +38,26 @@ from draftgroup.serializers import (
 class GetSerializedDataMixin:
 
     def get_serialized_data(self, model_class, serializer_class, sport):
-        updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
+        updates = cache.get('{}_player_updates'.format(sports))
+        if not updates:
+            updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
         serialized_data = serializer_class(updates, many=True).data
         return serialized_data
+
+
+class PlayerRetrieveAPIView(generics.ListAPIView):
+
+    """
+    return player updates by player_srid
+    """
+
+    serializer_class = PlayerUpdateSerializer
+    model = PlayerUpdate
+
+    def get_queryset(self):
+        player_srid = self.kwargs['player_srid']
+        queryset = self.model.objects.filter(player_srid=player_srid)
+        return queryset
 
 
 class AbstractUpdateAPIView(APIView, GetSerializedDataMixin):
