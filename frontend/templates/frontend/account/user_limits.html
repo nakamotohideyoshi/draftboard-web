@@ -7,53 +7,53 @@
 
 {% block content %}
     <div id="set_user_limits">
-        <h2 class="text-center">
-            SET USER LIMITS
-        </h2>
-
-        <hr class="body-copy__h1-divider"/>
-
-        <div class="p_container">
-            <p>
-                Use the following form to ser user limits on gameplay, deposits, and free limits.
-                Once applied, MA residents will not be able to increase this limit for 90 days.
-            </p>
-        </div>
-
-        <form action="" method="post">{% csrf_token %}
-            {{ formset.management_form }}
-
-         {% for form in formset %}
-
-            <div class="line">
-
-                <div class="selects_description">
-                    <div>
-                        <span class="description_head">{% if form.instance.get_type_display%}{{ form.instance.get_type_display }}{% else %}{{ form.initial.type_name}}{% endif %}: </span><span id="{{ html_attrs|index:forloop.counter0|index:0 }}">{{ html_attrs|index:forloop.counter0|index:2 }}</span>
-                    </div>
-                    <div>
-                        <span class="current_value">Current Limit Set: </span><span class="current_value_text"
-                                                                                    id="{{ html_attrs|index:forloop.counter0|index:1  }}">{{ form.instance.get_value_display }}</span>
-                    </div>
-                </div>
-                <div class="container-line-block">
-                    <div class="line-block">
-                        <label><sup>MAXIMUM</sup></label>
-                        {{ form.value }}
-                    </div>
-                    {% if form.type.value != 3%}
-                    <div class="line-block">
-                        <label><sup>TIME PERIOD</sup></label>
-
-                        {{ form.time_period }}
-                    </div>
-                    {% endif %}
-                </div>
-            {{ form.type }}
-            {{ form.user }}
-            {{ form.id }}
-            </div>
-            {% endfor %}
+{#        <h2 class="text-center">#}
+{#            SET USER LIMITS#}
+{#        </h2>#}
+{##}
+{#        <hr class="body-copy__h1-divider"/>#}
+{##}
+{#        <div class="p_container">#}
+{#            <p>#}
+{#                Use the following form to ser user limits on gameplay, deposits, and free limits.#}
+{#                Once applied, MA residents will not be able to increase this limit for 90 days.#}
+{#            </p>#}
+{#        </div>#}
+{##}
+{#        <form action="" method="post">{% csrf_token %}#}
+{#            {{ formset.management_form }}#}
+{##}
+{#         {% for form in formset %}#}
+{##}
+{#            <div class="line">#}
+{##}
+{#                <div class="selects_description">#}
+{#                    <div>#}
+{#                        <span class="description_head">{% if form.instance.get_type_display%}{{ form.instance.get_type_display }}{% else %}{{ form.initial.type_name}}{% endif %}: </span><span id="{{ html_attrs|index:forloop.counter0|index:0 }}">{{ html_attrs|index:forloop.counter0|index:2 }}</span>#}
+{#                    </div>#}
+{#                    <div>#}
+{#                        <span class="current_value">Current Limit Set: </span><span class="current_value_text"#}
+{#                                                                                    id="{{ html_attrs|index:forloop.counter0|index:1  }}">{{ form.instance.get_value_display }}</span>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="container-line-block">#}
+{#                    <div class="line-block">#}
+{#                        <label><sup>MAXIMUM</sup></label>#}
+{#                        {{ form.value }}#}
+{#                    </div>#}
+{#                    {% if form.type.value != 3%}#}
+{#                    <div class="line-block">#}
+{#                        <label><sup>TIME PERIOD</sup></label>#}
+{##}
+{#                        {{ form.time_period }}#}
+{#                    </div>#}
+{#                    {% endif %}#}
+{#                </div>#}
+{#            {{ form.type }}#}
+{#            {{ form.user }}#}
+{#            {{ form.id }}#}
+{#            </div>#}
+{#            {% endfor %}#}
 
 {#            <div class="line">#}
 {#                <div class="selects_description">#}
@@ -137,10 +137,10 @@
 {#             {% for form in formset %}#}
 {#                {{ form }}#}
 {#             {% endfor %}#}
-            <div class="button_container">
-                <button type="submit">SUBMIT</button>
-            </div>
-        </form>
+{#            <div class="button_container">#}
+{#                <button type="submit">SUBMIT</button>#}
+{#            </div>#}
+{#        </form>#}
     </div>
 
 {% endblock content %}
