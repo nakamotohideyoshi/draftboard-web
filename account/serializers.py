@@ -247,3 +247,4 @@ class UserLimitsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Limit
+        field = ('type', 'value', 'time_period')

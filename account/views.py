@@ -1045,67 +1045,23 @@ class LimitsFormView(LoginRequiredMixin, TemplateView):
 
     template_name = 'frontend/account/user_limits.html'
 
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(request, **kwargs)
-        return self.render_to_response(context)
-
-    def get_context_data(self, request, **kwargs):
-        html_attrs = [
-            ['', 'curr_deposit_limit', 'Please select a deposit limit that you would like applied to your account.'],
-            ['entry_alert', 'curr_contests_alert', 'Please select the number of entries and period for which you\'d like to be alerted.'],
-            ['', 'curr_contest_limit', 'Please select a limit for the number of contests you may enter in a time period.'],
-            ['', 'curr_fee_limit', 'Please select the appropriate contest entry fee.']]
-        context = super(LimitsFormView, self).get_context_data(**kwargs)
-
-        LimitFormSet = modelformset_factory(
-            Limit,
-            form=LimitForm,
-            extra=4,
-            max_num=4,
-            widgets={'user': forms.HiddenInput(attrs={'value': request.user.pk}),
-                     'type': forms.HiddenInput(attrs={'value': 0})},)
-
-        formset = LimitFormSet(initial=[{'type': i[0], 'type_name': i[1]} for i in Limit.TYPES])
-        for i, form in enumerate(formset):
-            form.fields['value'].choices = Limit.VALUES[i]
-            if not Limit.TYPES[i][0] == Limit.ENTRY_FEE:
-                form.fields['time_period'].choices = Limit.PERIODS
-            else:
-                form.fields['time_period'].value = None
-
-        context['formset'] = formset
-        context['types'] = Limit.TYPES
-        context['html_attrs'] = html_attrs
-        return context
-
-    def post(self, request, *args, **kwargs):
-        state = request.user.identity.state
-        days = settings.LIMIT_DAYS_RESTRAINT.get(state)
-        LimitFormSet = modelformset_factory(
-            Limit,
-            form=LimitForm,)
-        formset = LimitFormSet(request.POST)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-
-            change_allowed_on = instances[0].updated + timedelta(days=days)
-            if instances[0].updated.replace(tzinfo=None) < datetime.now() < change_allowed_on.replace(tzinfo=None):
-                return JsonResponse(data={"detail": "not allowed to change limits"}, status=400, safe=False)
-            else:
-                for instance in instances:
-                    instance.save()
-            return JsonResponse(data={"detail": "OK"}, status=200)
-        else:
-            return JsonResponse(formset.errors, status=400, safe=False)
-
 
 class UserLimitsAPIView(APIView):
     authentication_classes = (BasicAuthentication,)
     serializer_class = UserLimitsSerializer
 
     def get(self, request, *args, **kwargs):
-        limits = User.objects.get(pk=6).limits
+        limits = User.objects.get(pk=6).limits.all()
         # limits = request.user.limits
-        serializer = self.serializer_class(limits, many=True)
-
-        return Response(serializer.data)
+        user_limits = []
+        serializer = None
+        if limits.exists():
+            serializer = self.serializer_class(limits, many=True)
+        else:
+            for limit_type in Limit.TYPES:
+                limit_type_index = limit_type[0]
+                val = Limit.TYPES_GLOBAL[limit_type_index]['value']
+                user_limits.append({'user': request.user.pk, 'type': limit_type_index, 'value': val, 'time_period': Limit.PERIODS[0][0] if limit_type != Limit.ENTRY_FEE else None})
+        limits_data = {'types': Limit.TYPES_GLOBAL,
+                       'current_values': serializer.data if serializer else user_limits}
+        return Response(limits_data)
