@@ -29,6 +29,7 @@ class Information(models.Model):
             ("can_bypass_location_check", "Can bypass location check"),
             ("can_bypass_age_check", "Can bypass age check"),
             ("can_bypass_identity_verification", "Can bypass identity verification"),
+            ("email_confirmation", "Email confirmation"),
         )
 
     @cached_property
@@ -51,6 +52,18 @@ class Information(models.Model):
         except ObjectDoesNotExist:
             pass
         return is_verified
+
+    @cached_property
+    def is_confirmed(self):
+        """
+        Check user confirmation status
+        """
+        confirmed = False
+        try:
+            confirmed = (self.user.confirmation is not None)
+        except ObjectDoesNotExist:
+            pass
+        return confirmed
 
     def delete(self):
         """
@@ -173,3 +186,13 @@ class Identity(models.Model):
 
     class Meta:
         verbose_name = 'Trulioo User Identity'
+
+
+class Confirmation(models.Model):
+    """
+    Option for for checking user confirmation
+    """
+
+    user = models.OneToOneField(User, primary_key=True)
+    confirmed = models.BooleanField(default=False)
+
