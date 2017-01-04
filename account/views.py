@@ -1,30 +1,43 @@
 import calendar
+import logging
 from datetime import datetime, date, timedelta
-from raven.contrib.django.raven_compat.models import client
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.views.generic.base import TemplateView
-from django.http import Http404
-from braces.views import LoginRequiredMixin
-from django.views.generic.edit import FormView
-from django.contrib.auth.views import logout
 
+from braces.views import LoginRequiredMixin
+from django.conf import settings
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth import login as authLogin
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.models import User
+from django.contrib.auth.views import logout
+from django.core.urlresolvers import reverse
+from django.http import Http404
+from django.http import HttpResponseRedirect
+from django.views.generic.base import TemplateView
+from django.views.generic.edit import FormView
+from raven.contrib.django.raven_compat.models import client
+from rest_framework import generics
+from rest_framework import response, schemas
+from rest_framework import status
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.exceptions import (APIException, ValidationError)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
+
+import account.tasks
+from account import const as _account_const
+from account.forms import (
+    LoginForm,
+    SelfExclusionForm
+)
 from account.models import (
     Information,
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
     Identity,
-)
-from account.forms import (
-    LoginForm,
-    SelfExclusionForm
 )
 from account.permissions import (
     IsNotAuthenticated,
@@ -49,7 +62,12 @@ from account.serializers import (
     CreditCardPaymentSerializer,
     TruliooVerifyUserSerializer,
 )
-import account.tasks
+from account.utils import create_user_log
+from cash.classes import (
+    CashTransaction,
+)
+from contest.models import CurrentEntry
+from contest.refund.tasks import unregister_entry_task
 from pp.classes import (
     CardData,
     PayPal,
@@ -59,28 +77,11 @@ from pp.classes import (
 from pp.serializers import (
     VZeroDepositSerializer,
 )
-from cash.classes import (
-    CashTransaction,
-)
-from contest.models import CurrentEntry
-from contest.refund.tasks import unregister_entry_task
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.contrib.auth import views as auth_views
-from django.contrib.auth import login as authLogin
-from django.contrib.auth import authenticate, logout
-from rest_framework.exceptions import (APIException, ValidationError)
-from rest_framework.decorators import api_view, renderer_classes
-from rest_framework import response, schemas
-from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-from account import const as _account_const
-from account.utils import create_user_log
 from trulioo.classes import (
     Trulioo,
     VerifyDataValidationError,
     TruliooException
 )
-import logging
 
 logger = logging.getLogger('account.views')
 
@@ -245,9 +246,9 @@ class UserCredentialsAPIView(generics.GenericAPIView):
         serializer = self.serializer_class(user, data=data, partial=True)
 
         if serializer.is_valid():
-            if(data.get('email')):
+            if data.get('email'):
                 user.email = data.get('email')
-            if(data.get('password')):
+            if data.get('password'):
                 user.set_password(data.get('password'))
             user.save()
             return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
@@ -255,13 +256,13 @@ class UserCredentialsAPIView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserEmailNotificationAPIView (generics.GenericAPIView):
+class UserEmailNotificationAPIView(generics.GenericAPIView):
     """
     Allows the user to get and update their user email settings
 
         * |api-text| :dfs:`account/notifications/email/`
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = UserEmailNotificationSerializer
 
     # Get all of the notification types, then run through each type and check if the user has a
@@ -342,7 +343,6 @@ def login(request, **kwargs):
 
 
 class RegisterView(TemplateView):
-
     def get(self, request, *args, **kwargs):
         """
         if already logged in, redirect to lobby, otherwise allow page
@@ -354,6 +354,7 @@ class RegisterView(TemplateView):
 
     template_name = 'registration/register.html'
 
+
 #
 ##########################################################
 # PayPal specific views
@@ -361,15 +362,15 @@ class RegisterView(TemplateView):
 
 
 class PayPalDepositWithPayPalAccountAPIView(APIView):
-    pass          # TODO
+    pass  # TODO
 
 
 class PayPalDepositWithPayPalAccountSuccessAPIView(APIView):
-    pass   # TODO
+    pass  # TODO
 
 
 class PayPalDepositWithPayPalAccountFailAPIView(APIView):
-    pass      # TODO
+    pass  # TODO
 
 
 class PayPalDepositMixin:
@@ -425,7 +426,7 @@ class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
         }
 
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = CreditCardPaymentSerializer
 
     def post(self, request, *args, **kwargs):
@@ -471,7 +472,7 @@ class PayPalDepositSavedCardAPIView(APIView):
         {"amount":77.00,"token":"CARD-6WP04454GN306160EK5ZOADI"}
 
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SavedCardPaymentSerializer
 
     def post(self, request, *args, **kwargs):
@@ -568,7 +569,7 @@ class PayPalSavedCardAddAPIView(APIView):
 
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SavedCardAddSerializer
 
     def validate_information(self, info):
@@ -711,7 +712,7 @@ class PayPalSavedCardDeleteAPIView(APIView):
         {"token": "Card-99999"}
 
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SavedCardDeleteSerializer
 
     def post(self, request, *args, **kwargs):
@@ -746,7 +747,7 @@ class PayPalSavedCardListAPIView(APIView):
     quickly deposit money to the site.
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     response_serializer = SavedCardSerializer
 
     def get(self, request, *args, **kwargs):
@@ -769,7 +770,7 @@ class SetSavedCardDefaultAPIView(APIView):
     the arguments to this method should be passed
     in the POST as application/json, ie: {"token":"theToken"}
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SetSavedCardDefaultSerializer
 
     def post(self, request):
@@ -907,7 +908,7 @@ class VerifyLocationAPIView(APIView):
     permission_classes = (HasIpAccess,)
 
     def get(self, request, *args, **kwargs):
-        return Response(data={"detail": "location and age verification passed"}, status=200,)
+        return Response(data={"detail": "location and age verification passed"}, status=200, )
 
 
 class TruliooVerifyUserAPIView(APIView):
@@ -1036,24 +1037,27 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         """
         If user is logged in, redirect them to their feed
         """
-        response = super(AccessSubdomainsTemplateView, self).render_to_response(context, **response_kwargs)
+        response = super(AccessSubdomainsTemplateView, self).render_to_response(context,
+                                                                                **response_kwargs)
 
         if not self.request.user.has_perm('sites.access_subdomains'):
             raise Http404
 
         days_expire = 7
         max_age = days_expire * 24 * 60 * 60
-        expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
-        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
+        expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age),
+                                    "%a, %d-%b-%Y %H:%M:%S GMT")
+        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires,
+                            domain=settings.COOKIE_ACCESS_DOMAIN)
         return response
 
 
 def add_months(sourcedate, months):
     month = sourcedate.month - 1 + months
-    year = int(sourcedate.year + month / 12 )
+    year = int(sourcedate.year + month / 12)
     month = month % 12 + 1
-    day = min(sourcedate.day, calendar.monthrange(year,month)[1])
-    return date(year,month,day)
+    day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
 
 
 class ExclusionFormView(FormView):
