@@ -24,6 +24,7 @@ from .views import (
     VZeroDepositView,
     VerifyLocationAPIView,
     TruliooVerifyUserAPIView,
+
 )
 
 urlpatterns = [

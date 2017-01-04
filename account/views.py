@@ -12,6 +12,8 @@ from django.contrib.auth.views import logout
 from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.http import HttpResponseRedirect
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from raven.contrib.django.raven_compat.models import client
@@ -38,11 +40,13 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
     Identity,
+    Confirmation
 )
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
     HasVerifiedIdentity,
+    EmailConfirmed
 )
 from account.serializers import (
     LoginSerializer,
@@ -200,8 +204,10 @@ class RegisterAccountAPIView(generics.CreateAPIView):
             user.save()
             # Make sure each user gets an information model.
             Information.objects.create(user=user)
+            Confirmation.objects.create(user=user)
             newUser = authenticate(username=user.username, password=password)
             if newUser is not None:
+                account.tasks.send_confirmation_email.delay(user)
                 authLogin(request, newUser)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -831,7 +837,7 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -1086,3 +1092,18 @@ class ExclusionFormView(FormView):
             UserEmailNotification.objects.filter(user=information.user).update(enabled=False)
             logout(self.request)
         return super().form_valid(form)
+
+
+class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
+    template_name = 'frontend/confirmation.html'
+
+    def get(self, request, *args, **kwargs):
+        uid = force_text(urlsafe_base64_decode(kwargs.get('uid'))).replace(settings.SECRET_KEY, "")
+        try:
+            confirmation = Confirmation.objects.get(pk=uid)
+        except Confirmation.DoesNotExist:
+            return self.render_to_response({'message': 'Confirmation key not found'}, )
+        if confirmation:
+            confirmation.confirmed = True
+            confirmation.save()
+            return self.render_to_response({'message': 'Successful confirmation'}, )

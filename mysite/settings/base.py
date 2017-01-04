@@ -52,6 +52,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 # locale
 LANGUAGE_CODE = 'en-us'
 
+# locale
+ENCODE_SECRET_KEY = 'jro-1&fb#hv_yye22'
+
 # using 'America/New_York' will make the admin
 # display times in EST, however, in code
 # the models (because of the server!) will
