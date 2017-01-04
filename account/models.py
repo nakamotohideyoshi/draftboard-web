@@ -248,21 +248,21 @@ class Limit(models.Model):
     )
     TYPES_GLOBAL = {
         DEPOSIT: {
-            "value": DEPOSIT_MAX[0][0],
+            "value": DEPOSIT_MAX,
             "time_period": PERIODS
         },
         ENTRY_ALERT: {
-            "value": ENTRY_ALERT_MAX[0][0],
+            "value": ENTRY_ALERT_MAX,
             "time_period": PERIODS
 
         },
         ENTRY_LIMIT: {
-            "value": ENTRY_LIMIT_MAX[0][0],
+            "value": ENTRY_LIMIT_MAX,
             "time_period": PERIODS
 
         },
         ENTRY_FEE: {
-            "value": ENTRY_FEE_MAX[0][0],
+            "value": ENTRY_FEE_MAX,
             "time_period": None
 
         }

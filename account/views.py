@@ -1051,6 +1051,7 @@ class UserLimitsAPIView(APIView):
     serializer_class = UserLimitsSerializer
 
     def get(self, request, *args, **kwargs):
+        # TODO: add request.user and request.user.pk respectively
         limits = User.objects.get(pk=6).limits.all()
         # limits = request.user.limits
         user_limits = []
@@ -1060,8 +1061,8 @@ class UserLimitsAPIView(APIView):
         else:
             for limit_type in Limit.TYPES:
                 limit_type_index = limit_type[0]
-                val = Limit.TYPES_GLOBAL[limit_type_index]['value']
-                user_limits.append({'user': request.user.pk, 'type': limit_type_index, 'value': val, 'time_period': Limit.PERIODS[0][0] if limit_type != Limit.ENTRY_FEE else None})
+                val = Limit.TYPES_GLOBAL[limit_type_index]['value'][0][0]
+                user_limits.append({'user': 6, 'type': limit_type_index, 'value': val, 'time_period': Limit.PERIODS[0][0] if limit_type != Limit.ENTRY_FEE else None})
         limits_data = {'types': Limit.TYPES_GLOBAL,
                        'current_values': serializer.data if serializer else user_limits}
         return Response(limits_data)
