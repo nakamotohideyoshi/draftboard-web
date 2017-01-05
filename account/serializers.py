@@ -240,11 +240,27 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     ssn = serializers.CharField(max_length=11)
 
 
+class LimitsListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+
+        limit_mapping = {limit.type: limit for limit in instance}
+        data_mapping = {item['type']: item for item in validated_data}
+
+        # Perform updates.
+        updated = []
+        for limit_type, data in data_mapping.items():
+            limit = limit_mapping.get(limit_type, None)
+
+            updated.append(self.child.update(limit, data))
+        return updated
+
+
 class UserLimitsSerializer(serializers.ModelSerializer):
     """
     Serializer for user limits.
     """
-
     class Meta:
         model = Limit
         field = ('type', 'value', 'time_period')
+        list_serializer_class = LimitsListSerializer
+

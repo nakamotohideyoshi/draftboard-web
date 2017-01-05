@@ -209,10 +209,12 @@ const Deposits = React.createClass({
 
 
   handleTextInputChange(event) {
-    if ((this.props.depositSum + Number(this.refs.textInput.value)) > this.props.depositLimit){
+    if (this.props.depositLimit){
+      if ((this.props.depositSum + Number(this.refs.textInput.value)) > this.props.depositLimit){
       this.disablePaypalButton();
-    } else {
-      this.enablePaypalButton();
+      } else {
+        this.enablePaypalButton();
+      }
     }
     this.uncheckQuickDeposits();
     this.handleTextInputBlur(event);

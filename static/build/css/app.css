@@ -3933,19 +3933,15 @@ category: Tooltips
       transform-style: preserve-3d;
       transform-origin: center center; }
       .results-page--lineups .flip-container .flipper .lineup {
-        -webkit-filter: blur(0px);
-                filter: blur(0px); }
+        filter: blur(0px); }
       .results-page--lineups .flip-container .flipper .contests {
-        -webkit-filter: blur(20px);
-                filter: blur(20px); }
+        filter: blur(20px); }
     .results-page--lineups .flip-container.hover .flipper {
       transform: rotateY(180deg); }
       .results-page--lineups .flip-container.hover .flipper .lineup {
-        -webkit-filter: blur(20px);
-                filter: blur(20px); }
+        filter: blur(20px); }
       .results-page--lineups .flip-container.hover .flipper .contests {
-        -webkit-filter: blur(0px);
-                filter: blur(0px); }
+        filter: blur(0px); }
     .results-page--lineups .flip-container.shown-contest-pane .pane {
       z-index: 5001;
       right: 0px; }
@@ -7121,8 +7117,7 @@ label.calendar-input-label {
     transform: scale(1) translateX(0) rotateY(0);
     transition: all 600ms; }
   .live-overall-stats--event-ended .live-overall-stats__circle-stats-container {
-    -webkit-filter: blur(7px);
-            filter: blur(7px);
+    filter: blur(7px);
     opacity: 0.7;
     transform: perspective(600px) scale(0.94) translateX(3%) rotateY(4deg); }
   .live-overall-stats__svg-arcs {

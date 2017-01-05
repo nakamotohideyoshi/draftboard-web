@@ -6,6 +6,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views.generic.base import TemplateView
@@ -1052,8 +1053,8 @@ class UserLimitsAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         # TODO: add request.user and request.user.pk respectively
-        limits = User.objects.get(pk=6).limits.all()
-        # limits = request.user.limits
+        user = request.user
+        limits = user.limits.all()
         user_limits = []
         serializer = None
         if limits.exists():
@@ -1062,14 +1063,30 @@ class UserLimitsAPIView(APIView):
             for limit_type in Limit.TYPES:
                 limit_type_index = limit_type[0]
                 val = Limit.TYPES_GLOBAL[limit_type_index]['value'][0][0]
-                user_limits.append({'user': 6, 'type': limit_type_index, 'value': val, 'time_period': Limit.PERIODS[0][0] if limit_type != Limit.ENTRY_FEE else None})
+                user_limits.append({'user': user.pk,
+                                    'type': limit_type_index,
+                                    'value': val,
+                                    'time_period': Limit.PERIODS[0][0] if limit_type != Limit.ENTRY_FEE else None})
         limits_data = {'types': Limit.TYPES_GLOBAL,
                        'current_values': serializer.data if serializer else user_limits}
         return Response(limits_data)
 
     def post(self, request, *args, **kwargs):
-        # use the serializer to validate the arguments
-        serializer = self.serializer_class(data=self.request.data, many=True)
+        user = request.user
+        limits = user.limits.all()
+        if limits.exists():
+            serializer = self.serializer_class(limits, data=self.request.data, many=True)
+
+            state = user.identity.state
+            if state:
+                days = settings.LIMIT_DAYS_RESTRAINT.get(state)
+                if days:
+                    change_allowed_on = limits[0].updated + timedelta(days=days)
+                    if timezone.now() < change_allowed_on:
+                        return JsonResponse(data={"detail": "Not allowed to change limits until {}".format(change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400, safe=False)
+
+        else:
+            serializer = self.serializer_class(data=self.request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response(data={"detail": "Limits Saved"}, status=200)

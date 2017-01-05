@@ -45,7 +45,11 @@ class Information(models.Model):
         """
         Get the user's deposit limit.
         """
-        return self.user.limits.get(type=Limit.DEPOSIT).value
+        limits = self.user.limits
+        value = None
+        if limits.exists():
+            value = self.user.limits.get(type=Limit.DEPOSIT).value
+        return value
 
     @cached_property
     def deposits_for_period(self):
@@ -53,8 +57,12 @@ class Information(models.Model):
         Get the user's deposits for period of time.
         """
         cash_transaction = CashTransaction(self.user)
-        deposit_limit = self.user.limits.get(type=Limit.DEPOSIT)
-        return cash_transaction.get_all_deposits(date_range=deposit_limit.time_period_boundaries)['amount__sum']
+        limits = self.user.limits
+        deposits = None
+        if limits.exists():
+            deposit_limit = self.user.limits.get(type=Limit.DEPOSIT)
+            deposits = cash_transaction.get_all_deposits(date_range=deposit_limit.time_period_boundaries)['amount__sum']
+        return deposits
 
     @cached_property
     def has_verified_identity(self):
@@ -195,7 +203,7 @@ class Identity(models.Model):
     def state(self):
         # That is issue of zipcode module
         import zipcode
-        return zipcode.isequal(self.postal_code).state
+        return zipcode.isequal(self.postal_code).state if zipcode.isequal(self.postal_code) else None
 
 
 class Limit(models.Model):
