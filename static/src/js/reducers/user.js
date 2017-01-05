@@ -5,41 +5,9 @@ const initialState = {
   user: {
     isFetching: false,
     isIdentityVerified: false,
-    userLimits: [
-      {
-        id: 2,
-        time_period: 1,
-        type: 1,
-        updated: new Date().getTime(),
-        user: 6,
-        value: "50",
-      },
-      {
-        id: 3,
-        time_period: 1,
-        type: 2,
-        updated: new Date().getTime(),
-        user: 6,
-        value: "50",
-      },
-      {
-        id: 4,
-        time_period: 1,
-        type: 3,
-        updated: new Date().getTime(),
-        user: 6,
-        value: "50",
-      },
-      {
-        id: 1,
-        time_period: null,
-        type: 0,
-        updated: new Date().getTime(),
-        user: 6,
-        value: "50",
-      },
-    ],
-    currentLimits: []
+    userLimits: [],
+    currentLimits: [],
+    selectedLimits: [],
   },
   username: window.dfs.user.username,
   identityFormErrors: {},
@@ -190,19 +158,26 @@ module.exports = (state = initialState, action) => {
      * User's limits
      */
     case actionTypes.FETCH_USER_LIMITS:
-      return merge({}, state,{
-        userLimits: action.body
+      return merge({}, state ,{
+        user: {
+          selectedLimits: action.body,
+        }
       });
 
     case actionTypes.RECEIVE_USER_LIMITS_SUCCESS:
       return merge({}, state, {
-        userLimits: action.body,
-        currentLimits: action.body
+        user: {
+          userLimits: action.body.types,
+          currentLimits: action.body.current_values,
+          selectedLimits: action.body.selected_values
+        },
       });
 
     case actionTypes.RECEIVE_USER_LIMITS:
-      return merge({},state,{
-        userLimits: []
+      return merge({} ,state ,{
+        user:{
+          userLimits: [],
+        }
       });
 
     /**

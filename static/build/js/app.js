@@ -54432,36 +54432,9 @@
 	  user: {
 	    isFetching: false,
 	    isIdentityVerified: false,
-	    userLimits: [{
-	      id: 2,
-	      time_period: 1,
-	      type: 1,
-	      updated: new Date().getTime(),
-	      user: 6,
-	      value: "50"
-	    }, {
-	      id: 3,
-	      time_period: 1,
-	      type: 2,
-	      updated: new Date().getTime(),
-	      user: 6,
-	      value: "50"
-	    }, {
-	      id: 4,
-	      time_period: 1,
-	      type: 3,
-	      updated: new Date().getTime(),
-	      user: 6,
-	      value: "50"
-	    }, {
-	      id: 1,
-	      time_period: null,
-	      type: 0,
-	      updated: new Date().getTime(),
-	      user: 6,
-	      value: "50"
-	    }],
-	    currentLimits: []
+	    userLimits: [],
+	    currentLimits: [],
+	    selectedLimits: []
 	  },
 	  username: window.dfs.user.username,
 	  identityFormErrors: {},
@@ -54609,18 +54582,25 @@
 	     */
 	    case _actionTypes2.default.FETCH_USER_LIMITS:
 	      return (0, _merge2.default)({}, state, {
-	        userLimits: action.body
+	        user: {
+	          selectedLimits: action.body
+	        }
 	      });
 	
 	    case _actionTypes2.default.RECEIVE_USER_LIMITS_SUCCESS:
 	      return (0, _merge2.default)({}, state, {
-	        userLimits: action.body,
-	        currentLimits: action.body
+	        user: {
+	          userLimits: action.body.types,
+	          currentLimits: action.body.current_values,
+	          selectedLimits: action.body.selected_values
+	        }
 	      });
 	
 	    case _actionTypes2.default.RECEIVE_USER_LIMITS:
 	      return (0, _merge2.default)({}, state, {
-	        userLimits: []
+	        user: {
+	          userLimits: []
+	        }
 	      });
 	
 	    /**
@@ -59023,6 +59003,7 @@
 	            content: 'Check your internet connection or reload the page'
 	          }));
 	        } else {
+	          res.body.selected_values = res.body.current_values;
 	          dispatch(receiveUserLimitsSuccess(res.body));
 	          resolve(res);
 	        }
@@ -63507,8 +63488,9 @@
 	function mapStateToProps(state) {
 	    return {
 	        csrftoken: _jsCookie2.default.get('csrftoken'),
-	        userLimits: state.user.userLimits,
-	        currentLimits: state.user.currentLimits
+	        userLimits: state.user.user.userLimits,
+	        currentLimits: state.user.user.currentLimits,
+	        selectedLimits: state.user.user.selectedLimits
 	    };
 	}
 	
@@ -63540,28 +63522,42 @@
 	    componentWillMount: function componentWillMount() {
 	        _store2.default.dispatch((0, _user.receiveUserLimits)());
 	    },
-	    onChange: function onChange(currSelect, event) {
-	        var body = this.props.userLimits.map(function (object) {
-	            if (object.id == currSelect.id) {
-	                if (event.target.className == 'time_period') {
-	                    currSelect.time_period = event.target.value;
-	                    return Object.assign({}, object, currSelect);
-	                } else {
-	                    currSelect.value = event.target.value;
-	                    return Object.assign({}, object, currSelect);
-	                }
-	            } else {
-	                return object;
-	            }
-	        });
+	    onChange: function onChange(currentLimits, index, event) {
+	        event.preventDefault();
+	        console.log(arguments);
+	        console.log('currentLimits', currentLimits);
+	        var body = this.props.selectedLimits[index];
+	        if (event.target.className == 'time_period') {
+	            currentLimits.time_period = event.target.value;
+	            body = Object.assign({}, body, currentLimits);
+	        } else {
+	            currentLimits.value = event.target.value;
+	            body = Object.assign({}, body, currentLimits);
+	        }
+	        console.log(body);
 	        _store2.default.dispatch((0, _user.fetchUserLimits)(body));
 	    },
 	    submitForm: function submitForm(e) {
 	        e.preventDefault();
-	        _superagent2.default.post('/limits/').set({ 'X-CSRFToken': _jsCookie2.default.get('csrftoken') }).send('csrfmiddlewaretoken=' + _jsCookie2.default.get('csrftoken')).send('form-TOTAL_FORMS=' + this.refs['form-TOTAL_FORMS'].value).send('form-INITIAL_FORMS=' + this.refs['form-INITIAL_FORMS'].value).send('form-MIN_NUM_FORMS=' + this.refs['form-MIN_NUM_FORMS'].value).send('form-MAX_NUM_FORMS=' + this.refs['form-MAX_NUM_FORMS'].value).send('form-0-value=' + this.refs['form-0-value'].value).send('form-0-time_period=' + this.refs['form-0-time_period'].value).send('form-0-type=' + this.refs['form-0-type'].value).send('form-0-user=' + this.refs['form-0-user'].value).send('form-0-id=' + this.refs['form-0-id'].value).send('form-1-value=' + this.refs['form-1-value'].value).send('form-1-time_period=' + this.refs['form-1-time_period'].value).send('form-1-type=' + this.refs['form-1-type'].value).send('form-1-user=' + this.refs['form-1-user'].value).send('form-1-id=' + this.refs['form-1-id'].value).send('form-2-value=' + this.refs['form-2-value'].value).send('form-2-time_period=' + this.refs['form-2-time_period'].value).send('form-2-type=' + this.refs['form-2-type'].value).send('form-2-user=' + this.refs['form-2-user'].value).send('form-2-id=' + this.refs['form-2-id'].value).send('form-3-value=' + this.refs['form-3-value'].value).send('form-3-type=' + this.refs['form-3-type'].value).send('form-3-user=' + this.refs['form-3-user'].value).send('form-3-id=' + this.refs['form-3-id'].value).end(function (err, res) {
-	            if (err) {
+	        var refs = this.refs;
+	        var data = [];
+	        console.log(this.refs);
+	        for (var i = 0; i < 4; i++) {
+	            if (refs["period_" + i] == undefined) {
+	                refs["period_" + i] = { value: null };
+	            }
+	            data.push({
+	                type: refs["type" + i].value,
+	                value: refs["select_" + i].value,
+	                time_period: refs["period_" + i].value,
+	                user: refs["user" + i].value
+	            });
+	        }
+	        console.log(data);
+	        _superagent2.default.post('/api/account/user-limits/').type('json').set({ 'X-CSRFToken': _jsCookie2.default.get('csrftoken') }).send(data).end(function (err, res) {
+	            if (res.status == 400) {
 	                _store2.default.dispatch((0, _messageActions.addMessage)({
-	                    header: 'Request failed',
+	                    header: res.body.detail,
 	                    level: 'warning'
 	                }));
 	            }if (res.status == 200) {
@@ -63573,22 +63569,35 @@
 	            }
 	        });
 	    },
+	    createSelectOptions: function createSelectOptions(data) {
+	        return data.map(function (arrElem) {
+	            var value = arrElem[0];
+	            var text = arrElem[1];
+	            return _react2.default.createElement(
+	                'option',
+	                { value: value },
+	                text
+	            );
+	        });
+	    },
 	    createComponents: function createComponents() {
 	        var _this = this;
 	
 	        if (this.props.userLimits != undefined) {
 	            return this.props.userLimits.map(function (element, index) {
+	                var currLimits = _this.props.currentLimits[index];
+	                var currentValue = currLimits.value;
+	                var selectedValue = _this.props.selectedLimits[index];
 	                var idValue = "id_form-" + index + "-value";
-	                var nameValue = "form-" + index + "-value";
+	                var nameValue = "select_" + index;
 	                var idPeriod = "id_form-" + index + "-time_period";
-	                var namePeriod = "form-" + index + "-time_period";
+	                var namePeriod = "period_" + index;
 	                var idType = "id_form-" + index + "-type";
-	                var nameType = "form-" + index + "-type";
+	                var nameType = "type" + index;
 	                var idUser = "id_form-" + index + "-user";
-	                var nameUser = "form-" + index + "-user";
+	                var nameUser = "user" + index;
 	                var idId = "id_form-" + index + "-id";
 	                var nameId = "form-" + index + "-id";
-	                var currentValue = _this.props.currentLimits[index].value;
 	                if (element.time_period) {
 	                    return _react2.default.createElement(
 	                        'div',
@@ -63643,37 +63652,8 @@
 	                                ),
 	                                _react2.default.createElement(
 	                                    'select',
-	                                    { id: idValue, name: nameValue, ref: nameValue, value: element.value, onChange: _this.onChange.bind(_this, element) },
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '50' },
-	                                        '$50'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '100' },
-	                                        '$100'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '250' },
-	                                        '$250'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '500' },
-	                                        '$500'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '750' },
-	                                        '$750'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '1000' },
-	                                        '$1000'
-	                                    )
+	                                    { id: idValue, name: nameValue, ref: nameValue, value: selectedValue.value, onChange: _this.onChange.bind(_this, selectedValue, index) },
+	                                    _this.createSelectOptions(element.value)
 	                                )
 	                            ),
 	                            _react2.default.createElement(
@@ -63690,28 +63670,13 @@
 	                                ),
 	                                _react2.default.createElement(
 	                                    'select',
-	                                    { className: 'time_period', id: idPeriod, name: namePeriod, ref: namePeriod, value: element.time_period, onChange: _this.onChange.bind(_this, element) },
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '30' },
-	                                        'Monthly'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '7' },
-	                                        'Weekly'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '1' },
-	                                        'Daily'
-	                                    )
+	                                    { className: 'time_period', id: idPeriod, name: namePeriod, ref: namePeriod, value: selectedValue.time_period, onChange: _this.onChange.bind(_this, selectedValue, index) },
+	                                    _this.createSelectOptions(element.time_period)
 	                                )
 	                            )
 	                        ),
-	                        _react2.default.createElement('input', { id: idType, name: nameType, type: 'hidden', value: element.type, ref: nameType }),
-	                        _react2.default.createElement('input', { id: idUser, name: nameUser, type: 'hidden', value: element.user, ref: nameUser }),
-	                        _react2.default.createElement('input', { id: idId, name: nameId, type: 'hidden', value: element.id, ref: nameId })
+	                        _react2.default.createElement('input', { id: idType, name: nameType, type: 'hidden', value: currLimits.type, ref: nameType }),
+	                        _react2.default.createElement('input', { id: idUser, name: nameUser, type: 'hidden', value: currLimits.user, ref: nameUser })
 	                    );
 	                } else {
 	                    return _react2.default.createElement(
@@ -63766,50 +63731,19 @@
 	                                ),
 	                                _react2.default.createElement(
 	                                    'select',
-	                                    { id: idValue, name: nameValue, ref: nameValue, value: element.value, onChange: _this.onChange.bind(_this, element) },
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '50', selected: 'selected' },
-	                                        '$50'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '100' },
-	                                        '$100'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '250' },
-	                                        '$250'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '500' },
-	                                        '$500'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '750' },
-	                                        '$750'
-	                                    ),
-	                                    _react2.default.createElement(
-	                                        'option',
-	                                        { value: '1000' },
-	                                        '$1000'
-	                                    )
+	                                    { id: idValue, name: nameValue, ref: nameValue, value: selectedValue.value, onChange: _this.onChange.bind(_this, selectedValue, index) },
+	                                    _this.createSelectOptions(element.value)
 	                                )
 	                            )
 	                        ),
-	                        _react2.default.createElement('input', { id: idType, name: nameType, type: 'hidden', value: element.type, ref: nameType }),
-	                        _react2.default.createElement('input', { id: idUser, name: nameUser, type: 'hidden', value: element.user, ref: nameUser }),
-	                        _react2.default.createElement('input', { id: idId, name: nameId, type: 'hidden', value: element.id, ref: nameId })
+	                        _react2.default.createElement('input', { id: idType, name: nameType, type: 'hidden', value: currLimits.type, ref: nameType }),
+	                        _react2.default.createElement('input', { id: nameUser, name: nameUser, type: 'hidden', value: currLimits.user, ref: nameUser })
 	                    );
 	                }
 	            });
 	        }
 	    },
 	    render: function render() {
-	
 	        return _react2.default.createElement(
 	            'div',
 	            { id: '' },
@@ -63831,10 +63765,6 @@
 	            _react2.default.createElement(
 	                'form',
 	                { action: '', method: 'post', onSubmit: this.submitForm },
-	                _react2.default.createElement('input', { id: 'id_form-TOTAL_FORMS', name: 'form-TOTAL_FORMS', type: 'hidden', value: '4', ref: 'form-TOTAL_FORMS' }),
-	                _react2.default.createElement('input', { id: 'id_form-INITIAL_FORMS', name: 'form-INITIAL_FORMS', type: 'hidden', value: '4', ref: 'form-INITIAL_FORMS' }),
-	                _react2.default.createElement('input', { id: 'id_form-MIN_NUM_FORMS', name: 'form-MIN_NUM_FORMS', type: 'hidden', value: '0', ref: 'form-MIN_NUM_FORMS' }),
-	                _react2.default.createElement('input', { id: 'id_form-MAX_NUM_FORMS', name: 'form-MAX_NUM_FORMS', type: 'hidden', value: '4', ref: 'form-MAX_NUM_FORMS' }),
 	                this.createComponents(),
 	                _react2.default.createElement(
 	                    'div',

@@ -31,8 +31,9 @@ var pageText = [
 function mapStateToProps(state) {
   return {
       csrftoken: Cookies.get('csrftoken'),
-      userLimits: state.user.userLimits,
-      currentLimits: state.user.currentLimits
+      userLimits: state.user.user.userLimits,
+      currentLimits: state.user.user.currentLimits,
+      selectedLimits : state.user.user.selectedLimits
   };
 }
 
@@ -67,55 +68,47 @@ const Limits = React.createClass({
         store.dispatch(receiveUserLimits());
     },
 
-    onChange(currSelect, event){
-        var body  = this.props.userLimits.map(object => {
-            if(object.id == currSelect.id){
-                if(event.target.className == 'time_period'){
-                    currSelect.time_period = event.target.value;
-                    return Object.assign({}, object, currSelect)
-                } else {
-                    currSelect.value = event.target.value;
-                    return Object.assign({}, object, currSelect)
-                }
+    onChange(currentLimits,index, event){
+        event.preventDefault();
+        console.log(arguments);
+        console.log('currentLimits', currentLimits);
+        var body  = this.props.selectedLimits[index];
+            if(event.target.className == 'time_period'){
+                currentLimits.time_period = event.target.value;
+                body = Object.assign({}, body, currentLimits)
             } else {
-                return object
+                currentLimits.value = event.target.value;
+                body = Object.assign({}, body, currentLimits)
             }
-        });
+        console.log(body);
         store.dispatch(fetchUserLimits(body));
     },
 
     submitForm(e) {
         e.preventDefault();
-        request.post('/limits/')
+        let refs = this.refs;
+        let data = [];
+        console.log(this.refs);
+        for (let i=0;i<4;i++){
+            if(refs["period_"+i] == undefined){
+                refs["period_" + i] = {value:null}
+            }
+            data.push({
+                type: refs["type"+i].value,
+                value: refs["select_"+i].value,
+                time_period: refs["period_"+i].value,
+                user : refs["user"+i].value
+            })
+        }
+        console.log(data);
+        request.post('/api/account/user-limits/')
+            .type('json')
             .set({'X-CSRFToken': Cookies.get('csrftoken')})
-            .send('csrfmiddlewaretoken='+ Cookies.get('csrftoken'))
-            .send('form-TOTAL_FORMS='+this.refs['form-TOTAL_FORMS'].value)
-            .send('form-INITIAL_FORMS='+ this.refs['form-INITIAL_FORMS'].value)
-            .send('form-MIN_NUM_FORMS='+ this.refs['form-MIN_NUM_FORMS'].value)
-            .send('form-MAX_NUM_FORMS='+ this.refs['form-MAX_NUM_FORMS'].value)
-            .send('form-0-value='+ this.refs['form-0-value'].value)
-            .send('form-0-time_period='+ this.refs['form-0-time_period'].value)
-            .send('form-0-type='+ this.refs['form-0-type'].value)
-            .send('form-0-user='+ this.refs['form-0-user'].value)
-            .send('form-0-id='+ this.refs['form-0-id'].value)
-            .send('form-1-value='+ this.refs['form-1-value'].value)
-            .send('form-1-time_period='+ this.refs['form-1-time_period'].value)
-            .send('form-1-type='+ this.refs['form-1-type'].value)
-            .send('form-1-user='+ this.refs['form-1-user'].value)
-            .send('form-1-id='+ this.refs['form-1-id'].value)
-            .send('form-2-value='+ this.refs['form-2-value'].value)
-            .send('form-2-time_period='+ this.refs['form-2-time_period'].value)
-            .send('form-2-type='+ this.refs['form-2-type'].value)
-            .send('form-2-user='+ this.refs['form-2-user'].value)
-            .send('form-2-id='+ this.refs['form-2-id'].value)
-            .send('form-3-value='+ this.refs['form-3-value'].value)
-            .send('form-3-type='+ this.refs['form-3-type'].value)
-            .send('form-3-user='+ this.refs['form-3-user'].value)
-            .send('form-3-id='+ this.refs['form-3-id'].value)
+            .send(data)
             .end((err, res) => {
-                if (err) {
+                if (res.status == 400) {
                     store.dispatch(addMessage({
-                        header: 'Request failed',
+                        header: res.body.detail,
                         level: 'warning',
                     }))
                 } if (res.status == 200){
@@ -128,20 +121,30 @@ const Limits = React.createClass({
             });
     },
 
+    createSelectOptions(data){
+        return data.map( arrElem => {
+            let value = arrElem[0];
+            let text = arrElem[1];
+            return <option value={value}>{text}</option>
+        })
+    },
+
     createComponents(){
         if(this.props.userLimits != undefined){
             return this.props.userLimits.map( (element,index) => {
+                let currLimits = this.props.currentLimits[index];
+                let currentValue = currLimits.value;
+                let selectedValue = this.props.selectedLimits[index];
                 let idValue = "id_form-"+index+"-value";
-                let nameValue = "form-"+index+"-value";
+                let nameValue = "select_"+index;
                 let idPeriod = "id_form-"+ index+"-time_period";
-                let namePeriod = "form-"+index+"-time_period" ;
+                let namePeriod = "period_"+index ;
                 let idType = "id_form-"+index+"-type";
-                let nameType = "form-"+index+"-type";
+                let nameType = "type"+index;
                 let idUser = "id_form-"+index+"-user";
-                let nameUser = "form-"+index+"-user";
+                let nameUser = "user"+index;
                 let idId = "id_form-"+index+"-id";
                 let nameId = "form-"+index+"-id";
-                let currentValue = this.props.currentLimits[index].value;
                 if(element.time_period){
                     return (
                         <div className="line">
@@ -159,27 +162,19 @@ const Limits = React.createClass({
                             <div className="container-line-block">
                                 <div className="line-block">
                                     <label><sup>MAXIMUM</sup></label>
-                                    <select id={idValue} name={nameValue} ref={nameValue} value={element.value} onChange={this.onChange.bind(this,element)}>
-                                        <option value="50">$50</option>
-                                        <option value="100">$100</option>
-                                        <option value="250">$250</option>
-                                        <option value="500">$500</option>
-                                        <option value="750">$750</option>
-                                        <option value="1000">$1000</option>
+                                    <select id={idValue} name={nameValue} ref={nameValue} value={selectedValue.value} onChange={this.onChange.bind(this,selectedValue, index)}>
+                                        {this.createSelectOptions(element.value)}
                                     </select>
                                 </div>
                                 <div className="line-block">
                                     <label><sup>TIME PERIOD</sup></label>
-                                    <select className="time_period" id={idPeriod} name={namePeriod} ref={namePeriod} value={element.time_period} onChange={this.onChange.bind(this,element)}>
-                                        <option value="30">Monthly</option>
-                                        <option value="7">Weekly</option>
-                                        <option value="1">Daily</option>
+                                    <select className="time_period" id={idPeriod} name={namePeriod} ref={namePeriod} value={selectedValue.time_period} onChange={this.onChange.bind(this,selectedValue,index)}>
+                                        {this.createSelectOptions(element.time_period)}
                                     </select>
                                 </div>
                             </div>
-                            <input id={idType} name={nameType} type="hidden" value={element.type} ref={nameType} />
-                            <input id={idUser} name={nameUser} type="hidden" value={element.user} ref={nameUser} />
-                            <input id={idId} name={nameId} type="hidden" value={element.id} ref={nameId} />
+                            <input id={idType} name={nameType} type="hidden" value={currLimits.type} ref={nameType} />
+                            <input id={idUser} name={nameUser} type="hidden" value={currLimits.user} ref={nameUser} />
                         </div>
                     )
                 } else {
@@ -198,19 +193,13 @@ const Limits = React.createClass({
                             <div className="container-line-block">
                                 <div className="line-block">
                                     <label><sup>MAXIMUM</sup></label>
-                                    <select id={idValue} name={nameValue} ref={nameValue} value={element.value} onChange={this.onChange.bind(this,element)}>
-                                        <option value="50" selected="selected">$50</option>
-                                        <option value="100">$100</option>
-                                        <option value="250">$250</option>
-                                        <option value="500">$500</option>
-                                        <option value="750">$750</option>
-                                        <option value="1000">$1000</option>
+                                    <select id={idValue} name={nameValue} ref={nameValue} value={selectedValue.value} onChange={this.onChange.bind(this,selectedValue, index)}>
+                                        {this.createSelectOptions(element.value)}
                                     </select>
                                 </div>
                             </div>
-                            <input id={idType} name={nameType} type="hidden" value={element.type} ref={nameType}/>
-                            <input id={idUser} name={nameUser} type="hidden" value={element.user} ref={nameUser}/>
-                            <input id={idId} name={nameId} type="hidden" value={element.id} ref={nameId}/>
+                            <input id={idType} name={nameType} type="hidden" value={currLimits.type} ref={nameType}/>
+                            <input id={nameUser} name={nameUser} type="hidden" value={currLimits.user} ref={nameUser}/>
                         </div>
                     )
                 }
@@ -219,7 +208,6 @@ const Limits = React.createClass({
     },
 
     render() {
-
         return (
             <div id="">
                 <h2 className="text-center">
@@ -236,10 +224,6 @@ const Limits = React.createClass({
                 </div>
 
                 <form action="" method="post" onSubmit={this.submitForm}>
-                    <input id="id_form-TOTAL_FORMS" name="form-TOTAL_FORMS" type="hidden" value="4" ref="form-TOTAL_FORMS"/>
-                    <input id="id_form-INITIAL_FORMS" name="form-INITIAL_FORMS" type="hidden" value="4" ref="form-INITIAL_FORMS" />
-                    <input id="id_form-MIN_NUM_FORMS" name="form-MIN_NUM_FORMS" type="hidden" value="0" ref="form-MIN_NUM_FORMS"/>
-                    <input id="id_form-MAX_NUM_FORMS" name="form-MAX_NUM_FORMS" type="hidden" value="4" ref="form-MAX_NUM_FORMS"/>
                     {this.createComponents()}
                     <div className="button_container">
                         <button type="submit">SUBMIT</button>
