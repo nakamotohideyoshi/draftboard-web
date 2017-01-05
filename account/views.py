@@ -1071,4 +1071,5 @@ class UserLimitsAPIView(APIView):
         # use the serializer to validate the arguments
         serializer = self.serializer_class(data=self.request.data, many=True)
         serializer.is_valid(raise_exception=True)
-        return Response(data={"detail": "OK"}, status=20)
+        serializer.save()
+        return Response(serializer.data)
