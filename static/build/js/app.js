@@ -54520,7 +54520,9 @@
 	      return (0, _merge2.default)({}, state, {
 	        cashBalance: {
 	          isFetching: false,
-	          amount: action.body.cash_balance
+	          amount: action.body.cash_balance,
+	          depositLimit: action.body.deposit_limit,
+	          depositSum: action.body.deposit_sum
 	        }
 	      });
 	
@@ -56406,6 +56408,8 @@
 	
 	var _user = __webpack_require__(877);
 	
+	var _messageActions = __webpack_require__(861);
+	
 	var _debounce = __webpack_require__(880);
 	
 	var _debounce2 = _interopRequireDefault(_debounce);
@@ -56442,7 +56446,9 @@
 	    payPalClientToken: state.payments.payPalClientToken,
 	    isDepositing: state.payments.isDepositing,
 	    identityFormErrors: state.user.identityFormErrors,
-	    identityFormIsSending: state.user.identityFormIsSending
+	    identityFormIsSending: state.user.identityFormIsSending,
+	    depositSum: state.user.cashBalance.depositSum,
+	    depositLimit: state.user.cashBalance.depositLimit
 	  };
 	}
 	
@@ -56485,7 +56491,9 @@
 	    verifyIdentity: _react2.default.PropTypes.func.isRequired,
 	    identityFormErrors: _react2.default.PropTypes.object,
 	    identityFormIsSending: _react2.default.PropTypes.bool,
-	    fetchUser: _react2.default.PropTypes.func.isRequired
+	    fetchUser: _react2.default.PropTypes.func.isRequired,
+	    depositSum: _react2.default.PropTypes.number.isRequired,
+	    depositLimit: _react2.default.PropTypes.number.isRequired
 	  },
 	
 	  getInitialState: function getInitialState() {
@@ -56565,9 +56573,16 @@
 	  },
 	  handleButtonClick: function handleButtonClick() {
 	    if (this.state.paypalButtonEnabled) {
+	      _store2.default.dispatch((0, _messageActions.removeMessage)('limit error'));
 	      _logging2.default.info('Initiating Paypal checkout.');
 	      this.checkoutInit();
 	    } else {
+	      _store2.default.dispatch((0, _messageActions.addMessage)({
+	        header: "Failed",
+	        content: "Sorry but you have exceeded your limit",
+	        level: "warning",
+	        id: "limit error"
+	      }));
 	      _logging2.default.warn('Ignoring button click.');
 	    }
 	  },
@@ -56611,6 +56626,11 @@
 	    this.setState({ amount: event.target.value });
 	  },
 	  handleTextInputChange: function handleTextInputChange(event) {
+	    if (this.props.depositSum + Number(this.refs.textInput.value) > this.props.depositLimit) {
+	      this.disablePaypalButton();
+	    } else {
+	      this.enablePaypalButton();
+	    }
 	    this.uncheckQuickDeposits();
 	    this.handleTextInputBlur(event);
 	  },

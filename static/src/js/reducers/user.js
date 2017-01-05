@@ -91,6 +91,8 @@ module.exports = (state = initialState, action) => {
         cashBalance: {
           isFetching: false,
           amount: action.body.cash_balance,
+          depositLimit: action.body.deposit_limit,
+          depositSum: action.body.deposit_sum,
         },
       });
 
