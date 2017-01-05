@@ -267,6 +267,9 @@ class GameBoxscore(models.Model):
         abstract = True
 
 
+# TODO: Remove this model and all things related to it. We no longer get Injury data from
+# Dataden, it comes from Swish in the form of Draftgroup.PlayerUpdates.
+# /admin/draftgroup/playerupdate/
 class Injury(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
