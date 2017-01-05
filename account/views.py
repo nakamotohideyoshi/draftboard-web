@@ -1066,3 +1066,9 @@ class UserLimitsAPIView(APIView):
         limits_data = {'types': Limit.TYPES_GLOBAL,
                        'current_values': serializer.data if serializer else user_limits}
         return Response(limits_data)
+
+    def post(self, request, *args, **kwargs):
+        # use the serializer to validate the arguments
+        serializer = self.serializer_class(data=self.request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        return Response(data={"detail": "OK"}, status=20)
