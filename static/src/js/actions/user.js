@@ -398,6 +398,7 @@ export function receiveUserLimits(){
                 content: 'Check your internet connection or reload the page',
               }));
             } else {
+              res.body.selected_values = res.body.current_values;
               dispatch(receiveUserLimitsSuccess(res.body));
               resolve(res);
             }
