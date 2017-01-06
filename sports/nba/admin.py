@@ -72,8 +72,3 @@ class GamePortionAdmin(admin.ModelAdmin):
 @admin.register(sports.nba.models.PbpDescription)
 class PbpDescriptionAdmin(admin.ModelAdmin):
     list_display = ['pbp', 'srid_game', 'category', 'sequence', 'idx', 'description']
-
-
-@admin.register(sports.nba.models.Injury)
-class InjuryAdmin(admin.ModelAdmin):
-    list_display = ['iid', 'srid', 'comment', 'status', 'description']
