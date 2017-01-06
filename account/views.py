@@ -1048,7 +1048,7 @@ class LimitsFormView(LoginRequiredMixin, TemplateView):
 
 
 class UserLimitsAPIView(APIView):
-    authentication_classes = (BasicAuthentication,)
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
     serializer_class = UserLimitsSerializer
 
     def get(self, request, *args, **kwargs):
