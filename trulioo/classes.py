@@ -106,26 +106,6 @@ class PersonInfoData(DataWithSetField):
         }
 
 
-class NationalIdInfoData(DataWithSetField):
-    """
-    This is to use a person's Social Security Number (SSN) with verification.
-
-    API Docs:
-    https://api.globaldatacompany.com/Help/ResourceModel?modelName=NationalId
-    """
-    field = 'NationalIds'
-
-    field_number = "Number"  # string
-    field_type = "Type"  # string [NationalID|Health|SocialService]
-    field_country = "CountyOfIssue"  # string County that issued the ID
-
-    def __init__(self):
-        self.data = [{}]
-
-    def set_field(self, field, obj):
-        self.data[0][field] = obj
-
-
 class VerifyDataValidationError(Exception):
     pass
 
@@ -152,7 +132,6 @@ class VerifyData(DataWithSetField):
         PersonInfoData.field,
         LocationData.field,
         CommunicationData.field,
-        NationalIdInfoData.field,
     ]
 
     def __init__(self):
@@ -228,25 +207,6 @@ class TruliooResponse(object):
 
     def get_errors(self):
         return self.record.get('Errors', [])
-
-    def get_ssn_match(self):
-        # Grab the credit check entry.
-        credit_check = [item for item in self.record["DatasourceResults"]
-                        if item["DatasourceName"] == "Enhanced Credit 1"]
-
-        # Find the field check for SSN
-        if len(credit_check):
-            ssn_matches = [item for item in credit_check[0]["DatasourceFields"]
-                           if item["FieldName"] == "socialservice"]
-            # Check if it was a match or not.
-            if len(ssn_matches):
-                return ssn_matches[0]["Status"] == 'match'
-            else:
-                logger.warn('no "socialservice" field found in DatasourceFields')
-        else:
-            logger.warn('no "Enhanced Credit 1" field found in DatasourceResults')
-        # Default to nomatch
-        return False
 
 
 class TruliooException(Exception):
@@ -363,15 +323,11 @@ class Trulioo(object):
             message = record_error.get('Message')
             raise TruliooException(message)
 
-        ssn_match = tr.get_ssn_match()
-        if not ssn_match:
-            raise TruliooException('No Social Security Number match found.')
-
         # return the json response
         return response
 
     def verify_minimal(self, first, last, birth_day, birth_month, birth_year,
-                       postal_code, country_code=None, user=None, ssn=None):
+                       postal_code, country_code=None, user=None):
         """
         verify a user based on the given information, using Trulioo.
 
@@ -387,7 +343,6 @@ class Trulioo(object):
         :param country_code: optionally specify the country. default: 'US'
         :param user: optionally specify the django user which will cause the backend to save the
             transaction ids
-        :param ssn: string social security number
         :return: boolean indicating Trulioo Verification success. True => match, False => nomatch
             (failure to verify)
         """
@@ -408,14 +363,6 @@ class Trulioo(object):
         person.set_field(PersonInfoData.field_year_of_birth, birth_year)
         verify.set_data(person)
 
-        # Set an empty SSN object
-        nationalId = NationalIdInfoData()
-        nationalId.set_field(NationalIdInfoData.field_number, ssn)
-        # We only support US SSNs so default to that.
-        nationalId.set_field(NationalIdInfoData.field_type, 'SocialService')
-        nationalId.set_field(NationalIdInfoData.field_country, 'US')
-        verify.set_data(nationalId)
-
         # set an empty Location object
         location = LocationData()
         location.set_field(LocationData.field_postal_code, postal_code)
@@ -427,8 +374,6 @@ class Trulioo(object):
 
         tr = TruliooResponse(self.response_json)
         record_status = tr.get_record_status()
-        # ssn_match = tr.get_ssn_match()
-        # logger.info('ssn_match', ssn_match)
 
         # if the user was passed in, then save a Verification model instance of this verification
         self.verification_model = self.save_verification(user, tr)

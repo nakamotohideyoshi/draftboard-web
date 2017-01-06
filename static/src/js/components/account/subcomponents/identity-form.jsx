@@ -36,7 +36,6 @@ const IdentityForm = React.createClass({
       birth_month: this.refs.birth_month.value,
       birth_year: this.refs.birth_year.value,
       postal_code: this.refs.postal_code.value,
-      ssn: this.refs.ssn.value,
     });
   },
 
@@ -108,16 +107,29 @@ const IdentityForm = React.createClass({
 
             <div className="form-field birth-date">
               <label className="form-field__label" htmlFor="birth_day">Birth Date (M/D/Y)</label>
-              <input
-                placeholder="MM"
+              <select
+                placeholder="Month"
                 ref="birth_month"
-                className="form-field__text-input"
+                className="form-field__select"
                 type="number"
                 name="birth_month"
                 min="1"
                 max="12"
                 required
-              />
+              >
+                <option value="01">Jan</option>
+                <option value="02">Feb</option>
+                <option value="03">Mar</option>
+                <option value="04">Apr</option>
+                <option value="05">May</option>
+                <option value="06">Jun</option>
+                <option value="07">Jul</option>
+                <option value="08">Aug</option>
+                <option value="09">Sep</option>
+                <option value="10">Oct</option>
+                <option value="11">Nov</option>
+                <option value="12">Dec</option>
+              </select>
               /
               <input
                 placeholder="DD"
@@ -156,19 +168,6 @@ const IdentityForm = React.createClass({
               />
 
               {this.renderErrors(this.props.errors.postal_code)}
-            </div>
-
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="ssn">Social Security Number</label>
-              <input
-                ref="ssn"
-                className="form-field__text-input"
-                type="text"
-                name="ssn"
-                required
-              />
-
-              {this.renderErrors(this.props.errors.ssn)}
             </div>
 
             <div className="form-controls">
