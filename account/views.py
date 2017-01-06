@@ -945,7 +945,6 @@ class TruliooVerifyUserAPIView(APIView):
         birth_month = serializer.validated_data.get('birth_month')
         birth_year = serializer.validated_data.get('birth_year')
         postal_code = serializer.validated_data.get('postal_code')
-        ssn = serializer.validated_data.get('ssn')
 
         # First check if we have an existing user match in our DB.
         existing_identities = Identity.objects.filter(
@@ -959,7 +958,7 @@ class TruliooVerifyUserAPIView(APIView):
 
         # If the identity is already claimed, log and return errror message.
         if existing_identities.exists():
-            logger.warn("IDENTITY_VERIFICATION_EXISTS")
+            logger.warning("IDENTITY_VERIFICATION_EXISTS - user: %s" % self.request.user)
             create_user_log(
                 request=request,
                 type=_account_const.AUTHENTICATION,
@@ -967,7 +966,7 @@ class TruliooVerifyUserAPIView(APIView):
                 metadata={'detail': """User attampted to claim an identity that already exists in
                             our database.""", }
             )
-            raise APIException({
+            raise ValidationError({
                 "detail": "Unable to verify your identity. Please contact support@draftboard.com"})
 
         # use Trulioo class to verify the user
@@ -977,23 +976,27 @@ class TruliooVerifyUserAPIView(APIView):
             t = Trulioo()
             verified = t.verify_minimal(
                 first=first, last=last, birth_day=birth_day, birth_month=birth_month,
-                birth_year=birth_year, postal_code=postal_code, user=user, ssn=ssn)
+                birth_year=birth_year, postal_code=postal_code, user=user)
         # Send data validation exceptions back through the API.
         except VerifyDataValidationError as e:
+            logger.warning("%s - user: %s" % (e, self.request.user))
             raise ValidationError({"detail": str(e)})
 
         # There was a data validation error sent back from Trulioo.
         except TruliooException as e:
+            logger.warning("%s - user: %s" % (e, self.request.user))
             raise ValidationError({"detail": str(e)})
 
         # Log all others before sending the user a generic response.
         except Exception as e:
-            logger.error("TruliooVerifyUserAPIView: %s" % str(e))
+            logger.warning("%s - user: %s" % (e, self.request.user))
             client.captureException()
             raise APIException(
                 'User verification was unsuccessful. Please contact support@draftboard.com')
 
         if verified is False:
+            logger.warning('IDENTITY_VERIFICATION_FAILED - no match found. user: %s' % (
+                self.request.user))
             # Create a user log for the failed attempt.
             create_user_log(
                 request=request,
@@ -1004,11 +1007,7 @@ class TruliooVerifyUserAPIView(APIView):
                 }
             )
 
-            raise APIException(
-                'User verification was unsuccessful. Please contact support@draftboard.com')
-
-        if verified is False:
-            raise APIException(
+            raise ValidationError(
                 'User verification was unsuccessful. Please contact support@draftboard.com')
 
         # If the verification request was successful...
@@ -1018,6 +1017,7 @@ class TruliooVerifyUserAPIView(APIView):
             user=request.user, first_name=first, last_name=last, birth_day=birth_day,
             birth_month=birth_month, birth_year=birth_year, postal_code=postal_code)
         identity.save()
+        logger.info("IDENTITY_VERIFICATION_SUCCESS - user: %s" % self.request.user)
         # Create a user log for the verification.
         create_user_log(
             request=request,

@@ -251,5 +251,3 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
     birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
     postal_code = serializers.CharField(max_length=16)
-    # This is 11 to allow the use of separator dashes.
-    ssn = serializers.CharField(max_length=11)
