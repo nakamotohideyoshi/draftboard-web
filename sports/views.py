@@ -38,10 +38,11 @@ from draftgroup.serializers import (
 class GetSerializedDataMixin:
 
     def get_serialized_data(self, model_class, serializer_class, sport):
-        updates = cache.get('{}_player_updates'.format(sports))
-        if not updates:
+        serialized_data = cache.get('{}_player_updates'.format(sport))
+        if not (serialized_data and serializer_class == PlayerUpdateSerializer):
             updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
-        serialized_data = serializer_class(updates, many=True).data
+            serialized_data = serializer_class(updates, many=True).data
+
         return serialized_data
 
 
