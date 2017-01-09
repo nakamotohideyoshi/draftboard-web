@@ -93,3 +93,6 @@ LOGGING['loggers'].update({
 RAVEN_CONFIG = {
     'dsn': 'https://bbae8e8654e34a80b02999b5ade6fd81:77f1b701685044fb9b20d31aa135ce63@sentry.io/72241',
 }
+
+# Who will recieve flagged identity emails. (this can be empty)
+FLAGGED_IDENTITY_EMAIL_RECIPIENTS = []

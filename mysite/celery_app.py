@@ -94,15 +94,17 @@ app.conf.update(
     # to the DB, they will not run. I'm leaving this here in case we need to re-add them to the DB
     # for some reason, but they will stay disabled and ignored.
     beat_schedule_DISABLED_README_ABOVE={
-        #
-        #
+        # Search for flagged identities and send an email if any are found.
+        'flagged_identities_email': {
+            'task': 'account.tasks.flagged_identities_email',
+            'schedule': timedelta(seconds=60),  # every 60 seconds
+        },
+        # Notify admin of any pending withdrawals.
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
             'schedule': crontab(minute=0, hour='12'),  # ~ noon
             'options': {'queue': 'long_running'},
         },
-
-        #
         # contest pool schedule manager updates the upcoming
         # days with what is going to be created.
         'nba_contest_pool_schedule_manager': {
@@ -125,10 +127,6 @@ app.conf.update(
             'schedule': timedelta(hours=4, minutes=13),  # staggered
             'args': ('nfl',),
         },
-
-        #
-        # very fast, low cpu-intensity task. use default queue (ie: dont specify one)
-        #
         # this is a task that simply prints 'heartbeat' in the logs.
         # its only real purposes right now is to put
         # tasks in the default queue for testing purposes
