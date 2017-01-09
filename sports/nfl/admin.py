@@ -82,7 +82,3 @@ class GamePortionAdmin(admin.ModelAdmin):
 @admin.register(sports.nfl.models.PbpDescription)
 class PbpDescriptionAdmin(admin.ModelAdmin):
     list_display = ['pbp','srid_game','category','sequence','idx','description']
-
-@admin.register(sports.nfl.models.Injury)
-class InjuryAdmin(admin.ModelAdmin):
-    list_display = ['iid','srid','practice_status','status','description']

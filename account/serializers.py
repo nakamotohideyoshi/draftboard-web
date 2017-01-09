@@ -9,8 +9,18 @@ from account.models import (
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
+    Identity,
 )
 from django.contrib.auth import get_user_model
+
+
+class UserIdentitySerializer(serializers.ModelSerializer):
+    """
+    Serializer for User.Identity. This gets nested in UserSerializer.
+    """
+    class Meta:
+        model = Identity
+        fields = ('first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year', 'postal_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,6 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
     cash_balance = serializers.SerializerMethodField()
     cash_balance_formatted = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    identity = UserIdentitySerializer(read_only=True)
 
     def get_identity_verified(self, user):
         # Bypass this if they have the permission.
@@ -51,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "username", "email", "identity_verified", "cash_balance", "cash_balance_formatted",
-            "permissions")
+            "permissions", "identity",)
 
 
 class UserCredentialsSerializer(serializers.ModelSerializer):

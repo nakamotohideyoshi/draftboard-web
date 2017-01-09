@@ -1,3 +1,5 @@
+// TODO: fix our promise warnings and enable this.
+/* eslint-disable promise/no-callback-in-promise */
 import Raven from 'raven-js';
 import { dateNow } from '../lib/utils';
 import log from '../lib/logging.js';
