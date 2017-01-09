@@ -1,0 +1,314 @@
+{
+    "plays": {
+        "dunk": "dunk.png",
+        "freethrow": "free-throw.png",
+        "jumpshot_zone_1": "jump-shot-zone-1.png",
+        "jumpshot_zone_2": "jump-shot-zone-2.png",
+        "jumpshot_zone_3": "jump-shot-zone-3.png",
+        "jumpshot_zone_4": "jump-shot-zone-4.png",
+        "jumpshot_zone_5": "jump-shot-zone-5.png",
+        "rebound": "rebound-zone-3.png",
+        "layup": "layup-zone-3.png",
+        "steal_zone_1": "steal-zone-2.png",
+        "steal_zone_2": "steal-zone-2.png",
+        "steal_zone_3": "steal-zone-3.png",
+        "steal_zone_4": "steal-zone-4.png",
+        "steal_zone_5": "steal-zone-4.png",
+        "block_dunk": "block-dunk.png",
+        "block_jumpshot_zone_1": "block-jump-shot-zone-1.png",
+        "block_jumpshot_zone_2": "block-jump-shot-zone-2.png",
+        "block_jumpshot_zone_3": "block-jump-shot-zone-3.png",
+        "block_jumpshot_zone_4": "block-jump-shot-zone-4.png",
+        "block_jumpshot_zone_5": "block-jump-shot-zone-5.png"
+    },
+    "clips": [
+        {
+            "file": "dunk.png",
+            "width": 160,
+            "height": 190,
+            "length" : 40,
+            "offset_x": 35,
+            "offset_y": 40,
+            "avatar_x": 74,
+            "avatar_y": 90,
+            "avatar_in": 10,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 41,
+                "both": 81
+            }
+        },
+        {
+            "file": "free-throw.png",
+            "width": 130,
+            "height": 180,
+            "length" : 118,
+            "offset_x": 75,
+            "offset_y": 150,
+            "avatar_x": 82,
+            "avatar_y": 97,
+            "avatar_in": 73,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 119,
+                "both": 237
+            }
+        },
+        {
+            "file": "jump-shot-zone-1.png",
+            "width": 100,
+            "height": 200,
+            "length" : 53,
+            "offset_x": 45,
+            "offset_y": 165,
+            "avatar_x": 49,
+            "avatar_y": 104,
+            "avatar_in": 18,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 54,
+                "both": 107
+            }
+        },
+        {
+            "file": "jump-shot-zone-2.png",
+            "width": 100,
+            "height": 220,
+            "length" : 44,
+            "offset_x": 55,
+            "offset_y": 165,
+            "avatar_x": 54,
+            "avatar_y": 104,
+            "avatar_in": 10,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 45,
+                "both": 89
+            }
+        },
+        {
+            "file": "jump-shot-zone-3.png",
+            "width": 110,
+            "height": 220,
+            "length": 44,
+            "offset_x": 55,
+            "offset_y": 165,
+            "avatar_x": 55,
+            "avatar_y": 114,
+            "avatar_in": 12,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 45,
+                "both": 89
+            }
+        },
+        {
+            "file": "jump-shot-zone-4.png",
+            "width": 100,
+            "height": 180,
+            "length" : 52,
+            "offset_x": 45,
+            "offset_y": 165,
+            "avatar_x": 54,
+            "avatar_y": 91,
+            "avatar_in": 10,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 53,
+                "both": 105
+            }
+        },
+        {
+            "file": "jump-shot-zone-5.png",
+            "width": 110,
+            "height": 190,
+            "length" : 47,
+            "offset_x": 55,
+            "offset_y": 160,
+            "avatar_x": 62,
+            "avatar_y": 110,
+            "avatar_in": 10,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 48,
+                "both": 95
+            }
+        },
+        {
+            "file": "rebound-zone-3.png",
+            "width": 130,
+            "height": 220,
+            "length" : 53,
+            "offset_x": 45,
+            "offset_y": 180,
+            "avatar_x": 59,
+            "avatar_y": 104,
+            "avatar_in": 11,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 54,
+                "both": 107
+            }
+        },
+        {
+            "file": "layup-zone-3.png",
+            "width": 230,
+            "height": 180,
+            "length" : 44,
+            "offset_x": 75,
+            "offset_y": 25,
+            "avatar_x": 135,
+            "avatar_y": 66,
+            "avatar_in": 18,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 45,
+                "both": 89
+            }
+        },
+        {
+            "file": "steal-zone-2.png",
+            "width": 200,
+            "height": 150,
+            "length" : 43,
+            "offset_x": 85,
+            "offset_y": 100,
+            "avatar_x": 65,
+            "avatar_y": 47,
+            "avatar_in": 21,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 44,
+                "both": 87
+            }
+        },
+        {
+            "file": "steal-zone-3.png",
+            "width": 170,
+            "height": 100,
+            "length" : 49,
+            "offset_x": 75,
+            "offset_y": 70,
+            "avatar_x": 70,
+            "avatar_y": 20,
+            "avatar_in": 18,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 50,
+                "both": 99
+            }
+        },
+        {
+            "file": "steal-zone-4.png",
+            "width": 170,
+            "height": 100,
+            "length" : 39,
+            "offset_x": 75,
+            "offset_y": 70,
+            "avatar_x": 62,
+            "avatar_y": 22,
+            "avatar_in": 12,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 40,
+                "both": 79
+            }
+        },
+        {
+            "file": "block-dunk.png",
+            "width": 220,
+            "height": 170,
+            "length" : 45,
+            "offset_x": 95,
+            "offset_y": 150,
+            "avatar_x": 93,
+            "avatar_y": 73,
+            "avatar_in": 10,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 46,
+                "both": 91
+            }
+        },
+        {
+            "file": "block-jump-shot-zone-1.png",
+            "width": 120,
+            "height": 180,
+            "length" : 55,
+            "offset_x": 60,
+            "offset_y": 150,
+            "avatar_x": 68,
+            "avatar_y": 90,
+            "avatar_in": 24,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 56,
+                "both": 111
+            }
+        },
+        {
+            "file": "block-jump-shot-zone-2.png",
+            "width": 160,
+            "height": 200,
+            "length" : 45,
+            "offset_x": 65,
+            "offset_y": 130,
+            "avatar_x": 69,
+            "avatar_y": 74,
+            "avatar_in": 11,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 46,
+                "both": 91
+            }
+        },
+        {
+            "file": "block-jump-shot-zone-3.png",
+            "width": 190,
+            "height": 180,
+            "length" : 41,
+            "offset_x": 90,
+            "offset_y": 140,
+            "avatar_x": 82,
+            "avatar_y": 73,
+            "avatar_in": 11,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 42,
+                "both": 83
+            }
+        },
+        {
+            "file": "block-jump-shot-zone-4.png",
+            "width": 180,
+            "height": 180,
+            "length" : 43,
+            "offset_x": 100,
+            "offset_y": 145,
+            "avatar_x": 84,
+            "avatar_y": 83,
+            "avatar_in": 15,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 44,
+                "both": 87
+            }
+        },
+        {
+            "file": "block-jump-shot-zone-5.png",
+            "width": 120,
+            "height": 160,
+            "length" : 44,
+            "offset_x": 70,
+            "offset_y": 115,
+            "avatar_x": 63,
+            "avatar_y": 63,
+            "avatar_in": 17,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 45,
+                "both": 89
+            }
+        }
+    ]
+}

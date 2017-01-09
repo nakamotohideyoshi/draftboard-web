@@ -1,7 +1,7 @@
-# sports/nba/tests.py
-
 from ast import literal_eval
-from test.classes import AbstractTest
+
+from model_mommy import mommy
+
 import sports.nba.models
 from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nba.parser import (
@@ -9,8 +9,10 @@ from sports.nba.parser import (
     GameSchedule,
     TeamHierarchy,
     EventPbp,
-    # GameBoxscoreParser,
+    GameBoxscoreParser,
+    PlayerStats,
 )
+from test.classes import AbstractTest
 
 
 class TestSeasonScheduleParser(AbstractTest):
@@ -94,51 +96,59 @@ class TestGameScheduleParser(AbstractTest):
 # This is because the update is looking for the game to already
 # exist in the database, but we haven't set that up yet for this test
 
-# class TestGameBoxscoreParser(AbstractTest):
-#     """ tests the send() part only """
+class TestGameBoxscoreParser(AbstractTest):
+    """ tests the send() part only """
 
-#     def setUp(self):
-#         self.parser = GameBoxscoreParser()
+    def setUp(self):
+        self.parser = GameBoxscoreParser()
 
-#     def __parse_and_send(self, unwrapped_obj, target):
-#         parts = target[0].split('.')
-#         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-#         self.parser.parse(oplog_obj, target=target)
-#         print('self.o:', str(self.parser.o))
-#         print('about to call send()...')
-#         self.parser.send()
-#         print('... called send()')
+    def __parse_and_send(self, unwrapped_obj, target):
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        self.parser.send()
 
-#     def test_1(self):
-#         sport_db = 'nba'
-#         parent_api = 'boxscores'
+    def test_parse(self):
+        sport_db = 'nba'
+        parent_api = 'boxscores'
 
-#         data = {
-#             "id": "a7078756-0963-4c68-872c-9b677f786a5e",
-#             "status": "closed",
-#             "coverage": "full",
-#             "scheduled": "2016-10-27T00:00:00+00:00",
-#             "duration": "2:30",
-#             "attendance": 18119,
-#             "lead_changes": 11,
-#             "times_tied": 5,
-#             "clock": "00:00",
-#             "quarter": 4,
-#             "home": {
-#                 "name": "Grizzlies",
-#                 "market": "Memphis",
-#                 "id": "583eca88-fb46-11e1-82cb-f4ce4684ea4c",
-#                 "points": 102
-#             },
-#             "away": {
-#                 "name": "Timberwolves",
-#                 "market": "Minnesota",
-#                 "id": "583eca2f-fb46-11e1-82cb-f4ce4684ea4c",
-#                 "points": 98
-#             }
-#         }
+        # I believe This is a typical game boxscore object we get from dataden.
+        data = {
+            'away_team': '583ecf50-fb46-11e1-82cb-f4ce4684ea4c',
+            '_id': 'cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDkyMTkzMWQ2LWYxMzctNGJhNy1iMjM3LTYwOTU3YTdkZmY5Yg==',
+            'quarter': 4.0,
+            'parent_api__id': 'boxscores',
+            'dd_updated__id': 1482384853598,
+            'teams': [
+                {'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c'},
+                {'team': '583ecf50-fb46-11e1-82cb-f4ce4684ea4c'}
+            ],
+            'coverage': 'full',
+            'home_team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+            'id': '921931d6-f137-4ba7-b237-60957a7dff9b',
+            'xmlns': 'http://feed.elasticstats.com/schema/basketball/game-v2.0.xsd',
+            'clock': '00:00',
+            'scheduled': '2016-12-22T03:00:00+00:00',
+            'neutral_site': 'false',
+            'status': 'inprogress'
+        }
 
-#         self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+        # Create a nba.Team models
+        mommy.make(
+            sports.nba.models.Team,
+            srid=data['home_team']
+        )
+        mommy.make(
+            sports.nba.models.Team,
+            srid=data['away_team']
+        )
+        # Create a Game model so this boxcore can be parsed.
+        mommy.make(
+            sports.nba.models.Game,
+            srid=data['id']
+        )
+        # Parse it!
+        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
 
 class TestEventPbp(AbstractTest):
@@ -150,8 +160,34 @@ class TestEventPbp(AbstractTest):
 
     def setUp(self):
         super().setUp()
-        # ignoring E501 line too long PEP8 warning
-        self.obj_str = """{'o': {'parent_list__id': 'events__list', 'location__list': {'coord_x': 370.0, 'coord_y': 209.0}, 'parent_api__id': 'pbp', 'quarter__id': '715a0977-ab1e-4d13-9425-7d776b69615e', 'game__id': 'dcecc6c6-d6f8-40e2-a83c-d22953e55112', 'id': 'fb8be809-6822-439e-aaf0-e5d334ed25aa', 'dd_updated__id': 1454641970660, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjZWNjNmM2LWQ2ZjgtNDBlMi1hODNjLWQyMjk1M2U1NTExMnF1YXJ0ZXJfX2lkNzE1YTA5NzctYWIxZS00ZDEzLTk0MjUtN2Q3NzZiNjk2MTVlcGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWRmYjhiZTgwOS02ODIyLTQzOWUtYWFmMC1lNWQzMzRlZDI1YWE=', 'updated': '2016-02-05T03:12:41+00:00', 'clock': '11:41', 'statistics__list': {'fieldgoal__list': {'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c', 'made': 'false', 'three_point_shot': 'true', 'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd', 'shot_type': 'jump shot'}}, 'event_type': 'threepointmiss', 'attribution': '583ed056-fb46-11e1-82cb-f4ce4684ea4c', 'description': 'Damian Lillard misses three point jump shot'}, 'ns': 'nba.event', 'ts': 1454659978}"""  # noqa
+        self.obj_str = """{'o':  {
+            'ns': 'nba.event',
+            'ts': 1454659978,
+            'event_type': 'threepointmiss',
+            'attribution': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+            'description': 'Damian Lillard misses three point jump shot',
+            'parent_list__id': 'events__list',
+            'location__list': {'coord_x': 370.0,
+            'coord_y': 209.0},
+            'parent_api__id': 'pbp',
+            'quarter__id': '715a0977-ab1e-4d13-9425-7d776b69615e',
+            'game__id': 'dcecc6c6-d6f8-40e2-a83c-d22953e55112',
+            'id': 'fb8be809-6822-439e-aaf0-e5d334ed25aa',
+            'dd_updated__id': 1454641970660,
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjZWNjNmM2LWQ2ZjgtNDBlMi1hODNjLWQy',
+            'updated': '2016-02-05T03:12:41+00:00',
+            'clock': '11:41',
+            'statistics__list': {
+              'fieldgoal__list': {
+                'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+                'made': 'false',
+                'three_point_shot': 'true',
+                'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd',
+                'shot_type': 'jump shot'
+              }
+            },
+          }
+        }"""  # noqa
         self.data = literal_eval(self.obj_str)  # convert to dict
         self.oplog_obj = OpLogObj(self.data)
 
@@ -186,3 +222,90 @@ class TestEventPbp(AbstractTest):
         # filter()
         player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
         self.assertTrue(set(self.target_player_srids) <= set(player_srids))
+
+
+class TestPlayerStats(AbstractTest):
+    """
+    Test the PlayerStats Parser. It should take an update object from mongo and create a PlayerStat
+    from it.
+    """
+    def setUp(self):
+        super().setUp()
+        self.parser = PlayerStats()
+        # some info needed for the parser
+        self.sport_db = 'nba'
+        self.parent_api = 'stats'
+
+        # An example nba.player stats object from mongo.
+        self.obj = {
+            'team__id': '583ec97e-fb46-11e1-82cb-f4ce4684ea4c',
+            'dd_updated__id': 1482278107385,
+            'first_name': 'Michael',
+            'id': 'ea8a18e4-1341-48f1-b75d-5bbac8d789d4',
+            'position': 'F',
+            'game__id': '7a4cc8a0-1ab1-4f76-8d7c-7b1017518c8d',
+            'parent_api__id': 'stats',
+            '_id': 'cGFyZW50X2FwaV9faWRzdGF0c2dhbWVfX2lkN2E0Y2M4YTAtMWFiMS00=',
+            'full_name': 'Michael Kidd-Gilchrist',
+            'active': 'true',
+            'starter': 'true',
+            'statistics__list': {
+                'defensive_rebounds': 1.0, 'two_points_made': 0.0,
+                'free_throws_pct': 0.0, 'field_goals_made': 0.0, 'blocks': 0.0,
+                'pls_min': 0.0, 'free_throws_made': 0.0, 'two_points_pct': 0.0,
+                'three_points_att': 0.0, 'points': 0.0,
+                'three_points_made': 0.0, 'field_goals_pct': 0.0,
+                'blocked_att': 0.0, 'assists_turnover_ratio': 0.0,
+                'flagrant_fouls': 0.0, 'assists': 0.0, 'two_points_att': 0.0,
+                'three_points_pct': 0.0, 'tech_fouls': 0.0,
+                'field_goals_att': 0.0, 'personal_fouls': 0.0, 'steals': 0.0,
+                'free_throws_att': 0.0, 'minutes': '00:00',
+                'offensive_rebounds': 0.0, 'rebounds': 0.0, 'turnovers': 0.0
+            },
+            'last_name': 'Kidd-Gilchrist',
+            'played': 'true',
+            'parent_list__id': 'players__list',
+            'primary_position': 'SF',
+            'jersey_number': 14.0
+        }
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        self.parser.send()
+
+    def test_parse(self):
+        # Create the Player this update is for
+        player = mommy.make(
+            sports.nba.models.Player,
+            srid=self.obj['id']
+        )
+        # Create the Game this update is for.
+        game = mommy.make(
+            sports.nba.models.Game,
+            srid=self.obj['game__id']
+        )
+
+        # Fetch any existing PlayerStats. should be none.
+        existing_player_stat = self.parser.player_stats_model.objects.filter(
+                srid_game=game.srid,
+                srid_player=player.srid
+        )
+        # Ensure none exist.
+        self.assertEquals(existing_player_stat.count(), 0)
+
+        # Parse the update object.
+        self.__parse_and_send(self.obj, ('%s.game' % self.sport_db, self.parent_api))
+
+        # Fetch the new PlayerStat that was created.
+        new_player_stat = self.parser.player_stats_model.objects.filter(
+                srid_game=game.srid,
+                srid_player=player.srid
+        )
+        # Make sure it exists.
+        self.assertEquals(new_player_stat.count(), 1)
+
+        # Now send another update just to make sure it doesn't bomb out.
+        self.__parse_and_send(self.obj, ('%s.game' % self.sport_db, self.parent_api))
+        self.assertEquals(new_player_stat.count(), 1)

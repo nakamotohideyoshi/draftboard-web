@@ -46,18 +46,17 @@ export const fetchContestPoolEntries = () => (dispatch) => {
     },
   });
 
-  apiActionResponse.then((action) => {
+  return apiActionResponse.then((action) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
-      dispatch({
+      return dispatch({
         type: actionTypes.FETCH_CONTEST_POOL_ENTRIES_FAIL,
         response: action.error,
       });
     }
-  });
 
-  // Return the promise chain in case we want to use it elsewhere.
-  return apiActionResponse;
+    return action;
+  });
 };
 
 
@@ -111,18 +110,17 @@ export const fetchContestPools = () => (dispatch, getState) => {
     },
   });
 
-  apiActionResponse.then((action) => {
+  return apiActionResponse.then((action) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
-      dispatch({
+      return dispatch({
         type: actionTypes.FETCH_CONTEST_POOLS_FAIL,
         response: action.error,
       });
     }
-  });
 
-  // Return the promise chain in case we want to use it elsewhere.
-  return apiActionResponse;
+    return action;
+  });
 };
 
 
@@ -420,6 +418,7 @@ export function removeContestPoolEntry(entry) {
       return response.json().then(json => ({ json, response }));
     }).then((json) => {
       log.debug(json);
+      return json;
     }).catch((ex) => {
       // Log the request error to Sentry with some info.
       Raven.captureMessage(

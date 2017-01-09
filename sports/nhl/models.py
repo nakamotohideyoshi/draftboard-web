@@ -56,25 +56,26 @@ class Player(sports.models.Player):
     inherited: 'srid', 'first_name', 'last_name'
     """
     team = models.ForeignKey(Team, null=False)
-    srid_team = models.CharField(max_length=64, null=False, default='')
-    birth_place = models.CharField(max_length=64, null=False, default='')
-    birthdate = models.CharField(max_length=64, null=False, default='')
-    college = models.CharField(max_length=64, null=False, default='')
-    experience = models.FloatField(default=0.0, null=False)
-    height = models.FloatField(default=0.0, null=False, help_text='inches')
-    weight = models.FloatField(default=0.0, null=False, help_text='lbs')
-    jersey_number = models.CharField(max_length=64, null=False, default='')
+    srid_team = models.CharField(max_length=64, null=False, blank=True, default='')
+    birth_place = models.CharField(max_length=64, null=False, blank=True, default='')
+    birthdate = models.CharField(max_length=64, null=False, blank=True, default='')
+    college = models.CharField(max_length=64, null=False, blank=True, default='')
+    experience = models.FloatField(default=0.0, null=False, blank=True)
+    height = models.FloatField(default=0.0, null=False, blank=True, help_text='inches')
+    weight = models.FloatField(default=0.0, null=False, blank=True, help_text='lbs')
+    jersey_number = models.CharField(max_length=64, null=False, blank=True, default='')
     # primary_position = models.CharField(max_length=64, null=False, default='')
     status = models.CharField(
         max_length=64,
         null=False,
         default='',
+        blank=True,
         help_text='roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!'
     )
-    draft_pick = models.CharField(max_length=64, null=False, default='')
-    draft_round = models.CharField(max_length=64, null=False, default='')
-    draft_year = models.CharField(max_length=64, null=False, default='')
-    srid_draft_team = models.CharField(max_length=64, null=False, default='')
+    draft_pick = models.CharField(max_length=64, null=False, blank=True, default='')
+    draft_round = models.CharField(max_length=64, null=False, blank=True, default='')
+    draft_year = models.CharField(max_length=64, null=False, blank=True, default='')
+    srid_draft_team = models.CharField(max_length=64, null=False, blank=True, default='')
 
     class Meta:
         abstract = False

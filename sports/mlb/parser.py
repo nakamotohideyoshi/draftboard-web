@@ -52,14 +52,16 @@ from draftgroup.classes import (
     GameUpdateManager,
 )
 import scoring.classes
+from urllib import parse
 
 
 def get_redis_instance():
+    redis_url_parsed = parse.urlparse(settings.REDIS_URL)
     # return cache
     return Redis(
-        host=settings.REDIS_URL.hostname,
-        port=settings.REDIS_URL.port,
-        password=settings.REDIS_URL.password,
+        host=redis_url_parsed.hostname,
+        port=redis_url_parsed.port,
+        password=redis_url_parsed.password,
         db=0)
 
 
