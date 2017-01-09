@@ -183,9 +183,12 @@ class Identity(models.Model):
     # Trulioo calls it a postal code, but it's actually a ZIP code
     postal_code = models.CharField(max_length=16, null=False)
     created = models.DateTimeField(auto_now_add=True)
+    # Is this identity flagged because a similar looking one exists?
+    flagged = models.BooleanField(default=False, null=False)
 
     class Meta:
         verbose_name = 'Trulioo User Identity'
+        verbose_name_plural = 'Trulioo User Identities'
 
 
 class Confirmation(models.Model):
