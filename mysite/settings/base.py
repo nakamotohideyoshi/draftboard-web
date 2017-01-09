@@ -1,9 +1,9 @@
 from datetime import timedelta
-from django.conf.locale.en import formats as en_formats
 from os import environ, path
 from sys import stdout
-from unipath import Path
 
+from django.conf.locale.en import formats as en_formats
+from unipath import Path
 
 # Django constants
 # ----------------------------------------------------------
@@ -67,8 +67,8 @@ en_formats.DATETIME_FORMAT = "l, M d P"  # [ "m/d/Y h:i:s P", "l m.d.Y  @  P" ]
 
 # for the editing/display format of time objects in the admin
 TIME_INPUT_FORMATS = [
-    '%H:%M',        # '14:30'
-    '%H:%M:%S',     # '14:30:59'
+    '%H:%M',  # '14:30'
+    '%H:%M:%S',  # '14:30:59'
     '%H:%M:%S.%f',  # '14:30:59.000200'
 ]
 
@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     'promocode',
     'promocode.bonuscash',
     'keyprefix',
-    'dataden',                  # DataDen/MongoDB triggers
+    'dataden',  # DataDen/MongoDB triggers
     'sports',
     'sports.mlb',
     'sports.nba',
@@ -137,20 +137,20 @@ INSTALLED_APPS = (
     'contest.refund',
     'contest.schedule',
     'scoring',
-    'scoring.baseball',         # generate stat-strings
+    'scoring.baseball',  # generate stat-strings
     'roster',
     'rakepaid',
     'test',
     'salary',
     'draftgroup',
-    'frontend',                 # front end styles, layout, etc
-    'mysite',                   # just for management command access
+    'frontend',  # front end styles, layout, etc
+    'mysite',  # just for management command access
     'replayer',
-    'pp',                       # our implementation of a few required paypal apis
+    'pp',  # our implementation of a few required paypal apis
     'lobby',
     'raven.contrib.django.raven_compat',  # sentry
-    'statscom',                 # STATS.com api parsers, models, projections, etc...
-    'swish',                    # Swish Analytics
+    'statscom',  # STATS.com api parsers, models, projections, etc...
+    'swish',  # Swish Analytics
     'trulioo',
     'rest_framework_swagger',
 )
@@ -197,7 +197,6 @@ TEMPLATES = [{
     },
 }]
 
-
 # Custom global constants
 # ----------------------------------------------------------
 
@@ -243,7 +242,6 @@ REDIS_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 # the named cache that uses the heroku redis instance
 API_CACHE_NAME = 'default'
 
-
 # Third party credentials - defaults to test mode
 # ----------------------------------------------------------
 
@@ -265,7 +263,7 @@ MONGO_SERVER_ADDRESS = 'ds015781-a0.mlab.com'
 MONGO_AUTH_DB = 'admin'
 MONGO_USER = 'admin'
 MONGO_PASSWORD = 'dataden1'
-MONGO_PORT = 15781         # default port may be the actual port
+MONGO_PORT = 15781  # default port may be the actual port
 MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
     MONGO_USER,
     MONGO_PASSWORD,
@@ -362,7 +360,6 @@ if USE_LOCKDOWN:
         r'^/static/',
     )
 
-
 # Django Logging
 # ----------------------------------------------------------
 LOGGING = {
@@ -422,6 +419,8 @@ TRULIOO_DEMO_MODE = True
 
 # Inactive users
 INACTIVE_USERS_EMAILS = []
+# Who will recieve flagged identity emails. (this can be empty)
+FLAGGED_IDENTITY_EMAIL_RECIPIENTS = ['dan@draftboard.com', 'devs@draftboard.com']
 
 # Sentry Config
 RAVEN_CONFIG = {
@@ -430,7 +429,6 @@ RAVEN_CONFIG = {
 
 # access domain
 COOKIE_ACCESS_DOMAIN = '.draftboard.com'
-
 
 # ANALYTICS settings
 # ----------------------------------------------------------
