@@ -72,10 +72,6 @@ class GamePortionAdmin(admin.ModelAdmin):
 class PbpDescriptionAdmin(admin.ModelAdmin):
     list_display = ['pbp','srid_game','category','sequence','idx','description']
 
-@admin.register(sports.mlb.models.Injury)
-class InjuryAdmin(admin.ModelAdmin):
-    list_display = ['iid','status','description']
-
 @admin.register(sports.mlb.models.LiveFeed)
 class LiveFeedAdmin(admin.ModelAdmin):
     list_display = ['created', 'ts', 'name', 'game_srid', 'data']

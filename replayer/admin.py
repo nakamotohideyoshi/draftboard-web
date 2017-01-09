@@ -23,7 +23,6 @@ def enable_contest_pool_contest_spawner():
     pt = PeriodicTask.objects.get(name='generate_contest_pool_contests')
     pt.enabled = True
     pt.save()
-    PeriodicTasks.changed()
 
 @admin.register(replayer.models.Replay)
 class ReplayAdmin(admin.ModelAdmin):

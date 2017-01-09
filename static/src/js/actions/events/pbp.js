@@ -319,8 +319,10 @@ const getNBAData = (message, gameId) => {
     gameId,
     id: pbp.id,
     location: pbp.location__list,
+    pbp,
     playersStats: stats || [],
     sport: 'nba',
+    type: pbp.event_type,
     when: pbp.clock,
   };
 };
