@@ -11,13 +11,18 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from logging import getLogger
 
 from account.models import (
     UserEmailNotification,
     Information,
+    Identity,
 )
 from contest.models import Entry
 from .utils import encode_uid
+
+logger = getLogger('account.tasks')
+
 # /password/reset/confirm/{uid}/{token}
 
 #
@@ -66,3 +71,35 @@ def check_not_active_users(self):
     if users.exists():
         inactive_users_email.delay(users)
         Information.objects.filter(user__in=users).update(inactive=True)
+
+
+@app.task
+def flagged_identities_email():
+    """
+    Look for any flagged Trulioo Identities, if any exist, send an email so they can
+    be manually investigated.
+
+    Returns: Int Number of Identitiesfound.
+    """
+    if settings.FLAGGED_IDENTITY_EMAIL_RECIPIENTS:
+        flagged_identities = Identity.objects.filter(flagged=True).count()
+
+        if flagged_identities > 0:
+            logger.info('Sending email for %s flagged identities.' % flagged_identities)
+            subject = 'Flagged Identities'
+
+            body = """
+            There are %s flagged identities. Go check them out here: <a href="%s">%s</a>
+            """ % (
+                flagged_identities,
+                settings.SITE + '/admin/account/identity/?flagged__exact=1',
+                settings.SITE + '/admin/account/identity/?flagged__exact=1'
+            )
+
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, settings.FLAGGED_IDENTITY_EMAIL_RECIPIENTS)
+        else:
+            logger.info('No flagged identities found, not sending email.')
+        # Return a count of flagged identities.
+        return flagged_identities
+    else:
+        logger.info('No FLAGGED_IDENTITY_EMAIL_RECIPIENTS setting, not attempting to send email.')

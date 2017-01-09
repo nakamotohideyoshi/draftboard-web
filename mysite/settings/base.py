@@ -415,6 +415,8 @@ TRULIOO_DEMO_MODE = True
 
 # Inactive users
 INACTIVE_USERS_EMAILS = []
+# Who will recieve flagged identity emails. (this can be empty)
+FLAGGED_IDENTITY_EMAIL_RECIPIENTS = ['dan@draftboard.com', 'devs@draftboard.com']
 
 # Sentry Config
 RAVEN_CONFIG = {

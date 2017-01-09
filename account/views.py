@@ -947,6 +947,8 @@ class TruliooVerifyUserAPIView(APIView):
         postal_code = serializer.validated_data.get('postal_code')
 
         # First check if we have an existing user match in our DB.
+        # It is hiiighly unlikely that we'll have 2 users with the same
+        # last name, DOB, & postal code. If we do, they can be manually added.
         existing_identities = Identity.objects.filter(
             first_name__iexact=first,
             last_name__iexact=last,
@@ -968,6 +970,21 @@ class TruliooVerifyUserAPIView(APIView):
             )
             raise ValidationError({
                 "detail": "Unable to verify your identity. Please contact support@draftboard.com"})
+
+        # Search for similar identities
+        # Trulioo has some leeway when verifying identites. For instance it will match "dan" as
+        # "daniel". Or a user could enter an old postal code and it will verify. What we want to do
+        # is flag the users that have slightly different info from any identities we have already
+        # verified. When a flagged identity is created, a notification is sent to the site admin
+        # for manual investigation.
+        # Truliio doesn't let you fudge birthdate or last name, so if we encounter someone with the
+        # same ones, flag em.
+        similar_identity_exists = Identity.objects.filter(
+            birth_day=birth_day,
+            birth_month=birth_month,
+            birth_year=birth_year,
+            last_name__iexact=last,
+        ).exists()
 
         # use Trulioo class to verify the user
         verified = False
@@ -1015,8 +1032,11 @@ class TruliooVerifyUserAPIView(APIView):
         # Save the information so we can do multi-account checking.
         identity = Identity(
             user=request.user, first_name=first, last_name=last, birth_day=birth_day,
-            birth_month=birth_month, birth_year=birth_year, postal_code=postal_code)
+            birth_month=birth_month, birth_year=birth_year, postal_code=postal_code,
+            flagged=similar_identity_exists)
         identity.save()
+        if similar_identity_exists:
+            logger.warning("SIMILAR_IDENTITY_EXISTS - user: %s" % self.request.user)
         logger.info("IDENTITY_VERIFICATION_SUCCESS - user: %s" % self.request.user)
         # Create a user log for the verification.
         create_user_log(
