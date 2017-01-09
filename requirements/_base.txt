@@ -95,3 +95,5 @@ zipcode==2.0.0
 # New Relic
 newrelic==2.74.0.54
 
+# django-ipware
+django-ipware
