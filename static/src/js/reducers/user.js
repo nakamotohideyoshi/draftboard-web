@@ -5,6 +5,7 @@ const initialState = {
   user: {
     isFetching: false,
     isIdentityVerified: false,
+    identity: {},
     userLimits: [],
     currentLimits: [],
     selectedLimits: [],

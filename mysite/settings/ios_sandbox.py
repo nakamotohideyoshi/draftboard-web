@@ -19,8 +19,8 @@ DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 500
 
 # RedisCloud redis - used primarily for live stats
-REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
-REDIS_URL = parse.urlparse(REDISCLOUD_URL)
+REDIS_URL = environ.get('REDISCLOUD_URL')
+REDIS_URL = parse.urlparse(REDIS_URL)
 
 CACHES = {
     # default django cache

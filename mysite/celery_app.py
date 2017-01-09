@@ -6,24 +6,25 @@
 #
 #   *4. If you want to be able to add periodic tasks using the django admin, run:
 #
-#       $> celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
+#       $> celery -A mysite beat -S django
 #
-#       then visit: http://localhost/admin/djcelery/periodictask/
+#       then visit: http://localhost/admin/django_celery_beat/periodictask/
 #
 # Of course, this is only an example of how to run celery concurrently in your terminals...
 
 from __future__ import absolute_import
+
+import os
+import time
+from datetime import timedelta
+from logging import getLogger
+
+import celery.states
+import redis
 from celery import Celery
 from celery.schedules import crontab
-from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
-from django.core.cache import caches
-from logging import getLogger
-import celery.states
-import os
-import redis
-import time
 from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
 
@@ -53,37 +54,52 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
 
 app = Celery('mysite')
 
-# Using a string here means the worker will not have to
-# pickle the object when using Windows.
+# Using a string here means the worker don't have to serialize
+# the configuration object to child processes.
+# - namespace='CELERY' means all celery-related configuration keys
+#   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings')
+# Load task modules from all registered Django app configs.
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
 #
 ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
-broker_url = caches['celery']._server
-logger.info('Celery starting using broker_url:', broker_url)
-
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    CELERY_RESULT_BACKEND=broker_url,
-    BROKER_URL=broker_url,
-
+    # Store task results in redis rather than our DB. - This means we can't see them
+    # in the django admin, but that's fine.
+    # result_backend='django-db',
+    result_backend=settings.REDIS_URL_CELERY,
+    broker_url=settings.REDIS_URL_CELERY,
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
-    CELERY_ACCEPT_CONTENT=['pickle'],  # ['json'],
-    CELERY_TASK_SERIALIZER='pickle',  # 'json',
-    CELERY_RESULT_SERIALIZER='pickle',  # 'json',
+    accept_content=['pickle'],  # ['json'],
+    task_serializer='pickle',  # 'json',
+    result_serializer='pickle',  # 'json',
+    enable_utc=True,
+    # This uses 'America/New York'
+    timezone=settings.TIME_ZONE,
+    task_track_started=True,
+    redis_max_connections=10,
+    broker_pool_limit=None,
+    beat_scheduler='django',
 
-    # CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
+    # Scheduled Tasks
 
-    CELERYBEAT_SCHEDULE={
+    # Ok, this is kinda weird...
+    # On Celery 3.x & djcelery you can specify tasks here, then manage them via the admin panel.
+    # on Celery 4.x & django-celery-beat, if you have these here and they have already been added
+    # to the DB, they will not run. I'm leaving this here in case we need to re-add them to the DB
+    # for some reason, but they will stay disabled and ignored.
+    beat_schedule_DISABLED_README_ABOVE={
         #
         #
         'notify_withdraws': {
             'task': 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule': crontab(minute=0, hour='17'),  # ~ noon
+            'schedule': crontab(minute=0, hour='12'),  # ~ noon
+            'options': {'queue': 'long_running'},
         },
 
         #
@@ -235,26 +251,30 @@ app.conf.update(
         # update the season_fppg for each sport
         'nba_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4'),  # 4 AM EST
             'args': ('nba',),
+            'options': {'queue': 'long_running'},
         },
 
         'nhl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4', minute='10'),  # ~ 4 AM EST
             'args': ('nhl',),
+            'options': {'queue': 'long_running'},
         },
 
         'nfl_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4', minute='20'),  # ~ 4 AM EST
             'args': ('nfl',),
+            'options': {'queue': 'long_running'},
         },
 
         'mlb_season_fppg': {
             'task': 'salary.tasks.generate_season_fppgs',
-            'schedule': crontab(hour='9', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='4', minute='30'),  # ~ 4 AM EST
             'args': ('mlb',),
+            'options': {'queue': 'long_running'},
 
         },
 
@@ -268,61 +288,48 @@ app.conf.update(
         # cleanup rosters
         'nba_cleanup_rosters': {
             'task': 'sports.nba.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
         'nhl_cleanup_rosters': {
             'task': 'sports.nhl.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5', minute='10'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
         'nfl_cleanup_rosters': {
             'task': 'sports.nfl.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5', minute='20'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
         'mlb_cleanup_rosters': {
             'task': 'sports.mlb.tasks.cleanup_rosters',
-            'schedule': crontab(hour='3', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule': crontab(hour='5', minute='30'),  # ~ 5 AM EST
+            'options': {'queue': 'long_running'},
         },
 
         #
         # swish updates
         'nfl_swish_update_injury_feed': {
             'task': 'swish.tasks.update_injury_feed',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
             'args': ('nfl',),
+            'options': {'queue': 'long_running'},
         },
 
         'nba_swish_update_injury_feed': {
             'task': 'swish.tasks.update_injury_feed',
-            'schedule': timedelta(minutes=1),
+            'schedule': timedelta(minutes=5),
             'args': ('nba',),
+            'options': {'queue': 'long_running'},
         },
 
         # Check for inactive users and send an email report to settings.INACTIVE_USERS_EMAILS
         'inactive_users': {
             'task': 'account.tasks.check_not_active_users',
-            'schedule': crontab(minute=0, hour='17'),  # ~ noon
+            'schedule': crontab(minute=0, hour='12'),  # ~ noon
+            'options': {'queue': 'long_running'},
         },
     },
-
-    CELERY_ENABLE_UTC=True,
-    CELERY_TIMEZONE='UTC',
-    CELERY_TRACK_STARTED=True,
-
-    # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
-    # setting that actually caps the max connections when were viewing
-    # connections on the redis side.
-    CELERY_REDIS_MAX_CONNECTIONS = 5,
-
-    #
-    #
-    # # testing this out
-    # BROKER_TRANSPORT_OPTIONS = {
-    #     'max_connections': 5,
-    # },
-    #
-    # # None causes a connection to be created and closed for each use
-    # BROKER_POOL_LIMIT = None,  # default: 10
-
 )
 
 
@@ -432,7 +439,7 @@ class TaskHelper(object):
         elif status == 'RECEIVED':
             return 'Task was received by a worker.'
         elif status == 'STARTED':
-            return 'Task was started by a worker (CELERY_TRACK_STARTED).'
+            return 'Task was started by a worker (task_track_started).'
         elif status == 'SUCCESS':
             return 'Task succeeded'
         elif status == 'FAILURE':
@@ -514,11 +521,11 @@ class TaskHelper(object):
 
 
 #
-# BROKER_URL = 'amqp://guest:guest@localhost//'
+# broker_url = 'amqp://guest:guest@localhost//'
 #
 # #: Only add pickle to this list if your broker is secured
 # #: from unwanted access (see userguide/security.html)
-# CELERY_ACCEPT_CONTENT = ['json']
+# accept_content = ['json']
 
 
 @app.task(bind=True)
@@ -542,7 +549,7 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 
 @app.task(bind=True)
 def heartbeat(self):
-    print('heartbeat')
+    print('Celery heartbeat')
 
 
 @app.task(bind=True, time_limit=300)

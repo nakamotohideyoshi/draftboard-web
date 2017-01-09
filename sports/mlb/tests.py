@@ -1,6 +1,3 @@
-#
-# sports/mlb/tests.py
-
 from ast import literal_eval
 from test.classes import AbstractTest
 import sports.mlb.models
@@ -25,6 +22,7 @@ from sports.mlb.parser import (
     ReqPitcher,
     ReqRunner,
 )
+from model_mommy import mommy
 from sports.trigger import MlbOpLogObj
 
 class CustomMlbAtBatLivestatPassesAsNewObjectTest(AbstractTest):
@@ -142,6 +140,22 @@ class GameBoxscoresParserManagerClassTest(AbstractTest):
                 }
             }
         }
+
+        # Create a nba.Team models
+        mommy.make(
+            sports.mlb.models.Team,
+            srid=data['home_team']
+        )
+        mommy.make(
+            sports.mlb.models.Team,
+            srid=data['away_team']
+        )
+        # Create a Game model so this boxcore can be parsed.
+        mommy.make(
+            sports.mlb.models.Game,
+            srid=data['id']
+        )
+
 
         self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 

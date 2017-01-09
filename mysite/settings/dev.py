@@ -26,24 +26,18 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 3600
 
-# heroku redis - for api views/pages
-HEROKU_REDIS_URL = environ.get('REDIS_URL')
-heroku_REDIS_URL = parse.urlparse(HEROKU_REDIS_URL)
 # since we should have a heroku redis instance for production, override the default api cache name
 API_CACHE_NAME = 'api'
 
 # Redis caching
-REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
-REDIS_URL = parse.urlparse(REDISCLOUD_URL)
+REDIS_URL = environ.get('REDISCLOUD_URL')
+REDIS_URL_CELERY = environ.get('REDISCLOUD_URL_CELERY')
 
 CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 5}
@@ -51,32 +45,10 @@ CACHES = {
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-    # Celery cache
-    'celery': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-    },
-    # separate one to invalidate all of cachalot if need be
-    'cachalot': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-    },
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -84,10 +56,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },

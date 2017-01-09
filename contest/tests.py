@@ -25,6 +25,9 @@ from test.classes import (
 from test.classes import (
     BuildWorldMixin,
 )
+from logging import getLogger
+
+logger = getLogger('contest.tests')
 
 
 class FairMatchTest(unittest.TestCase):
@@ -114,14 +117,14 @@ class SkillLevelManagerTest(AbstractTest):
         ]
 
         manager = SkillLevelManager()
-        print('all skill levels:')
+        logger.info('all skill levels:')
         for sl in manager.get_skill_levels():
-            print('    ', str(sl))
+            logger.info('    %s' % sl)
 
         for amount, expected_name in expected_data:
             sl = manager.get_for_amount(amount)
             name = sl.name
-            print('    amount: %s | expected_name[%s] name[%s]' % (amount, expected_name, name))
+            logger.info('    amount: %s | expected_name[%s] name[%s]' % (amount, expected_name, name))
             self.assertEquals(expected_name, name)
 
 
@@ -232,9 +235,9 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         #
         ####### print some debug stuff so we know it exists (or doesnt ####
         all_site_sports = SiteSport.objects.all()
-        print('%s existing SiteSport objects' % all_site_sports.count())
+        logger.info('%s existing SiteSport objects' % all_site_sports.count())
         for ss in all_site_sports:
-            print(str(ss))
+            logger.info(str(ss))
 
     def __call_construct(self, sport=None, prize_structure=None, start=None, duration=None,
                          draft_group=None):

@@ -52,6 +52,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 # locale
 LANGUAGE_CODE = 'en-us'
 
+# locale
+ENCODE_SECRET_KEY = 'jro-1&fb#hv_yye22'
+
 # using 'America/New_York' will make the admin
 # display times in EST, however, in code
 # the models (because of the server!) will
@@ -99,7 +102,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'djcelery',
+    'django_celery_beat',
     'rest_framework',  # for api stuff
     'braces',
     'django_extensions',  # shell_plus
@@ -229,8 +232,7 @@ TEST_SETUP = None
 # defaults to false, though we made turn this on in production.py
 SLACK_UPDATES = False
 
-REDISCLOUD_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
-HEROKU_REDIS_URL = REDISCLOUD_URL  # for caching pages/views, same place locally
+REDIS_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 
 # defaults to use the default cache, but
 # if server has Heroku Redis add-on should be set to
@@ -245,8 +247,7 @@ API_CACHE_NAME = 'default'
 DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
 DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from triggers
 
-# Mailchimp/Mandrill
-# TODO: Remove mandrill settings
+# Sparkpost Mail
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.sparkpostmail.com'
 EMAIL_HOST_USER = 'SMTP_Injection'
@@ -333,7 +334,6 @@ REST_FRAMEWORK = {
 
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
     ),
 
     # 'DEFAULT_PAGINATION_CLASS': None

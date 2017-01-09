@@ -17,31 +17,34 @@ from account.models import (
     Information,
 )
 from contest.models import Entry
+from .utils import encode_uid
 # /password/reset/confirm/{uid}/{token}
-
-def encode_uid(pk):
-    try:
-        from django.utils.http import urlsafe_base64_encode
-        from django.utils.encoding import force_bytes
-        return urlsafe_base64_encode(force_bytes(pk)).decode()
-    except ImportError:
-        from django.utils.http import int_to_base36
-        return int_to_base36(pk)
 
 #
 # example password reset link
 # https://www.draftboard.com/api/account/password-reset-confirm/MjA0/47k-95ee193717cb75448cf0/
 
+
 @app.task(bind=True)
 def send_password_reset_email(self, user, https=True):
     #raise Exception('UNIMPLEMENTED - account.tasks.send_password_reset_email')
-    token       = default_token_generator.make_token(user)
-    uid         = encode_uid(user.pk)
-    site        = settings.SITE
-    protocol    = 'https' if https else 'http'
-    url         = '%s://%s/api/account/password-reset-confirm/%s/%s/' % (protocol, site, uid, token)
-    print( url )
+    token = default_token_generator.make_token(user)
+    uid = encode_uid(user.pk)
+    site = settings.SITE
+    protocol = 'https' if https else 'http'
+    url = '%s://%s/api/account/password-reset-confirm/%s/%s/' % (protocol, site, uid, token)
+    print(url)
     send_mail('password reset email', 'hey, heres your password reset link: ' + url, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+
+@app.task(bind=True)
+def send_confirmation_email(self, user, https=True):
+    uid = encode_uid(str(user.confirmation.pk)+settings.SECRET_KEY)
+    site = settings.SITE
+    protocol = 'https' if https else 'http'
+    url = '%s://%s/%s' % (protocol, site, reverse('join-confirmation', kwargs={'uid': uid}))
+    print(url)
+    send_mail('user confirmation', 'hey, you have joined the site, go to following link to confirm your registration: ' + url, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 @app.task
@@ -50,7 +53,6 @@ def inactive_users_email(users):
         subject = 'Inactive users'
         body = settings.SITE + reverse('admin:auth_user_changelist') + '?id__in=' + ','.join([str(x.id) for x in users])
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, settings.INACTIVE_USERS_EMAILS)
-
 
 
 @app.task(bind=True)
