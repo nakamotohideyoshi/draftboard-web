@@ -32,23 +32,17 @@ SECURE_HSTS_SECONDS = 3600
 # SECURE_HSTS_SECONDS = 31536000  # one year, prevents accepting traffic via HTTP
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # set this if all subdomains are under HTTPS
 
-# Heroku Redis - for api views/pages
-HEROKU_REDIS_URL = environ.get('REDIS_URL')
-# since we should have a heroku redis instance for production, override the default api cache name
 API_CACHE_NAME = 'api'
 
 # RedisCloud redis - used primarily for live stats
-REDISCLOUD_URL = environ.get('REDISCLOUD_URL')
-REDIS_URL = parse.urlparse(REDISCLOUD_URL)
+REDIS_URL = environ.get('REDISCLOUD_URL')
+REDIS_URL_CELERY = environ.get('REDISCLOUD_URL_CELERY')
 
 CACHES = {
     # default django cache
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {'max_connections': 5}
@@ -56,32 +50,10 @@ CACHES = {
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
     },
-    # Celery cache
-    'celery': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-    },
-    # separate one to invalidate all of cachalot if need be
-    'cachalot': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-    },
     # separate for template caching so we can clear when we want
     'django_templates': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -89,10 +61,7 @@ CACHES = {
     # api view cache
     API_CACHE_NAME: {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:%s@%s:%s' % (
-            REDIS_URL.password,
-            REDIS_URL.hostname,
-            REDIS_URL.port),
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
@@ -104,7 +73,6 @@ STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
 INSTALLED_APPS += (
     'gunicorn',  # gunicorn for Heroku
-    'raven.contrib.django.raven_compat',  # sentry for heroku
 )
 
 # Pusher
@@ -119,27 +87,8 @@ PAYPAL_CLIENT_ID = environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = environ.get('PAYPAL_SECRET')
 VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 
-# Dataden mongo database connection
-# MONGO_SERVER_ADDRESS = environ.get('MONGO_SERVER_ADDRESS')      # str, ie: '123.132.123.123'
-# MONGO_AUTH_DB = environ.get('MONGO_AUTH_DB')                    # str
-# MONGO_USER = environ.get('MONGO_USER')                          # str
-# MONGO_PASSWORD = environ.get('MONGO_PASSWORD')                  # str
-# MONGO_PORT = int(environ.get('MONGO_PORT'))                     # str (should be cast to int)
-# MONGO_HOST = environ.get('MONGO_HOST') % (MONGO_USER,
-#                                           MONGO_PASSWORD,
-#                                           MONGO_SERVER_ADDRESS,
-#                                           MONGO_PORT,
-#                                           MONGO_AUTH_DB)
-
 # Don't allow time travel on production!
 DATETIME_DELTA_ENABLE = False
-
-# Allow Slack to know when we push
-SLACK_UPDATES = False
-slack_updates = environ.get('SLACK_UPDATES', None)
-if slack_updates is not None and 't' in str(slack_updates).lower():
-    SLACK_UPDATES = True
-
 
 # Inactive users
 INACTIVE_USERS_EMAILS = [

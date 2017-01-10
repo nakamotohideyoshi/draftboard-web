@@ -116,3 +116,4 @@ We're using Mocha, the testing options are defined in <code>/static/src/js/test/
 To run the tests:
 
     $ npm run test
+

@@ -15,15 +15,19 @@ from sports.views import (
     PlayerHistoryMlbAPIView,
     PbpDebugAPIView,
     UpdateAPIView,
+    PlayerRetrieveAPIView,
 )
 
 urlpatterns = [
     #
     # get updates for a sport
+    url(r'^updates/player/(?P<player_srid>[a-z0-9\-]+)/$', PlayerRetrieveAPIView.as_view()),
+    url(r'^updates/nba/$', UpdateAPIView.as_view(), {"sport": "nba"}),
     url(r'^updates/nba/$', UpdateAPIView.as_view(), {"sport": "nba"}),
     url(r'^updates/nfl/$', UpdateAPIView.as_view(), {"sport": "nfl"}),
     url(r'^updates/nhl/$', UpdateAPIView.as_view(), {"sport": "nhl"}),
     url(r'^updates/mlb/$', UpdateAPIView.as_view(), {"sport": "mlb"}),
+
 
     #
     # get the injruies for a spor

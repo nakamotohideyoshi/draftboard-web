@@ -228,7 +228,7 @@ def track_contests(contests):
             'Total Entries': contest.current_entries,
             'Contest Type': contest.prize_structure.get_format_str(),
         }
-        users = [x.user for x in contest.contests.distinct('users')]
+        users = [x.user for x in contest.contests.distinct('user')]
         for user in users:
             payment = Payout.objects.filter(entry__contest=contest,
                                             entry__user=user).first()

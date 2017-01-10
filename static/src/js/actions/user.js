@@ -371,14 +371,14 @@ function receiveUserLimitsSuccess(body) {
 export function fetchUserLimits(body) {
   return {
     type: actionTypes.FETCH_USER_LIMITS,
-    body
-  }
+    body,
+  };
 }
 
-export function receiveUserLimits(){
-  return (dispatch => {
+export function receiveUserLimits() {
+  return dispatch => {
     dispatch({
-      type: actionTypes.RECEIVE_USER_LIMITS
+      type: actionTypes.RECEIVE_USER_LIMITS,
     });
     return new Promise((resolve, reject) => {
       request
@@ -398,11 +398,12 @@ export function receiveUserLimits(){
                 content: 'Check your internet connection or reload the page',
               }));
             } else {
-              res.body.selected_values = res.body.current_values;
-              dispatch(receiveUserLimitsSuccess(res.body));
+              const resData = Object.assign({}, res);
+              resData.body.selected_values = res.body.current_values;
+              dispatch(receiveUserLimitsSuccess(resData.body));
               resolve(res);
             }
           });
     });
-  });
+  };
 }

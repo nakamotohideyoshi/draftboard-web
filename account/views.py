@@ -1,32 +1,54 @@
-from datetime import datetime, timedelta
-from raven.contrib.django.raven_compat.models import client
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.views.generic.base import TemplateView
-from django.forms import modelformset_factory
-from django import forms
-from django.http import Http404, JsonResponse
+import calendar
+import logging
+from datetime import datetime, date, timedelta
+
 from braces.views import LoginRequiredMixin
+from django.conf import settings
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth import login as authLogin
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.models import User
+from django.contrib.auth.views import logout
+from django.core.urlresolvers import reverse
+from django.http import Http404, JsonResponse
+from django.http import HttpResponseRedirect
+from django.utils import timezone
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from django.views.generic.base import TemplateView
+from django.views.generic.edit import FormView
+from raven.contrib.django.raven_compat.models import client
+from rest_framework import generics
+from rest_framework import response, schemas
+from rest_framework import status
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.exceptions import (APIException, ValidationError)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
+
+import account.tasks
+from account import const as _account_const
+from account.forms import LoginForm
+from account.forms import (
+    SelfExclusionForm
+)
 from account.models import (
     Information,
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
     Identity,
+    Confirmation,
     Limit
 )
-from account.forms import LoginForm, LimitForm
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
     HasVerifiedIdentity,
+    EmailConfirmed
 )
 from account.serializers import (
     LoginSerializer,
@@ -47,7 +69,12 @@ from account.serializers import (
     TruliooVerifyUserSerializer,
     UserLimitsSerializer
 )
-import account.tasks
+from account.utils import create_user_log
+from cash.classes import (
+    CashTransaction,
+)
+from contest.models import CurrentEntry
+from contest.refund.tasks import unregister_entry_task
 from pp.classes import (
     CardData,
     PayPal,
@@ -57,26 +84,11 @@ from pp.classes import (
 from pp.serializers import (
     VZeroDepositSerializer,
 )
-from cash.classes import (
-    CashTransaction,
-)
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.contrib.auth import views as auth_views
-from django.contrib.auth import login as authLogin
-from django.contrib.auth import authenticate, logout
-from rest_framework.exceptions import (APIException, ValidationError)
-from rest_framework.decorators import api_view, renderer_classes
-from rest_framework import response, schemas
-from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-from account import const as _account_const
-from account.utils import create_user_log
 from trulioo.classes import (
     Trulioo,
     VerifyDataValidationError,
     TruliooException
 )
-import logging
 
 logger = logging.getLogger('account.views')
 
@@ -194,8 +206,10 @@ class RegisterAccountAPIView(generics.CreateAPIView):
             user.save()
             # Make sure each user gets an information model.
             Information.objects.create(user=user)
+            Confirmation.objects.create(user=user)
             newUser = authenticate(username=user.username, password=password)
             if newUser is not None:
+                account.tasks.send_confirmation_email.delay(user)
                 authLogin(request, newUser)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -240,9 +254,9 @@ class UserCredentialsAPIView(generics.GenericAPIView):
         serializer = self.serializer_class(user, data=data, partial=True)
 
         if serializer.is_valid():
-            if(data.get('email')):
+            if data.get('email'):
                 user.email = data.get('email')
-            if(data.get('password')):
+            if data.get('password'):
                 user.set_password(data.get('password'))
             user.save()
             return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
@@ -250,13 +264,13 @@ class UserCredentialsAPIView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserEmailNotificationAPIView (generics.GenericAPIView):
+class UserEmailNotificationAPIView(generics.GenericAPIView):
     """
     Allows the user to get and update their user email settings
 
         * |api-text| :dfs:`account/notifications/email/`
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = UserEmailNotificationSerializer
 
     # Get all of the notification types, then run through each type and check if the user has a
@@ -337,7 +351,6 @@ def login(request, **kwargs):
 
 
 class RegisterView(TemplateView):
-
     def get(self, request, *args, **kwargs):
         """
         if already logged in, redirect to lobby, otherwise allow page
@@ -349,6 +362,7 @@ class RegisterView(TemplateView):
 
     template_name = 'registration/register.html'
 
+
 #
 ##########################################################
 # PayPal specific views
@@ -356,15 +370,15 @@ class RegisterView(TemplateView):
 
 
 class PayPalDepositWithPayPalAccountAPIView(APIView):
-    pass          # TODO
+    pass  # TODO
 
 
 class PayPalDepositWithPayPalAccountSuccessAPIView(APIView):
-    pass   # TODO
+    pass  # TODO
 
 
 class PayPalDepositWithPayPalAccountFailAPIView(APIView):
-    pass      # TODO
+    pass  # TODO
 
 
 class PayPalDepositMixin:
@@ -420,7 +434,7 @@ class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
         }
 
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = CreditCardPaymentSerializer
 
     def post(self, request, *args, **kwargs):
@@ -466,7 +480,7 @@ class PayPalDepositSavedCardAPIView(APIView):
         {"amount":77.00,"token":"CARD-6WP04454GN306160EK5ZOADI"}
 
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SavedCardPaymentSerializer
 
     def post(self, request, *args, **kwargs):
@@ -563,7 +577,7 @@ class PayPalSavedCardAddAPIView(APIView):
 
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SavedCardAddSerializer
 
     def validate_information(self, info):
@@ -706,7 +720,7 @@ class PayPalSavedCardDeleteAPIView(APIView):
         {"token": "Card-99999"}
 
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SavedCardDeleteSerializer
 
     def post(self, request, *args, **kwargs):
@@ -741,7 +755,7 @@ class PayPalSavedCardListAPIView(APIView):
     quickly deposit money to the site.
     """
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     response_serializer = SavedCardSerializer
 
     def get(self, request, *args, **kwargs):
@@ -764,7 +778,7 @@ class SetSavedCardDefaultAPIView(APIView):
     the arguments to this method should be passed
     in the POST as application/json, ie: {"token":"theToken"}
     """
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = SetSavedCardDefaultSerializer
 
     def post(self, request):
@@ -824,7 +838,7 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -901,7 +915,7 @@ class VerifyLocationAPIView(APIView):
     permission_classes = (HasIpAccess,)
 
     def get(self, request, *args, **kwargs):
-        return Response(data={"detail": "location and age verification passed"}, status=200,)
+        return Response(data={"detail": "location and age verification passed"}, status=200, )
 
 
 class TruliooVerifyUserAPIView(APIView):
@@ -932,9 +946,10 @@ class TruliooVerifyUserAPIView(APIView):
         birth_month = serializer.validated_data.get('birth_month')
         birth_year = serializer.validated_data.get('birth_year')
         postal_code = serializer.validated_data.get('postal_code')
-        ssn = serializer.validated_data.get('ssn')
 
         # First check if we have an existing user match in our DB.
+        # It is hiiighly unlikely that we'll have 2 users with the same
+        # last name, DOB, & postal code. If we do, they can be manually added.
         existing_identities = Identity.objects.filter(
             first_name__iexact=first,
             last_name__iexact=last,
@@ -946,7 +961,7 @@ class TruliooVerifyUserAPIView(APIView):
 
         # If the identity is already claimed, log and return errror message.
         if existing_identities.exists():
-            logger.warn("IDENTITY_VERIFICATION_EXISTS")
+            logger.warning("IDENTITY_VERIFICATION_EXISTS - user: %s" % self.request.user)
             create_user_log(
                 request=request,
                 type=_account_const.AUTHENTICATION,
@@ -954,8 +969,23 @@ class TruliooVerifyUserAPIView(APIView):
                 metadata={'detail': """User attampted to claim an identity that already exists in
                             our database.""", }
             )
-            raise APIException({
+            raise ValidationError({
                 "detail": "Unable to verify your identity. Please contact support@draftboard.com"})
+
+        # Search for similar identities
+        # Trulioo has some leeway when verifying identites. For instance it will match "dan" as
+        # "daniel". Or a user could enter an old postal code and it will verify. What we want to do
+        # is flag the users that have slightly different info from any identities we have already
+        # verified. When a flagged identity is created, a notification is sent to the site admin
+        # for manual investigation.
+        # Truliio doesn't let you fudge birthdate or last name, so if we encounter someone with the
+        # same ones, flag em.
+        similar_identity_exists = Identity.objects.filter(
+            birth_day=birth_day,
+            birth_month=birth_month,
+            birth_year=birth_year,
+            last_name__iexact=last,
+        ).exists()
 
         # use Trulioo class to verify the user
         verified = False
@@ -964,23 +994,27 @@ class TruliooVerifyUserAPIView(APIView):
             t = Trulioo()
             verified = t.verify_minimal(
                 first=first, last=last, birth_day=birth_day, birth_month=birth_month,
-                birth_year=birth_year, postal_code=postal_code, user=user, ssn=ssn)
+                birth_year=birth_year, postal_code=postal_code, user=user)
         # Send data validation exceptions back through the API.
         except VerifyDataValidationError as e:
+            logger.warning("%s - user: %s" % (e, self.request.user))
             raise ValidationError({"detail": str(e)})
 
         # There was a data validation error sent back from Trulioo.
         except TruliooException as e:
+            logger.warning("%s - user: %s" % (e, self.request.user))
             raise ValidationError({"detail": str(e)})
 
         # Log all others before sending the user a generic response.
         except Exception as e:
-            logger.error("TruliooVerifyUserAPIView: %s" % str(e))
+            logger.warning("%s - user: %s" % (e, self.request.user))
             client.captureException()
             raise APIException(
                 'User verification was unsuccessful. Please contact support@draftboard.com')
 
         if verified is False:
+            logger.warning('IDENTITY_VERIFICATION_FAILED - no match found. user: %s' % (
+                self.request.user))
             # Create a user log for the failed attempt.
             create_user_log(
                 request=request,
@@ -991,11 +1025,7 @@ class TruliooVerifyUserAPIView(APIView):
                 }
             )
 
-            raise APIException(
-                'User verification was unsuccessful. Please contact support@draftboard.com')
-
-        if verified is False:
-            raise APIException(
+            raise ValidationError(
                 'User verification was unsuccessful. Please contact support@draftboard.com')
 
         # If the verification request was successful...
@@ -1003,8 +1033,12 @@ class TruliooVerifyUserAPIView(APIView):
         # Save the information so we can do multi-account checking.
         identity = Identity(
             user=request.user, first_name=first, last_name=last, birth_day=birth_day,
-            birth_month=birth_month, birth_year=birth_year, postal_code=postal_code)
+            birth_month=birth_month, birth_year=birth_year, postal_code=postal_code,
+            flagged=similar_identity_exists)
         identity.save()
+        if similar_identity_exists:
+            logger.warning("SIMILAR_IDENTITY_EXISTS - user: %s" % self.request.user)
+        logger.info("IDENTITY_VERIFICATION_SUCCESS - user: %s" % self.request.user)
         # Create a user log for the verification.
         create_user_log(
             request=request,
@@ -1030,20 +1064,22 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         """
         If user is logged in, redirect them to their feed
         """
-        response = super(AccessSubdomainsTemplateView, self).render_to_response(context, **response_kwargs)
+        response = super(AccessSubdomainsTemplateView, self).render_to_response(context,
+                                                                                **response_kwargs)
 
         if not self.request.user.has_perm('sites.access_subdomains'):
             raise Http404
 
         days_expire = 7
         max_age = days_expire * 24 * 60 * 60
-        expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
-        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires, domain=settings.COOKIE_ACCESS_DOMAIN)
+        expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=max_age),
+                                    "%a, %d-%b-%Y %H:%M:%S GMT")
+        response.set_cookie('access_subdomains', 'true', max_age=max_age, expires=expires,
+                            domain=settings.COOKIE_ACCESS_DOMAIN)
         return response
 
 
 class LimitsFormView(LoginRequiredMixin, TemplateView):
-
     template_name = 'frontend/account/user_limits.html'
 
 
@@ -1066,7 +1102,8 @@ class UserLimitsAPIView(APIView):
                 user_limits.append({'user': user.pk,
                                     'type': limit_type_index,
                                     'value': val,
-                                    'time_period': Limit.PERIODS[0][0] if limit_type != Limit.ENTRY_FEE else None})
+                                    'time_period': Limit.PERIODS[0][
+                                        0] if limit_type != Limit.ENTRY_FEE else None})
         limits_data = {'types': Limit.TYPES_GLOBAL,
                        'current_values': serializer.data if serializer else user_limits}
         return Response(limits_data)
@@ -1083,10 +1120,64 @@ class UserLimitsAPIView(APIView):
                 if days:
                     change_allowed_on = limits[0].updated + timedelta(days=days)
                     if timezone.now() < change_allowed_on:
-                        return JsonResponse(data={"detail": "Not allowed to change limits until {}".format(change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400, safe=False)
+                        return JsonResponse(data={
+                            "detail": "Not allowed to change limits until {}".format(
+                                change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400,
+                                            safe=False)
 
         else:
             serializer = self.serializer_class(data=self.request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data={"detail": "Limits Saved"}, status=200)
+
+
+def add_months(sourcedate, months):
+    month = sourcedate.month - 1 + months
+    year = int(sourcedate.year + month / 12)
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+class ExclusionFormView(FormView):
+    template_name = 'frontend/self-exclusion.html'
+    form_class = SelfExclusionForm
+    success_url = '/'
+    months = [3, 6, 9, 12]
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data()
+        cur_date = date.today()
+        for month in self.months:
+            kwargs['%s_month' % month] = add_months(cur_date, month)
+        return kwargs
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.request.user.information
+        return kwargs
+
+    def form_valid(self, form):
+        information = form.save()
+        entries = CurrentEntry.objects.filter(user=information.user)
+        for entry in entries:
+            unregister_entry_task.delay(entry)
+            UserEmailNotification.objects.filter(user=information.user).update(enabled=False)
+            logout(self.request)
+        return super().form_valid(form)
+
+
+class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
+    template_name = 'frontend/confirmation.html'
+
+    def get(self, request, *args, **kwargs):
+        uid = force_text(urlsafe_base64_decode(kwargs.get('uid'))).replace(settings.SECRET_KEY, "")
+        try:
+            confirmation = Confirmation.objects.get(pk=uid)
+        except Confirmation.DoesNotExist:
+            return self.render_to_response({'message': 'Confirmation key not found'}, )
+        if confirmation:
+            confirmation.confirmed = True
+            confirmation.save()
+            return self.render_to_response({'message': 'Successful confirmation'}, )

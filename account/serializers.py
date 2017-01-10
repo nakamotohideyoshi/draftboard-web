@@ -2,15 +2,30 @@
 # serializers.py
 
 from re import search
-from rest_framework import serializers
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
+from account.blacklist import BLACKLIST
 from account.models import (
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
     Limit,
+    Identity,
 )
-from django.contrib.auth import get_user_model
+
+
+class UserIdentitySerializer(serializers.ModelSerializer):
+    """
+    Serializer for User.Identity. This gets nested in UserSerializer.
+    """
+
+    class Meta:
+        model = Identity
+        fields = ('first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
+                  'postal_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
     cash_balance = serializers.SerializerMethodField()
     cash_balance_formatted = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    identity = UserIdentitySerializer(read_only=True)
 
     def get_identity_verified(self, user):
         # Bypass this if they have the permission.
@@ -44,14 +60,14 @@ class UserSerializer(serializers.ModelSerializer):
             'can_bypass_location_check': user.has_perm('account.can_bypass_location_check'),
             'can_bypass_age_check': user.has_perm('account.can_bypass_age_check'),
             'can_bypass_identity_verification': user.has_perm(
-                                                'account.can_bypass_identity_verification')
+                'account.can_bypass_identity_verification')
         }
 
     class Meta:
         model = User
         fields = (
             "username", "email", "identity_verified", "cash_balance", "cash_balance_formatted",
-            "permissions")
+            "permissions", "identity",)
 
 
 class UserCredentialsSerializer(serializers.ModelSerializer):
@@ -112,6 +128,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         """
         UserModel = get_user_model()
 
+        if value in BLACKLIST:
+            raise serializers.ValidationError('This username is in a black list.')
+
         if UserModel.objects.filter(username__iexact=value):
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
@@ -145,14 +164,12 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializerNoPassword(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ('email',)
 
 
 class EmailNotificationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = EmailNotification
         fields = ("id", "category", "name", "description", "deprecated")
@@ -167,7 +184,6 @@ class UserEmailNotificationSerializer(serializers.ModelSerializer):
 
 
 class UpdateUserEmailNotificationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserEmailNotification
         fields = ("id", "enabled")
@@ -188,7 +204,6 @@ class PasswordResetSerializer(serializers.Serializer):
 
 
 class SavedCardSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SavedCardDetails
         fields = ('user', 'token', 'type', 'last_4', 'exp_month', 'exp_year', 'default')
@@ -236,13 +251,10 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
     birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
     postal_code = serializers.CharField(max_length=16)
-    # This is 11 to allow the use of separator dashes.
-    ssn = serializers.CharField(max_length=11)
 
 
 class LimitsListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
-
         limit_mapping = {limit.type: limit for limit in instance}
         data_mapping = {item['type']: item for item in validated_data}
 
@@ -259,8 +271,8 @@ class UserLimitsSerializer(serializers.ModelSerializer):
     """
     Serializer for user limits.
     """
+
     class Meta:
         model = Limit
         field = ('type', 'value', 'time_period')
         list_serializer_class = LimitsListSerializer
-

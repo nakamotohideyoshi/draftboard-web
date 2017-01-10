@@ -10,7 +10,7 @@ import replayer.classes
 from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
 from ast import literal_eval
-from djcelery.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, PeriodicTasks
 import requests
 
 # change the datetime to show seconds for replayer/admin.py

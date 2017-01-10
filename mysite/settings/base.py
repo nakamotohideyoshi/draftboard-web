@@ -1,9 +1,9 @@
 from datetime import timedelta
-from django.conf.locale.en import formats as en_formats
 from os import environ, path
 from sys import stdout
-from unipath import Path
 
+from django.conf.locale.en import formats as en_formats
+from unipath import Path
 
 # Django constants
 # ----------------------------------------------------------
@@ -52,6 +52,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 # locale
 LANGUAGE_CODE = 'en-us'
 
+# locale
+ENCODE_SECRET_KEY = 'jro-1&fb#hv_yye22'
+
 # using 'America/New_York' will make the admin
 # display times in EST, however, in code
 # the models (because of the server!) will
@@ -64,8 +67,8 @@ en_formats.DATETIME_FORMAT = "l, M d P"  # [ "m/d/Y h:i:s P", "l m.d.Y  @  P" ]
 
 # for the editing/display format of time objects in the admin
 TIME_INPUT_FORMATS = [
-    '%H:%M',        # '14:30'
-    '%H:%M:%S',     # '14:30:59'
+    '%H:%M',  # '14:30'
+    '%H:%M:%S',  # '14:30:59'
     '%H:%M:%S.%f',  # '14:30:59.000200'
 ]
 
@@ -99,7 +102,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'djcelery',
+    'django_celery_beat',
     'rest_framework',  # for api stuff
     'braces',
     'django_extensions',  # shell_plus
@@ -119,7 +122,7 @@ INSTALLED_APPS = (
     'promocode',
     'promocode.bonuscash',
     'keyprefix',
-    'dataden',                  # DataDen/MongoDB triggers
+    'dataden',  # DataDen/MongoDB triggers
     'sports',
     'sports.mlb',
     'sports.nba',
@@ -134,21 +137,21 @@ INSTALLED_APPS = (
     'contest.refund',
     'contest.schedule',
     'scoring',
-    'scoring.baseball',         # generate stat-strings
+    'scoring.baseball',  # generate stat-strings
     'roster',
     'rakepaid',
     'test',
     'salary',
     'draftgroup',
-    'frontend',                 # front end styles, layout, etc
-    'mysite',                   # just for management command access
+    'frontend',  # front end styles, layout, etc
+    'mysite',  # just for management command access
     'replayer',
-    'pp',                       # our implementation of a few required paypal apis
+    'pp',  # our implementation of a few required paypal apis
     'lobby',
-    'statscom',                 # STATS.com api parsers, models, projections, etc...
-    'swish',                    # Swish Analytics
+    'raven.contrib.django.raven_compat',  # sentry
+    'statscom',  # STATS.com api parsers, models, projections, etc...
+    'swish',  # Swish Analytics
     'trulioo',
-
     'rest_framework_swagger',
 )
 TEMPLATES = [{
@@ -194,7 +197,6 @@ TEMPLATES = [{
     },
 }]
 
-
 # Custom global constants
 # ----------------------------------------------------------
 
@@ -226,17 +228,19 @@ DISABLE_REPLAYER_UPDATE_RECORDING = False
 # for testing purposes, defaults to None, unless otherwise specified in child settings file
 TEST_SETUP = None
 
-# defaults to false, though we made turn this on in production.py
+# Allow Slack notifications for various events.
+# Defaults to false, though we made turn this on with environment variables.
 SLACK_UPDATES = False
+slack_updates = environ.get('SLACK_UPDATES', None)
+if slack_updates is not None and 't' in str(slack_updates).lower():
+    SLACK_UPDATES = True
 
-REDISCLOUD_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
-HEROKU_REDIS_URL = REDISCLOUD_URL  # for caching pages/views, same place locally
+REDIS_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
 
 # defaults to use the default cache, but
 # if server has Heroku Redis add-on should be set to
 # the named cache that uses the heroku redis instance
 API_CACHE_NAME = 'default'
-
 
 # Third party credentials - defaults to test mode
 # ----------------------------------------------------------
@@ -245,8 +249,7 @@ API_CACHE_NAME = 'default'
 DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
 DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from triggers
 
-# Mailchimp/Mandrill
-# TODO: Remove mandrill settings
+# Sparkpost Mail
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.sparkpostmail.com'
 EMAIL_HOST_USER = 'SMTP_Injection'
@@ -260,7 +263,7 @@ MONGO_SERVER_ADDRESS = 'ds015781-a0.mlab.com'
 MONGO_AUTH_DB = 'admin'
 MONGO_USER = 'admin'
 MONGO_PASSWORD = 'dataden1'
-MONGO_PORT = 15781         # default port may be the actual port
+MONGO_PORT = 15781  # default port may be the actual port
 MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
     MONGO_USER,
     MONGO_PASSWORD,
@@ -333,7 +336,6 @@ REST_FRAMEWORK = {
 
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
     ),
 
     # 'DEFAULT_PAGINATION_CLASS': None
@@ -357,7 +359,6 @@ if USE_LOCKDOWN:
         r'^/api-token-refresh/',
         r'^/static/',
     )
-
 
 # Django Logging
 # ----------------------------------------------------------
@@ -418,6 +419,8 @@ TRULIOO_DEMO_MODE = True
 
 # Inactive users
 INACTIVE_USERS_EMAILS = []
+# Who will recieve flagged identity emails. (this can be empty)
+FLAGGED_IDENTITY_EMAIL_RECIPIENTS = ['dan@draftboard.com', 'devs@draftboard.com']
 
 # Sentry Config
 RAVEN_CONFIG = {
@@ -427,7 +430,6 @@ RAVEN_CONFIG = {
 # access domain
 COOKIE_ACCESS_DOMAIN = '.draftboard.com'
 
-
 # ANALYTICS settings
 # ----------------------------------------------------------
 KISS_ANALYTICS_CODE = 'db1235e51a9c6ea2d7bb2d3d1bdf93cbd2efaeff'
@@ -435,5 +437,7 @@ GOOGLE_ANALYTICS_CODE = 'UA-85293033-1'
 
 # Trusted sources for swish update
 TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
-# once limits applied, residents of specific states will not be able to increase this limit for days respectively.
+
+# once limits applied, residents of specific states will not be able to increase
+# this limit for days respectively.
 LIMIT_DAYS_RESTRAINT = {'MA': 90}
