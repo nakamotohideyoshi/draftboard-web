@@ -30,11 +30,3 @@ class SelfExclusionForm(forms.ModelForm):
     class Meta:
         model = Information
         fields = ['exclude_date']
-
-
-class LimitForm(forms.ModelForm):
-    value = forms.ChoiceField(choices=Limit.DEPOSIT_MAX+Limit.ENTRY_FEE_MAX)
-
-    class Meta:
-        model = Limit
-        fields = ['type', 'value', 'time_period', 'user']

@@ -10,10 +10,11 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.models import User
 from django.contrib.auth.views import logout
 from django.core.urlresolvers import reverse
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
+from django.utils import timezone
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from raven.contrib.django.raven_compat.models import client
@@ -28,14 +29,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
-from django.utils import timezone
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.views.generic.base import TemplateView
-from django.forms import modelformset_factory
-from django import forms
-from django.http import Http404, JsonResponse
-from braces.views import LoginRequiredMixin
 import account.tasks
 from account import const as _account_const
 from account.models import (
@@ -50,7 +43,6 @@ from account.models import (
 from account.forms import (
     LoginForm,
     SelfExclusionForm,
-    LimitForm
 )
 
 from account.permissions import (
@@ -1129,7 +1121,6 @@ class UserLimitsAPIView(APIView):
     serializer_class = UserLimitsSerializer
 
     def get(self, request, *args, **kwargs):
-        # TODO: add request.user and request.user.pk respectively
         user = request.user
         limits = user.limits.all()
         user_limits = []
