@@ -35,25 +35,27 @@ const ResultsPane = React.createClass({
   },
 
   componentWillUpdate(nextProps) {
+    let newContestInfo = {};
+
     if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
-      this.props.dispatch(
+      return this.props.dispatch(
         fetchContestLineupsIfNeeded(nextProps.contestId, this.props.sport, true)
       ).then(() => {
-        const newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
+        newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
 
         // if we don't have a draft group, retrieve!
         if (newContestInfo.hasOwnProperty('rankedLineups') === false) {
-          this.props.dispatch(
+          return this.props.dispatch(
             fetchDraftGroupIfNeeded(newContestInfo.draftGroupId, this.props.sport)
-          ).then(() => {
-            this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId));
-          });
-        } else {
-          this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId));
+          );
         }
 
-        this.props.dispatch(fetchContestLineupsUsernamesIfNeeded(this.props.contestId));
-      });
+        return;
+      }).then(
+        () => this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId))
+      ).then(
+        () => this.props.dispatch(fetchContestLineupsUsernamesIfNeeded(this.props.contestId))
+      );
     }
   },
 

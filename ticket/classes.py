@@ -1,25 +1,23 @@
-#
-# classes.py
+from logging import getLogger
 
-from transaction.classes import AbstractTransaction
-from transaction.constants import TransactionTypeConstants
-from transaction.models import TransactionType, Transaction
 import ticket.models
-from mysite.classes import  AbstractSiteUserClass
+from mysite.classes import AbstractSiteUserClass
 from mysite.exceptions import (
-    AmountZeroException,
     AmountNegativeException,
     TooManyArgumentsException,
     TooLittleArgumentsException,
     IncorrectVariableTypeException,
 )
+from transaction.classes import CanDeposit
+from transaction.constants import TransactionTypeConstants
+from transaction.models import TransactionType, Transaction
 from .exceptions import (
     InvalidTicketAmountException,
     TicketAlreadyUsedException,
-    UserDoesNotHaveTicketException,)
+    UserDoesNotHaveTicketException, )
 
-from transaction.classes import CanDeposit
-from dfslog.classes import Logger, ErrorCodes
+logger = getLogger('ticket.classes')
+
 
 class TicketManager(CanDeposit, AbstractSiteUserClass):
     """
@@ -27,6 +25,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
     is created via the deposit method and then used via the
     consume method.
     """
+
     def __init__(self, user):
         super().__init__(user)
         self.transaction = None
@@ -39,7 +38,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         """
         for amt, description in ticket.models.DEFAULT_TICKET_VALUES:
             try:
-                ta = ticket.models.TicketAmount.objects.get( amount = amt )
+                ta = ticket.models.TicketAmount.objects.get(amount=amt)
             except ticket.models.TicketAmount.DoesNotExist:
                 ta = ticket.models.TicketAmount()
                 ta.amount = amt
@@ -60,10 +59,10 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
         """
 
-        if(amount < 0 ):
+        if (amount < 0):
             raise AmountNegativeException(type(self).__name__, 'amount')
 
-        return ticket.models.TicketAmount.objects.get(amount = amount)
+        return ticket.models.TicketAmount.objects.get(amount=amount)
 
     def __get_deposit_category(self):
         """
@@ -73,6 +72,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         return TransactionType.objects.get(
             pk=TransactionTypeConstants.TicketDeposit.value
         )
+
     def __get_consume_category(self):
         """
         Gets the deposit ticket category for the Transaction
@@ -81,6 +81,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         return TransactionType.objects.get(
             pk=TransactionTypeConstants.TicketConsume.value
         )
+
     def deposit(self, amount, transaction_obj=None):
         """
         Deposits a ticket for a given amount into the
@@ -98,10 +99,10 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
         #
         # creates a Transaction if it does not exists
-        if(transaction_obj != None):
+        if (transaction_obj != None):
             #
             # Validates it is trulya Transaction Object
-            if(not isinstance(transaction_obj, Transaction)):
+            if (not isinstance(transaction_obj, Transaction)):
                 raise IncorrectVariableTypeException(
                     type(self).__name__,
                     "transaction_obj"
@@ -122,13 +123,12 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         self.ticket.amount = ta
         self.ticket.save()
 
-        msg = "User["+self.user.username+"] had a $"+str(self.ticket.amount.amount)+" ticket #"+str(self.ticket.pk)+" deposited into their ticket account."
+        msg = "User[" + self.user.username + "] had a $" + str(
+            self.ticket.amount.amount) + " ticket #" + str(
+            self.ticket.pk) + " deposited into their ticket account."
+        logger.info("action: Ticket Deposit message: %s" % msg)
 
-        Logger.log(ErrorCodes.INFO, "Ticket Deposit", msg )
-
-
-
-    def consume(self, amount = None, ticket_obj = None, transaction_obj = None):
+    def consume(self, amount=None, ticket_obj=None, transaction_obj=None):
         """
         Uses one of the tickets and points the ticket to the transaction.
         This consume method can only take one of the following arguments:
@@ -150,13 +150,13 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             if the user does not have a ticket with the amount provided.
 
         """
-        #---------------------------------------------------------------
-        #---------------------------------------------------------------
+        # ---------------------------------------------------------------
+        # ---------------------------------------------------------------
         # Validation of the arguments before we attempt to consume
 
         #
         # Make sure that amount and ticket_obj are not both set.
-        if(amount != None and ticket_obj != None):
+        if (amount != None and ticket_obj != None):
             raise TooManyArgumentsException(
                 type(self).__name__,
                 ['amount', 'ticket_obj']
@@ -164,18 +164,16 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
         #
         # Makes sure that amount or ticket is set.
-        if(amount == None and ticket_obj == None):
+        if (amount == None and ticket_obj == None):
             raise TooLittleArgumentsException(
                 type(self).__name__,
                 ['amount', 'ticket_obj']
             )
 
-
-
         #
         # Gets the tickets that are not consumed and throw and
         # exception if there are no tickets for the given user.
-        if(amount != None):
+        if (amount != None):
 
             #
             # Gets the amount from the pre-defined Ticket Amounts
@@ -190,13 +188,12 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             #
             # Checks the ticket
             tickets = ticket.models.Ticket.objects.filter(
-                amount = amount_obj,
-                user = self.user,
-                consume_transaction = None
+                amount=amount_obj,
+                user=self.user,
+                consume_transaction=None
             ).order_by('-created')
 
-
-            if(len(tickets) == 0):
+            if (len(tickets) == 0):
                 raise UserDoesNotHaveTicketException(
                     type(self).__name__,
                     amount,
@@ -205,15 +202,15 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             self.ticket = tickets[0]
 
         else:
-            if(not isinstance(ticket_obj, ticket.models.Ticket)):
+            if (not isinstance(ticket_obj, ticket.models.Ticket)):
                 raise IncorrectVariableTypeException(type(self).__name__,
-                                          "ticket_obj")
+                                                     "ticket_obj")
             self.ticket = ticket_obj
 
         #
         # Makes sure that the ticket has not been consumed, and throws
         # an exception if has been.
-        if(self.ticket.consume_transaction != None):
+        if (self.ticket.consume_transaction != None):
             raise TicketAlreadyUsedException(
                 type(self).__name__,
                 amount,
@@ -223,7 +220,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         #
         # Creates a new transaction if it was not supplied by the
         # consume functionality.
-        if(transaction_obj == None):
+        if (transaction_obj == None):
             self.transaction = ticket.models.Transaction(
                 user=self.user,
                 category=self.__get_consume_category()
@@ -233,9 +230,9 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             #
             # check to make sure the transaction object is in fact
             # a transaction
-            if(not isinstance(transaction_obj, Transaction)):
+            if (not isinstance(transaction_obj, Transaction)):
                 raise IncorrectVariableTypeException(type(self).__name__,
-                                          "transaction_obj")
+                                                     "transaction_obj")
             self.transaction = transaction_obj
         #
         # Sets the ticket's consume_transaction field so that
@@ -243,14 +240,13 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         self.ticket.consume_transaction = self.transaction
         self.ticket.save()
 
-
-
-        msg =  "User["+self.user.username+"] used ticket #"+str(self.ticket.pk)+" valued at $"+str(self.ticket.amount.amount)+" on transaction #"+str(self.transaction.pk)
-        Logger.log(ErrorCodes.INFO, "Ticket Consume", msg )
-
+        msg = "User[" + self.user.username + "] used ticket #" + str(
+            self.ticket.pk) + " valued at $" + str(
+            self.ticket.amount.amount) + " on transaction #" + str(self.transaction.pk)
+        logger.info("action: Ticket Consume message: %s" % msg)
 
     def get_available_tickets(self):
         return ticket.models.Ticket.objects.filter(
-                user = self.user,
-                consume_transaction = None
-            ).order_by('-created')
+            user=self.user,
+            consume_transaction=None
+        ).order_by('-created')

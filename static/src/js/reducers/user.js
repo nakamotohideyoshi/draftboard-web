@@ -5,9 +5,11 @@ const initialState = {
   user: {
     isFetching: false,
     isIdentityVerified: false,
+
     userLimits: [],
     currentLimits: [],
     selectedLimits: [],
+    identity: {},
   },
   username: window.dfs.user.username,
   identityFormErrors: {},
@@ -160,10 +162,10 @@ module.exports = (state = initialState, action) => {
      * User's limits
      */
     case actionTypes.FETCH_USER_LIMITS:
-      return merge({}, state ,{
+      return merge({}, state, {
         user: {
           selectedLimits: action.body,
-        }
+        },
       });
 
     case actionTypes.RECEIVE_USER_LIMITS_SUCCESS:
@@ -171,15 +173,15 @@ module.exports = (state = initialState, action) => {
         user: {
           userLimits: action.body.types,
           currentLimits: action.body.current_values,
-          selectedLimits: action.body.selected_values
+          selectedLimits: action.body.selected_values,
         },
       });
 
     case actionTypes.RECEIVE_USER_LIMITS:
-      return merge({} ,state ,{
-        user:{
+      return merge({}, state, {
+        user: {
           userLimits: [],
-        }
+        },
       });
 
     /**

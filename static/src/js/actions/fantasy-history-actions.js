@@ -34,7 +34,8 @@ export const fetchFantasyHistory = (sport) => (dispatch) => {
     },
   });
 
-  apiActionResponse.then((action) => {
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse.then((action) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
       return dispatch({
@@ -43,8 +44,7 @@ export const fetchFantasyHistory = (sport) => (dispatch) => {
         sport,
       });
     }
-  });
 
-  // Return the promise chain in case we want to use it elsewhere.
-  return apiActionResponse;
+    return action;
+  });
 };

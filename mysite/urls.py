@@ -1,25 +1,25 @@
-#
-# mysite/urls.py
-
 from django.conf import settings
 from django.conf.urls import url, include
+from django.contrib import admin
 from django.contrib.staticfiles import views
 from rest_framework_jwt import views as jwt_views
-from .views import AppConfigView
+
 import account.urls
 import cash.urls
 import contest.urls
 import draftgroup.urls
 import lineup.urls
 import prize.urls
-import push.urls
 import salary.urls
 import sports.urls
 import ticket.urls
+from .views import AppConfigView
+
+# Set admin titles.
+admin.site.site_header = "Draftboard Admin"
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
-
 urlpatterns = [
     # api
     url(r'^api/account/', include(account.urls)),
@@ -46,6 +46,7 @@ urlpatterns = [
     # TEMP to show pusher
     # url(r'^push/', include(push.urls, namespace='push')),
 
+    # All non-API urls. (these serve up html templates)
     url(r'^', include('account.urls_non_api')),
 ]
 

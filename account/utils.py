@@ -10,8 +10,19 @@ from raven.contrib.django.raven_compat.models import client
 from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
 from account import const as _account_const
 import logging
+from ipware.ip import get_real_ip, get_ip
 
 logger = logging.getLogger('account.utils')
+
+
+def encode_uid(pk):
+    try:
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        return urlsafe_base64_encode(force_bytes(pk)).decode()
+    except ImportError:
+        from django.utils.http import int_to_base36
+        return int_to_base36(pk)
 
 
 def create_user_log(request=None, type=None, action=None, metadata={}, user=None):
@@ -37,11 +48,9 @@ def create_user_log(request=None, type=None, action=None, metadata={}, user=None
 
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
+    ip = get_real_ip(request)
+    if not ip:
+        ip = get_ip(request)
     return ip
 
 

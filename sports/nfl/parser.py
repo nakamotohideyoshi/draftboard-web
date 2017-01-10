@@ -1,13 +1,12 @@
-#
-# sports/nfl/parser.py
-
 import re
+from logging import getLogger
+from raven.contrib.django.raven_compat.models import client
 from django.db.transaction import atomic
-from sports.sport.base_parser import (
-    AbstractDataDenParseable,
-    SridFinder,
-)
+
+import dataden.models
+import push.classes
 import sports.nfl.models
+from mysite.utils import QuickCache
 from sports.nfl.models import (
     Team,
     Game,
@@ -20,30 +19,27 @@ from sports.nfl.models import (
     Season,
 )
 from sports.sport.base_parser import (
+    AbstractDataDenParseable,
+)
+from sports.sport.base_parser import (
     AbstractDataDenParser,
     DataDenTeamHierarchy,
     DataDenGameSchedule,
     DataDenPlayerRosters,
     DataDenPlayerStats,
-    DataDenTeamBoxscores,
     DataDenPbpDescription,
     DataDenInjury,
     SridFinder,
     DataDenSeasonSchedule,
 )
-import json
-from dataden.classes import DataDen
-import dataden.models
-import push.classes
-from django.conf import settings
-from sports.sport.base_parser import TsxContentParser
-from push.classes import DataDenPush, PbpDataDenPush
 from util.dicts import (
     Reducer,
     Shrinker,
     Manager,
 )
-from mysite.utils import QuickCache
+
+logger = getLogger('sportss.nfl.parser')
+
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -61,7 +57,8 @@ class TeamHierarchy(DataDenTeamHierarchy):
         # o = obj.get_o()
         # self.team.alias = o.get('id', None)   # nfl ids are the team acronym, which is the alias
 
-        self.team.save() # commit changes
+        self.team.save()  # commit changes
+
 
 class SeasonSchedule(DataDenSeasonSchedule):
     """
@@ -101,14 +98,15 @@ class SeasonSchedule(DataDenSeasonSchedule):
 
         self.season.save()
 
+
 class GameSchedule(DataDenGameSchedule):
     """
     GameSchedule simply needs to set the right Team & Game model internally
     """
 
-    team_model      = Team
-    game_model      = Game
-    season_model    = Season
+    team_model = Team
+    game_model = Game
+    season_model = Season
 
     # override parent field for retrieving season srid
     field_season_srid = 'season__id'
@@ -122,32 +120,32 @@ class GameSchedule(DataDenGameSchedule):
         """
         super().parse(obj)
         if self.game is None:
-            #print('GAME IS NONE')
+            # print('GAME IS NONE')
             return
 
         o = obj.get_o()
 
         # super sets these fields (start is pulled from 'scheduled')
         #   ['srid','home','away','start','status','srid_home','srid_away','title']]
-        weather_info            = o.get('weather', '')
-        self.game.weather_json  = weather_info
+        weather_info = o.get('weather', '')
+        self.game.weather_json = weather_info
         self.game.save()
 
 
-        #self.game.refresh_from_db()
-        #print('saved game! status:', str(self.game.status))
+        # self.game.refresh_from_db()
+        # print('saved game! status:', str(self.game.status))
+
 
 class PlayerRosters(DataDenPlayerRosters):
-
-    team_model      = Team
-    player_model    = Player
+    team_model = Team
+    player_model = Player
 
     # dont add players that play these positions to the system
     exclude_positions = [
-        'DST','DE', 'OLB', 'CB',  'K',
-        'DT', 'DT', 'FS',  'OT',  'OG',
-        'SS', 'C',  'MLB', 'P',   'LB',
-        'OL', 'LS', 'NT',  'SAF', 'G',
+        'DST', 'DE', 'OLB', 'CB', 'K',
+        'DT', 'DT', 'FS', 'OT', 'OG',
+        'SS', 'C', 'MLB', 'P', 'LB',
+        'OL', 'LS', 'NT', 'SAF', 'G',
         'DB', 'T',
     ]
 
@@ -162,26 +160,27 @@ class PlayerRosters(DataDenPlayerRosters):
         # ignore players that arent relevant for fantasy purposes
         position = o.get(self.position_key)
         if position in self.exclude_positions:
-            return # skip parsing this player
+            return  # skip parsing this player
 
         # super sets up some internal stuff and is required to be
         # called before parsing nfl player specific fields
-        super().parse( obj )
+        super().parse(obj)
 
         # override the first name with preferred first name
         self.player.first_name = o.get('preferred_name')
 
         # override the birth date
-        self.player.birth_date      = o.get('birth_date', '')
+        self.player.birth_date = o.get('birth_date', '')
 
         # get draft information
         draft_info = o.get('draft__list', {})
-        self.player.draft_pick      = draft_info.get('number', '')
-        self.player.draft_round     = draft_info.get('round', '')
-        self.player.draft_year      = draft_info.get('year', '')
+        self.player.draft_pick = draft_info.get('number', '')
+        self.player.draft_round = draft_info.get('round', '')
+        self.player.draft_year = draft_info.get('year', '')
         self.player.srid_draft_team = draft_info.get('team', '')
 
         self.player.save()
+
 
 class PlayerStats(DataDenPlayerStats):
     """
@@ -273,15 +272,15 @@ class PlayerStats(DataDenPlayerStats):
 
     """
 
-    game_model          = Game
-    player_model        = Player
-    player_stats_model  = sports.nfl.models.PlayerStats
+    game_model = Game
+    player_model = Player
+    player_stats_model = sports.nfl.models.PlayerStats
 
     def __init__(self):
         super().__init__()
 
     def parse(self, obj):
-        super().parse(obj)   # sets up self.ps  (the PlayerStats instance - may be None)
+        super().parse(obj)  # sets up self.ps  (the PlayerStats instance - may be None)
 
         if self.p is None or self.ps is None or self.g is None:
             return
@@ -289,8 +288,8 @@ class PlayerStats(DataDenPlayerStats):
         # if self.ps is None:
         o = obj.get_o()
 
-        self.ps.position            = self.p.position # copy the dst Player's position in here
-        self.ps.primary_position    = self.p.position # copy the dst Player's position in here
+        self.ps.position = self.p.position  # copy the dst Player's position in here
+        self.ps.primary_position = self.p.position  # copy the dst Player's position in here
 
         parent_list = o.get('parent_list__id', None)
 
@@ -304,31 +303,31 @@ class PlayerStats(DataDenPlayerStats):
         #  'name': 'Andrew Luck', 'avg_yards': 8.2, 'yards': 385.0, 'cmp_pct': 66.0}
 
         if parent_list == "passing__list":
-            print('passing__list', str(o))
-            self.ps.pass_td     = o.get('touchdowns',       0)
-            self.ps.pass_yds    = o.get('yards',              0) # previously 'yards'
-            self.ps.pass_int    = o.get('interceptions',    0)
+            logger.info('passing__list: %s' % o)
+            self.ps.pass_td = o.get('touchdowns', 0)
+            self.ps.pass_yds = o.get('yards', 0)  # previously 'yards'
+            self.ps.pass_int = o.get('interceptions', 0)
         elif parent_list == "rushing__list":
-            print('rushing__list', str(o))
-            self.ps.rush_td     = o.get('touchdowns',   0)
-            self.ps.rush_yds    = o.get('yards',        0)
+            logger.info('rushing__list' % o)
+            self.ps.rush_td = o.get('touchdowns', 0)
+            self.ps.rush_yds = o.get('yards', 0)
         elif parent_list == "receiving__list":
-            print('receiving__list', str(o))
-            self.ps.rec_td      = o.get('touchdowns',   0)
-            self.ps.rec_yds     = o.get('yards',        0)
-            self.ps.rec_rec     = o.get('receptions',   0)
+            logger.info('receiving__list' % o)
+            self.ps.rec_td = o.get('touchdowns', 0)
+            self.ps.rec_yds = o.get('yards', 0)
+            self.ps.rec_rec = o.get('receptions', 0)
         elif parent_list == "punt_returns__list":
-            print('punt_returns__list', str(o))
-            self.ps.ret_punt_td = o.get('touchdowns',   0)
+            logger.info('punt_returns__list' % o)
+            self.ps.ret_punt_td = o.get('touchdowns', 0)
         elif parent_list == "kick_returns__list":
-            print('kick_returns__list', str(o))
-            self.ps.ret_kick_td = o.get('touchdowns',   0)
+            logger.info('kick_returns__list' % o)
+            self.ps.ret_kick_td = o.get('touchdowns', 0)
         elif parent_list == "fumbles__list":
-            print('fumbles__list', str(o))
-            self.ps.off_fum_lost    = o.get('lost_fumbles',     0)
-            self.ps.off_fum_rec_td  = o.get('own_rec_tds',      0)
+            logger.info('fumbles__list' % o)
+            self.ps.off_fum_lost = o.get('lost_fumbles', 0)
+            self.ps.off_fum_rec_td = o.get('own_rec_tds', 0)
         elif parent_list == "conversions__list":
-            print('conversions__list', str(o))
+            logger.info('conversions__list' % o)
             # {
             #   'jersey': 11.0, 'category': 'receive', 'dd_updated__id': 1464828941114,
             #   'id': 'f9036897-99d5-4d9a-8965-0c7e0f9e43bd', 'team__id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
@@ -336,13 +335,14 @@ class PlayerStats(DataDenPlayerStats):
             #   'attempts': 1.0, 'position': 'WR', 'parent_api__id': 'stats',
             #   'name': 'Markus Wheaton', 'parent_list__id': 'conversions__list'
             # }
-            self.ps.two_pt_conv = o.get('successes',    0)
+            self.ps.two_pt_conv = o.get('successes', 0)
         else:
             # print( str(o) )
             # print( 'obj parent_list__id was not found !')
             return
 
         self.ps.save()
+
 
 class GameBoxscoreReducer(Reducer):
     remove_fields = [
@@ -364,16 +364,19 @@ class GameBoxscoreReducer(Reducer):
         'parent_api__id',
     ]
 
+
 class GameBoxscoreShrinker(Shrinker):
     fields = {
-        #'summary__list' : 'summary',
-        'dd_updated__id' : 'ts',
-        'id' : 'srid_game'
+        # 'summary__list' : 'summary',
+        'dd_updated__id': 'ts',
+        'id': 'srid_game'
     }
+
 
 class GameBoxscoreManager(Manager):
     reducer_class = GameBoxscoreReducer
     shrinker_class = GameBoxscoreShrinker
+
 
 class GameBoxscoreParser(AbstractDataDenParseable):
     """
@@ -415,10 +418,10 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         }
     """
 
-    gameboxscore_model  = GameBoxscore
-    team_model          = Team
+    gameboxscore_model = GameBoxscore
+    team_model = Team
 
-    manager_class       = GameBoxscoreManager
+    manager_class = GameBoxscoreManager
 
     channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
     event = 'game'
@@ -441,26 +444,26 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         # to the current object (with wrapper)
         # and set the self.o (to the unwrapped object)
         self.parse_triggered_object(obj)
-        o = self.o # everything uses 'o already
+        o = self.o  # everything uses 'o already
 
         summary_list = o.get('summary__list', {})
 
-        srid_game   = o.get(self.field_srid_game, None)
-        srid_home   = summary_list.get('home', None)
-        srid_away   = summary_list.get('away', None)
+        srid_game = o.get(self.field_srid_game, None)
+        srid_home = summary_list.get('home', None)
+        srid_away = summary_list.get('away', None)
 
         try:
-            h = self.team_model.objects.get( srid=srid_home )
+            h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            #print( str(o) )
-            #print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            # print( str(o) )
+            # print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
             return
 
         try:
-            a = self.team_model.objects.get( srid=srid_away )
+            a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            #print( str(o) )
-            #print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            # print( str(o) )
+            # print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
             return
 
         try:
@@ -469,16 +472,17 @@ class GameBoxscoreParser(AbstractDataDenParseable):
             self.boxscore = self.gameboxscore_model()
             self.boxscore.srid_game = srid_game
 
-        self.boxscore.srid_home     = srid_home
-        self.boxscore.home          = h
-        self.boxscore.away          = a
-        self.boxscore.srid_away     = srid_away
+        self.boxscore.srid_home = srid_home
+        self.boxscore.home = h
+        self.boxscore.away = a
+        self.boxscore.srid_away = srid_away
 
-        self.boxscore.quarter       = o.get('quarter', 0)
-        self.boxscore.clock         = o.get('clock', '' )
-        self.boxscore.coverage      = o.get('coverage', '')    # deprecated, but it will default to empty string
-        self.boxscore.status        = o.get(self.field_status, '')
-        self.boxscore.title         = o.get('title', '')
+        self.boxscore.quarter = o.get('quarter', 0)
+        self.boxscore.clock = o.get('clock', '')
+        self.boxscore.coverage = o.get('coverage',
+                                       '')  # deprecated, but it will default to empty string
+        self.boxscore.status = o.get(self.field_status, '')
+        self.boxscore.title = o.get('title', '')
 
         self.boxscore.save()
 
@@ -497,12 +501,14 @@ class GameBoxscoreParser(AbstractDataDenParseable):
                 data['quarter'] = 3
         except Exception as e:
             # debug this because i want to know about problems with different scenarios
-            print(e)
+            logger.error(e)
+            client.captureException()
 
         self.update_boxscore_data_in_game(data)
 
         # pusher it
         push.classes.DataDenPush(self.channel, self.event).send(data)
+
 
 class TeamBoxscoreReducer(Reducer):
     remove_fields = [
@@ -512,16 +518,19 @@ class TeamBoxscoreReducer(Reducer):
         'parent_api__id',
     ]
 
+
 class TeamBoxscoreShrinker(Shrinker):
     fields = {
-        'id' : 'srid_team',
-        'dd_updated__id' : 'ts',
-        'game__id' : 'srid_game',
+        'id': 'srid_team',
+        'dd_updated__id': 'ts',
+        'game__id': 'srid_game',
     }
+
 
 class TeamBoxscoreManager(Manager):
     reducer_class = TeamBoxscoreReducer
     shrinker_class = TeamBoxscoreShrinker
+
 
 class TeamBoxscoreParser(AbstractDataDenParseable):
     """
@@ -589,10 +598,10 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
 
     """
 
-    gameboxscore_model  = GameBoxscore
-    team_model          = Team
+    gameboxscore_model = GameBoxscore
+    team_model = Team
 
-    manager_class       = TeamBoxscoreManager
+    manager_class = TeamBoxscoreManager
 
     channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
     event = 'team'
@@ -628,7 +637,7 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         try:
             self.boxscore = self.gameboxscore_model.objects.get(srid_game=srid_game)
         except self.gameboxscore_model.DoesNotExist:
-            return # if it doesnt exist yet, we cant update the points in it.
+            return  # if it doesnt exist yet, we cant update the points in it.
 
         # using the points from self.o, update the boxscore appropriately.
         self.update_boxscore(self.boxscore, self.o, target)
@@ -647,9 +656,12 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         # fall back on using both team scores (if the object is a 'play' object
         # AND there are no 'home','away' object triggers)
         ns, parent_api = target
-        db, obj_type = ns.split('.') # split into 'nflo' and 'home'/'away'
+        db, obj_type = ns.split('.')  # split into 'nflo' and 'home'/'away'
         if obj_type == self.fallback_obj_type and dataden.models.Trigger.objects.filter(db=db,
-                                            collection__in=['home','away'], parent_api='pbp').count() == 0:
+                                                                                        collection__in=[
+                                                                                            'home',
+                                                                                            'away'],
+                                                                                        parent_api='pbp').count() == 0:
             #
             print('fallback trigger type for updating boxscore')
             # if we enter here, we are likely running a replay, and we should use the 'play'
@@ -696,13 +708,14 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
         #     o['quarter'] = 3
 
         boxscore.save()
-        #boxscore.refresh_from_db()
+        # boxscore.refresh_from_db()
 
     def send(self, *args, **kwargs):
         data = self.get_send_data()
 
         # pusher it
         push.classes.DataDenPush(self.channel, self.event).send(data)
+
 
 class PlayReducer(Reducer):
     remove_fields = [
@@ -713,29 +726,31 @@ class PlayReducer(Reducer):
         'parent_api__id',
         '_id',
         # 'alt_description',        # this one reads better than the 'description' field imo
-        'quarter__id',              # not sure if we will want the quarter information or not
-        'reference',                # matches sequence from the looks of it
-        'id',                       # srid of this play
+        'quarter__id',  # not sure if we will want the quarter information or not
+        'reference',  # matches sequence from the looks of it
+        'id',  # srid of this play
         # 'type',                   # ex: "pass"
-        'sequence',                 # order of the play within the game i think
+        'sequence',  # order of the play within the game i think
         # 'start_situation__list',  # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
         # 'dd_updated__id',         # unix ts play was parsed
-        'parent_list__id',          # 'pbp'
-        'description',              # has the player numbers - use 'alt_description'
-        'drive__id',                # srid of the drive this play is contained within
+        'parent_list__id',  # 'pbp'
+        'description',  # has the player numbers - use 'alt_description'
+        'drive__id',  # srid of the drive this play is contained within
         # 'game__id',               # game srid
         # 'end_situation__list',    # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
     ]
 
+
 class PlayShrinker(Shrinker):
     fields = {
-        'dd_updated__id' : 'ts',
-        'alt_description' : 'description',
-        'game__id' : 'srid_game',
-        'statistics__list' : 'statistics',
-        'start_situation__list' : 'start_situation',
-        'end_situation__list' : 'end_situation',
+        'dd_updated__id': 'ts',
+        'alt_description': 'description',
+        'game__id': 'srid_game',
+        'statistics__list': 'statistics',
+        'start_situation__list': 'start_situation',
+        'end_situation__list': 'end_situation',
     }
+
 
 class ExtraInfo(object):
     """
@@ -751,33 +766,33 @@ class ExtraInfo(object):
     expected_types = [type_pass, type_rush]
 
     # formation type, if unknown, we call it 'default'
-    formation           = 'formation'
-    default_formation   = 'default'
+    formation = 'formation'
+    default_formation = 'default'
 
     # pass/rush dict keys
-    side                = 'side'
-    distance            = 'distance'
-    scramble            = 'scramble'
+    side = 'side'
+    distance = 'distance'
+    scramble = 'scramble'
 
     # major event flags
-    touchdown           = 'touchdown'
-    intercepted         = 'intercepted'
-    fumbles             = 'fumbles'
-    no_huddle           = 'no_huddle'
-    wildcat             = 'wildcat'
+    touchdown = 'touchdown'
+    intercepted = 'intercepted'
+    fumbles = 'fumbles'
+    no_huddle = 'no_huddle'
+    wildcat = 'wildcat'
 
     # specific values for distance, and side known as 99.99% likely
-    distance_short  = 'short'
-    distance_deep   = 'deep'
-    side_left       = 'left'
-    side_middle     = 'middle'
-    side_right      = 'right'
+    distance_short = 'short'
+    distance_deep = 'deep'
+    side_left = 'left'
+    side_middle = 'middle'
+    side_right = 'right'
 
     # regular expressions we will hunt for (all lowercase)
-    regex_distance  = r'(short|deep)'
-    regex_side      = r'(left|middle|right)'
+    regex_distance = r'(short|deep)'
+    regex_side = r'(left|middle|right)'
     regex_no_huddle = r'no[\s]+huddle'
-    regex_wildcat   = r'direct[\s]+snap'
+    regex_wildcat = r'direct[\s]+snap'
 
     # formation is only a single thing right now and its simpler to string match it
     str_formation_shotgun = 'shotgun'
@@ -797,11 +812,11 @@ class ExtraInfo(object):
 
         # initialize our underlying dict with default values
         self.data = {
-            self.formation : self.default_formation,
-            self.touchdown : False,
-            self.intercepted : False,
-            self.fumbles : False,
-            self.wildcat : False,
+            self.formation: self.default_formation,
+            self.touchdown: False,
+            self.intercepted: False,
+            self.fumbles: False,
+            self.wildcat: False,
         }
 
         # 1. parse things that could always be there (ie: extra_data top level fields)
@@ -818,14 +833,14 @@ class ExtraInfo(object):
     def update_major_flags(self):
         """ """
         # get the string name of the offensive formation
-        self.data[self.formation]   = self.parse_formation()        # in ['shotgun', 'default']
+        self.data[self.formation] = self.parse_formation()  # in ['shotgun', 'default']
 
         # flags
-        self.data[self.no_huddle]   = self.parse_no_huddle()        # bool
-        self.data[self.touchdown]   = self.parse_touchdown()        # bool
-        self.data[self.intercepted] = self.parse_intercepted()      # bool
-        self.data[self.fumbles]     = self.parse_fumbles()          # bool
-        self.data[self.wildcat]     = self.parse_wildcat()          # bool
+        self.data[self.no_huddle] = self.parse_no_huddle()  # bool
+        self.data[self.touchdown] = self.parse_touchdown()  # bool
+        self.data[self.intercepted] = self.parse_intercepted()  # bool
+        self.data[self.fumbles] = self.parse_fumbles()  # bool
+        self.data[self.wildcat] = self.parse_wildcat()  # bool
 
         return self.data
 
@@ -862,15 +877,15 @@ class ExtraInfo(object):
     def parse_distance(self):
         """ """
         matches = re.findall(self.regex_distance, self.ld_description)
-        #print('matches:', str(matches))
+        # print('matches:', str(matches))
         if len(matches) > 0:
             return matches[0]
-        return None # we might want to raise an exception here # TODO - no 'distance' found
+        return None  # we might want to raise an exception here # TODO - no 'distance' found
 
     def parse_side(self):
         """ """
         matches = re.findall(self.regex_side, self.ld_description)
-        #print('matches:', str(matches))
+        # print('matches:', str(matches))
         if len(matches) > 0:
             return matches[0]
         return None  # we might want to raise an exception here # TODO - no 'side' found
@@ -894,18 +909,19 @@ class ExtraInfo(object):
     def get_pass_data(self):
         """ special data for 'pass' play """
         pass_data = {
-            self.distance: self.parse_distance(),   # in ['short', 'deep']
-            self.side: self.parse_side(),           # in ['left', 'middle', 'right']
+            self.distance: self.parse_distance(),  # in ['short', 'deep']
+            self.side: self.parse_side(),  # in ['left', 'middle', 'right']
         }
         return pass_data
 
     def get_rush_data(self):
         """ special data for 'rush' play """
         rush_data = {
-            self.scramble: self.parse_scramble(),   # True indicates QB is rusher, otherwise false
-            self.side: self.parse_side(),           # in ['left', 'middle', 'right']
+            self.scramble: self.parse_scramble(),  # True indicates QB is rusher, otherwise false
+            self.side: self.parse_side(),  # in ['left', 'middle', 'right']
         }
         return rush_data
+
 
 class PlayManager(Manager):
     """
@@ -915,15 +931,15 @@ class PlayManager(Manager):
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
 
-    field_statistics    = 'statistics__list'
+    field_statistics = 'statistics__list'
 
-    field_defense       = 'defense__list'
-    field_kick          = 'kick__list'
+    field_defense = 'defense__list'
+    field_kick = 'kick__list'
 
-    field_pass          = 'pass__list'
-    field_return        = 'return__list'
-    field_rush          = 'rush__list'
-    field_receive       = 'receive__list'
+    field_pass = 'pass__list'
+    field_return = 'return__list'
+    field_rush = 'rush__list'
+    field_receive = 'receive__list'
 
     ignore_fields = [
         field_defense, field_kick
@@ -946,14 +962,14 @@ class PlayManager(Manager):
         # get statistics list  -- dont forget to replace it after we clean it up
         statistics = self.raw_data.get(self.field_statistics)
         if statistics is None:
-            return # nothing to do - it didnt exist
+            return  # nothing to do - it didnt exist
 
         # there are some lists we will just want to pop off
         for field in self.ignore_fields:
             try:
                 statistics.pop(field)
             except KeyError:
-                pass # it wasnt there to begin with - so dont worry about it
+                pass  # it wasnt there to begin with - so dont worry about it
 
         # 1. cleanup pass__list
         # convert sack to a boolean
@@ -974,6 +990,7 @@ class PlayManager(Manager):
             statistics[self.field_return] = return_list
             self.raw_data[self.field_statistics] = statistics
 
+
 class PossessionReducer(Reducer):
     remove_fields = [
         'game__id',
@@ -988,12 +1005,15 @@ class PossessionReducer(Reducer):
         'drive__id',
     ]
 
+
 class PossessionShrinker(Shrinker):
-    fields = {} # there arent any
+    fields = {}  # there arent any
+
 
 class PossessionManager(Manager):
     reducer_class = PossessionReducer
     shrinker_class = PossessionShrinker
+
 
 class LocationReducer(Reducer):
     remove_fields = [
@@ -1009,12 +1029,15 @@ class LocationReducer(Reducer):
         'reference',
     ]
 
+
 class LocationShrinker(Shrinker):
-    fields = { } # there arent any
+    fields = {}  # there arent any
+
 
 class LocationManager(Manager):
     reducer_class = LocationReducer
     shrinker_class = LocationShrinker
+
 
 # # for the 'statistics__list' : 'pass__list' stats
 # class PassReducer(Reducer):
@@ -1044,7 +1067,6 @@ class LocationManager(Manager):
 #     shrinker_class = RushShrinker
 
 class PlayParser(DataDenPbpDescription):
-
     class PlayCache(QuickCache):
         name = 'PlayCache_nflo_pbp'
 
@@ -1064,20 +1086,20 @@ class PlayParser(DataDenPbpDescription):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
 
-    field_pbp_object        = 'pbp'
-    field_stats             = 'stats'
+    field_pbp_object = 'pbp'
+    field_stats = 'stats'
 
-    game_model              = Game
-    pbp_model               = Pbp
-    portion_model           = GamePortion
-    pbp_description_model   = PbpDescription
-    pusher_sport_pbp_event  = 'linked'
+    game_model = Game
+    pbp_model = Pbp
+    portion_model = GamePortion
+    pbp_description_model = PbpDescription
+    pusher_sport_pbp_event = 'linked'
 
-    player_stats_model      = sports.nfl.models.PlayerStats
-    pusher_sport_pbp        = push.classes.PUSHER_NFL_PBP
-    pusher_sport_stats      = push.classes.PUSHER_NFL_STATS
+    player_stats_model = sports.nfl.models.PlayerStats
+    pusher_sport_pbp = push.classes.PUSHER_NFL_PBP
+    pusher_sport_stats = push.classes.PUSHER_NFL_STATS
 
-    manager_class           = PlayManager
+    manager_class = PlayManager
 
     def __init__(self):
         super().__init__()
@@ -1118,26 +1140,26 @@ class PlayParser(DataDenPbpDescription):
         if target == ('nflo.play', 'pbp'):
             play_srid = o.get('id')
             self.PlayCache(o)
-            #tmp_o = c.fetch(ts, play_srid)
+            # tmp_o = c.fetch(ts, play_srid)
         elif target == ('nflo.possession', 'pbp'):
             play_srid = o.get('play__id')
             situation_type = o.get('parent_list__id')
             if situation_type == 'start_situation__list':
                 self.StartPossessionCache(o)
-            else: # 'end_situation__list'
+            else:  # 'end_situation__list'
                 self.EndPossessionCache(o)
         elif target == ('nflo.location', 'pbp'):
             play_srid = o.get('play__id')
             situation_type = o.get('parent_list__id')
             if situation_type == 'start_situation__list':
                 self.StartLocationCache(o)
-            else: # 'end_situation__list'
+            else:  # 'end_situation__list'
                 self.EndLocationCache(o)
 
         if ts is not None and play_srid is not None:
             return (ts, play_srid)
         # else:
-        return None # TODO dont return None! raise something... the caller expects a tuple...
+        return None  # TODO dont return None! raise something... the caller expects a tuple...
 
     # def get_srid_game(self, fieldname): # returns a string
 
@@ -1175,9 +1197,10 @@ class PlayParser(DataDenPbpDescription):
         srid_players = srid_finder.get_for_field('player')
         player_stats = self.player_stats_model.objects.filter(srid_game__in=srid_games,
                                                               srid_player__in=srid_players)
-        print('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (str(player_stats.count()),
-                                                        str(srid_games), str(srid_players)))
-        player_stats_json = [ ps.to_json() for ps in player_stats ]
+        logger.info('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
+            player_stats.count(),
+            srid_games, srid_players))
+        player_stats_json = [ps.to_json() for ps in player_stats]
 
         #
         start_location = self.StartLocationCache().fetch(self.ts, self.play_srid)
@@ -1196,28 +1219,28 @@ class PlayParser(DataDenPbpDescription):
         # }
 
         play['start_situation__list']['possession'] = PossessionManager(start_possession).get_data()
-        play['start_situation__list']['location']   = LocationManager(start_location).get_data()
+        play['start_situation__list']['location'] = LocationManager(start_location).get_data()
 
-        play['end_situation__list']['possession']   = PossessionManager(end_possession).get_data()
-        play['end_situation__list']['location']     = LocationManager(end_location).get_data()
+        play['end_situation__list']['possession'] = PossessionManager(end_possession).get_data()
+        play['end_situation__list']['location'] = LocationManager(end_location).get_data()
 
         data = {
-            self.field_pbp_object : PlayManager(play).get_data(),
-            self.field_stats : player_stats_json,
+            self.field_pbp_object: PlayManager(play).get_data(),
+            self.field_stats: player_stats_json,
         }
 
-        #print('get_send_data:', str(data))
+        # print('get_send_data:', str(data))
         return data
 
     def send(self, *args, **kwargs):
-        super().send(*args, **kwargs) #force=True)
+        super().send(*args, **kwargs)  # force=True)
+
 
 class Injury(DataDenInjury):
-
     player_model = Player
     injury_model = sports.nfl.models.Injury
 
-    key_iid     = 'id' # the name of the field in the obj
+    key_iid = 'id'  # the name of the field in the obj
 
     def __init__(self, wrapped=True):
         super().__init__(wrapped)
@@ -1242,10 +1265,10 @@ class Injury(DataDenInjury):
 
         #
         # extract the information from self.o
-        self.injury.srid                = self.o.get('id',          '') # not set by parent
-        self.injury.practice_status     = self.o.get('practice_status', '')
-        self.injury.status              = self.o.get('game_status', '')
-        self.injury.description         = self.o.get('description', '')
+        self.injury.srid = self.o.get('id', '')  # not set by parent
+        self.injury.practice_status = self.o.get('practice_status', '')
+        self.injury.status = self.o.get('game_status', '')
+        self.injury.description = self.o.get('description', '')
         self.injury.save()
 
         #
@@ -1253,8 +1276,8 @@ class Injury(DataDenInjury):
         self.player.injury = self.injury
         self.player.save()
 
-class DataDenNfl(AbstractDataDenParser):
 
+class DataDenNfl(AbstractDataDenParser):
     mongo_db_for_sport = 'nflo'
 
     # for team points
@@ -1282,7 +1305,7 @@ class DataDenNfl(AbstractDataDenParser):
     ]
 
     def __init__(self):
-        self.game_model = Game # unused
+        self.game_model = Game  # unused
         self.sport = 'nfl'
 
     def parse(self, obj):
@@ -1290,67 +1313,68 @@ class DataDenNfl(AbstractDataDenParser):
         :param obj:
         :return:
         """
-        super().parse( obj ) # setup self.ns, self.parent_api
+        super().parse(obj)  # setup self.ns, self.parent_api
 
         #
         # switch statement selects the type of object to parse
         # the Namespace-ParentApi combination
 
         #
-        if self.target == (self.mongo_db_for_sport+'.season','schedule'):
+        if self.target == (self.mongo_db_for_sport + '.season', 'schedule'):
             SeasonSchedule().parse(obj, self.target)
 
         #
-        elif self.target == (self.mongo_db_for_sport+'.game','schedule'):
+        elif self.target == (self.mongo_db_for_sport + '.game', 'schedule'):
             GameSchedule().parse(obj, self.target)
 
         # parse a game obj from the boxscores feed
-        elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
+        elif self.target == (self.mongo_db_for_sport + '.game', 'boxscores'):
             game_boxscore_parser = GameBoxscoreParser()
             game_boxscore_parser.parse(obj, self.target)
             game_boxscore_parser.send()
 
         # parse a team object from the boxscores feed
-        elif self.target == (self.mongo_db_for_sport+'.team','boxscores'):
+        elif self.target == (self.mongo_db_for_sport + '.team', 'boxscores'):
             # dont send it unless its from the parent__list: 'summary__list'
             team_boxscore_parser = TeamBoxscoreParser()
             team_boxscore_parser.parse(obj, self.target)
             team_boxscore_parser.send()
 
         # update home or away team scores
-        elif self.target in [(self.mongo_db_for_sport+'.home','boxscores'),
+        elif self.target in [(self.mongo_db_for_sport + '.home', 'boxscores'),
                              (self.mongo_db_for_sport + '.away', 'boxscores')]:
             team_boxscore_parser = TeamBoxscoreParser()
             team_boxscore_parser.parse(obj, self.target)
             team_boxscore_parser.send()
 
         # parse a team object from the hierarchy feed
-        elif self.target == (self.mongo_db_for_sport+'.team','hierarchy'):
+        elif self.target == (self.mongo_db_for_sport + '.team', 'hierarchy'):
             team_hierarchy = TeamHierarchy()
             team_hierarchy.parse(obj, self.target)
 
         # parse a player from the rosters feed
-        elif self.target == (self.mongo_db_for_sport+'.player','rosters'):
+        elif self.target == (self.mongo_db_for_sport + '.player', 'rosters'):
             try:
-                PlayerRosters().parse( obj )
+                PlayerRosters().parse(obj)
             except PlayerRosters.PositionDoesNotExist as e:
-                print(e)
+                logger.error(e)
+                client.captureException()
 
         # parse a players stats (from a game) from the stats feed
-        elif self.target == (self.mongo_db_for_sport+'.player','stats'):
-            PlayerStats().parse( obj )
+        elif self.target == (self.mongo_db_for_sport + '.player', 'stats'):
+            PlayerStats().parse(obj)
 
         # pbp -> its a 'play' and corresponding 'location' and 'possession' objects
         elif self.target == (self.mongo_db_for_sport + '.play', 'pbp') \
-            or self.target == (self.mongo_db_for_sport + '.location', 'pbp') \
-            or self.target == (self.mongo_db_for_sport + '.possession', 'pbp'):
+                or self.target == (self.mongo_db_for_sport + '.location', 'pbp') \
+                or self.target == (self.mongo_db_for_sport + '.possession', 'pbp'):
 
             parser = PlayParser()
-            parser.parse(obj, self.target) # will call send() if it can
+            parser.parse(obj, self.target)  # will call send() if it can
 
         #
         else:
-            self.unimplemented( self.target[0], self.target[1] )
+            self.unimplemented(self.target[0], self.target[1])
 
     @atomic
     def cleanup_rosters(self):
@@ -1359,10 +1383,10 @@ class DataDenNfl(AbstractDataDenParser):
         and rosters parent api so it can flag players
         who are no long on the teams roster on_active_roster = False
         """
-        super().cleanup_rosters(self.mongo_db_for_sport,            # name of mongo db for the sport
-                                sports.nfl.models.Team,             # model class for the Team
-                                sports.nfl.models.Player,           # model class for the Player
-                                parent_api='rosters')               # parent api where the roster players found
+        super().cleanup_rosters(self.mongo_db_for_sport,  # name of mongo db for the sport
+                                sports.nfl.models.Team,  # model class for the Team
+                                sports.nfl.models.Player,  # model class for the Player
+                                parent_api='rosters')  # parent api where the roster players found
 
     def cleanup_injuries(self):
-        pass # TODO for NFL Official Feed
+        pass  # TODO for NFL Official Feed

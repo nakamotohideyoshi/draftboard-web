@@ -1,4 +1,5 @@
 from django.conf.urls import url
+
 from account.views import (
     AuthAPIView,
     ForgotPasswordAPIView,
@@ -10,8 +11,8 @@ from account.views import (
 )
 from .views import (
     # paypal apis:
-    PayPalDepositWithPayPalAccountAPIView,              # not fully implemented
-    PayPalDepositWithPayPalAccountSuccessAPIView,       # not fully implemented
+    PayPalDepositWithPayPalAccountAPIView,  # not fully implemented
+    PayPalDepositWithPayPalAccountSuccessAPIView,  # not fully implemented
     # PayPalDepositWithPayPalAccountFailAPIView,          # not fully implemented
     # PayPalDepositCreditCardAPIView,
     # PayPalDepositSavedCardAPIView,

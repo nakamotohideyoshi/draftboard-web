@@ -203,22 +203,20 @@ class Stats(object):
         :param r: http response from a requests Session.get() call
         :return:
         """
-        if r.status_code >= 400:
+        # The API 404s for a number of reasons, mainly if there are no games for the day
+        # or if the games aren't up yet. It's bad and dumb, but unfortunately we are forced to
+        # ignore these.
+        if r.status_code == 404:
+            logger.warning('404 response from stats.com: %s' % r.url)
+        # If we got a a non-404, 400+, log it out and raise an exception.
+        # this happens ALL the time, the stats api is really flaky, but it can mostly
+        # be safely ignored. A Sumo Logic alert will be setup to make sure that we
+        # are getting a succesful update within a certain time period.
+        elif r.status_code >= 400:
             w = ApiFailureWebhook()
-            err_msg = 'STATS.com api gave us an http status code: %s - %s' % (r.status_code, r.text)
+            err_msg = 'stats.com api gave us an http status code: %s - %s' % (r.status_code, r.text)
             w.send(err_msg)
-            client.context.activate()
-            client.context.merge({'extra': {
-                'stats_api_request': vars(r),
-                # This is formatted all dumb to sidestep Sentry's built-in filtering which filters out the url because
-                # it contains something it thinks is sensitive info (which technically it is but NBD in our case)
-                'request_url': "request_url: %s" % r.url,
-                'help': ("It's possible we were rate limited. (ie: 'Developer Over Qps') If so, you may need to "
-                         "increase the current value of statscom.classes.Stats objects rate_limit_delay_seconds which "
-                         "is currently [%s] seconds" % self.rate_limit_delay_seconds)
-            }})
-
-            client.captureMessage(err_msg)
+            logger.warning(err_msg)
             raise Exception(err_msg)
 
     def api(self, endpoint, format=None, verbose=True, params={}):
@@ -750,7 +748,8 @@ class FantasyProjectionsNBA(FantasyProjections):
                         stats_projections=player_projection,
                         stat_map=self.stat_map
                     )
-                    logger.info('player: %s - stats.com projections: %s' % (player, player_projection))
+                    logger.info('player: %s | calculated FP: %s | stats.com projections: %s' % (
+                        player, our_projected_fp, player_projection))
 
                     # iterate the list of sites which we have projections for until we find
                     # the one we want

@@ -540,7 +540,7 @@ class BlockCreator(object):
         """
 
         def __init__(self, message):
-            logger.error('Block already exists! %s' % message)
+            logger.warning('Block already exists! %s' % message)
             pass
 
     def __init__(self, sport_day):
