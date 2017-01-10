@@ -66,8 +66,8 @@ class Information(models.Model):
         if limits.exists():
             deposit_limit = self.user.limits.get(type=Limit.DEPOSIT)
             deposits = \
-            cash_transaction.get_all_deposits(date_range=deposit_limit.time_period_boundaries)[
-                'amount__sum']
+                cash_transaction.get_all_deposits(date_range=deposit_limit.time_period_boundaries)[
+                    'amount__sum']
         return deposits
 
     @cached_property
@@ -228,6 +228,15 @@ class Identity(models.Model):
         import zipcode
         return zipcode.isequal(self.postal_code).state if zipcode.isequal(
             self.postal_code) else None
+
+
+class Confirmation(models.Model):
+    """
+    Option for for checking user confirmation
+    """
+
+    user = models.OneToOneField(User, primary_key=True)
+    confirmed = models.BooleanField(default=False)
 
 
 class Limit(models.Model):

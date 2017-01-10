@@ -5,11 +5,10 @@ const initialState = {
   user: {
     isFetching: false,
     isIdentityVerified: false,
-
+    identity: {},
     userLimits: [],
     currentLimits: [],
     selectedLimits: [],
-    identity: {},
   },
   username: window.dfs.user.username,
   identityFormErrors: {},

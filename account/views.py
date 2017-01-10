@@ -31,9 +31,9 @@ from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 import account.tasks
 from account import const as _account_const
-from account.forms import LoginForm
 from account.forms import (
-    SelfExclusionForm
+    LoginForm,
+    SelfExclusionForm,
 )
 from account.models import (
     Information,
@@ -1079,59 +1079,6 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         return response
 
 
-class LimitsFormView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/account/user_limits.html'
-
-
-class UserLimitsAPIView(APIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
-    serializer_class = UserLimitsSerializer
-
-    def get(self, request, *args, **kwargs):
-        # TODO: add request.user and request.user.pk respectively
-        user = request.user
-        limits = user.limits.all()
-        user_limits = []
-        serializer = None
-        if limits.exists():
-            serializer = self.serializer_class(limits, many=True)
-        else:
-            for limit_type in Limit.TYPES:
-                limit_type_index = limit_type[0]
-                val = Limit.TYPES_GLOBAL[limit_type_index]['value'][0][0]
-                user_limits.append({'user': user.pk,
-                                    'type': limit_type_index,
-                                    'value': val,
-                                    'time_period': Limit.PERIODS[0][
-                                        0] if limit_type != Limit.ENTRY_FEE else None})
-        limits_data = {'types': Limit.TYPES_GLOBAL,
-                       'current_values': serializer.data if serializer else user_limits}
-        return Response(limits_data)
-
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        limits = user.limits.all()
-        if limits.exists():
-            serializer = self.serializer_class(limits, data=self.request.data, many=True)
-
-            state = user.identity.state
-            if state:
-                days = settings.LIMIT_DAYS_RESTRAINT.get(state)
-                if days:
-                    change_allowed_on = limits[0].updated + timedelta(days=days)
-                    if timezone.now() < change_allowed_on:
-                        return JsonResponse(data={
-                            "detail": "Not allowed to change limits until {}".format(
-                                change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400,
-                                            safe=False)
-
-        else:
-            serializer = self.serializer_class(data=self.request.data, many=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(data={"detail": "Limits Saved"}, status=200)
-
-
 def add_months(sourcedate, months):
     month = sourcedate.month - 1 + months
     year = int(sourcedate.year + month / 12)
@@ -1181,3 +1128,55 @@ class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
             confirmation.confirmed = True
             confirmation.save()
             return self.render_to_response({'message': 'Successful confirmation'}, )
+
+
+class LimitsFormView(LoginRequiredMixin, TemplateView):
+    template_name = 'frontend/account/user_limits.html'
+
+
+class UserLimitsAPIView(APIView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    serializer_class = UserLimitsSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        limits = user.limits.all()
+        user_limits = []
+        serializer = None
+        if limits.exists():
+            serializer = self.serializer_class(limits, many=True)
+        else:
+            for limit_type in Limit.TYPES:
+                limit_type_index = limit_type[0]
+                val = Limit.TYPES_GLOBAL[limit_type_index]['value'][0][0]
+                user_limits.append({'user': user.pk,
+                                    'type': limit_type_index,
+                                    'value': val,
+                                    'time_period': Limit.PERIODS[0][
+                                        0] if limit_type != Limit.ENTRY_FEE else None})
+        limits_data = {'types': Limit.TYPES_GLOBAL,
+                       'current_values': serializer.data if serializer else user_limits}
+        return Response(limits_data)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        limits = user.limits.all()
+        if limits.exists():
+            serializer = self.serializer_class(limits, data=self.request.data, many=True)
+
+            state = user.identity.state
+            if state:
+                days = settings.LIMIT_DAYS_RESTRAINT.get(state)
+                if days:
+                    change_allowed_on = limits[0].updated + timedelta(days=days)
+                    if timezone.now() < change_allowed_on:
+                        return JsonResponse(data={
+                            "detail": "Not allowed to change limits until {}".format(
+                                change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400,
+                                            safe=False)
+
+        else:
+            serializer = self.serializer_class(data=self.request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data={"detail": "Limits Saved"}, status=200)
