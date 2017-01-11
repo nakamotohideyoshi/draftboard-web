@@ -1,4 +1,4 @@
-const avatarHTML = require('./avatar.svg');
+// const avatarHTML = require('../../../../img/---FILL IN AVATAR.SVG PATH--.svg');
 
 export default class AvatarAnimation {
   constructor() {
@@ -14,7 +14,7 @@ export default class AvatarAnimation {
     this.el.style.height = `${height}px`;
     this.el.style.width = `${width}px`;
 
-    this.el.innerHTML = `<img src="${avatarHTML}">`;
+    // this.el.innerHTML = `<img src="${avatarHTML}">`;
   }
 
   play() {
