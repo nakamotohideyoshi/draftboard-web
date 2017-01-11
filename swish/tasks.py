@@ -40,7 +40,5 @@ def update_injury_feed(self, sport):
                     logger.warning('%s | swish player not found: %s' % (sport, player))
             else:
                 updates = PlayerUpdate.objects.filter(sport=sport).order_by('-updated_at')
-                serializer_data = PlayerUpdateSerializer(updates, many=True).data
-                cache.set('{}_player_updates'.format(sport), serializer_data, None)
         finally:
             release_lock()

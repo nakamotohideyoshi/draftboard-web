@@ -32,16 +32,15 @@ from draftgroup.models import (
 from draftgroup.serializers import (
     GameUpdateSerializer,
     PlayerUpdateSerializer,
+    PlayerUpdateStatusSerializer
 )
 
 
 class GetSerializedDataMixin:
 
     def get_serialized_data(self, model_class, serializer_class, sport):
-        serialized_data = cache.get('{}_player_updates'.format(sport))
-        if not (serialized_data and serializer_class == PlayerUpdateSerializer):
-            updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
-            serialized_data = serializer_class(updates, many=True).data
+        updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
+        serialized_data = serializer_class(updates, many=True).data
 
         return serialized_data
 
@@ -100,7 +99,7 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
 
     def get(self, request, *args, **kwargs):
         data = {
-            'player_updates': self.get_serialized_data(PlayerUpdate, PlayerUpdateSerializer, sport=kwargs['sport']),
+            'player_updates': self.get_serialized_data(PlayerUpdate, PlayerUpdateStatusSerializer, sport=kwargs['sport']),
             # 'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
             # TODO truncate game_updates and player_updates!
             'game_updates': [],
