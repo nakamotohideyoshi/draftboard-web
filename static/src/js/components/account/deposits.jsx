@@ -6,7 +6,7 @@ import { deposit } from '../../actions/payments';
 import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
 import { verifyLocation, verifyIdentity, fetchUser } from '../../actions/user';
-import {addMessage , removeMessage} from '../../actions/message-actions.js';
+import { addMessage, removeMessage } from '../../actions/message-actions.js';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
@@ -25,7 +25,7 @@ function mapStateToProps(state) {
     identityFormErrors: state.user.identityFormErrors,
     identityFormIsSending: state.user.identityFormIsSending,
     depositSum: state.user.cashBalance.depositSum,
-    depositLimit: state.user.cashBalance.depositLimit
+    depositLimit: state.user.cashBalance.depositLimit,
   };
 }
 
@@ -57,7 +57,7 @@ const Deposits = React.createClass({
     identityFormIsSending: React.PropTypes.bool,
     fetchUser: React.PropTypes.func.isRequired,
     depositSum: React.PropTypes.number.isRequired,
-    depositLimit: React.PropTypes.number.isRequired
+    depositLimit: React.PropTypes.number.isRequired,
   },
 
 
@@ -157,10 +157,10 @@ const Deposits = React.createClass({
       this.checkoutInit();
     } else {
       store.dispatch(addMessage({
-        header: "Failed",
-        content: "Sorry but you have exceeded your limit",
-        level: "warning",
-        id: "limit error"
+        header: 'Failed',
+        content: 'Sorry but you have exceeded your limit',
+        level: 'warning',
+        id: 'limit error',
       }));
       log.warn('Ignoring button click.');
     }
@@ -209,9 +209,9 @@ const Deposits = React.createClass({
 
 
   handleTextInputChange(event) {
-    if (this.props.depositLimit){
-      if ((this.props.depositSum + Number(this.refs.textInput.value)) > this.props.depositLimit){
-      this.disablePaypalButton();
+    if (this.props.depositLimit) {
+      if ((this.props.depositSum + Number(this.refs.textInput.value)) > this.props.depositLimit) {
+        this.disablePaypalButton();
       } else {
         this.enablePaypalButton();
       }
