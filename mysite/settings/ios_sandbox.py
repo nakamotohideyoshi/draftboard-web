@@ -104,19 +104,7 @@ INSTALLED_APPS += (
 )
 
 # Pusher
-PUSHER_APP_ID = '159461'
-PUSHER_KEY = '49224807c21863bf259b'
-PUSHER_SECRET = environ.get('PUSHER_SECRET')
-
-#
-# dataden mongo database connection
-MONGO_AUTH_DB = 'admin'
-MONGO_USER = 'admin'
-MONGO_PASSWORD = 'dataden1'
-MONGO_PORT = 27017  # NOTE: any port specified in the connection uri string overrides this port
-MONGO_HOST = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (
-    MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
-# MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
+PUSHER_CHANNEL_PREFIX = 'ios_sandbox'
 
 # # if this config var exists, override the default production value
 # dataden_mongo_uri = urlparse(environ.get('DATADEN_MONGO_URI'))
