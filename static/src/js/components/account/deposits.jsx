@@ -201,6 +201,7 @@ const Deposits = React.createClass({
     }
     // Update the textarea value.
     this.refs.textInput.value = event.target.value;
+    this.handleTextInputChange(event);
     // update state amount and add button
     this.setState(
       { amount: event.target.value }
