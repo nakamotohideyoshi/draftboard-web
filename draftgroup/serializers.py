@@ -7,6 +7,7 @@ from draftgroup.models import (
     Player,
     PlayerUpdate,
     GameUpdate,
+    PlayerStatus,
 )
 from roster.models import RosterSpot
 
@@ -43,15 +44,11 @@ class PlayerUpdateSerializer(serializers.ModelSerializer):
         fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
 
 
-class PlayerUpdateStatusSerializer(serializers.ModelSerializer):
-
-    srid = serializers.SerializerMethodField()
-    def get_srid(self, obj):
-        return obj.player_srid
+class PlayerStatusSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = PlayerUpdate
-        fields = ('srid','status')
+        model = PlayerStatus
+        fields = ('player_srid', 'status')
 
 
 class GameUpdateSerializer(serializers.ModelSerializer):
@@ -90,5 +87,7 @@ class DraftGroupSerializer(AbstractDraftGroupSerializer):
 class UpcomingDraftGroupSerializer(AbstractDraftGroupSerializer):
 
     class Meta:
-        model   = DraftGroup
-        fields  = ('pk', 'start', 'sport', 'num_games','category')
+        model = DraftGroup
+        fields = ('pk', 'start', 'sport', 'num_games','category')
+
+

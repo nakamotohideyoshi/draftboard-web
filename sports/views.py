@@ -24,15 +24,16 @@ import dataden.models
 import dataden.serializers
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
-#
+
 from draftgroup.models import (
     GameUpdate,
     PlayerUpdate,
+    PlayerStatus,
 )
 from draftgroup.serializers import (
     GameUpdateSerializer,
     PlayerUpdateSerializer,
-    PlayerUpdateStatusSerializer
+    PlayerStatusSerializer,
 )
 
 
@@ -89,6 +90,12 @@ class PlayerUpdateAPIView(AbstractUpdateAPIView):
     serializer_class = PlayerUpdateSerializer
 
 
+class PlayerStatusAPIView(AbstractUpdateAPIView):
+
+    model_class = PlayerStatus
+    serializer_class = PlayerStatusSerializer
+
+
 class UpdateAPIView(APIView, GetSerializedDataMixin):
 
     """
@@ -99,7 +106,7 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
 
     def get(self, request, *args, **kwargs):
         data = {
-            'player_updates': self.get_serialized_data(PlayerUpdate, PlayerUpdateStatusSerializer, sport=kwargs['sport']),
+            'player_updates': self.get_serialized_data(PlayerStatus, PlayerStatusSerializer, sport=kwargs['sport']),
             # 'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
             # TODO truncate game_updates and player_updates!
             'game_updates': [],
