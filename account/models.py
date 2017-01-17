@@ -340,12 +340,3 @@ class Limit(models.Model):
             time_range = [today, tomorrow]
 
         return time_range
-
-
-class Confirmation(models.Model):
-    """
-    Option for for checking user confirmation
-    """
-
-    user = models.OneToOneField(User, primary_key=True)
-    confirmed = models.BooleanField(default=False)

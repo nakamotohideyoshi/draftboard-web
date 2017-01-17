@@ -42,7 +42,7 @@ const Settings = React.createClass({
     user: React.PropTypes.object.isRequired,
     username: React.PropTypes.string.isRequired,
     notificationSettings: React.PropTypes.object.isRequired,
-    identity: React.PropTypes.object.isRequired,
+    identity: React.PropTypes.object,
     infoFormErrors: React.PropTypes.object.isRequired,
     emailPassFormErrors: React.PropTypes.object.isRequired,
     updateUserEmailPass: React.PropTypes.func.isRequired,

@@ -9,7 +9,6 @@ from account.views import (
     schema_view,
     ExclusionFormView,
     AccessSubdomainsTemplateView,
-    LimitsFormView,
     ConfirmUserEmailView,
 )
 
@@ -33,6 +32,4 @@ urlpatterns = [
         name='site-subdomains-access'),
     # TODO swagger docs should not be on production
     url(r'^docs/', schema_view),
-    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(), name='site-subdomains-access'),
-    url(r'^limits/$', LimitsFormView.as_view(), name='user-limits'),
 ]

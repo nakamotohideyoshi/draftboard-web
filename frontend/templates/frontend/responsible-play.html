@@ -1,0 +1,60 @@
+{% extends "frontend/base__company.html" %}
+
+{% block title %}Draftboard &mdash; Responsible Play{% endblock title %}
+
+{% block body-copy-modifier %}terms-conditions responsible-play{% endblock %}
+
+{% block content %}
+  <h1>
+    <sup>Draftboard </sup>
+    Responsible Play
+  </h1>
+
+  <hr class="body-copy__h1-divider" />
+
+  <p>
+    We built Draftboard from the bottom up with our players’ best interests in mind.  This philosophy extends to situations where you might need some help in managing your play in a responsible manner.  The following tools exist to aid you in setting up parameters that will guide your play on Draftboard now and in the future.
+  </p>
+
+  <h2>Play Limits</h2>
+
+  <p>
+    If you wish to set limits on your deposits, the amount of contests you can play, or place a maximum on the dollar value of contests you are able to play please <a href="{% url 'frontend:user-limits' %}">click here</a>.
+  </p>
+
+  <h2>Self-Exclusion</h2>
+
+  <p>
+    If you wish to disable your account completely for a period of time, please click here.
+  </p>
+
+  <h2>Third Party Requests</h2>
+
+  <p>
+    If you wish to request the exclusion of a Draftboard player other than yourself please contact Customer Support at support@draftboard.com
+  </p>
+
+  <h2>Limitations on Deposits</h2>
+
+  <p>
+    Per state regulations, Draftboard restricts deposits for Massachusetts, Maryland, and Tennessee residents to $1,000, $1,000, and $2,500 per calendar month, respectively.  To request an increase in your deposit limit please contact Customer Support at support@draftboard.com.
+  </p>
+
+  <p>
+    Note that residents of Tennessee will not be granted an increase in their deposit limit until they have played 51 contests on Draftboard.  In order for residents of Tennessee or Maryland to have their deposit limit increased a resident shall provide proof of a) individual net worth, or joint net worth with that person's spouse, in excess of $500,000, or b) individual income in excess of $150,000 in each of the two most recent years or joint income with that person's spouse in excess of $300,000 in each of those years.  In either case there should be a reasonable expectation of reaching the same income level in the current year.  Maryland residents must reapply each year to maintain a monthly deposit limit in excess of $1,000.
+  </p>
+
+  <h2>Parental Controls</h2>
+
+  <p>
+    Draftboard verifies the age of all users upon account setup.  If you believe someone under the age of 18 (21 in Massachusetts, 19 in Nebraska or Canada) is playing on Draftboard through their own account or one registered to someone else, please contact Customer Support at support@draftboard.com.  We will promptly close any account being utilized by a minor and refund all funds in the account within five business days.  If minors have access to your computer, consider installing parental control software which assists in blocking access to Draftboard and other age-restricted sites.
+  </p>
+
+
+  <h2>Need Additional Help?</h2>
+
+  <p>
+    If you have additional concerns about managing your play or that of another Draftboard user please contact Customer Support at support@draftboard.com.  You make also wish to contact the National Center for Responsible Gaming.  They provide a variety of support programs and can be reached 24 hours a day at 1-800-522-4700.
+  </p>
+
+{% endblock content %}

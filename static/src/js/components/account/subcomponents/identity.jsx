@@ -4,7 +4,7 @@ import React from 'react';
  * Renders a user's Identity Information (name, dob, postal code).
  */
 const Identity = (props) => {
-  if (Object.keys(props.identity).length === 0) {
+  if (!props.identity || Object.keys(props.identity).length === 0) {
     return (
       <div className="cmp-account-identity">
         <fieldset className="form__fieldset">
@@ -40,7 +40,7 @@ const Identity = (props) => {
 };
 
 Identity.propTypes = {
-  identity: React.PropTypes.object.isRequired,
+  identity: React.PropTypes.object,
 };
 
 export default Identity;

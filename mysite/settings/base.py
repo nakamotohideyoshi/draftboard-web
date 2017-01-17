@@ -273,8 +273,8 @@ MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
 
 # Pusher - pbp-stats-linking-dev
 PUSHER_APP_ID = '179543'
-PUSHER_KEY = '5a4601521c1e2a3778aa'
-PUSHER_SECRET = '2c286ac8c239f8e73f00'
+PUSHER_KEY = '3e6ac7a6d8d8ec16e6d3'
+PUSHER_SECRET = '498b39ae3744d83be7d9'
 PUSHER_CHANNEL_PREFIX = ''  # prepends any Pusher channel, useful for silo-ing calls per dev
 # if Pusher will actually send objects its told to send()
 PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')

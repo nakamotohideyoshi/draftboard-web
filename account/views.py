@@ -1130,10 +1130,6 @@ class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
             return self.render_to_response({'message': 'Successful confirmation'}, )
 
 
-class LimitsFormView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/account/user_limits.html'
-
-
 class UserLimitsAPIView(APIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     serializer_class = UserLimitsSerializer
@@ -1161,9 +1157,13 @@ class UserLimitsAPIView(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         limits = user.limits.all()
+
         if limits.exists():
             serializer = self.serializer_class(limits, data=self.request.data, many=True)
-
+            # If the user has no Identity, we can't set play limits.
+            if not user.information.has_verified_identity:
+                raise ValidationError(
+                    {'detail': 'You must verify your identity before setting play limits.'})
             state = user.identity.state
             if state:
                 days = settings.LIMIT_DAYS_RESTRAINT.get(state)
