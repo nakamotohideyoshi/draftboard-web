@@ -3,14 +3,9 @@
 $block: '#set_user_limits';
 
 #{$block}{
+  max-width: 800px;
   text-align: center;
-  padding: 0 16vw;
-  @media (max-width: 480px) {
-    padding: 0 5vw;
-  }
-  @media (min-width: 481px) and (max-width: 560px) {
-    padding: 0 10vw;
-  }
+
   .p_container{
     margin-bottom: 20px;
     width: 80%;
@@ -22,6 +17,7 @@ $block: '#set_user_limits';
     margin-top: 20px;
     width: 100%;
     .line{
+      clear: both;
       margin-bottom: 30px;
       .selects_description {
         text-align: left;
@@ -42,12 +38,15 @@ $block: '#set_user_limits';
           text-align: center;
         }
         .line-block {
-          &:nth-child(2n) {
-            float: right;
-          }
           margin: 25px 0;
           position: relative;
           display: inline-block;
+
+          &:first-child {
+            margin-right: 25px;
+          }
+
+
           @media (max-width: 480px) {
 
           }

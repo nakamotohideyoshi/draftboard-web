@@ -50,7 +50,6 @@ function mapDispatchToProps(dispatch) {
 const Limits = React.createClass({
 
   propTypes: {
-    user: React.PropTypes.object.isRequired,
     actions: React.PropTypes.object.isRequired,
     userLimits: React.PropTypes.array.isRequired,
     selectedLimits: React.PropTypes.array.isRequired,
@@ -102,9 +101,9 @@ const Limits = React.createClass({
       .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
       .send(data)
       .end((err, res) => {
-        if (res.status === 400) {
+        if (res.status >= 400) {
           store.dispatch(addMessage({
-            header: res.body.detail,
+            header: res.body.detail || 'Error Updating Limits',
             level: 'warning',
           }));
         }
@@ -122,7 +121,7 @@ const Limits = React.createClass({
     return data.map(arrElem => {
       let value = arrElem[0];
       let text = arrElem[1];
-      return <option value={value}>{text}</option>;
+      return <option value={value} key={arrElem}>{text}</option>;
     });
   },
 
@@ -141,9 +140,10 @@ const Limits = React.createClass({
         const idUser = `id_form-${index}-user`;
         const nameUser = `user${index}`;
         let htmlBlock;
+
         if (element.time_period) {
           htmlBlock = (
-            <div className="line">
+            <div className="line" key={`line_${index}`}>
               <div className="selects_description">
                 <div>
                   <span className="description_head">{pageText[index].boldText}</span>
@@ -178,7 +178,7 @@ const Limits = React.createClass({
           );
         } else {
           htmlBlock = (
-            <div className="line">
+            <div className="line" key={`line_alt_${index}`}>
               <div className="selects_description">
                 <div>
                   <span className="description_head">{pageText[index].boldText}</span>
@@ -211,19 +211,19 @@ const Limits = React.createClass({
 
   render() {
     return (
-      <div id="">
-        <h2 className="text-center">
-          SET USER LIMITS
-        </h2>
-        <hr className="body-copy__h1-divider" />
-        <div className="p_container">
-          <p>
+      <div>
+        <h2 className="text-center">SET PLAY LIMITS</h2>
+
+        <header className="content-message content-message--info">
+          <p className="content-message__description">
             Use the following form to set user limits on gameplay, deposits, and free limits.
             Once applied, MA residents will not be able to increase this limit for 90 days.
           </p>
-        </div>
+        </header>
+
         <form action="" method="post" onSubmit={this.submitForm}>
           {this.createComponents()}
+
           <div className="button_container">
             <button type="submit">SUBMIT</button>
           </div>
