@@ -50,7 +50,7 @@ class Information(models.Model):
         Get the user's deposit limit.
         """
         limits = self.user.limits
-        value = None
+        value = 0
         if limits.exists():
             value = self.user.limits.get(type=Limit.DEPOSIT).value
         return value
@@ -62,7 +62,7 @@ class Information(models.Model):
         """
         cash_transaction = CashTransaction(self.user)
         limits = self.user.limits
-        deposits = None
+        deposits = 0
         if limits.exists():
             deposit_limit = self.user.limits.get(type=Limit.DEPOSIT)
             deposits = \
