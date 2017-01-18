@@ -33,15 +33,13 @@ def update_injury_feed(self, sport):
             player_extra_data = swish.get_player_extra_data_multiple(player_id=player_ids_str)
             with transaction.atomic():
                 for p in player_extra_data:
-                    status, created =PlayerStatus.objects.get_or_create(
+                    status, created = PlayerStatus.objects.get_or_create(
                         player_id=p.get('playerId'),
                         sport=sport,
                         player_srid=player_update_manager.get_srid_for(pid=p.get('playerId'), name=p.get('playerName')),
-                        status=p.get('playerStatus'),
-                        updated_at=p.get('lastTextReportedAt'))
-                    if not created:
-                        status.status = p.get('playerStatus')
-                        status.save()
+                    )
+                    status.status = p.get('playerStatus')
+                    status.save()
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
