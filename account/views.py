@@ -860,6 +860,10 @@ class VZeroDepositView(APIView):
         serializer.is_valid(raise_exception=True)
         transaction_data = serializer.data
         amount = float(transaction_data.get('amount'))
+        user_deposits = float(request.user.information.deposits_for_period)
+        user_limit = request.user.information.deposits_limit
+        if amount + user_deposits > user_limit:
+            raise APIException('Sorry but you have exceeded your limit')
 
         # shipping_serializer = VZeroShippingSerializer(data=self.request.data)
         # shipping_serializer.is_valid(raise_exception=True)
