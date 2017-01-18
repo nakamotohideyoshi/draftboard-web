@@ -40,7 +40,7 @@ from draftgroup.serializers import (
 class GetSerializedDataMixin:
 
     def get_serialized_data(self, model_class, serializer_class, sport):
-        updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
+        updates = model_class.objects.filter(sport=sport)
         serialized_data = serializer_class(updates, many=True).data
 
         return serialized_data
