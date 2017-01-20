@@ -98,10 +98,17 @@ class ResponseDataParser(object):
         """
         # return self.data
         api_results = self.data.get(self.field_api_results)
+        # log error + exit
+        if api_results is None:
+            err_msg = 'stats.com api error: got %s, expected %s' % (
+                self.field_api_results, self.default_api_results)
+            logger.error(err_msg)
+            raise self.UnexpectedApiResults(err_msg)
+
         num_results = len(api_results)
         if num_results != self.default_api_results:
-            err_msg = 'got %s %s, expected %s' % (
-                str(num_results), self.field_api_results, self.default_api_results)
+            err_msg = 'stats.com api error: got %s %s, expected %s' % (
+                num_results, self.field_api_results, self.default_api_results)
             logger.error(err_msg)
             raise self.UnexpectedApiResults(err_msg)
         result = api_results[self.default_api_result_index]
@@ -245,8 +252,7 @@ class Stats(object):
         # check if there is an error
         msg = self.data.get(self.field_message)
         if msg:
-            logger.error(msg)
-            client.captureMessage(msg)
+            logger.error("stats.com api error: %s" % msg)
 
         # if no self.parser_class is set, return the entire json response
         if self.parser_class is None:

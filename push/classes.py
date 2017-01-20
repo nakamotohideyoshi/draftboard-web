@@ -1,70 +1,64 @@
-#
-# pusher/classes.py
-
-from django.db.transaction import atomic
-from django.utils import timezone
-from django.db.models import F
 import collections
 import hashlib
-import six
+import json
 import time
-import push.models
-from pusher import Pusher
-from pusher.http import Request, make_query_string, GET, POST, request_method
-from pusher.signature import sign
-from pusher.util import ensure_text, validate_channel, validate_socket_id, app_id_re, pusher_url_re, channel_name_re
-import util.timeshift as timeshift
+from logging import getLogger
+
+import six
 from django.conf import settings
 from django.core.cache import caches, cache
-from mysite.celery_app import app, locking
-from .tasks import pusher_send_task
-from .exceptions import ChannelNotSetException, EventNotSetException
-import ast
-import json
-from dataden.models import (
-    PbpDebug,
-)
+from django.utils import timezone
+from pusher import Pusher
+from pusher.http import Request, make_query_string, POST, request_method
+from pusher.signature import sign
+from pusher.util import ensure_text, validate_channel, validate_socket_id
+
+import util.timeshift as timeshift
 from dataden.cache.caches import (
     LiveStatsCache,
     LinkableObject,
     LinkedExpiringObjectQueueTable,
 )
+from mysite.celery_app import locking
 from push.tasks import linker_pusher_send_task, PUSH_TASKS_STATS_LINKER
-from logging import getLogger
+from .exceptions import ChannelNotSetException, EventNotSetException
+from .tasks import pusher_send_task
 
 logger = getLogger('pusher.classes')
-
 
 #
 # on production this will be an empty string,
 # but you should change it for your local/testing purposes.
 PUSHER_CHANNEL_PREFIX = settings.PUSHER_CHANNEL_PREFIX
 
-PUSHER_CONTEST      = 'contest'
+PUSHER_CONTEST = 'contest'
 PUSHER_CONTEST_POOL = 'contest_pool'
 
-PUSHER_BOXSCORES    = 'boxscores'
+PUSHER_BOXSCORES = 'boxscores'
 
-PUSHER_MLB_PBP                  = 'mlb_pbp'
-PUSHER_MLB_STATS                = 'mlb_stats'
-#PUSHER_MLB_LINKABLE_PBP_STATS   = ('mlb_queue_pbp_stats', [PUSHER_MLB_PBP, PUSHER_MLB_STATS])
+PUSHER_MLB_PBP = 'mlb_pbp'
+PUSHER_MLB_STATS = 'mlb_stats'
+# PUSHER_MLB_LINKABLE_PBP_STATS   = ('mlb_queue_pbp_stats', [PUSHER_MLB_PBP, PUSHER_MLB_STATS])
 
-PUSHER_NBA_PBP                  = 'nba_pbp'
-PUSHER_NBA_STATS                = 'nba_stats'
-#PUSHER_NBA_LINKABLE_PBP_STATS   = ('nba_queue_pbp_stats', [PUSHER_NBA_PBP, PUSHER_NBA_STATS])
+PUSHER_NBA_PBP = 'nba_pbp'
+PUSHER_NBA_STATS = 'nba_stats'
+# PUSHER_NBA_LINKABLE_PBP_STATS   = ('nba_queue_pbp_stats', [PUSHER_NBA_PBP, PUSHER_NBA_STATS])
 
-PUSHER_NFL_PBP                  = 'nfl_pbp'
-PUSHER_NFL_STATS                = 'nfl_stats'
-#PUSHER_NFL_LINKABLE_PBP_STATS   = ('nfl_queue_pbp_stats', [PUSHER_NFL_PBP, PUSHER_NFL_STATS])
+PUSHER_NFL_PBP = 'nfl_pbp'
+PUSHER_NFL_STATS = 'nfl_stats'
+# PUSHER_NFL_LINKABLE_PBP_STATS   = ('nfl_queue_pbp_stats', [PUSHER_NFL_PBP, PUSHER_NFL_STATS])
 
-PUSHER_NHL_PBP                  = 'nhl_pbp'
-PUSHER_NHL_STATS                = 'nhl_stats'
-#PUSHER_NHL_LINKABLE_PBP_STATS   = ('nhl_queue_pbp_stats', [PUSHER_NHL_PBP, PUSHER_NHL_STATS])
+PUSHER_NHL_PBP = 'nhl_pbp'
+PUSHER_NHL_STATS = 'nhl_stats'
+
+
+# PUSHER_NHL_LINKABLE_PBP_STATS   = ('nhl_queue_pbp_stats', [PUSHER_NHL_PBP, PUSHER_NHL_STATS])
 
 class RealGoodRequest(Request):
     """
     Overides the pusher.http.Request in order that we might specify the auth_timestamp that we want
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -76,9 +70,10 @@ class RealGoodRequest(Request):
             'auth_version': '1.0',
 
             # this is what we want to override: the time.
-            #'auth_timestamp': '%.0f' % time.time() # we want to make sure this is always valid, thus the next line:
+            # 'auth_timestamp': '%.0f' % time.time() # we want to make sure this is always valid, thus the next line:
 
-            'auth_timestamp': '%.0f' % timeshift.actual_now().timestamp()  # '%s' formats to unix timestamp =)
+            'auth_timestamp': '%.0f' % timeshift.actual_now().timestamp()
+            # '%s' formats to unix timestamp =)
         })
 
         auth_string = '\n'.join([
@@ -87,6 +82,7 @@ class RealGoodRequest(Request):
             make_query_string(self.query_params)
         ])
         self.query_params['auth_signature'] = sign(self.config.secret, auth_string)
+
 
 class RealGoodPusher(Pusher):
     """
@@ -114,7 +110,8 @@ class RealGoodPusher(Pusher):
         if isinstance(channels, six.string_types):
             channels = [channels]
 
-        if isinstance(channels, dict) or not isinstance(channels, (collections.Sized, collections.Iterable)):
+        if isinstance(channels, dict) or not isinstance(channels,
+                                                        (collections.Sized, collections.Iterable)):
             raise TypeError("Expected a single or a list of channels")
 
         if len(channels) > 10:
@@ -147,12 +144,14 @@ class RealGoodPusher(Pusher):
         # used instead of pusher.http.Request (it makes sure we use the right auth_timestamp)
         return RealGoodRequest(self, POST, "/apps/%s/events" % self.app_id, params)
 
+
 class AbstractPush(object):
     """
     This class handles delegating to the proper channels when realtime sports data is received.
     """
 
-    class LinkableObjectNotSetException(Exception): pass
+    class LinkableObjectNotSetException(Exception):
+        pass
 
     class Linker(object):
         """
@@ -176,16 +175,16 @@ class AbstractPush(object):
             return the LinkedExpiringObjectQueueTable for the channel, otherwise returns None
             """
             for linker_queue_name, channel_list in self.linker_queues:
-                #print('channel', str(channel), 'in channel_list:', channel in channel_list, 'channel_list:', str(channel_list))
+                # print('channel', str(channel), 'in channel_list:', channel in channel_list, 'channel_list:', str(channel_list))
                 if channel in channel_list:
                     self.linker_queue_name = linker_queue_name
                     linker_queue = self.cache.get(linker_queue_name)
-                    #print('linker_queue_name:', str(linker_queue_name)) # TODO remove
+                    # print('linker_queue_name:', str(linker_queue_name)) # TODO remove
                     if linker_queue is not None:
-                        #print('   linker_queue is not None - and is being returned') # TODO remove
+                        # print('   linker_queue is not None - and is being returned') # TODO remove
                         return linker_queue
                     else:
-                        #print('   linker_queue should be created (and is being created right now)') # TODO remove
+                        # print('   linker_queue should be created (and is being created right now)') # TODO remove
                         linker_queue = LinkedExpiringObjectQueueTable(channel_list)
                         return linker_queue
             #
@@ -195,32 +194,29 @@ class AbstractPush(object):
             """
             put it back in the cache
             """
-            self.cache.set( self.linker_queue_name, linked_expiring_object_queue_table_instance, 48*60*60 )
-
-    # the model to save send data
-    sent_model_class = push.models.Sent
+            self.cache.set(self.linker_queue_name, linked_expiring_object_queue_table_instance,
+                           48 * 60 * 60)
 
     # number of seconds to delay (using celery countdown) the task that sends the pusher data
     delay_seconds = None
-    sent_model_class = push.models.Sent
 
     def __init__(self, channel):
 
         # print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
         #        'settings.PUSHER_KEY', settings.PUSHER_KEY,
         #        'settings.PUSHER_SECRET', settings.PUSHER_SECRET )
-        #self.pusher = Pusher( app_id=settings.PUSHER_APP_ID,
-        self.pusher = RealGoodPusher( app_id=settings.PUSHER_APP_ID,    #
-                                key=settings.PUSHER_KEY,
-                                secret=settings.PUSHER_SECRET,
-                                ssl=True,
-                                port=443 )
-        self.channel    = PUSHER_CHANNEL_PREFIX + channel
-        self.event      = None
+        # self.pusher = Pusher( app_id=settings.PUSHER_APP_ID,
+        self.pusher = RealGoodPusher(app_id=settings.PUSHER_APP_ID,  #
+                                     key=settings.PUSHER_KEY,
+                                     secret=settings.PUSHER_SECRET,
+                                     ssl=True,
+                                     port=443)
+        self.channel = PUSHER_CHANNEL_PREFIX + channel
+        self.event = None
 
         # async indicates whether to use celery (if async == True)
         # or block on the current thread to do the send.
-        self.async      = settings.DATADEN_ASYNC_UPDATES
+        self.async = settings.DATADEN_ASYNC_UPDATES
 
         # by default, this object is not linkable
         self.linkable_object = None
@@ -243,7 +239,7 @@ class AbstractPush(object):
         self.hash = hsh
 
     def set_linkable_object(self, obj, link_id=None):
-        self.linkable_object = LinkableObject( obj, link_id=link_id )
+        self.linkable_object = LinkableObject(obj, link_id=link_id)
 
     def get_linkable_object(self):
         if self.linkable_object is None:
@@ -271,7 +267,7 @@ class AbstractPush(object):
         # THIS NETWORK CALL SOMETIMES TAKES ~1second and MUST be tasked off asynchronously!
         #
         # send the data on the channel with the specified event name
-        if not isinstance( data, dict ):
+        if not isinstance(data, dict):
             data = data.get_o()
 
         #
@@ -281,8 +277,8 @@ class AbstractPush(object):
             #
             # run this object thru the stat linker to see if we can match it up
             linker = self.Linker()
-            linker_queue = linker.get_linked_expiring_queue( self.channel )
-            #print('linker_queue:', str(linker_queue)) # TODO remove
+            linker_queue = linker.get_linked_expiring_queue(self.channel)
+            # print('linker_queue:', str(linker_queue)) # TODO remove
             if linker_queue is not None:
                 #
                 # adding an object will result in us getting back the identifier
@@ -299,14 +295,15 @@ class AbstractPush(object):
                 # linker.save(linker_queue)
 
                 # new_linked_object_data = self.edit_linker_queue( self.channel, LinkableObject( data ), linker, linker_queue )
-                new_linked_object_data = self.edit_linker_queue( self.channel,
-                                                self.get_linkable_object(), linker, linker_queue )
+                new_linked_object_data = self.edit_linker_queue(self.channel,
+                                                                self.get_linkable_object(), linker,
+                                                                linker_queue)
 
                 if new_linked_object_data is not None:
                     # reshape the data a little bit, then pusher out the new linked data
-                    formatted_linked_data = self.format_linked_data( new_linked_object_data )
-                    #print('SENDING FORMATTED_LINKED_DATA:', str(formatted_linked_data)) # TODO remove
-                    LinkedPbpStatsDataDenPush( self.channel ).send( formatted_linked_data )
+                    formatted_linked_data = self.format_linked_data(new_linked_object_data)
+                    # print('SENDING FORMATTED_LINKED_DATA:', str(formatted_linked_data)) # TODO remove
+                    LinkedPbpStatsDataDenPush(self.channel).send(formatted_linked_data)
 
                 # bypass the rest of the method, because we have taken care of clean with countdown task
                 return
@@ -323,10 +320,11 @@ class AbstractPush(object):
             countdown_seconds = 0
             if self.delay_seconds is not None:
                 countdown_seconds = self.delay_seconds
-            task_result = pusher_send_task.apply_async( (self, data),
-                                    serializer='pickle', countdown=countdown_seconds )
+            task_result = pusher_send_task.apply_async((self, data),
+                                                       serializer='pickle',
+                                                       countdown=countdown_seconds)
         else:
-            self.trigger( data )
+            self.trigger(data)
 
     def format_linked_data(self, unformatted_linked_data):
         """
@@ -336,9 +334,9 @@ class AbstractPush(object):
         returns data in a format expected by the client.
         """
         data = {}
-        #print('unformatted_linked_data: %s' % str(unformatted_linked_data))
+        # print('unformatted_linked_data: %s' % str(unformatted_linked_data))
         for queue_name, queue_item in unformatted_linked_data:
-            data[ queue_name ] = queue_item.get_linkable_object().get_obj()
+            data[queue_name] = queue_item.get_linkable_object().get_obj()
         return data
 
     def trigger(self, data):
@@ -354,27 +352,27 @@ class AbstractPush(object):
             # get the current timestamp
             pusher_start_ts = int(time.time())
             # use pusher to send the data to clients!
-            response = self.pusher.trigger( self.channel, self.event, data )
-
-            model = self.sent_model_class.objects.create(
-                channel=self.channel,
-                event=self.event,
-                api_response=response,
-                data=data,
-            )
+            response = self.pusher.trigger(self.channel, self.event, data)
 
             pusher_completed_ts = int(time.time())
             log_msg = 'PSHR_NOW="%s", PSHR_NOW_TS=%s, PSHR_LOG=Send, PSHR_CHANNEL=%s, ' \
-                        'PSHR_EVENT=%s, PSHR_DATA_ID="%s", PSHR_ITEM=Object, PSHR_VALUE=%s, ' \
-                        'PSHR_START_TS=%s, PSHR_END_TS=%s, PSHR_DELTA_MS=%s, ' % (str(timezone.now()),
-                        int(time.time()), self.channel, self.event, str(data.get('id')),
-                        str(data), str(pusher_start_ts), str(pusher_completed_ts),
-                        str(int(pusher_completed_ts - pusher_start_ts)))
+                      'PSHR_EVENT=%s, PSHR_DATA_ID="%s", PSHR_ITEM=Object, PSHR_VALUE=%s, ' \
+                      'PSHR_START_TS=%s, PSHR_END_TS=%s, PSHR_DELTA_MS=%s, ' % (
+                          str(timezone.now()),
+                          int(time.time()),
+                          self.channel,
+                          self.event,
+                          str(data.get('id')),
+                          str(data), str(
+                              pusher_start_ts), str(pusher_completed_ts),
+                          str(int(
+                              pusher_completed_ts - pusher_start_ts)))
             logger.debug(log_msg)
 
         else:
             # print to console if its disable to remind us
-            logger.info('settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
+            logger.info(
+                'settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
 
     @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
     def edit_linker_queue(self, channel, linkable_object, linker, linker_queue):
@@ -383,31 +381,31 @@ class AbstractPush(object):
 
         if the linker_queue returns objects to send, we must delete their tokens from the cache also!
         """
-        identifier, linked_objects_to_send = linker_queue.add( channel, linkable_object )
+        identifier, linked_objects_to_send = linker_queue.add(channel, linkable_object)
 
         #
         # we have a new object we just need to add its identifier and countdown a task
         if identifier is not None:
             # add it to cache
-            cache.set( identifier, identifier, 30 )
+            cache.set(identifier, identifier, 30)
             # fire a pending task -- when it launches it should check if it still needs to send.
             # this task must use the same blocking lock as the edit_linker_queue method (?)
             # print('adding (identifier: %s) and task with countdown: '%str(identifier),
             #                                     str(linkable_object.get_obj())) # TODO remove
 
-            linker_pusher_send_task.apply_async( (self, linkable_object.get_obj(),
-                                                identifier), countdown=5, serializer='pickle' )
+            linker_pusher_send_task.apply_async((self, linkable_object.get_obj(),
+                                                 identifier), countdown=5, serializer='pickle')
 
         #
         # we need to delete the token from the
         elif linked_objects_to_send is not None:
             for queue_name, queue_item in linked_objects_to_send:
-                #print('LINKED_OBJECTS_TO_SEND: %s' % str(linked_objects_to_send))
+                # print('LINKED_OBJECTS_TO_SEND: %s' % str(linked_objects_to_send))
                 item_identifier = queue_item.get_identifier()
                 # item_identifier may be None -- if this item is being immediately sent!
                 if item_identifier is not None:
-                    #print('     >>>>>> DELETEING TOKEN: %s' % str(item_identifier)) # TODO remove
-                    cache.delete( queue_item.get_identifier() )
+                    # print('     >>>>>> DELETEING TOKEN: %s' % str(item_identifier)) # TODO remove
+                    cache.delete(queue_item.get_identifier())
 
         #
         # add this linker obj back into the cache
@@ -418,7 +416,8 @@ class AbstractPush(object):
         # when this method exists, the lock will unlock.
         return linked_objects_to_send
 
-class DataDenPush( AbstractPush ):
+
+class DataDenPush(AbstractPush):
     """
     Anything that is sent from dataden should be pushed with this class.
 
@@ -431,17 +430,18 @@ class DataDenPush( AbstractPush ):
         channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
-        super().__init__(channel) # init pusher object
-        self.event      = event
+        super().__init__(channel)  # init pusher object
+        self.event = event
 
         # overrides / sets a single hash for composite objects (like pbp linked data)
         self.set_primary_object_hash(hash)
 
-class PlayerStatsPush(DataDenPush):
 
+class PlayerStatsPush(DataDenPush):
     delay_seconds = 1
 
-class StatsDataDenPush( AbstractPush ):
+
+class StatsDataDenPush(AbstractPush):
     """
     Any stats objects, which may be linkable from dataden, should be pushed with this class.
     """
@@ -451,7 +451,7 @@ class StatsDataDenPush( AbstractPush ):
         channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
-        super().__init__(channel) # init pusher object
+        super().__init__(channel)  # init pusher object
         self.event = event
 
     def send(self, stats_data, async=True, force=False):
@@ -459,13 +459,14 @@ class StatsDataDenPush( AbstractPush ):
         override the default behavior of send(), such that we check
         if the object has already been sent... if it has, then do not send it!
         """
-        #print('stats_data: %s' % str(stats_data))
+        # print('stats_data: %s' % str(stats_data))
         link_id = stats_data.get('fields').get('srid_player')
-        #print('link_id: %s' % str(link_id))
-        self.set_linkable_object( stats_data, link_id=link_id)
-        super().send( stats_data, async=async, force=force)
+        # print('link_id: %s' % str(link_id))
+        self.set_linkable_object(stats_data, link_id=link_id)
+        super().send(stats_data, async=async, force=force)
 
-class PbpDataDenPush( AbstractPush ):
+
+class PbpDataDenPush(AbstractPush):
     """
     Any Play by Play objects from dataden should be pushed with this class.
 
@@ -477,7 +478,7 @@ class PbpDataDenPush( AbstractPush ):
         channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
-        super().__init__(channel) # init pusher object
+        super().__init__(channel)  # init pusher object
         self.event = event
 
     def send(self, pbp_data, async=True, force=False):
@@ -486,17 +487,18 @@ class PbpDataDenPush( AbstractPush ):
         if the object has already been sent... if it has, then do not send it!
         """
 
-        self.set_linkable_object( pbp_data )
+        self.set_linkable_object(pbp_data)
 
         live_stats_cache = LiveStatsCache()
-        just_added = live_stats_cache.update_pbp( pbp_data )
+        just_added = live_stats_cache.update_pbp(pbp_data)
         if just_added:
-            #print(' === PbpDataDenPush data === SENDING:', str(pbp_data)) # TODO - remove debugging print
-            super().send( pbp_data, async=async, force=force)
-        # else:
-        #     print(' === PbpDataDenPush data === DID NOT DOUBLE-SEND:', str(pbp_data)[:100]) # TODO - remove debugging print
+            # print(' === PbpDataDenPush data === SENDING:', str(pbp_data)) # TODO - remove debugging print
+            super().send(pbp_data, async=async, force=force)
+            # else:
+            #     print(' === PbpDataDenPush data === DID NOT DOUBLE-SEND:', str(pbp_data)[:100]) # TODO - remove debugging print
 
-class LinkedPbpStatsDataDenPush( AbstractPush ):
+
+class LinkedPbpStatsDataDenPush(AbstractPush):
     """
     this object is for PUSHING linked stats objects.
     (for example, linked object data sent with this class for PBP+STATS linked objects)
@@ -510,13 +512,14 @@ class LinkedPbpStatsDataDenPush( AbstractPush ):
         channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
         event: 'linked' for this object always
         """
-        super().__init__(channel) # init pusher object
+        super().__init__(channel)  # init pusher object
         self.event = 'linked'
 
     def send(self, data):
-        super().send( data, async=True, force=True )
+        super().send(data, async=True, force=True)
 
-class ContestPush( AbstractPush ):
+
+class ContestPush(AbstractPush):
     """
     Anything that is sent from a Contest update
     """
@@ -527,14 +530,15 @@ class ContestPush( AbstractPush ):
         """
         :param data: serialized contest data (likely from ContestSerializer(contest).data
         """
-        super().__init__( PUSHER_CONTEST )
+        super().__init__(PUSHER_CONTEST)
         self.event = self.DEFAULT_EVENT
         self.data = data
 
     def send(self):
         super().send(self.data, async=self.async)
 
-class ContestPoolPush( AbstractPush ):
+
+class ContestPoolPush(AbstractPush):
     """
     Anything that is sent from a Contest update
     """
@@ -545,7 +549,7 @@ class ContestPoolPush( AbstractPush ):
         """
         :param data: serialized contest data (likely from ContestSerializer(contest).data
         """
-        super().__init__( PUSHER_CONTEST_POOL )
+        super().__init__(PUSHER_CONTEST_POOL)
         self.event = self.DEFAULT_EVENT
         self.data = data
 
