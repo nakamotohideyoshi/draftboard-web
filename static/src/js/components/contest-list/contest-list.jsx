@@ -79,7 +79,7 @@ const ContestList = (props) => {
             className="table__sortable"
             onClick={props.setOrderBy.bind(null, 'start')}
           >Live In</th>
-          <th>Max Entries</th>
+          <th>My Entries</th>
           <th>&nbsp;</th>
         </tr>
       </thead>

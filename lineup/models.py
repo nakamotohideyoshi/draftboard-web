@@ -1,8 +1,10 @@
-from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+
 from roster.models import RosterSpot
+
 
 class Lineup(models.Model):
     """
@@ -10,22 +12,23 @@ class Lineup(models.Model):
     Lineups can be entered into Contests.
     """
 
-    created         = models.DateTimeField(auto_now_add=True)
-    updated         = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
-    fantasy_points  = models.FloatField(default=0.0, null=False, blank=True)
-    user            = models.ForeignKey(User, null=False)
-    draft_group     = models.ForeignKey('draftgroup.DraftGroup', null=False)
+    fantasy_points = models.FloatField(default=0.0, null=False, blank=True)
+    user = models.ForeignKey(User, null=False)
+    draft_group = models.ForeignKey('draftgroup.DraftGroup', null=False)
 
-    name            = models.CharField(max_length=64, null=False, default='')
+    name = models.CharField(max_length=64, null=False, default='')
 
     @property
     def sport(self):
         return self.draft_group.salary_pool.site_sport.name
 
     def __str__(self):
-        return '<Lineup>: user: %s fp: %s name: "%s" draft_group: %s' % (
-            self.user, self.fantasy_points, self.name, self.draft_group)
+        return '<Lineup id: %s | user: %s | fp: %s | name: "%s" | draft_group: %s' % (
+            self.id, self.user, self.fantasy_points, self.name, self.draft_group)
+
 
 class Player(models.Model):
     """

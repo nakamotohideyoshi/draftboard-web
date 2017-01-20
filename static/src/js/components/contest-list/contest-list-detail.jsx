@@ -86,7 +86,7 @@ const ContestListDetail = React.createClass({
 
   getInitialState() {
     return {
-      activeTab: 'prizes',
+      activeTab: 'entries',
     };
   },
 
@@ -173,8 +173,8 @@ const ContestListDetail = React.createClass({
   // the hassle right now.
   getTabNav() {
     const tabs = [
-      { title: 'Payout', tab: 'prizes' },
       { title: 'My Entries', tab: 'entries' },
+      { title: 'Payout', tab: 'prizes' },
       { title: 'Games', tab: 'games' },
       { title: 'Scoring', tab: 'scoring' },
     ];
