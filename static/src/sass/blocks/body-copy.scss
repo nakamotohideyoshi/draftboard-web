@@ -49,7 +49,8 @@ $nav-scoreboard-height: 54px;
     width: 4vw;
   }
 
-  p {
+
+  ol, ul, p {
     color: #46495e;
     font-family: $font-open-sans;
     font-size: 1em;
@@ -61,6 +62,14 @@ $nav-scoreboard-height: 54px;
     strong {
       font-weight: 600;
     }
+  }
+
+  ol, ul {
+    padding-left: 1.2em;
+  }
+
+  li {
+    padding-bottom: 1em;
   }
 
   h2 {
