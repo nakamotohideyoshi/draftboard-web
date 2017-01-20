@@ -202,7 +202,10 @@ class BuyinManager(AbstractSiteUserClass):
         # ensure the lineup attempting to be submitted
         # is the same as any existing lineups.
         # raises LineupDoesNotMatchExisting
-        self.validate_lineup_players_match_existing_entries(lineup, entries)
+
+        # This is disabled because we are now allowing multiple lineups from one user to be entered
+        # into the same contest.
+        # self.validate_lineup_players_match_existing_entries(lineup, entries)
 
     def validate_lineup_players_match_existing_entries(self, lineup, entries):
         """
