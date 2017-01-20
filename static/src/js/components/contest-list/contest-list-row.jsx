@@ -122,6 +122,40 @@ const ContestListRow = React.createClass({
   },
 
 
+  renderEntries(entries) {
+    if (!entries) {
+      return;
+    }
+
+    const entryDots = entries.map(entry => {
+      if (entry.lineup === this.props.focusedLineup.id) {
+        return (
+          <span
+            className="entry-slot current-lineup"
+            title="The current lineup is in this slot"
+          ></span>);
+      }
+      return (
+        <span
+          className="entry-slot other-lineup"
+          title="Another one of your lineups is in this slot"
+        ></span>);
+    });
+
+    const emptyDotCount = this.props.contest.max_entries - entryDots.length;
+
+    for (let i = 0; i < emptyDotCount; i++) {
+      entryDots.push(<span className="entry-slot" title="Empty entry slot"></span>);
+    }
+
+
+    return (
+      <div className="entry-dots">
+        {entryDots}
+      </div>
+    );
+  },
+
   render() {
     // If it's the currently focused contest, add a class to it.
     let classes = this.props.focusedContest.id === this.props.contest.id ? 'active ' : '';
@@ -163,7 +197,7 @@ const ContestListRow = React.createClass({
         </td>
 
         <td key="user-entries" className="user-entries">
-          {this.getEntryCount(this.props.contest)} of {this.props.contest.max_entries}
+          {this.renderEntries(this.props.contest.entryInfo)}
         </td>
 
         <td

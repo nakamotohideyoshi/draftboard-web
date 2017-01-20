@@ -303,24 +303,24 @@ const EnterContestButton = React.createClass({
         }
 
 
-        // Another lineup is already entered in the contest pool.
-        if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
-          return (
-            <div
-              className={`button ${classes} button--disabled has-tooltip entered enter-contest-button`}
-              onClick={this.ignoreClick}
-              onMouseLeave={this.handleMouseOut}
-            >
-              {this.props.buttonText.entered}
-              <Tooltip
-                isVisible
-                position={'bottom'}
-              >
-                <span>You can only enter 1 lineup into a contest.</span>
-              </Tooltip>
-            </div>
-          );
-        }
+        // // Another lineup is already entered in the contest pool.
+        // if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
+        //   return (
+        //     <div
+        //       className={`button ${classes} button--disabled has-tooltip entered enter-contest-button`}
+        //       onClick={this.ignoreClick}
+        //       onMouseLeave={this.handleMouseOut}
+        //     >
+        //       {this.props.buttonText.entered}
+        //       <Tooltip
+        //         isVisible
+        //         position={'bottom'}
+        //       >
+        //         <span>You can only enter 1 lineup into a contest.</span>
+        //       </Tooltip>
+        //     </div>
+        //   );
+        // }
 
         // The focused contest already has an entry in it, and can add another.
         return (
