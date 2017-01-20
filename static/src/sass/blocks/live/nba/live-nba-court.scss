@@ -17,29 +17,4 @@ $imgDir: '../../../../img/blocks/live-nba-court/';
   transition: transform 600ms cubic-bezier(.65, .47, .35, 1);
   transform-origin: 0 0;
   transform: translate(-50%, -50%);
-
-  // convert the following to BEM when we have a finalized comp
-  .shooter-position {
-    width: 3.94%;
-    height: 39.3%;
-    position: absolute;
-
-    .shooter-centered {
-      background: url('#{$imgDir}temp-shooter.png') no-repeat left top;
-      background-size: 100% auto;
-      position: relative;
-      left: -56%;
-      top: -45%;
-      height: 100%;
-      width: 100%;
-    }
-
-    &--mine .shooter-centered {
-      background-image: url('#{$imgDir}temp-shooter-mine.png');
-    }
-
-    &--opponent .shooter-centered {
-      background-image: url('#{$imgDir}temp-shooter-opponent.png');
-    }
-  }
 }
