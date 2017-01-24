@@ -358,7 +358,7 @@ class FppgGenerator(object):
         # TODO
 
         # TODO fix this code to use 'num_trailing_games'
-        print('num_trailing_games:', str(num_trailing_games))
+        logger.info('num_trailing_games: %s' % num_trailing_games)
         salary_player_stats = []
         for player_stat in player_stats:
             #
@@ -803,7 +803,7 @@ class SalaryGenerator(FppgGenerator):
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
-                print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
+                logger.error('repeated NoPlayersAtRosterSpotExceptions could indicate you '
                       'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
                 raise NoPlayersAtRosterSpotException(msg)
 
@@ -962,7 +962,7 @@ class SalaryGenerator(FppgGenerator):
 
             return salary_obj
         except Salary.DoesNotExist:
-            logger.warning('Player has no Salary, creating one. %s' % player)
+            logger.info('Player has no Salary, creating one. %s' % player)
             # If a player has no Salary, create one.
             player_type = ContentType.objects.get_for_model(player)
             return Salary(pool=self.pool, player_type=player_type, player_id=player.id)
@@ -1008,16 +1008,12 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         start = timezone.now()
         self.update_progress('started')
 
-        # call overridden method instead of helper_get_player_stats() (it uses PlayerStats history)
+        # This method creates a SalaryPlayerObject for each player that contains our calculated
+        # stats.com FP projections as well as their DK+FD projections.
         self.players = self.helper_get_player_stats()
         logger.info('generate_salaries() for %s players' % len(self.players))
 
-        # we could zero out all existing actual salaries right here to eliminate stale data,
-        # but only players on the current day will be updated. this is likely the desired route.
-        # TODO clear all sites actual salaries. they will be updated later on.
-
-        # Get the average score per position so we know
-        # which positions should have more value
+        # Get the average score per position so we know which positions should have more value
         self.update_progress('calculating positional averages')
         self.position_average_data = self.helper_get_average_score_per_position(self.players)
 
@@ -1142,7 +1138,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
         for key in position_average_list:
             position_average_list[key].update_average()
-            print("\n" + str(position_average_list[key]))
+            logger.info("\n %s" % position_average_list[key])
         return position_average_list
 
     def helper_apply_weight_and_flag(self, players):
@@ -1234,7 +1230,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
-                print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
+                logger.error('repeated NoPlayersAtRosterSpotExceptions could indicate you '
                       'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
                 raise NoPlayersAtRosterSpotException(msg)
 
@@ -1261,29 +1257,19 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
         :return:
         """
 
-        # initialize the salaries by setting everyone to the minimum
-        min_salary = self.salary_conf.min_player_salary
         all_pool_salaries = Salary.objects.filter(pool=self.pool)
-        # This used to set ALL players to the minimum before updating them. we don't want this because
-        # we want the previous salary to be sticky, this prevents players from getitng reset to minimum
-        # just because stats.com thinks they won't play or something like that.
+        # This used to set ALL players to the minimum before updating them. we don't want this
+        # because we want the previous salary to be sticky, this prevents players from getitng reset
+        # to minimum just because stats.com thinks they won't play or something like that.
         # Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
         # count = 0
         logger.info("Resetting %s DK+FD salary projections to None" % len(all_pool_salaries))
         for sal_obj in all_pool_salaries:
-            # DO NOT reset all player salaries to the minimum. If we do, and for whatever reason the
-            # generator fails to run, we are stuck with a bunch of players with minimum salaries for
-            # the next day's contests.
-            # old_sal = sal_obj.amount
-            # sal_obj.amount = min_salary
-
             # zero out existing site actual salaries
             sal_obj.sal_dk = None
             sal_obj.sal_fd = None
-
             sal_obj.save()
             sal_obj.refresh_from_db()
-            # print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
 
         printed_players = []
         roster_spots = RosterSpot.objects.filter(site_sport=self.site_sport)
@@ -1322,7 +1308,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                 sum = 0.0
                 average_weighted_fantasy_points_for_pos = 0.0
                 for player in players:
-                    if (player.player_stats_list[0].position in pos_arr):
+                    if player.player_stats_list[0].position in pos_arr:
                         if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
                             sum += player.fantasy_weighted_average
                             count += 1
@@ -1361,6 +1347,19 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         sal_fd = proj_obj.sal_fd
                         salary.sal_dk = sal_dk
                         salary.sal_fd = sal_fd
+                        # Update various salary attributes.
+                        salary.flagged = player.flagged
+                        salary.pool = self.pool
+                        salary.player = player.player
+                        salary.primary_roster = roster_spot
+                        salary.fppg = player.get_fantasy_average()
+                        salary.fppg_pos_weighted = player.fantasy_weighted_average
+
+                        if salary.fppg_pos_weighted is None:
+                            salary.fppg_pos_weighted = 0.0
+
+                        salary.avg_fppg_for_position = average_weighted_fantasy_points_for_pos
+                        salary.num_games_included = len(player.player_stats_list)
 
                         # Only update the player's salary if we DON'T have a 0 fpp projection
                         # from stats.com. This will make previous salaries 'sticky'. This is done
@@ -1407,18 +1406,6 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                                          'salary: %s') % (player, salary))
                             salary.amount = self.salary_conf.min_player_salary
 
-                        salary.flagged = player.flagged
-                        salary.pool = self.pool
-                        salary.player = player.player
-                        salary.primary_roster = roster_spot
-                        salary.fppg = player.get_fantasy_average()
-                        salary.fppg_pos_weighted = player.fantasy_weighted_average
-                        if salary.fppg_pos_weighted is None:
-                            salary.fppg_pos_weighted = 0.0
-
-                        salary.avg_fppg_for_position = average_weighted_fantasy_points_for_pos
-                        salary.num_games_included = len(player.player_stats_list)
-
                         logger.info('setting salary to %s for player: %s' % (salary.amount, player))
                         salary.save()
 
@@ -1438,7 +1425,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
             return salary_obj
         except Salary.DoesNotExist:
-            logger.warning('Player has no Salary, creating one. %s' % player)
+            logger.info('Player has no Salary, creating one. %s' % player)
             # If a player has no Salary, create one.
             player_type = ContentType.objects.get_for_model(player)
             return Salary(pool=self.pool, player_type=player_type, player_id=player.id)

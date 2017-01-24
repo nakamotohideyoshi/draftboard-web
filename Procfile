@@ -1,36 +1,30 @@
 web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.0.0:$PORT --workers $GUNICORN_WORKERS --max-requests $GUNICORN_MAX_REQUESTS --timeout $GUNICORN_TIMEOUT
 
-#
-# runs the celerybeat scheduled tasks from the CELERYBEAT_SCHEDULE
-# which should be found in mysite.celery_app.py
-celerybeat: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
-#celerybeat: celery -A mysite beat -S celery.beat.PersistentScheduler
 
-#
-# the celery flag:  "-l info"   is required so that sumologic can parse tasks
+# Runs the celerybeat scheduled tasks that can be found in the Django admin panel.
+celerybeat: celery -A mysite beat
 
-#
-# a worker for misc, very short-lived tasks (ie: milliseconds, hopefully).
-#celery: celery -A mysite worker -l info -n celery1.%h
-celery: celery -A mysite worker -l info
 
-# respawn after X tasks, w/ autoscaler
-celery2: celery -A mysite worker -l info --maxtasksperchild=10 --autoscale=2,8
+# Standard celery worker.
+celery: celery -A mysite worker -l info --autoscale=2,4 -n Standard@%n
 
-# another - if eacher worker spawns a celeryd, we dont need many of them thats for sure
-celery60: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=60 --maxtasksperchild=10
-celery300: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=300 --maxtasksperchild=10
+
+# Long-running celery task queue for things like <sport>.cleanup_roster that take a while.
+# soft time limit of 9 mins, hard cutoff at 10 mins.
+celery_long: celery -A mysite worker -Q long_running -l info --time-limit=600 --soft-time-limit=540 -Ofair --autoscale=2,4 -n Long@%n
+
 
 # celery workers for realtime stat updates from the trigger
-celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --maxtasksperchild=20
+celeryrt: celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,4 -n Realtime@%n
 
-#
+
 # purger is also a normal celery worker.
 # this worker always wipes out the brokers existing/pending tasks on startup.
 # without startup purge, its possible we will have WAY too to consume initially.
-purger: celery -A mysite worker -l info --purge
+# Note: if you don't know what this is, don't enable it.
+purger: celery -A mysite worker -l info --purge -n Purger
 
-#
+
 # the mandatory (and the only) worker responsible for running dataden.
 # no other worker should consume from the queue this worker consumes from
 #
@@ -39,10 +33,11 @@ purger: celery -A mysite worker -l info --purge
 #
 dataden: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
 
+
 # use this to reset the schedule, or startup from scratch
 dataden_init: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -apiSpeedDelta -15 -t 8
 
-#
+
 # the mandatory (and the only) worker responsible for running dataden triggers
 # on the mongo database. this task ensures data is being pushed from mongo to django/postgres.
 # 1x Dyno sport triggers using mongolab.com --> M3 <-- instance

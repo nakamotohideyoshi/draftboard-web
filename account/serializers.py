@@ -4,12 +4,23 @@
 from re import search
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from account.blacklist import BLACKLIST
 from account.models import (
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
+    Identity,
 )
 from django.contrib.auth import get_user_model
+
+
+class UserIdentitySerializer(serializers.ModelSerializer):
+    """
+    Serializer for User.Identity. This gets nested in UserSerializer.
+    """
+    class Meta:
+        model = Identity
+        fields = ('first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year', 'postal_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,6 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
     cash_balance = serializers.SerializerMethodField()
     cash_balance_formatted = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    identity = UserIdentitySerializer(read_only=True)
 
     def get_identity_verified(self, user):
         # Bypass this if they have the permission.
@@ -50,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "username", "email", "identity_verified", "cash_balance", "cash_balance_formatted",
-            "permissions")
+            "permissions", "identity",)
 
 
 class UserCredentialsSerializer(serializers.ModelSerializer):
@@ -99,6 +111,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         UserModel = get_user_model()
 
         if UserModel.objects.filter(email__iexact=value):
+
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
@@ -110,6 +123,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         Validation method to ensure that the username is valid, of proper length and unique
         """
         UserModel = get_user_model()
+
+        if value in BLACKLIST:
+            raise serializers.ValidationError('This username is in a black list.')
 
         if UserModel.objects.filter(username__iexact=value):
             # notice how i don't say the email already exists, prevents people from
@@ -235,5 +251,3 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
     birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
     postal_code = serializers.CharField(max_length=16)
-    # This is 11 to allow the use of separator dashes.
-    ssn = serializers.CharField(max_length=11)

@@ -1,9 +1,14 @@
 from enum import Enum
-from dfslog.exceptions import ErrorCodeException
-from dfslog.exceptions import ModelNotImplementedException
-from dfslog.exceptions import LogMethodException
+from logging import getLogger
+
 from dfslog.exceptions import ActionException
+from dfslog.exceptions import ModelNotImplementedException
+from dfslog.exceptions import ErrorCodeException
+from dfslog.exceptions import LogMethodException
 from dfslog.exceptions import MessageException
+
+djangoLogger = getLogger('dfslog.classes')
+
 
 class Logger:
     """
@@ -14,7 +19,7 @@ class Logger:
         pass
 
     @staticmethod
-    def log(error_code, action, message, classes = [], **kwargs):
+    def log(error_code, action, message, classes=[], **kwargs):
         """
         :param errorCode: This should use one of the predefined error codes listed in the class
             :class:`dfslog.logger.ErrorCodes`
@@ -41,12 +46,8 @@ class Logger:
         #         raise ModelNotImplementedException(type(c).__name__)
         #     message +=" "+ c.log()
 
-
-        log_string = "action: "+ action + " message: " +message
-        print(log_string)
-
-
-
+        log_string = "action: " + action + " message: " + message
+        djangoLogger.info(log_string)
 
 
 class ErrorCodes(Enum):
@@ -70,13 +71,13 @@ class ErrorCodes(Enum):
     METRICS = 5
 
 
-
 class AbstractLog():
     """
     This class should be implemented in any class or model that
     wants to be logged in the class :class:`dfslog.logger.Logger`'s
     method :func:`dfslog.logger.Logger.log`
     """
+
     def log(self):
         """
         This method must be implemented by any class that inherits
@@ -86,4 +87,3 @@ class AbstractLog():
         :return: the string representation for logging purposes
         """
         raise LogMethodException(type(self).__name__)
-

@@ -93,7 +93,7 @@ const LineupCardList = React.createClass({
 
   componentWillMount() {
     if (window.dfs.user.isAuthenticated === true) {
-      this.props.fetchUpcomingLineups().then(() => {
+      return this.props.fetchUpcomingLineups().then(() => {
         // if a lineup id was in the query params it means it was just saved and we should focus it.
         if (this.props.queryLineup) {
           const lineupId = parseInt(this.props.queryLineup, 10);
@@ -108,6 +108,8 @@ const LineupCardList = React.createClass({
             log.warn(`lineup url param '${this.props.queryLineup}' is not an integer!`);
           }
         }
+
+        return true;
       });
     }
   },

@@ -1,17 +1,16 @@
-#
-# lineup/classes.py
 import random
-
 from collections import Counter
-from mysite.classes import AbstractSiteUserClass
+from logging import getLogger
+
+from django.contrib.contenttypes.models import ContentType
 from django.db.transaction import atomic
+from django.utils import timezone
+
+from contest.models import Contest, Entry
 from draftgroup.models import DraftGroup, Player
-from .models import (
-    Lineup,
-    Player as LineupPlayer,
-)
-from sports.classes import SiteSportManager
+from mysite.classes import AbstractSiteUserClass
 from roster.classes import RosterManager
+from sports.classes import SiteSportManager
 from .exceptions import (
     LineupInvalidRosterSpotException,
     InvalidLineupSizeException,
@@ -23,9 +22,13 @@ from .exceptions import (
     CreateLineupExpiredDraftgroupException,
     NotEnoughTeamsException,
 )
-from django.contrib.contenttypes.models import ContentType
-from django.utils import timezone
-from contest.models import Contest, Entry
+from .models import (
+    Lineup,
+    Player as LineupPlayer,
+)
+
+logger = getLogger('lineup.classes')
+
 
 class LineupManager(AbstractSiteUserClass):
     """
@@ -55,7 +58,7 @@ class LineupManager(AbstractSiteUserClass):
         :param lineup:
         :return:
         """
-        return [ p.player_id for p in self.get_players(lineup) ]
+        return [p.player_id for p in self.get_players(lineup)]
 
     def get_player_srids(self, lineup):
         """
@@ -65,16 +68,17 @@ class LineupManager(AbstractSiteUserClass):
         :param lineup:
         :return:
         """
-        return [ p.player.srid for p in self.get_players(lineup) ]
+        return [p.player.srid for p in self.get_players(lineup)]
 
-    def get_players(self, lineup):
+    @staticmethod
+    def get_players(lineup):
         """
         return the LineupPlayer models for this Lineup
 
         :param lineup:
         :return:
         """
-        return LineupPlayer.objects.filter( lineup=lineup ).order_by('idx')
+        return LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
 
     def update_fantasy_points(self, lineup):
         """
@@ -92,7 +96,7 @@ class LineupManager(AbstractSiteUserClass):
         lineup.save()
 
     @atomic
-    def create_lineup(self,  player_ids, draftgroup, name=''):
+    def create_lineup(self, player_ids, draftgroup, name=''):
         """
         Creates a Lineup based off the draftgroup and player_ids
 
@@ -121,44 +125,48 @@ class LineupManager(AbstractSiteUserClass):
 
         return self.__create_lineup(player_ids, draftgroup, name)
 
-    def get_for_contest_by_ids(self, contest_id, lineup_ids):
+    @staticmethod
+    def get_for_contest_by_ids(contest_id, lineup_ids):
         """
 
         :param contest_id:
         :param lineup_ids:
         :return: list of lineup.models.Lineup objects where the lineup id in the contest is found
         """
-        contests = Contest.objects.filter( pk__in=[contest_id] )
-        distinct_lineup_entries = Entry.objects.filter( contest__in=contests,
-                                                        lineup__pk__in=lineup_ids )
-        lineups = [ entry.lineup for entry in distinct_lineup_entries ]
+        contests = Contest.objects.filter(pk__in=[contest_id])
+        distinct_lineup_entries = Entry.objects.filter(contest__in=contests,
+                                                       lineup__pk__in=lineup_ids)
+        lineups = [entry.lineup for entry in distinct_lineup_entries]
         return lineups
 
-    def get_for_contest(self, contest_id):
+    @staticmethod
+    def get_for_contest(contest_id):
         """
 
         :param contest_id:
         :return: list of lineup.models.Lineup objects in the contest
         """
-        contests = Contest.objects.filter( pk__in=[contest_id] )
-        distinct_lineup_entries = Entry.objects.filter( contest__in=contests ).select_related('lineup')
-        lineups = [ entry.lineup for entry in distinct_lineup_entries ]
+        contests = Contest.objects.filter(pk__in=[contest_id])
+        distinct_lineup_entries = Entry.objects.filter(contest__in=contests).select_related(
+            'lineup')
+        lineups = [entry.lineup for entry in distinct_lineup_entries]
         return lineups
 
-    def get_for_contest_by_search_str(self, contest_id, search_str):
+    @staticmethod
+    def get_for_contest_by_search_str(contest_id, search_str):
         """
 
         :param contest_id:
         :param search_str:
         :return: list of lineup.models.Lineup objects where the owner's username contains 'search_str'
         """
-        contests = Contest.objects.filter( pk__in=[contest_id] )
-        distinct_lineup_entries = Entry.objects.filter( contest__in=contests,
-                                                        lineup__user__username__icontains=search_str )
-        lineups = [ entry.lineup for entry in distinct_lineup_entries ]
+        contests = Contest.objects.filter(pk__in=[contest_id])
+        distinct_lineup_entries = Entry.objects.filter(contest__in=contests,
+                                                       lineup__user__username__icontains=search_str)
+        lineups = [entry.lineup for entry in distinct_lineup_entries]
         return lineups
 
-    def __create_lineup(self,  player_ids, draftgroup, name=''):
+    def __create_lineup(self, player_ids, draftgroup, name=''):
         """
         Create Lineup helper
 
@@ -179,7 +187,8 @@ class LineupManager(AbstractSiteUserClass):
 
         #
         # get the players and put them into an ordered array
-        players = self.get_player_array_from_player_ids_array(player_ids, draftgroup.salary_pool.site_sport)
+        players = self.get_player_array_from_player_ids_array(player_ids,
+                                                              draftgroup.salary_pool.site_sport)
 
         #
         # validates the lineup based on the players and draftgroup
@@ -199,11 +208,11 @@ class LineupManager(AbstractSiteUserClass):
 
         for player in players:
             lineup_player = LineupPlayer()
-            lineup_player.player                = player
-            lineup_player.lineup                = lineup
-            lineup_player.draft_group_player    = self.draft_group_players[ player.pk ]
-            lineup_player.roster_spot           = roster_manager.get_roster_spot_for_index(i)
-            lineup_player.idx                   = i
+            lineup_player.player = player
+            lineup_player.lineup = lineup
+            lineup_player.draft_group_player = self.draft_group_players[player.pk]
+            lineup_player.roster_spot = roster_manager.get_roster_spot_for_index(i)
+            lineup_player.idx = i
             lineup_player.save()
             i += 1
 
@@ -214,6 +223,7 @@ class LineupManager(AbstractSiteUserClass):
             lineup.save()
 
         self.__merge_lineups(lineup)
+        logger.info('action: lineup created | lineup: %s' % lineup)
         return lineup
 
     @atomic
@@ -241,6 +251,7 @@ class LineupManager(AbstractSiteUserClass):
         #
         # Throw an exception if the draftgroup is expired
         if entry.lineup.draft_group.start < timezone.now():
+            logger.warning('cannot edit entry, draftgroup exired | entry: %s' % entry)
             raise CreateLineupExpiredDraftgroupException()
 
         self.__validate_lineup_changed(player_ids, entry)
@@ -249,11 +260,11 @@ class LineupManager(AbstractSiteUserClass):
         count = Entry.objects.filter(lineup=entry.lineup).count()
         if count == 1:
             self.__edit_lineup(player_ids, entry.lineup)
+            logger.info('action: entry edited | entry: %s' % entry)
         else:
             entry.lineup = self.__create_lineup(player_ids, entry.lineup.draft_group)
             entry.save()
-
-
+            logger.info('action: entry created | entry: %s' % entry)
 
     @atomic
     def edit_lineup(self, player_ids, lineup):
@@ -282,6 +293,7 @@ class LineupManager(AbstractSiteUserClass):
         #
         # Throw an exception if the draftgroup is expired
         if lineup.draft_group.start < timezone.now():
+            logger.warning('cannot edit lineup, draftgroup exired | lineup: %s' % lineup)
             raise CreateLineupExpiredDraftgroupException()
 
         self.__edit_lineup(player_ids, lineup)
@@ -312,12 +324,10 @@ class LineupManager(AbstractSiteUserClass):
         site_sport = lineup.draft_group.salary_pool.site_sport
         players = self.get_player_array_from_player_ids_array(player_ids, site_sport)
 
-
         #
         # validates the lineup based on the players and draftgroup
         roster_manager = RosterManager(site_sport)
         self.__validate_lineup(players, lineup.draft_group, roster_manager)
-
 
         #
         # adds the player ids to the corresponding spots in the lineup
@@ -329,11 +339,11 @@ class LineupManager(AbstractSiteUserClass):
             # replace the player if they are not equal
             if lineup_player.player != player:
                 lineup_player.player = player
-            i+=1
+            i += 1
             lineup_player.save()
 
+        logger.info('action: lineup edited | lineup: %s' % lineup)
         self.__merge_lineups(lineup)
-
 
     def __validate_lineup(self, players, draftgroup, roster_manager):
         """
@@ -354,14 +364,14 @@ class LineupManager(AbstractSiteUserClass):
         #
         # validate the size of the lineup
         if roster_manager.get_roster_spots_count() != len(players):
-            print("player size: "+str(len(players)))
+            print("player size: " + str(len(players)))
             raise InvalidLineupSizeException()
         #
         # ensure that players from at least 3 different team exist
         counter = Counter()
         for player in players:
             counter[player.team.pk] += 1
-        if len(counter.items()) <3:
+        if len(counter.items()) < 3:
             raise NotEnoughTeamsException()
 
         #
@@ -370,9 +380,8 @@ class LineupManager(AbstractSiteUserClass):
 
         self.__validate_player_salaries(players, draftgroup)
 
-
-
-    def __validate_player_positions(self, players, roster_manager):
+    @staticmethod
+    def __validate_player_positions(players, roster_manager):
         """
         Makes sure the players match the corresponding roster spots
         for the sport and that the roster size is correct.
@@ -393,7 +402,7 @@ class LineupManager(AbstractSiteUserClass):
         for player in players:
             if not roster_manager.player_matches_spot(player, i):
                 raise LineupInvalidRosterSpotException()
-            i+=1
+            i += 1
 
     def __validate_player_salaries(self, players, draftgroup):
         """
@@ -417,7 +426,8 @@ class LineupManager(AbstractSiteUserClass):
                                                        salary_player__player_id=player.pk,
                                                        draft_group=draftgroup)
                 #
-                self.draft_group_players[ draftgroup_player.salary_player.player_id ] = draftgroup_player
+                self.draft_group_players[
+                    draftgroup_player.salary_player.player_id] = draftgroup_player
 
                 salary_sum += draftgroup_player.salary
             except Player.DoesNotExist:
@@ -433,7 +443,8 @@ class LineupManager(AbstractSiteUserClass):
         if salary_sum > max_team_salary:
             raise InvalidLineupSalaryException(self.user.username, salary_sum, max_team_salary)
 
-    def __validate_lineup_changed(self, player_ids, entry):
+    @staticmethod
+    def __validate_lineup_changed(player_ids, entry):
         """
         Makes sure the lineup is modified
 
@@ -455,7 +466,8 @@ class LineupManager(AbstractSiteUserClass):
         if same_lineup:
             raise LineupUnchangedException()
 
-    def get_player_array_from_player_ids_array(self, player_ids, site_sport):
+    @staticmethod
+    def get_player_array_from_player_ids_array(player_ids, site_sport):
         """
         Creates and returns an array of :class:`sports.models.Player` objects based
         on the player_ids array.
@@ -514,6 +526,7 @@ class LineupManager(AbstractSiteUserClass):
         if len(lineup_players_arr) == 0:
             return
 
+        logger.info('Identical lineup exist for user - merging | lineup: %s' % lineup)
         #
         # get the list of lineups to delete
         lineups_to_delete = []
@@ -524,13 +537,11 @@ class LineupManager(AbstractSiteUserClass):
         # get the Entries for the lineups and point them to the new lineup
         Entry.objects.filter(lineup__in=lineups_to_delete).update(lineup=lineup)
 
-
         #
         # Delete the lineups and players that have not entries
         LineupPlayer.objects.filter(lineup__in=lineups_to_delete).delete()
         for lineups_to_delete in lineups_to_delete:
             lineups_to_delete.delete()
-
 
     def __validate_changed_players_have_not_started(self, player_ids, lineup):
         """
@@ -561,7 +572,8 @@ class LineupManager(AbstractSiteUserClass):
                                                        salary_player__player_id=player_id,
                                                        draft_group=lineup.draft_group)
                 # add each draftgroup_player to the table, by their actual player_id (unique to sport!)
-                self.draft_group_players[ draftgroup_player.salary_player.player_id ] = draftgroup_player
+                self.draft_group_players[
+                    draftgroup_player.salary_player.player_id] = draftgroup_player
 
                 draftgroup_lineup_player = Player.objects.get(
                     salary_player__player_type=lineup_player.player_type,
@@ -574,8 +586,8 @@ class LineupManager(AbstractSiteUserClass):
                     raise PlayerSwapGameStartedException()
             i += 1
 
-
-    def get_lineup_from_id(self, lineup_id, contest):
+    @staticmethod
+    def get_lineup_from_id(lineup_id, contest):
         """
         get lineup data we can show to other users, with masked
         out players if the contest has not started yet.
@@ -589,7 +601,7 @@ class LineupManager(AbstractSiteUserClass):
 
         #
         # Get the lineup players for a lineup id
-        lineup_players = LineupPlayer.objects.filter( lineup__pk=lineup_id ).order_by('idx')
+        lineup_players = LineupPlayer.objects.filter(lineup__pk=lineup_id).order_by('idx')
         #
         # sets the started flag to False if draftgroup has not started
         started = True
@@ -598,7 +610,7 @@ class LineupManager(AbstractSiteUserClass):
 
         #
         # get the player model(s) for the sport used (multiple for MLB)
-        player_stats_models = ssm.get_player_stats_class( contest.site_sport )
+        player_stats_models = ssm.get_player_stats_class(contest.site_sport)
 
         #
         # add all the players to the data array, but if the contest has not started make the
@@ -616,12 +628,11 @@ class LineupManager(AbstractSiteUserClass):
                 if not started:
                     continue
 
-
                 #
                 # Get the player stats if the model type applies to the player and they have stats
                 try:
-                    player_stats = player_stats_model.objects.get( player_id=lineup_player.player_id,
-                                        srid_game=lineup_player.draft_group_player.game_team.game_srid )
+                    player_stats = player_stats_model.objects.get(player_id=lineup_player.player_id,
+                                                                  srid_game=lineup_player.draft_group_player.game_team.game_srid)
                 except player_stats_model.DoesNotExist:
                     player_stats = None
                     pass
@@ -629,16 +640,15 @@ class LineupManager(AbstractSiteUserClass):
                 #
                 # add the stats to the data field for the given player.
                 if player_stats is not None:
-                    category_stats.append( player_stats.to_json() )
+                    category_stats.append(player_stats.to_json())
 
             #
             # add the "category_stats" list  -- ie: the stats for each roster idx
-            data.append( {
-                'started'   : started,
-                'i'         : lineup_player.idx,
-                'data'      : category_stats,
-            } )
-
+            data.append({
+                'started': started,
+                'i': lineup_player.idx,
+                'data': category_stats,
+            })
 
         # this data is safe to return via the API because
         # the players whos games have not yet started have

@@ -202,7 +202,10 @@ class BuyinManager(AbstractSiteUserClass):
         # ensure the lineup attempting to be submitted
         # is the same as any existing lineups.
         # raises LineupDoesNotMatchExisting
-        self.validate_lineup_players_match_existing_entries(lineup, entries)
+
+        # This is disabled because we are now allowing multiple lineups from one user to be entered
+        # into the same contest.
+        # self.validate_lineup_players_match_existing_entries(lineup, entries)
 
     def validate_lineup_players_match_existing_entries(self, lineup, entries):
         """
@@ -257,7 +260,6 @@ class BuyinManager(AbstractSiteUserClass):
         # 'entries' field defaults to 0, which indicates there is not cap,
         # however if it is non-zero, then it is a capped contest_pool (capped total contest pool entries)
         if contest_pool.entries != 0 and contest_pool.current_entries >= contest_pool.entries:
-            print('raising ContestIsFullException!!!')
             raise ContestIsFullException()
 
     def entry_did_use_ticket(self, entry):
