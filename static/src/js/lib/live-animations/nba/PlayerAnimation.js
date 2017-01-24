@@ -12,10 +12,10 @@ export default class PlayerAnimation extends LiveAnimation {
     const zone = court.getZoneAtPosition(recap.courtPosition(), recap.courtSide()) + 1;
 
     switch (recap.playType()) {
-      case NBAPlayRecapVO.BLOCK:
-        return getBlockClip(zone);
-      case NBAPlayRecapVO.BLOCKEDDUNK:
+      case NBAPlayRecapVO.BLOCKED_DUNK:
         return getClip('block_dunk');
+      case NBAPlayRecapVO.BLOCKED_JUMPSHOT:
+        return getBlockClip(zone);
       case NBAPlayRecapVO.DUNK:
         return getClip('dunk');
       case NBAPlayRecapVO.FREETHROW:
@@ -26,7 +26,7 @@ export default class PlayerAnimation extends LiveAnimation {
         return getJumpshotClip(zone);
       case NBAPlayRecapVO.REBOUND:
         return getClip('rebound');
-      case NBAPlayRecapVO.TURNOVER:
+      case NBAPlayRecapVO.STEAL:
         return getStealClip(zone);
       default:
         throw new Error(`Unknown clip for play type "${recap.playType()}"`);
@@ -41,7 +41,7 @@ export default class PlayerAnimation extends LiveAnimation {
     // Provide static positions for play types that are specific to
     // the animation and not based on the recap's court position.
     const staticPositions = {
-      [NBAPlayRecapVO.BLOCKEDDUNK]: { x: 0.075, y: 0.4 },
+      [NBAPlayRecapVO.BLOCKED_DUNK]: { x: 0.075, y: 0.4 },
       [NBAPlayRecapVO.DUNK]: court.getRimPos(recap.courtSide()),
       [NBAPlayRecapVO.FREETHROW]: court.getFreethrowPos(recap.courtSide()),
       [NBAPlayRecapVO.LAYUP]: court.getRimPos(recap.courtSide()),

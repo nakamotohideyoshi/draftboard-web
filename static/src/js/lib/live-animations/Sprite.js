@@ -1,5 +1,9 @@
 export default class Sprite {
 
+  constructor() {
+    this.isFlipped = false;
+  }
+
   /**
    * Returns the number of frames found in the spritesheet based
    * on the provided frame width and height.
@@ -14,18 +18,15 @@ export default class Sprite {
    * Returns the x, y coordinates of the frame
    */
   getFrameRect(frame, sheetWidth, sheetHeight, frameWidth, frameHeight) {
-    const numCols = Math.ceil(sheetWidth / frameWidth);
-    let col = frame % numCols;
-    col = col === 0 ? 140 : col;
-    const row = Math.max(1, Math.ceil(frame / numCols));
-
+    const numCols = sheetWidth / frameWidth;
+    const frameIndex = frame;
+    const col = frameIndex % numCols;
+    const row = Math.ceil(frameIndex / numCols);
     return {
-      x: (col * frameWidth) - frameWidth,
+      x: col * frameWidth,
       y: (row * frameHeight) - frameHeight,
       width: frameWidth,
       height: frameHeight,
-      col,
-      row,
     };
   }
 
@@ -42,19 +43,31 @@ export default class Sprite {
   /**
    * Render all the frames.
    */
-  renderFrames(image, canvas, frameWidth, frameHeight, flip = false, start = 1, length = -1) {
-    const frameRate = 29.97;
+  renderFrames(image, canvas, frameWidth, frameHeight, start = 1, numFrames = -1) {
+    const frameRate = 29;
     const context = canvas.getContext('2d');
-    const numFrames = length !== -1 ? length : this.getNumFrames(image.width, image.height, frameWidth, frameHeight);
-    let curFrame = start;
-    const targetFrame = curFrame + numFrames;
+    let curFrameIndex = start - 1;
+    const targetFrame = numFrames !== -1
+      ? curFrameIndex + numFrames
+      : this.getNumFrames(image.width, image.height, frameWidth, frameHeight);
 
-    context.translate(flip ? this.canvas.width : 0, 0);
-    context.scale(flip ? -1 : 1, 1);
+    if (!this._isScaled) {
+      context.translate(this.isFlipped ? this.canvas.width : 0, 0);
+      context.scale(this.isFlipped ? -1 : 1, 1);
+      this._isScaled = true;
+    }
 
-    return this.animate(frameRate, () => {
-      this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
-      return ++curFrame < targetFrame;
+
+    return new Promise((resolve) => {
+      this.animate(frameRate, () => {
+        const hasNextFrame = curFrameIndex < targetFrame;
+        this.drawFrame(curFrameIndex++, image, context, frameWidth, frameHeight);
+        if (!hasNextFrame) {
+          resolve();
+        }
+
+        return hasNextFrame;
+      });
     });
   }
 
@@ -62,34 +75,30 @@ export default class Sprite {
    * Throttles an animation callback at a specified FPS.
    * @param {number}      The target frame rate.
    * @param {function}    The callback to trigger at the specified FPS.
-   * @return {Promise}    Resolved when the callback returns false.
    */
   animate(fps, fn) {
     const fpsInterval = 1000 / fps;
     let then = window.performance.now();
     let now = then;
     let elapsed = 0;
-    let hasNextFrame = true;
+    let isPlaying = true;
+    let count = 0;
 
-    return new Promise(resolve => {
-      const tick = () => {
-        now = window.performance.now();
-        elapsed = now - then;
+    const tick = () => {
+      now = window.performance.now();
+      elapsed = now - then;
 
-        if (elapsed > fpsInterval) {
-          then = now - (elapsed % fpsInterval);
-          hasNextFrame = fn();
-        }
+      if (elapsed > fpsInterval) {
+        then = now - (elapsed % fpsInterval);
+        isPlaying = fn(++count);
+      }
 
-        if (hasNextFrame) {
-          window.requestAnimationFrame(tick);
-        } else {
-          resolve();
-        }
-      };
+      if (isPlaying) {
+        window.requestAnimationFrame(tick);
+      }
+    };
 
-      tick();
-    });
+    tick();
   }
 
   /**
@@ -104,7 +113,7 @@ export default class Sprite {
       const img = document.createElement('img');
       img.addEventListener('load', () => resolve(img));
       img.addEventListener('error', () => reject(`Unable to load sprite "${url}"`));
-      img.src = `${window.dfs.playerImagesBaseUrl}${url}`;
+      img.src = url;
     });
 
     const createCanvasFromImg = img => new Promise((resolve) => {
@@ -139,13 +148,12 @@ export default class Sprite {
 
   /**
    * Plays through the animation once.
-   * @param {boolean}     Draw each frame flipped horizontally.
    */
-  playOnce(flip = false, start = 1, length = -1) {
+  playOnce(start = 1, numFrames = -1) {
     if (!this.isLoaded()) {
       return Promise.reject('No image data loaded.');
     }
 
-    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, flip, start, length);
+    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, start, numFrames);
   }
 }
