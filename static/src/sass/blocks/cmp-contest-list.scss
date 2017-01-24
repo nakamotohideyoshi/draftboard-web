@@ -45,6 +45,18 @@ $table-row-hover-bg: #f9fafb;
         opacity: 1;
     }
 
+    .name .details {
+      padding-left: 10px;
+
+      .icon-users {
+        margin-right: 2px;
+      }
+
+      .icon-fairmatch {
+        margin-right: 10px;
+      }
+    }
+
     .enter {
       text-align: center;
       cursor: default;

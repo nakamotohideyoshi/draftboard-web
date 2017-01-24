@@ -127,16 +127,18 @@ const ContestListRow = React.createClass({
       return;
     }
 
-    const entryDots = entries.map(entry => {
+    const entryDots = entries.map((entry, i) => {
       if (entry.lineup === this.props.focusedLineup.id) {
         return (
           <span
+            key={`dot-${i}`}
             className="entry-slot current-lineup"
             title="The current lineup is in this slot"
           ></span>);
       }
       return (
         <span
+          key={`dot-${i}`}
           className="entry-slot other-lineup"
           title="Another one of your lineups is in this slot"
         ></span>);
@@ -145,7 +147,7 @@ const ContestListRow = React.createClass({
     const emptyDotCount = this.props.contest.max_entries - entryDots.length;
 
     for (let i = 0; i < emptyDotCount; i++) {
-      entryDots.push(<span className="entry-slot" title="Empty entry slot"></span>);
+      entryDots.push(<span key={`dot-empty-${i}`} className="entry-slot" title="Empty entry slot"></span>);
     }
 
 
@@ -183,12 +185,21 @@ const ContestListRow = React.createClass({
         </td>
         <td key="name" className="name">
           {this.props.contest.name}
+          <span className="details">
+            <span className="fairmatch">
+              <span className="icon-fairmatch" title="This is a FairMatch contest"></span>
+            </span>
+            <span className="users"
+              title={`You will compete against ${this.props.contest.contest_size - 1} other users`}
+            >
+              <span className="icon-users"></span>{this.props.contest.contest_size}
+            </span>
+          </span>
         </td>
         <td key="payouts" className="payouts">
           {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
         <td key="entries" className="entries">{this.props.contest.current_entries}</td>
-        <td key="contestSize" className="contest-size">{this.props.contest.contest_size}</td>
         <td key="start" className="start">
           <CountdownClock
             time={this.props.contest.start}
