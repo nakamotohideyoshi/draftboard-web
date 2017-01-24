@@ -175,7 +175,6 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
 
                     result = model.objects.filter(query).values_list(
                             'pk', flat=True)
-                    print("CONTENT TYPE: "+cont_type)
 
                     or_queries.append(
                         Q(

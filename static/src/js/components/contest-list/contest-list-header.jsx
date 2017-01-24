@@ -58,9 +58,16 @@ const ContestListHeader = (props) => (
     </div>
     <div className="help">?</div>
 
-    <a href="" className="fairmatch button button--medium button--outline button--outline-alt1">
-      What is FairMatch&trade;?
-    </a>
+    <div className="icon-key">
+      <span className="contest-size" title="The Maximum number of entries in each contest">
+        <span className="icon-users"></span>
+        Contest Size
+      </span>
+      <a href="" className="fairmatch">
+        <span className="icon-fairmatch"></span>
+        FairMatch Contest
+      </a>
+    </div>
   </div>
 );
 

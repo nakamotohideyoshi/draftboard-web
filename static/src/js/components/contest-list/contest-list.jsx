@@ -74,9 +74,6 @@ const ContestList = (props) => {
           >Entries</th>
           <th
             className="table__sortable"
-          >Contest Size</th>
-          <th
-            className="table__sortable"
             onClick={props.setOrderBy.bind(null, 'start')}
           >Live In</th>
           <th>My Entries</th>

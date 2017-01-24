@@ -1,0 +1,32 @@
+@import "./variables.scss";
+
+/**
+ * Various Icons used around the site.
+ */
+
+// Green box with an 'F' in it to denote Fairmatch contests
+.icon-fairmatch {
+  background: #26c661;
+  color: #fff;
+  display: inline-block;
+  font-family: $font-open-sans;
+  font-size: 9px;
+  height: 13px;
+  text-align: center;
+  text-transform: uppercase;
+  vertical-align: top;
+  width: 13px;
+
+  &:after {
+    content: "F";
+    vertical-align: top;
+  }
+}
+
+.icon-users {
+  background: url('../img/common/icon-users.png') no-repeat;
+  background-size: 15px auto;
+  display: inline-block;
+  height: 11px;
+  width: 15px;
+}
