@@ -196,8 +196,7 @@ class GameBoxscoreParser(DataDenGameBoxscores):
         self.update_schedule_game_status(srid_game, self.boxscore.status)
 
     def update_boxscore_data_in_game(self, boxscore_data):
-        game = sports.nba.models.Game.objects.get(
-            srid=self.o.get(self.field_srid_game))
+        game = sports.nba.models.Game.objects.get(srid=self.o.get(self.field_srid_game))
         game.boxscore_data = boxscore_data
         logger.info(
             'Updating game.boxscore data. game: %s -- boxscore_data: %s' % (game, boxscore_data))

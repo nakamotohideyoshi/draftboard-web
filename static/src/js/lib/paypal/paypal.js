@@ -1,3 +1,4 @@
+/* eslint-disable promise/no-callback-in-promise */
 import Raven from 'raven-js';
 import braintree from 'braintree-web';
 import { fetchPayPalClientTokenIfNeeded } from '../../actions/payments';
@@ -102,7 +103,7 @@ export const setupBraintree = (callback) => {
       const appState = store.getState();
 
       // Create a Client component
-      braintree.client.create({
+      return braintree.client.create({
         authorization: appState.payments.payPalClientToken,
       }, (clientErr, clientInstance) => {
         // Stop if there was a problem creating the client.
@@ -133,6 +134,8 @@ export const setupBraintree = (callback) => {
 
           // Let the dispatcher know that the button is ready.
           callback(paypalInstance);
+
+          return paypalInstance;
         });
       });
     }

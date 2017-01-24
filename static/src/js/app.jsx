@@ -12,11 +12,11 @@ const logApp = log.getLogger('app');
 // Set the default Sentry project as Draftboard - Local. If we aren't in debug mode, change it to
 // the Draftboard - Staging project.
 // the DSN for the Draftboard - Local Sentry Project
-let sentryDSN = 'https://bbae8e8654e34a80b02999b5ade6fd81@app.getsentry.com/72241';
+let sentryDSN = 'https://bbae8e8654e34a80b02999b5ade6fd81@sentry.io/72241';
 
 if (process.env.NODE_ENV === 'production') {
   // the DSN for the Draftboard - Staging Sentry Project
-  sentryDSN = 'https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103';
+  sentryDSN = 'https://698f3f69f1e446cea667c680c4e1931b@sentry.io/40103';
 }
 
 Raven.config(sentryDSN, {

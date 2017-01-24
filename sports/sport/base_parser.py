@@ -8,6 +8,7 @@ from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
 import json
 from django.contrib.contenttypes.models import ContentType
+# from django.db.models.base import ObjectDoesNotExist
 from sports.models import SiteSport, Position
 from dataden.classes import DataDen
 import sports.classes
@@ -113,7 +114,6 @@ class AbstractDataDenParser(object):
         teams = team_class.objects.all()
 
         for team in teams:
-            print('cleanup_rosters:', str(team))
             # get all the sports players for that team
             players = player_class.objects.filter(
                 team=team, on_active_roster=True)
@@ -121,7 +121,6 @@ class AbstractDataDenParser(object):
                 team=team, on_active_roster=False)
 
             player_srids = [p.srid for p in players]
-            print('    # player_srids:', str(len(player_srids)))
 
             # from dataden, get all the players recently parsed for this team.
             dd_recent_players = dd.find_recent(
@@ -129,8 +128,11 @@ class AbstractDataDenParser(object):
             dd_recent_player_srids = []
             for p in dd_recent_players:
                 dd_recent_player_srids.append(p.get('id'))
-            print('    # dd_recent_player_srids:',
-                  str(len(dd_recent_player_srids)))
+
+            logger.info(
+                "%s.cleanup_rosters team: %s | player_srids: %s |  dd_recent_player_srids: %s" % (
+                    sport, team, len(player_srids), len(dd_recent_player_srids)
+                ))
 
             # subtract the set of dd-recent players from the set of team
             # players
@@ -655,21 +657,24 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         srid_game = o.get('game__id', None)
         srid_player = o.get('id', None)
 
+
         try:
             self.p = self.player_model.objects.get(srid=srid_player)
         except self.player_model.DoesNotExist:
             # first_name  = o.get('first_name', None)
             # last_name   = o.get('last_name', None)
             # full_name   = '%s %s' % (str(first_name), str(last_name))
-            print(obj, target)
-            print('Player object for PlayerStats DoesNotExist')
+            logger.error('Player object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
+                obj, target))
+            client.captureException()
             return  # dont create the playerstats then
 
         try:
             self.g = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
-            print(obj, target)
-            print('Game object for PlayerStats DoesNotExist')
+            logger.error('Game object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
+                obj, target))
+            client.captureException()
             return  # dont create the playerstats then
 
         try:
@@ -678,21 +683,19 @@ class DataDenPlayerStats(AbstractDataDenParseable):
                 srid_player=srid_player
             )
         except self.player_stats_model.DoesNotExist:
-            # TODO: (zach) I don't think this is catching the exception that it should be.
-            # Update: it is catching, but it's also throwing another exception and is bombing out
-            # celery.
-            # sports.nba.models.DoesNotExist: PlayerStats matching query does not exist.
-
-            # one of these tasks maybe:
-            # sports.tasks.countdown_send_player_stats_data[17dc8d72-92d7-474c-80a2-e749aef2bb9c]
-            # Task mysite.celery_app.stat_update[dcb67cba-4a17-4c8b-9173-afea231f100d]
-
+            # We don't have a playerStats model for this player, so let's make one.
+            logger.warning((
+                'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
+                '| game: %s | obj: %s | target: %s'
+                ) % (srid_player, srid_game, self.p, self.g, obj, target)
+            )
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
             self.ps.player = self.p
             self.ps.game = self.g
-            #
+
+            # Zach: I don't know why this is commented out, but I'm going to leave it here.
             # #
             # # only setup the position inside "except" so that we dont perform extra
             # # queries after it has been created. because we really only care the first time.
@@ -711,7 +714,6 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # # set it but it wont be saved until child performs save()
             self.ps.position = self.p.position
 
-            logger.info('creating new PlayerStats model (hopefully):', str(self.ps))
         logger.info('Parsed PlayerStats: %s' % self.ps)
 
 

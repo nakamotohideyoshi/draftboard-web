@@ -103,24 +103,25 @@ class Player(sports.models.Player):
     inherited: 'srid', 'first_name', 'last_name'
     """
     team = models.ForeignKey(Team, null=False)
-    srid_team = models.CharField(max_length=64, null=False, default='')
-    preferred_name = models.CharField(max_length=64, null=False, default='')
-    birthcity = models.CharField(max_length=64, null=False, default='')
-    birthcountry = models.CharField(max_length=64, null=False, default='')
-    birthdate = models.CharField(max_length=64, null=False, default='')
-    height = models.FloatField(default=0.0, null=False, help_text='inches')
-    weight = models.FloatField(default=0.0, null=False, help_text='lbs')
-    jersey_number = models.CharField(max_length=64, null=False, default='')
+    srid_team = models.CharField(max_length=64, null=False, default='', blank=True)
+    preferred_name = models.CharField(max_length=64, null=False, default='', blank=True)
+    birthcity = models.CharField(max_length=64, null=False, default='', blank=True)
+    birthcountry = models.CharField(max_length=64, null=False, default='', blank=True)
+    birthdate = models.CharField(max_length=64, null=False, default='', blank=True)
+    height = models.FloatField(default=0.0, null=False, help_text='inches', blank=True)
+    weight = models.FloatField(default=0.0, null=False, help_text='lbs', blank=True)
+    jersey_number = models.CharField(max_length=64, null=False, default='', blank=True)
     # primary_position = models.CharField(max_length=64, null=False, default='')
     status = models.CharField(
         max_length=64,
         null=False,
         default='',
+        blank = True,
         help_text='roster status - ie: "A" means they are ON the roster. Not particularly active as in not-injured!'
     )
-    pro_debut = models.CharField(max_length=64, null=False, default='')
-    throw_hand = models.CharField(max_length=8, null=False, default='')
-    bat_hand = models.CharField(max_length=8, null=False, default='')
+    pro_debut = models.CharField(max_length=64, null=False, default='', blank=True)
+    throw_hand = models.CharField(max_length=8, null=False, default='', blank=True)
+    bat_hand = models.CharField(max_length=8, null=False, default='', blank=True)
 
     class Meta:
         abstract = False

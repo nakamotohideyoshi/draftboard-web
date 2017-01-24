@@ -103,18 +103,17 @@ const fetchDraftGroup = (draftGroupId) => (dispatch) => {
     },
   });
 
-  apiActionResponse.then((action) => {
+  return apiActionResponse.then((action) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
-      dispatch({
+      return dispatch({
         type: actionTypes.FETCH_DRAFTGROUP_FAIL,
         response: action.error,
       });
     }
-  });
 
-  // Return the promise chain in case we want to use it elsewhere.
-  return apiActionResponse;
+    return action;
+  });
 };
 
 

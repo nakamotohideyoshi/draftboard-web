@@ -13,14 +13,6 @@ You should also set an environment variable to auto-load this file for you:
 export DJANGO_SETTINGS_MODULE=mysite.settings.YOUR_NAME
 """
 
-# docker redis locations
-REDISCLOUD_URL = 'redis://redis:6379'
-
-# update CACHES from local settings
-CACHES['default']['LOCATION'] = REDISCLOUD_URL
-CACHES['cachalot']['LOCATION'] = REDISCLOUD_URL
-CACHES['django_templates']['LOCATION'] = REDISCLOUD_URL
-
 # served static assets from webpack's devserver
 STATIC_URL = 'http://localhost:8090/static/'
 

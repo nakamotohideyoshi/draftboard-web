@@ -189,7 +189,7 @@ sudo -u postgres createdb dfs_dev
 #    5) start celery if its not running (in a terminal, with this command):
 #
 #        $> celery -A mysite worker -l info
-#        $> celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler      # along with worker, allow admin tasks
+#        $> celery -A mysite beat -S django                                     # along with worker, allow admin tasks
 #        $> celery -A mysite flower                                             # localhost:5555/monitor/
 #
 #    5) now you can check the checkbox for that Player Pool

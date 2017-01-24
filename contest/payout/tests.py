@@ -21,6 +21,9 @@ from mysite.classes import  AbstractManagerClass
 from promocode.bonuscash.classes import BonusCashTransaction
 from cash.models import CashTransactionDetail
 from ..classes import ContestPoolCreator
+from logging import getLogger
+
+logger = getLogger('contest.payout.tests')
 
 
 class PayoutTest(AbstractTest):
@@ -274,7 +277,8 @@ class PayoutTest(AbstractTest):
         payouts = Payout.objects.order_by('contest', '-rank')
         i = 0
         for payout in payouts:
-            print(str(payout), 'rank:%s' % payout.rank, '  should be payout_ranks[%s]:%s' % (str(payout.rank), str(payout_ranks[i])) )
+            msg = str(payout), 'rank:%s' % payout.rank, '  should be payout_ranks[%s]:%s' % (str(payout.rank), str(payout_ranks[i]))
+            logger.info(msg)
             i += 1
         i = 0
         for payout in payouts:
@@ -287,7 +291,8 @@ class PayoutTest(AbstractTest):
         i = 0
         for lineup in lineups:
             for entry in Entry.objects.filter(lineup=lineup):
-                print('    ', str(entry), 'entry.final_rank:', entry.final_rank, '  should be entry rank:', lineup_ranks[i] )
+                msg = ('    ', str(entry), 'entry.final_rank:', entry.final_rank, '  should be entry rank:', lineup_ranks[i] )
+                logger.info(msg)
                 self.assertEquals( entry.final_rank, lineup_ranks[i])
                 i += 1
 

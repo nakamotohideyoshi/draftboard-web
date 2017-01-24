@@ -58,7 +58,7 @@ export default React.createClass({
       this.field.removeAll();
       logComponent.debug('liveNFLPlay.simulate complete');
 
-      this.afterEvent(event);
+      return this.afterEvent(event);
     }).catch(error => {
       // Log the request error to Sentry with some info.
       Raven.captureMessage(

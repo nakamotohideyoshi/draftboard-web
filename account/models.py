@@ -20,6 +20,7 @@ class Information(models.Model):
     """
     user = models.OneToOneField(User, primary_key=True)
     inactive = models.BooleanField(default=False)
+    exclude_date = models.DateField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Information'
@@ -28,6 +29,7 @@ class Information(models.Model):
             ("can_bypass_location_check", "Can bypass location check"),
             ("can_bypass_age_check", "Can bypass age check"),
             ("can_bypass_identity_verification", "Can bypass identity verification"),
+            ("email_confirmation", "Email confirmation"),
         )
 
     @cached_property
@@ -50,6 +52,18 @@ class Information(models.Model):
         except ObjectDoesNotExist:
             pass
         return is_verified
+
+    @cached_property
+    def is_confirmed(self):
+        """
+        Check user confirmation status
+        """
+        confirmed = False
+        try:
+            confirmed = (self.user.confirmation is not None)
+        except ObjectDoesNotExist:
+            pass
+        return confirmed
 
     def delete(self):
         """
@@ -157,7 +171,7 @@ class Identity(models.Model):
     Stores Trulioo identity information. We need to store this in order to check if someone has
     already 'claimed' an identity. Trulioo provides no mechanism for us to check with their service.
     """
-    user = models.OneToOneField(User, primary_key=True)
+    user = models.OneToOneField(User, primary_key=True, related_name='identity')
     first_name = models.CharField(max_length=100, null=False)
     last_name = models.CharField(max_length=100, null=False)
     # I know it seems dumb to store a date like this, but Trulioo accepts them
@@ -169,6 +183,19 @@ class Identity(models.Model):
     # Trulioo calls it a postal code, but it's actually a ZIP code
     postal_code = models.CharField(max_length=16, null=False)
     created = models.DateTimeField(auto_now_add=True)
+    # Is this identity flagged because a similar looking one exists?
+    flagged = models.BooleanField(default=False, null=False)
 
     class Meta:
         verbose_name = 'Trulioo User Identity'
+        verbose_name_plural = 'Trulioo User Identities'
+
+
+class Confirmation(models.Model):
+    """
+    Option for for checking user confirmation
+    """
+
+    user = models.OneToOneField(User, primary_key=True)
+    confirmed = models.BooleanField(default=False)
+

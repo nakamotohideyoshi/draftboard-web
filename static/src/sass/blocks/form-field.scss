@@ -167,6 +167,13 @@ category: Forms
         display: none;
     }
 
+    &:focus {
+      border-color: $secondary-charcoal;
+      color: $primary-charcoal;
+      // prevent the safari glow
+      outline-width: 0;
+    }
+
     &--small {
       background-position: 85% 50%;
       width: 75px;

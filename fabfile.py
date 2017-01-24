@@ -253,13 +253,15 @@ def generate_replayer():
         bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
 
         # download start
-        startS3Filename = '%s-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        startS3Filename = '%s-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        print("Downloading: %s" % startS3Filename)
         keyStart = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
         keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
         operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
 
         # download end
-        endS3Filename = '%s-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        endS3Filename = '%s-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        print("Downloading: %s" % startS3Filename)
         keyEnd = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
         keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
         operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
@@ -300,7 +302,7 @@ def generate_replayer():
     )
 
     # remove all scheduled tasks except for contest pools
-    operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+    operations.local('%s psql -d %s -c "update django_celery_beat_periodictask set enabled=\'f\';"' % (
         psql_user,
         temp_db
     ))
@@ -317,7 +319,7 @@ def generate_replayer():
             temp_db
         ))
         operations.local('''
-            %s psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where
+            %s psql -d %s -c "update django_celery_beat_periodictask set enabled=\'t\' where
             task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"
         ''' % (
             psql_user,
