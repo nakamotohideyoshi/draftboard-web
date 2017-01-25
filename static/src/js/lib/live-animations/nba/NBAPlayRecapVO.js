@@ -27,6 +27,10 @@ export default class NBAPlayRecapVO {
     return 'blocked_jumpshot';
   }
 
+  static get BLOCKED_LAYUP() {
+    return 'blocked_layup';
+  }
+
   static get FREETHROW() {
     return 'freethrow';
   }
@@ -111,7 +115,7 @@ export default class NBAPlayRecapVO {
             : NBAPlayRecapVO.DUNK;
         case 'layup' :
           return hasBlock
-            ? NBAPlayRecapVO.UNKNOWN_PLAY
+            ? NBAPlayRecapVO.BLOCKED_LAYUP
             : NBAPlayRecapVO.LAYUP;
         case 'jump shot' :
           return hasBlock

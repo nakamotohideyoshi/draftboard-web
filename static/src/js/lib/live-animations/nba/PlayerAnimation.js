@@ -14,6 +14,8 @@ export default class PlayerAnimation extends LiveAnimation {
     switch (recap.playType()) {
       case NBAPlayRecapVO.BLOCKED_DUNK:
         return getClip('block_dunk');
+      case NBAPlayRecapVO.BLOCKED_LAYUP:
+        return getClip('block_layup');
       case NBAPlayRecapVO.BLOCKED_JUMPSHOT:
         return getBlockClip(zone);
       case NBAPlayRecapVO.DUNK:
@@ -38,25 +40,30 @@ export default class PlayerAnimation extends LiveAnimation {
    * the recap's playType.
    */
   getPlayerPosition(recap, court) {
+    const teamBasket = recap.teamBasket();
+    const playType = recap.playType();
+
     // Provide static positions for play types that are specific to
     // the animation and not based on the recap's court position.
     const staticPositions = {
       [NBAPlayRecapVO.BLOCKED_DUNK]: { x: 0.075, y: 0.4 },
-      [NBAPlayRecapVO.DUNK]: court.getRimPos(recap.teamBasket()),
-      [NBAPlayRecapVO.FREETHROW]: court.getFreethrowPos(recap.teamBasket()),
-      [NBAPlayRecapVO.LAYUP]: court.getRimPos(recap.teamBasket()),
+      [NBAPlayRecapVO.BLOCKED_LAYUP]: { x: 0.075, y: 0.4 },
+      [NBAPlayRecapVO.DUNK]: court.getRimPos(teamBasket),
+      [NBAPlayRecapVO.FREETHROW]: court.getFreethrowPos(teamBasket),
+      [NBAPlayRecapVO.LAYUP]: court.getRimPos(teamBasket),
       [NBAPlayRecapVO.REBOUND]: { x: 0.075, y: 0.4 },
     };
 
-    const pos = staticPositions.hasOwnProperty(recap.playType())
-      ? staticPositions[recap.playType()]
+    const pos = staticPositions.hasOwnProperty(playType)
+      ? staticPositions[playType]
       : recap.courtPosition();
 
-    // Flip the rebound's x position when the action is on the right
-    // side of the court.
-    if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
-      if (recap.playType() === NBAPlayRecapVO.REBOUND
-          || recap.playType() === NBAPlayRecapVO.BLOCKED_DUNK) {
+    // Flip the x coordinate of static positions that were defined only for the
+    // left basket.
+    if (teamBasket === NBAPlayRecapVO.BASKET_RIGHT) {
+      if (playType === NBAPlayRecapVO.REBOUND ||
+          playType === NBAPlayRecapVO.BLOCKED_DUNK ||
+          playType === NBAPlayRecapVO.BLOCKED_LAYUP) {
         pos.x = 1 - pos.x;
       }
     }
