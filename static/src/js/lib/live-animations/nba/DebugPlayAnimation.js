@@ -62,14 +62,14 @@ export default class DebugPlayAnimation extends LiveAnimation {
     court.getZones().forEach((zone, index) => {
       const positions = zone.map(pos => {
         const loc = pos;
-        if (recap.courtSide() === NBAPlayRecapVO.COURT_SIDE_RIGHT) {
+        if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
           loc.x = 1 - loc.x;
         }
 
         return court.getPosition(loc.x, loc.y);
       });
 
-      const inZone = court.getZoneAtPosition(recap.courtPosition(), recap.courtSide()) === index;
+      const inZone = court.getZoneAtPosition(recap.courtPosition(), recap.teamBasket()) === index;
       const opacity = inZone ? 0.5 : [0.1, 0.2][index % 2];
 
       return this.drawPoly(positions, `fill:#000000; fill-opacity:${opacity};`);
@@ -80,7 +80,7 @@ export default class DebugPlayAnimation extends LiveAnimation {
    * Draws a circle at the court's basket position.
    */
   drawBasketMarker(court, recap) {
-    const basketPos = court.getBasketPos(recap.courtSide());
+    const basketPos = court.getBasketPos(recap.teamBasket());
     const basketMarkerPos = court.getPosition(basketPos.x, basketPos.y);
     return this.drawCircle(basketMarkerPos.x, basketMarkerPos.y, 'fill:#FF0000; fill-opacity:0.65', 3);
   }
@@ -89,7 +89,7 @@ export default class DebugPlayAnimation extends LiveAnimation {
    * Draws a circle at the court's rim position.
    */
   drawRimMarker(court, recap) {
-    const rimPos = court.getRimPos(recap.courtSide());
+    const rimPos = court.getRimPos(recap.teamBasket());
     const rimMarkerPos = court.getPosition(rimPos.x, rimPos.y);
     return this.drawCircle(rimMarkerPos.x, rimMarkerPos.y, 'fill:#FF00FF; fill-opacity:0.65', 3);
   }
@@ -107,7 +107,7 @@ export default class DebugPlayAnimation extends LiveAnimation {
       return;
     }
 
-    const basketPos = court.getBasketPos(recap.courtSide());
+    const basketPos = court.getBasketPos(recap.teamBasket());
     const basketMarkerPos = court.getPosition(basketPos.x, basketPos.y);
     const { x: playerX, y: playerY } = recap.courtPosition();
     const playerPos = court.getPosition(playerX, playerY);

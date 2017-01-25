@@ -9,7 +9,7 @@ export default class PlayerAnimation extends LiveAnimation {
    * Returns the NBAClip associated with the recap's play type.
    */
   getPlayerClip(recap, court) {
-    const zone = court.getZoneAtPosition(recap.courtPosition(), recap.courtSide()) + 1;
+    const zone = court.getZoneAtPosition(recap.courtPosition(), recap.teamBasket()) + 1;
 
     switch (recap.playType()) {
       case NBAPlayRecapVO.BLOCKED_DUNK:
@@ -42,9 +42,9 @@ export default class PlayerAnimation extends LiveAnimation {
     // the animation and not based on the recap's court position.
     const staticPositions = {
       [NBAPlayRecapVO.BLOCKED_DUNK]: { x: 0.075, y: 0.4 },
-      [NBAPlayRecapVO.DUNK]: court.getRimPos(recap.courtSide()),
-      [NBAPlayRecapVO.FREETHROW]: court.getFreethrowPos(recap.courtSide()),
-      [NBAPlayRecapVO.LAYUP]: court.getRimPos(recap.courtSide()),
+      [NBAPlayRecapVO.DUNK]: court.getRimPos(recap.teamBasket()),
+      [NBAPlayRecapVO.FREETHROW]: court.getFreethrowPos(recap.teamBasket()),
+      [NBAPlayRecapVO.LAYUP]: court.getRimPos(recap.teamBasket()),
       [NBAPlayRecapVO.REBOUND]: { x: 0.075, y: 0.4 },
     };
 
@@ -54,9 +54,11 @@ export default class PlayerAnimation extends LiveAnimation {
 
     // Flip the rebound's x position when the action is on the right
     // side of the court.
-    if (recap.playType() === NBAPlayRecapVO.REBOUND &&
-      recap.courtSide() === NBAPlayRecapVO.COURT_SIDE_RIGHT) {
-      pos.x = 1 - pos.x;
+    if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
+      if (recap.playType() === NBAPlayRecapVO.REBOUND
+          || recap.playType() === NBAPlayRecapVO.BLOCKED_DUNK) {
+        pos.x = 1 - pos.x;
+      }
     }
 
     return court.getPosition(pos.x, pos.y);
@@ -84,7 +86,7 @@ export default class PlayerAnimation extends LiveAnimation {
   play(recap, court) {
     const clip = this.getPlayerClip(recap, court);
 
-    if (recap.courtSide() === NBAPlayRecapVO.COURT_SIDE_RIGHT) {
+    if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
       clip.flip();
     }
 
