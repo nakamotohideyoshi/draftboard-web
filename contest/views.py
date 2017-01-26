@@ -55,14 +55,9 @@ from contest.payout.models import (
     Payout,
 )
 from contest.buyin.tasks import buyin_task
-# from contest.exceptions import (
-#     ContestLineupMismatchedDraftGroupsException,
-#     ContestIsInProgressOrClosedException,
-#     ContestIsFullException,
-#     ContestCouldNotEnterException,
-#     ContestMaxEntriesReachedException,
-#     ContestIsNotAcceptingLineupsException,
-# )
+from contest.exceptions import (
+    ContestMaxEntriesReachedException,
+)
 from contest.refund.tasks import unregister_entry_task
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
@@ -495,6 +490,8 @@ class EnterLineupAPIView(generics.CreateAPIView):
         except OverdraftException:
             raise ValidationError(
                 {"detail": "You do not have the necessary funds for this action."})
+        except ContestMaxEntriesReachedException as e:
+            raise ValidationError({"detail": "%s" % e})
         except Exception as e:
             logger.error("EnterLineupAPIView: %s" % str(e))
             client.captureException()
