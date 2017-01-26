@@ -11,11 +11,11 @@ export default class NBAPlayRecapVO {
     return 600;
   }
 
-  static get COURT_SIDE_LEFT() {
+  static get BASKET_LEFT() {
     return 'left';
   }
 
-  static get COURT_SIDE_RIGHT() {
+  static get BASKET_RIGHT() {
     return 'right';
   }
 
@@ -25,6 +25,10 @@ export default class NBAPlayRecapVO {
 
   static get BLOCKED_JUMPSHOT() {
     return 'blocked_jumpshot';
+  }
+
+  static get BLOCKED_LAYUP() {
+    return 'blocked_layup';
   }
 
   static get FREETHROW() {
@@ -111,7 +115,7 @@ export default class NBAPlayRecapVO {
             : NBAPlayRecapVO.DUNK;
         case 'layup' :
           return hasBlock
-            ? NBAPlayRecapVO.UNKNOWN_PLAY
+            ? NBAPlayRecapVO.BLOCKED_LAYUP
             : NBAPlayRecapVO.LAYUP;
         case 'jump shot' :
           return hasBlock
@@ -134,23 +138,42 @@ export default class NBAPlayRecapVO {
   }
 
   /**
-   * The side of the court the recap is depicted on.
+   * Returns the basket the play should be played on. All plays belonging to
+   * "mine", or "both", lineups will be shown on the left side of the court, while
+   * all other plays will be displayed on the right side of the court.
    * @return {String} The side of the court the play takes place on.
    */
-  courtSide() {
+  teamBasket() {
     return this.whichSide() === 'mine' || this.whichSide() === 'both'
-      ? NBAPlayRecapVO.COURT_SIDE_LEFT
-      : NBAPlayRecapVO.COURT_SIDE_RIGHT;
+      ? NBAPlayRecapVO.BASKET_LEFT
+      : NBAPlayRecapVO.BASKET_RIGHT;
   }
 
   /**
    * Returns the play's x/y position on the court.
-   * @return {Number} The coordinates of the player.
+   * @return {Number} The coordinates of the play.
    */
   courtPosition() {
-    return {
+    const pos = {
       x: this._obj.pbp.location__list.coord_x / NBAPlayRecapVO.COURT_LENGTH_INCHES,
       y: this._obj.pbp.location__list.coord_y / NBAPlayRecapVO.COURT_WIDTH_INCHES,
     };
+
+    // Determine the side of the court the play took place on by evaluating if
+    // the x coordinate is over the half court line.
+    const basket = pos.x > 0.5
+      ? NBAPlayRecapVO.BASKET_RIGHT
+      : NBAPlayRecapVO.BASKET_LEFT;
+
+    // Flip the x coordinate of the play if the original coordinate does not
+    // match our target court side.
+    // Note: This could have undesirable outcomes for plays that take place in
+    // the backcourt (steals, turnovers, half court shots). The best solution
+    // would be for the team_basket to be specified via the API for comparison.
+    if (this.teamBasket() !== basket) {
+      pos.x = 1 - pos.x;
+    }
+
+    return pos;
   }
 }
