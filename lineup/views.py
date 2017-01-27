@@ -219,6 +219,11 @@ class EditLineupAPIView(generics.CreateAPIView):
             raise ValidationError({'detail': 'Lineup id does not exist.'})
         #
         # change the lineups name if it differs from the existing name
+        user_lineups = Lineup.objects.filter(user=request.user).values_list('name', flat=True)
+        if name in user_lineups:
+            raise ValidationError(
+                {'detail': 'You already have lineup with this name.'})
+
         if lineup.name != name:
             lineup.name = name
             lineup.save()
