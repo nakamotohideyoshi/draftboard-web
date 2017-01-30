@@ -12,10 +12,10 @@ export default class NBACourt extends Stage {
    */
   getRect() {
     return {
-      topLeft: { x: 232, y: 24 },
-      topRight: { x: 876, y: 24 },
-      bottomLeft: { x: 84, y: 177 },
-      bottomRight: { x: 1025, y: 177 },
+      topLeft: { x: 245, y: 30 },
+      topRight: { x: 1034, y: 30 },
+      bottomLeft: { x: 63, y: 217 },
+      bottomRight: { x: 1217, y: 217 },
     };
   }
 

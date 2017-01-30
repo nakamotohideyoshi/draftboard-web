@@ -44,6 +44,7 @@ Hello WOrld!
 @import "./layouts.scss";
 @import "./helpers.scss";
 @import "./team-colors.scss";
+@import "./blocks/site/icon.scss";
 
 // Per the BEM methodology, these are where the blocks are imported
 // In time these should be only imported into the related react component and removed from here
@@ -99,4 +100,5 @@ Hello WOrld!
 @import "./blocks/cmp-lineup-card-entries.scss";
 @import "./blocks/cmp-enter-contest-button.scss";
 @import "./blocks/cmp-sport-icon.scss";
+@import './blocks/cmp-skill-level-overlay.scss';
 @import "self-exclusion.scss";
