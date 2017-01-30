@@ -15,6 +15,7 @@
         "steal_zone_4": "steal-zone-4.png",
         "steal_zone_5": "steal-zone-4.png",
         "block_dunk": "block-dunk.png",
+        "block_layup": "block-layup.png",
         "block_jumpshot_zone_1": "block-jump-shot-zone-1.png",
         "block_jumpshot_zone_2": "block-jump-shot-zone-2.png",
         "block_jumpshot_zone_3": "block-jump-shot-zone-3.png",
@@ -228,6 +229,22 @@
                 "mine" : 1,
                 "opponent": 46,
                 "both": 91
+            }
+        },
+        {
+            "file": "block-layup.png",
+            "width": 230,
+            "height": 180,
+            "length" : 44,
+            "offset_x": 95,
+            "offset_y": 150,
+            "avatar_x": 93,
+            "avatar_y": 73,
+            "avatar_in": 10,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 45,
+                "both": 89
             }
         },
         {
