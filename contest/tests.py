@@ -307,7 +307,7 @@ class SetLimitsTest(AbstractTest, BuildWorldMixin, ForceAuthenticateAndRequestMi
         self.url = reverse('enter-lineup')
         self.create_valid_lineup(user=self.user)
         self.draft_group = self.world.draftgroup
-        self.contest = Contest.objects.all().first()
+        self.contest = self.world.contest
         prize_structure = self.contest.prize_structure
         sport = 'nfl'
         start = timezone.now()
