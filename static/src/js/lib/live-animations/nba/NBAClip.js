@@ -24,7 +24,7 @@ export default class NBAClip {
   }
 
   get file() {
-    return `${NBAClip.FILE_PATH}/${this.data.file}`;
+    return `${window.dfs.playerImagesBaseUrl}${NBAClip.FILE_PATH}/${this.data.file}`;
   }
 
   get width() {
