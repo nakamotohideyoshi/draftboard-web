@@ -121,6 +121,12 @@ urlpatterns = [
     ),
 
     url(
+        r'^privacy-policy/$',
+        views.FrontendPrivacyPolicyTemplateView.as_view(),
+        name='privacy-policy'
+    ),
+
+    url(
         r'^restricted-location/$',
         views.FrontendRestrictedLocationTemplateView.as_view(),
         name='restricted-location'

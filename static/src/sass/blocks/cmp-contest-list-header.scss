@@ -60,8 +60,28 @@
     }
   }
 
-  .fairmatch {
+  .icon-key {
     float: right;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #9295a6;
+    display: inline-block;
+    letter-spacing: 0.05em;
+
+    .contest-size {
+      margin-right: 25px;
+    }
+
+    .contest-size,
+    .fairmatch {
+      display: inline-block;
+      color: #9295a6;
+
+      .icon-users,
+      .icon-fairmatch {
+        margin-right: 5px;
+      }
+    }
   }
 
 }

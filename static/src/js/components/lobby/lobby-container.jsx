@@ -18,6 +18,7 @@ import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
 import { upcomingContestUpdateReceived } from '../../actions/contest-pool-actions';
 import * as AppActions from '../../stores/app-state-store';
 import ContestList from '../contest-list/contest-list';
+import SkillLevelOverlay from '../contest-list/skill-level-overlay';
 import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal';
 import { addMessage } from '../../actions/message-actions';
@@ -248,6 +249,12 @@ const LobbyContainer = React.createClass({
           isOpen={this.state.showConfirmModal}
           lineupsInfo={this.props.lineupsInfo}
           entrySkillLevels = {this.props.entrySkillLevels}
+        />
+
+        <SkillLevelOverlay
+          entrySkillLevels={this.props.entrySkillLevels}
+          skillLevelFilter={this.props.contestFilters.skillLevelFilter}
+          focusedLineup={this.props.focusedLineup}
         />
       </div>
     );

@@ -169,6 +169,9 @@ class FrontendPaneTemplateView(TemplateView):
 class FrontendTermsConditionsTemplateView(TemplateView):
     template_name = 'frontend/terms-conditions.html'
 
+class FrontendPrivacyPolicyTemplateView(TemplateView):
+    template_name = 'frontend/privacy-policy.html'
+
 
 class FrontendResponsiblePlayTemplateView(TemplateView):
     template_name = 'frontend/responsible-play.html'

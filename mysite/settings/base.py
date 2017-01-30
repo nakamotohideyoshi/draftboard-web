@@ -253,7 +253,7 @@ DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from trig
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.sparkpostmail.com'
 EMAIL_HOST_USER = 'SMTP_Injection'
-EMAIL_HOST_PASSWORD = '1ab47c61d2f7da062c67ceb9cb91b7b0099d3f3c'
+EMAIL_HOST_PASSWORD = 'ce8b35bc66edb33f9094733687c05343b12521a9'
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'support@draftboard.com'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
@@ -261,8 +261,8 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # Live Mongo Connection settings (we use live for everything, no local instance)
 MONGO_SERVER_ADDRESS = 'ds015781-a0.mlab.com'
 MONGO_AUTH_DB = 'admin'
-MONGO_USER = 'admin'
-MONGO_PASSWORD = 'dataden1'
+MONGO_USER = 'dataden'
+MONGO_PASSWORD = '2hqppYXCoHRMszVp2gCcP4Eh7KULr2VmrriAtLoJ'
 MONGO_PORT = 15781  # default port may be the actual port
 MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
     MONGO_USER,

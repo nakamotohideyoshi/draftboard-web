@@ -31,8 +31,9 @@ $table-row-hover-bg: #f9fafb;
   }
 
   &__row {
+    // When another lineup (other than the currently selected one) is entered into the contest.
     &.other-lineup {
-      opacity: .3;
+      // opacity: .3;
     }
 
     &:hover {
@@ -42,6 +43,18 @@ $table-row-hover-bg: #f9fafb;
     &.highlight {
         background: #f3faf4;
         opacity: 1;
+    }
+
+    .name .details {
+      padding-left: 10px;
+
+      .icon-users {
+        margin-right: 2px;
+      }
+
+      .icon-fairmatch {
+        margin-right: 10px;
+      }
     }
 
     .enter {
@@ -99,6 +112,27 @@ $table-row-hover-bg: #f9fafb;
   .cmp-countdown-clock {
     .hours {
       color: #9698ab;
+    }
+  }
+
+  .entry-dots {
+    .entry-slot {
+      display: inline-block;
+      height: 10px;
+      width: 10px;
+      border: 1px solid #9698ab;
+      border-radius: 5px;
+      margin-right: 4px;
+    }
+
+    .current-lineup {
+      background: #26c661;
+      border-color: #26c661;
+    }
+
+    .other-lineup {
+      background: #46495e;
+      border-color: #46495e;
     }
   }
 
