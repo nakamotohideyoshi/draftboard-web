@@ -171,8 +171,7 @@ class CashTransaction(CanDeposit, AbstractTransaction):
             created__year=datetime.datetime.now().year,
             transaction__category=category_deposit
         ).aggregate(models.Sum('amount'))
-
-        return abs(total_withdrawal['amount__sum']) - total_deposit['amount__sum']
+        return abs(total_withdrawal['amount__sum'] or 0) - (total_deposit['amount__sum'] or 0)
 
 
 
