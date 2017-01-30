@@ -99,10 +99,12 @@ class BuildWorldMixin(object):
         pass
 
     def create_valid_lineup(self, user):
-        self.one = PlayerChild.objects.filter(position=self.world.position1)[0]
-        self.two = PlayerChild.objects.filter(position=self.world.position2)[0]
-        self.three = PlayerChild.objects.filter(position=self.world.position1)[1]
-        self.four = PlayerChild.objects.filter(position=self.world.position2)[1]
+        players_pos_1 = PlayerChild.objects.filter(position=self.world.position1).distinct('team')
+        players_pos_2 = PlayerChild.objects.filter(position=self.world.position2).order_by('-team').distinct('team')
+        self.one = players_pos_1[0]
+        self.two = players_pos_2[0]
+        self.three = players_pos_1[1]
+        self.four = players_pos_2[1]
 
         team = [self.one, self.two, self.three]
         for player in team:
