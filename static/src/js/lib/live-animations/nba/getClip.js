@@ -13,6 +13,14 @@ export function getClip(play) {
   }
 }
 
+export function getBasketClip(zone = null) {
+  try {
+    return getClip(`basket_zone_${zone}`);
+  } catch (error) {
+    throw new Error(`Unknown basket clip for zone "${zone}"`);
+  }
+}
+
 export function getJumpshotClip(zone = null) {
   try {
     return getClip(`jumpshot_zone_${zone}`);
