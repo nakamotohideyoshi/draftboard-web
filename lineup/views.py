@@ -56,6 +56,11 @@ class CreateLineupAPIView(generics.CreateAPIView):
         players = request.data.get('players', [])
         name = request.data.get('name', '')
 
+        user_lineups = Lineup.objects.filter(user=request.user).values_list('name', flat=True)
+        if name in user_lineups:
+            raise ValidationError(
+                {'detail': 'You already have lineup with this name.'})
+
         # the draft_group_id has been validated by the serializer
         try:
             draft_group = DraftGroup.objects.get(pk=draft_group_id)
@@ -204,7 +209,6 @@ class EditLineupAPIView(generics.CreateAPIView):
         players = request.data.get('players', [])
         name = request.data.get('name', '')
 
-        #
         # validate the parameters passed in here.
         if players is None:
             raise ValidationError(
@@ -219,12 +223,11 @@ class EditLineupAPIView(generics.CreateAPIView):
             raise ValidationError({'detail': 'Lineup id does not exist.'})
         #
         # change the lineups name if it differs from the existing name
-        user_lineups = Lineup.objects.filter(user=request.user).values_list('name', flat=True)
-        if name in user_lineups:
-            raise ValidationError(
-                {'detail': 'You already have lineup with this name.'})
-
         if lineup.name != name:
+            user_lineups = Lineup.objects.filter(user=request.user).values_list('name', flat=True)
+            if name in user_lineups:
+                raise ValidationError(
+                    {'detail': 'You already have lineup with this name.'})
             lineup.name = name
             lineup.save()
 
