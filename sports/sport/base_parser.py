@@ -1070,7 +1070,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         :return:
         """
         super().parse(obj, target)
-
+        logger.info("Parsing PBP Object: %s" % obj)
         #
         # get the Game and set it to self.game
         srid_game = self.o.get(self.KEY_GAME_ID, None)
