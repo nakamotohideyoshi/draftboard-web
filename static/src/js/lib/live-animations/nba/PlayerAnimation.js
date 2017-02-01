@@ -16,6 +16,8 @@ export default class PlayerAnimation extends LiveAnimation {
         return getClip('block_dunk');
       case NBAPlayRecapVO.BLOCKED_LAYUP:
         return getClip('block_layup');
+      case NBAPlayRecapVO.BLOCKED_HOOKSHOT:
+        return getClip('block_layup');
       case NBAPlayRecapVO.BLOCKED_JUMPSHOT:
         return getBlockClip(zone);
       case NBAPlayRecapVO.DUNK:
@@ -23,6 +25,8 @@ export default class PlayerAnimation extends LiveAnimation {
       case NBAPlayRecapVO.FREETHROW:
         return getClip('freethrow');
       case NBAPlayRecapVO.LAYUP:
+        return getClip('layup');
+      case NBAPlayRecapVO.HOOKSHOT:
         return getClip('layup');
       case NBAPlayRecapVO.JUMPSHOT:
         return getJumpshotClip(zone);
@@ -48,8 +52,10 @@ export default class PlayerAnimation extends LiveAnimation {
     const staticPositions = {
       [NBAPlayRecapVO.BLOCKED_DUNK]: { x: 0.075, y: 0.4 },
       [NBAPlayRecapVO.BLOCKED_LAYUP]: { x: 0.075, y: 0.4 },
+      [NBAPlayRecapVO.BLOCKED_HOOKSHOT]: { x: 0.075, y: 0.4 },
       [NBAPlayRecapVO.DUNK]: court.getRimPos(teamBasket),
       [NBAPlayRecapVO.FREETHROW]: court.getFreethrowPos(teamBasket),
+      [NBAPlayRecapVO.HOOKSHOT]: court.getRimPos(teamBasket),
       [NBAPlayRecapVO.LAYUP]: court.getRimPos(teamBasket),
       [NBAPlayRecapVO.REBOUND]: { x: 0.075, y: 0.4 },
     };
@@ -63,7 +69,8 @@ export default class PlayerAnimation extends LiveAnimation {
     if (teamBasket === NBAPlayRecapVO.BASKET_RIGHT) {
       if (playType === NBAPlayRecapVO.REBOUND ||
           playType === NBAPlayRecapVO.BLOCKED_DUNK ||
-          playType === NBAPlayRecapVO.BLOCKED_LAYUP) {
+          playType === NBAPlayRecapVO.BLOCKED_LAYUP ||
+          playType === NBAPlayRecapVO.BLOCKED_HOOKSHOT) {
         pos.x = 1 - pos.x;
       }
     }
