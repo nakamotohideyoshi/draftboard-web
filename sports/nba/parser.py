@@ -465,6 +465,8 @@ class EventPbp(DataDenPbpDescription):
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
         self.o = obj.get_o()  # we didnt call super so we should do this
+        # Log object for debugging.
+        logger.info("Parsing NBA PBP Object: %s" % self.o)
         srid_pbp_desc = self.o.get('id', None)
         pbp_desc = self.get_pbp_description_by_srid(srid_pbp_desc)
         if pbp_desc:
