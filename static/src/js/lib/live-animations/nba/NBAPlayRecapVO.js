@@ -23,6 +23,10 @@ export default class NBAPlayRecapVO {
     return 'blocked_dunk';
   }
 
+  static get BLOCKED_HOOKSHOT() {
+    return 'blocked_hookshot';
+  }
+
   static get BLOCKED_JUMPSHOT() {
     return 'blocked_jumpshot';
   }
@@ -37,6 +41,10 @@ export default class NBAPlayRecapVO {
 
   static get DUNK() {
     return 'dunk';
+  }
+
+  static get HOOKSHOT() {
+    return 'hookshot';
   }
 
   static get JUMPSHOT() {
@@ -89,7 +97,7 @@ export default class NBAPlayRecapVO {
     const hasFieldGoal = stats.hasOwnProperty('fieldgoal__list');
     const hasSteal = stats.hasOwnProperty('steal__list');
 
-    if (hasFreeThrow && stats.freethrow__list.made) {
+    if (hasFreeThrow && stats.freethrow__list.made === 'true') {
       return NBAPlayRecapVO.FREETHROW;
     }
 
@@ -103,8 +111,9 @@ export default class NBAPlayRecapVO {
 
     if (hasFieldGoal) {
       // Handle missed field goals that are not blocked. Everything else is
-      // either a made shot or a blocked shot.
-      if (!hasBlock && !stats.fieldgoal__list.made) {
+      // either a made shot or a blocked shot. The "made" property is set to the
+      // string "false" in the API's returned object.
+      if (!hasBlock && stats.fieldgoal__list.made === 'false') {
         return NBAPlayRecapVO.UNKNOWN_PLAY;
       }
 
@@ -117,6 +126,10 @@ export default class NBAPlayRecapVO {
           return hasBlock
             ? NBAPlayRecapVO.BLOCKED_LAYUP
             : NBAPlayRecapVO.LAYUP;
+        case 'hook shot' :
+          return hasBlock
+            ? NBAPlayRecapVO.BLOCKED_HOOKSHOT
+            : NBAPlayRecapVO.HOOKSHOT;
         case 'jump shot' :
           return hasBlock
             ? NBAPlayRecapVO.BLOCKED_JUMPSHOT
