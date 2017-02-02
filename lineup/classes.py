@@ -166,6 +166,29 @@ class LineupManager(AbstractSiteUserClass):
         lineups = [entry.lineup for entry in distinct_lineup_entries]
         return lineups
 
+    def get_players_with_nicknames(self, players):
+        players_with_nicknames = list(filter(lambda p: p.lineup_nickname, players))
+        user_lineup_nicknames = Lineup.objects.filter(user=self.user).values_list(
+            'name', flat=True)
+        if user_lineup_nicknames:
+            # removes players which nickname was already used
+            cleaned_players = [player for player in players_with_nicknames if player.lineup_nickname not in user_lineup_nicknames]
+            if cleaned_players:
+                players_with_nicknames = cleaned_players
+        return players_with_nicknames, user_lineup_nicknames
+
+    def set_lineup_nickname(self, lineup, players):
+        players_with_nicknames, user_lineup_nicknames = self.get_players_with_nicknames(players)
+        lineup_name = ''
+        if players_with_nicknames:
+            random_player_nickname = random.choice(players_with_nicknames).lineup_nickname
+            i = 1
+            lineup_name = random_player_nickname
+            while user_lineup_nicknames.filter(name__iexact=lineup_name):
+                i += 1
+                lineup_name = '{} #{}'.format(random_player_nickname, i)
+        return lineup_name
+
     def __create_lineup(self, player_ids, draftgroup, name=''):
         """
         Create Lineup helper
@@ -216,10 +239,8 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.save()
             i += 1
 
-        players_with_nicknames = list(filter(lambda p: p.lineup_nickname, players))
-
-        if lineup.name == '' and players_with_nicknames:
-            lineup.name = random.choice(players_with_nicknames).lineup_nickname
+        if lineup.name == '':
+            lineup.name = self.set_lineup_nickname(lineup, players)
             lineup.save()
 
         self.__merge_lineups(lineup)
@@ -333,14 +354,20 @@ class LineupManager(AbstractSiteUserClass):
         # adds the player ids to the corresponding spots in the lineup
         lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
         i = 0
+        removed_players = []
         for lineup_player in lineup_players:
             player = players[i]
             #
             # replace the player if they are not equal
             if lineup_player.player != player:
+                removed_players.append(lineup_player.player)
                 lineup_player.player = player
             i += 1
             lineup_player.save()
+        for player in removed_players:
+            if (player.lineup_nickname != '' and player.lineup_nickname in lineup.name) or lineup.name == '':
+                lineup.name = self.set_lineup_nickname(lineup, players)
+                lineup.save()
 
         logger.info('action: lineup edited | lineup: %s' % lineup)
         self.__merge_lineups(lineup)
