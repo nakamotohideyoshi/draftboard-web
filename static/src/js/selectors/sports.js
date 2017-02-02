@@ -50,7 +50,7 @@ export const sportsSelector = createSelector(
             break;
           case 'nba':
           default:
-            period = round(newGame.boxscore.quarter, 0);
+            period = newGame.boxscore.quarter;
         }
 
         newGame.boxscore.periodDisplay = ordinal(period);
