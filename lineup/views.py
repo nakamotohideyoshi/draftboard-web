@@ -65,7 +65,9 @@ class CreateLineupAPIView(generics.CreateAPIView):
         players = request.data.get('players', [])
         name = request.data.get('name', '')
 
-        user_lineups = Lineup.objects.filter(user=request.user, draft_group_id=draft_group_id).values_list('name', flat=True)
+        user_lineups = Lineup.objects.filter(user=request.user,
+                                             draft_group_id=draft_group_id).values_list('name',
+                                                                                        flat=True)
         if name and name in user_lineups:
             raise ValidationError(
                 {'detail': 'You already have lineup with this name.'})
@@ -237,7 +239,9 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         # change the lineups name if it differs from the existing name
         if lineup.name != name:
-            user_lineups = Lineup.objects.filter(user=request.user, draft_group_id=lineup.draft_group_id).values_list('name', flat=True)
+            user_lineups = Lineup.objects.filter(user=request.user,
+                                                 draft_group_id=lineup.draft_group_id).values_list(
+                'name', flat=True)
             if name in user_lineups:
                 raise ValidationError(
                     {'detail': 'You already have lineup with this name.'})
@@ -388,10 +392,13 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
 class UserLiveAPIView(AbstractLineupAPIView):
     """
     Get the User's lineups that are after the draft group start time, and within 12 hours of the
-    end time
+    end time.
+
+    This is exactly the same as the UserCurrentAPIView, except it keeps lineups around for longer.
+    It's used by the mobile app so that they are viewable the next day after contests are over.
     """
 
-    lineup_model = Lineup
+    lineup_model = LineupCurrentSerializer
 
     def get_queryset(self):
         """
@@ -400,9 +407,19 @@ class UserLiveAPIView(AbstractLineupAPIView):
         offset_hours = 12
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
-        return Lineup.objects.filter(user=self.request.user,
-                                     draft_group__start__lte=now,
-                                     draft_group__end__gt=dt)
+        return Lineup.objects.filter(
+            user=self.request.user,
+            draft_group__start__lte=now,
+            draft_group__end__gt=dt
+        ).exclude(
+            entries__contest_pool=None
+        ).order_by(
+            'draft_group__start'
+        ).select_related(
+            'draft_group'
+        ).prefetch_related(
+            'entries'
+        ).distinct()
 
 
 class UserHistoryAPIView(AbstractLineupAPIView):
