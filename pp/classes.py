@@ -1,22 +1,26 @@
-#
-# classes.py
-
+import json
 import random
 import string
-from django.conf import settings
+from logging import getLogger
+
+import braintree
 import requests
-import json
-from util.timesince import timeit
+from django.conf import settings
+
+import cash
+from cash.withdraw import constants as cash_const
+from cash.withdraw.models import PayoutTransaction
 from pp.models import (
     SavedCardPaymentData,
     CreditCardPaymentData
 )
-import braintree
-import cash
+from util.timesince import timeit
+from .exceptions import (PayoutAlreadyPaid)
+
+logger = getLogger('pp.classes')
 
 
 class VZeroShipping(object):
-
     class ValidationError(Exception):
         pass
 
@@ -25,9 +29,9 @@ class VZeroShipping(object):
     # field_company               = "company"
     field_street_address = "street_address"
     field_extended_address = "extended_address"
-    field_locality = "locality"            # for US: this is the city, ie: "Austin"
-    field_region = "region"              # for US: this is the state code, ie: "TX"
-    field_postal_code = "postal_code"         # for US: this is the zipcode, ie: "12345"
+    field_locality = "locality"  # for US: this is the city, ie: "Austin"
+    field_region = "region"  # for US: this is the state code, ie: "TX"
+    field_postal_code = "postal_code"  # for US: this is the zipcode, ie: "12345"
     field_country_code_alpha2 = "country_code_alpha2"
 
     valid_fields = [
@@ -46,15 +50,15 @@ class VZeroShipping(object):
         self.data = data
         if self.data is None:
             self.data = {
-                "first_name":           None,           # "Jen",
-                "last_name":            None,           # "Smith",
+                "first_name": None,  # "Jen",
+                "last_name": None,  # "Smith",
                 # "company":              "",             # "ABC Co.",
-                "street_address":       None,           # "1 E 1st St",
-                "extended_address":     "",             # "Suite 403",
-                "locality":             None,           # "Bartlett",
-                "region":               None,           # "IL",
-                "postal_code":          None,           # "60103",
-                "country_code_alpha2":  None,           # "US"
+                "street_address": None,  # "1 E 1st St",
+                "extended_address": "",  # "Suite 403",
+                "locality": None,  # "Bartlett",
+                "region": None,  # "IL",
+                "postal_code": None,  # "60103",
+                "country_code_alpha2": None,  # "US"
             }
 
     def validate(self):
@@ -88,7 +92,6 @@ class VZeroShipping(object):
 
 
 class VZeroTransaction(object):
-
     class ValidationError(Exception):
         pass
 
@@ -99,7 +102,7 @@ class VZeroTransaction(object):
     choices_currency = [default_currency]  # we may add CAD (canadien) eventually...
 
     field_amount = "amount"
-    field_currency = "merchant_account_id"     # strange name, but here we set the currency
+    field_currency = "merchant_account_id"  # strange name, but here we set the currency
     field_payment_method_nonce = "payment_method_nonce"
     field_shipping = "shipping"
 
@@ -119,9 +122,9 @@ class VZeroTransaction(object):
 
         self.data = {
 
-            "amount": None,                                        # TODO - this will need to be set
-            "merchant_account_id": self.default_currency,           # defaults to "USD"
-            "payment_method_nonce": None,                          # TODO - will need to set
+            "amount": None,  # TODO - this will need to be set
+            "merchant_account_id": self.default_currency,  # defaults to "USD"
+            "payment_method_nonce": None,  # TODO - will need to set
             "order_id": self.order_id,  # 'test_duplicate_order_id', # self.order_id,
             "descriptor": {
                 #
@@ -129,7 +132,7 @@ class VZeroTransaction(object):
                 "name": self.default_customer_cc_statement_description
             },
 
-            "shipping": None,                                       # TODO - validate its been set
+            "shipping": None,  # TODO - validate its been set
 
             "options": {
                 "submit_for_settlement": True,
@@ -175,7 +178,6 @@ class VZeroTransaction(object):
 
 
 class VZero(object):
-
     class VZeroException(Exception):
         pass
 
@@ -255,6 +257,7 @@ class VZero(object):
         # fall back on this exception
         raise self.VZeroException('Unknown Paypal v.zero error')
 
+
 # these 4 un-classed methods are for testing. they come from wikipedia
 #    source: https://en.wikipedia.org/wiki/Luhn_algorithm
 # and they can help us create testing credit card numbers
@@ -316,12 +319,12 @@ class CardData(object):
     # will get set when external_customer_id set
     PAYER_ID = 'payer_id'
 
-    EXTERNAL_CUSTOMER_ID = 'external_customer_id'        # string
-    TYPE = 'type'                        # card type, ie: 'visa'
-    NUMBER = 'number'                      # credit card number, ie: "4417119669820331" (string)
-    EXPIRE_MONTH = 'expire_month'                # exp month (string)
-    EXPIRE_YEAR = 'expire_year'                 # exp year (string)
-    CVV2 = 'cvv2'                        # cvv2 code
+    EXTERNAL_CUSTOMER_ID = 'external_customer_id'  # string
+    TYPE = 'type'  # card type, ie: 'visa'
+    NUMBER = 'number'  # credit card number, ie: "4417119669820331" (string)
+    EXPIRE_MONTH = 'expire_month'  # exp month (string)
+    EXPIRE_YEAR = 'expire_year'  # exp year (string)
+    CVV2 = 'cvv2'  # cvv2 code
     FIRST_NAME = 'first_name'
     LAST_NAME = 'last_name'
 
@@ -331,11 +334,11 @@ class CardData(object):
     ]
 
     # billing address information
-    LINE_1 = 'line1'                       # first line of address
-    CITY = 'city'                        # ie: 'Saratoga' (string)
-    COUNTRY_CODE = 'country_code'                # ie: 'US'
-    STATE = 'state'                       # ie: 'CA'
-    POSTAL_CODE = 'postal_code'                 # ie: '95070' (string)
+    LINE_1 = 'line1'  # first line of address
+    CITY = 'city'  # ie: 'Saratoga' (string)
+    COUNTRY_CODE = 'country_code'  # ie: 'US'
+    STATE = 'state'  # ie: 'CA'
+    POSTAL_CODE = 'postal_code'  # ie: '95070' (string)
 
     # used for validation
     BILLING_FIELDS = [
@@ -400,6 +403,7 @@ class CardData(object):
         if field not in self.BILLING_FIELDS:
             raise self.InvalidBillingFieldException(field)
         self.data[self.BILLING_ADDRESS_DATA][field] = value
+
 
 # class SavedCard(object):
 #
@@ -517,7 +521,7 @@ class PayPal(object):
             "transactions": [
                 {
                     "amount": {
-                        "total": formatted_amount,       # ie:"total": "7.47",
+                        "total": formatted_amount,  # ie:"total": "7.47",
                         "currency": "USD"
                     },
                     "description": "This is the payment transaction description."
@@ -542,7 +546,7 @@ class PayPal(object):
 
     @timeit
     def pay_with_credit_card(
-        self, amount, type, number, exp_month, exp_year, cvv2, first_name, last_name
+            self, amount, type, number, exp_month, exp_year, cvv2, first_name, last_name
     ):
         formatted_amount = self.get_formatted_amount(amount)
 
@@ -553,13 +557,13 @@ class PayPal(object):
                 "funding_instruments": [
                     {
                         "credit_card": {
-                            "number": number,           # ie: "5500005555555559"
-                            "type": type,             # ie: "mastercard"
-                            "expire_month": exp_month,        # ie: 12
-                            "expire_year": exp_year,         # ie: 2018
-                            "cvv2": cvv2,             # ie: 111
-                            "first_name": first_name,       # ie: "Betsy"
-                            "last_name": last_name         # ie: "Buyer"
+                            "number": number,  # ie: "5500005555555559"
+                            "type": type,  # ie: "mastercard"
+                            "expire_month": exp_month,  # ie: 12
+                            "expire_year": exp_year,  # ie: 2018
+                            "cvv2": cvv2,  # ie: 111
+                            "first_name": first_name,  # ie: "Betsy"
+                            "last_name": last_name  # ie: "Buyer"
                         }
                     }
                 ]
@@ -567,7 +571,7 @@ class PayPal(object):
             "transactions": [
                 {
                     "amount": {
-                        "total": formatted_amount,       # ie:"total": "7.47",
+                        "total": formatted_amount,  # ie:"total": "7.47",
                         "currency": "USD"
                     },
                     "description": "This is the payment transaction description."
@@ -734,8 +738,7 @@ class PayPal(object):
 
 
 class Payout(object):
-
-    WITHDRAW_STATUS_PROCESSED = cash.withdraw.constants.WithdrawStatusConstants.Processed.value
+    WITHDRAW_STATUS_PROCESSED = cash_const.WithdrawStatusConstants.Processed.value
 
     IN_PROGRESS_STATUSES = [
         'PROCESSING',
@@ -754,6 +757,11 @@ class Payout(object):
     api_payout = api + '/v1/payments/payouts?sync_mode=true'
 
     def __init__(self, model_instance):
+        """
+
+        Args:
+            model_instance: A PaypalWithdraw model instance
+        """
         self.STATUS_SUCCESS = cash.withdraw.models.WithdrawStatus.objects.get(
             pk=self.WITHDRAW_STATUS_PROCESSED)
 
@@ -779,9 +787,9 @@ class Payout(object):
         self.r_login = self.session.post(self.api_oauth_token,
                                          headers=headers, data=post_data,
                                          auth=(self.client_id, self.secret))
-        print(self.r_login.status_code)
-        print(self.api_oauth_token)
-        print(self.r_login.text)
+        logger.debug(self.r_login.status_code)
+        logger.debug(self.api_oauth_token)
+        logger.debug(self.r_login.text)
 
         self.model_instance.auth_status = str(self.r_login.status_code)
         self.model_instance.save()
@@ -796,8 +804,6 @@ class Payout(object):
         to full process the payout so you will likely not know at this point
         if the payout has succeeded or failed. use get() to check on the status
 
-        :param to_email:
-        :param amount:
         :return:
         """
 
@@ -806,16 +812,31 @@ class Payout(object):
         if self.session is None:
             self.auth()
 
+        # If our Payout already had a paypal_transaction id, that means we've already attempted this
+        # before. In that case, let's check the status of the PayoutTransaction to make sure it
+        # wasn't successful. if it was, we do n ot want to proceed because that would pay the user
+        # twice.
         if self.model_instance.paypal_transaction:
-            # if it exists, we need to check it we ever paid this transaction out !
-            check_get_json = self.get(batch_id=self.model_instance.paypal_transaction, save=False)
-            batch_status = check_get_json.get('batch_header').get('batch_status')
-            if batch_status in self.IN_PROGRESS_STATUSES:
-                tid = self.model_instance.paypal_transaction
-                msg = 'transaction has already been processed! paypal_transaction: ' + str(tid)
-                print(msg)
-                # raise Exception( msg )
-                return
+            logger.info(self.model_instance.paypal_transaction)
+            # Get the latest payout transaction.
+            # if one exists, we need to check it we ever paid this transaction out !
+            payout_transactions = PayoutTransaction.objects.filter(
+                withdraw_id=self.model_instance.id)
+            # Do we have any payout transactions?
+            if payout_transactions.count() > 0:
+                # Grab the latest one and check it's response.
+                latest_payout_transaction = PayoutTransaction.objects.filter(
+                    withdraw_id=self.model_instance.id).latest()
+                response_helper = PayoutResponse(latest_payout_transaction.data)
+                logger.info('payout_transaction: %s' % latest_payout_transaction)
+                batch_status = response_helper.get_transaction_status()
+                # Check the status of the transaction. if it was a success, don't proceed.
+                if batch_status in self.IN_PROGRESS_STATUSES:
+                    tid = self.model_instance.paypal_transaction
+                    msg = ('transaction has already been processed, user was paid! '
+                           'paypal_transaction: %s') % tid
+                    logger.warning(msg)
+                    raise PayoutAlreadyPaid(msg)
 
         #
         # issue the payout
@@ -866,11 +887,11 @@ class Payout(object):
         self.r_payout = self.session.post(self.api_payout,
                                           headers=headers,
                                           data=json.dumps(post_data))
-        print(self.r_payout.status_code)
-        print('POST', self.api_payout)
-        print(self.r_payout.text)
+        logger.info(self.r_payout.status_code)
+        logger.info('POST: %s' % self.api_payout)
+        logger.info(self.r_payout.text)
         data = json.loads(self.r_payout.text)
-        print('response:', str(data))
+        logger.info('response: %s' % str(data))
         return data
 
 
@@ -946,7 +967,7 @@ class PayoutResponse(object):
         num_items = len(items)
         if num_items != 1:
             err_msg = 'expected one item, but got %s' % str(num_items)
-            print(str(self.data))
+            logger.info(self.data)
             raise self.TransactionItemDoesNotExist(err_msg)
 
         # return the only item in the list
@@ -955,20 +976,16 @@ class PayoutResponse(object):
     def get_errors(self):
         # example of one error im not sure about: 'Receiver is unconfirmed'
         errors = self.get_item().get(self.field_errors)
-        print('errors:', str(errors))
         return errors
 
     def get_payout_item_id(self):
         payout_item_id = self.get_item().get(self.field_payout_item_id)
-        print('payout_item_id:', str(payout_item_id))
         return payout_item_id
 
     def get_transaction_id(self):
         transaction_id = self.get_item().get(self.field_transaction_id)
-        print('transaction_id:', str(transaction_id))
         return transaction_id
 
     def get_transaction_status(self):
         transaction_status = self.get_item().get(self.field_transaction_status)
-        print('transaction_status:', str(transaction_status))
         return transaction_status
