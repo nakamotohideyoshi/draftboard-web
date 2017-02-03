@@ -1,44 +1,41 @@
-#
-# contest/views.py
-from raven.contrib.django.raven_compat.models import client
-from django.contrib.auth.models import User
-from datetime import datetime, timedelta
 import json
-from rest_framework import status
-from rest_framework.response import Response
+import logging
+from datetime import datetime, timedelta
+
 from debreach.decorators import random_comment_exempt
-from rest_framework.views import APIView
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+from django.views.generic import View
+from django.views.generic.edit import CreateView, UpdateView
+from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from rest_framework.exceptions import (
     ValidationError,
     NotFound,
     APIException,
 )
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from account import const as _account_const
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
     EmailConfirmed
 )
-from account import const as _account_const
-from contest.serializers import (
-    ContestSerializer,
-    UpcomingEntrySerializer,
-    CurrentEntrySerializer,
-    RegisteredUserSerializer,
-    EnterLineupSerializer,
-    PayoutSerializer,
-    EditEntryLineupSerializer,
-    RemoveAndRefundEntrySerializer,
-    UserLineupHistorySerializer,
-    # PlayHistoryLineupSerializer,
-    RankedEntrySerializer,
-    ContestPoolSerializer,
-)
+from account.utils import create_user_log
+from cash.exceptions import OverdraftException
+from contest.buyin.tasks import buyin_task
 from contest.classes import (
     ContestLineupManager,
     SkillLevelManager,
 )
+from contest.exceptions import (
+    ContestMaxEntriesReachedException,
+)
+from contest.forms import ContestForm, ContestFormAdd
 from contest.models import (
     Contest,
     ContestPool,
@@ -54,22 +51,25 @@ from contest.models import (
 from contest.payout.models import (
     Payout,
 )
-from contest.buyin.tasks import buyin_task
-from contest.exceptions import (
-    ContestMaxEntriesReachedException,
-)
 from contest.refund.tasks import unregister_entry_task
-from cash.exceptions import OverdraftException
+from contest.serializers import (
+    ContestSerializer,
+    UpcomingEntrySerializer,
+    CurrentEntrySerializer,
+    RegisteredUserSerializer,
+    EnterLineupSerializer,
+    PayoutSerializer,
+    EditEntryLineupSerializer,
+    RemoveAndRefundEntrySerializer,
+    UserLineupHistorySerializer,
+    # PlayHistoryLineupSerializer,
+    RankedEntrySerializer,
+    ContestPoolSerializer,
+)
 from lineup.models import Lineup
 from lineup.tasks import edit_entry
-from django.http import HttpResponse
-from django.views.generic import View
-from django.views.generic.edit import CreateView, UpdateView
-from contest.forms import ContestForm, ContestFormAdd
 from mysite.celery_app import TaskHelper
 from util.dfsdate import DfsDate
-from account.utils import create_user_log
-import logging
 
 logger = logging.getLogger('contest.views')
 
@@ -633,7 +633,8 @@ class UserPlayHistoryAPIView(APIView):
         end = start + timedelta(days=1)
 
         # get a list of the lineups in historical entries for the day
-        history_entries = ClosedEntry.objects.filter(user=self.request.user, contest__start__range=(start, end))
+        history_entries = ClosedEntry.objects.filter(user=self.request.user,
+                                                     contest__start__range=(start, end))
         payouts = Payout.objects.filter(entry__in=history_entries)
         # distinct_lineup_ids = [e.lineup.pk for e in history_entries]
         lineup_map = {}
