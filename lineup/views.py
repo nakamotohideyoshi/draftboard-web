@@ -398,7 +398,9 @@ class UserLiveAPIView(AbstractLineupAPIView):
     It's used by the mobile app so that they are viewable the next day after contests are over.
     """
 
-    lineup_model = LineupCurrentSerializer
+    lineup_model = Lineup
+
+    serializer_class = LineupCurrentSerializer
 
     def get_queryset(self):
         """
