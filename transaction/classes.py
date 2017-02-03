@@ -116,7 +116,8 @@ class AbstractTransaction (AbstractSiteUserClass):
 
         Logger.log(ErrorCodes.INFO, "Balance Update", msg )
         transaction_date = datetime.datetime.now().strftime("%b %d %Y %H:%M%p")
-        send_deposit_receipt.delay(self, amount, transaction_date)
+        if self.user.email:
+            send_deposit_receipt.delay(self, amount, transaction_date)
 
     def __get_balance(self):
         """
