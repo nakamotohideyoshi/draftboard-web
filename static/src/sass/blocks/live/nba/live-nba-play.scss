@@ -1,0 +1,13 @@
+//
+// BEM block for React LiveNBAPlay
+// - this container for live nba play animations.
+//
+
+$block: '.live-nba-court__live-nba-play';
+
+#{$block} {
+  position: absolute;
+  display: 'block';
+  width: 100%;
+  height: 100%;
+}

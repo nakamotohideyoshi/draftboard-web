@@ -1,96 +1,66 @@
-import { connect } from 'react-redux';
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
 import LiveNFLField from './nfl/live-nfl-field';
 import LiveNBACourt from './nba/live-nba-court';
 
+export default React.createClass({
 
-/*
- * Map selectors to the React component
- * @param  {object} state The current Redux state that we need to pass into the selectors
- * @return {object}       All of the methods we want to map to the component
- */
-const mapStateToProps = (state) => ({
-  animationEvent: state.events.animationEvent,
-  eventsMultipart: state.eventsMultipart,
-  watching: state.watching,
-});
+  propTypes: {
+    animationEvent: React.PropTypes.object,
+    eventsMultipart: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
+  },
 
-/**
- * Return the header section of the live page, including the lineup/contest title and overall stats
- */
-export const LiveAnimationArea = (props) => {
-  const { watching } = props;
-  const { sport } = watching;
-  const venues = [];
+  /**
+   * Returns an array of MLB venues.
+   * @param  {object} props
+   * @return {array}
+   */
+  getMLBVenues() {
+    const { watching } = this.props;
+    const { watchablePlayers, events } = this.props.eventsMultipart;
+    const myEventId = watchablePlayers[watching.myPlayerSRID];
+    const myEvent = events[myEventId] || {};
+    const venues = [];
+    const modifiers = watching.opponentLineupId ? ['splitscreen-mine'] : ['all-mine'];
 
-  switch (sport) {
-    case 'mlb': {
-      const { watchablePlayers, events } = props.eventsMultipart;
-      const myEventId = watchablePlayers[watching.myPlayerSRID];
-      const myEvent = events[myEventId] || {};
-      let modifiers = ['all-mine'];
+    venues.push(<LiveMLBStadium event={myEvent} key="mine" modifiers={modifiers} whichSide="mine" />);
 
-      if (watching.opponentLineupId) modifiers = ['splitscreen-mine'];
+    if (watching.opponentLineupId) {
+      const opponentEventId = watchablePlayers[watching.opponentPlayerSRID];
+      const opponentEvent = events[opponentEventId] || {};
+
       venues.push(
         <LiveMLBStadium
-          event={myEvent}
-          key="mine"
-          modifiers={modifiers}
-          whichSide="mine"
+          event={opponentEvent}
+          key="opponent"
+          modifiers={['splitscreen-opponent']}
+          whichSide="opponent"
         />
       );
-
-      if (watching.opponentLineupId) {
-        const opponentEventId = watchablePlayers[watching.opponentPlayerSRID];
-        const opponentEvent = events[opponentEventId] || {};
-
-        venues.push(
-          <LiveMLBStadium
-            event={opponentEvent}
-            key="opponent"
-            modifiers={['splitscreen-opponent']}
-            whichSide="opponent"
-          />
-        );
-      }
-
-      break;
     }
-    case 'nba':
-      venues.push(
-        <LiveNBACourt
-          animationEvent={props.animationEvent}
-          key="nba"
-        />
-      );
-      break;
-    case 'nfl':
-      venues.push(
-        <LiveNFLField
-          animationEvent={props.animationEvent}
-          key="nfl"
-        />
-      );
-      break;
-    default:
-      break;
-  }
 
-  return (
-    <div className={`live__venue live__venue-${sport}`}>
-      {venues}
-    </div>
-  );
-};
+    return venues;
+  },
 
-LiveAnimationArea.propTypes = {
-  animationEvent: React.PropTypes.object,
-  eventsMultipart: React.PropTypes.object.isRequired,
-  watching: React.PropTypes.object.isRequired,
-};
+  renderVenues() {
+    switch (this.props.watching.sport) {
+      case 'mlb':
+        return this.getMLBVenues(this.props);
+      case 'nba':
+        return <LiveNBACourt key="nba" animationEvent={this.props.animationEvent} />;
+      case 'nfl':
+        return <LiveNFLField key="nfl" animationEvent={this.props.animationEvent} />;
+      default:
+        return [];
+    }
+  },
 
-// Wrap the component to inject dispatch and selected state into it.
-export default connect(
-  mapStateToProps
-)(LiveAnimationArea);
+  render() {
+    return (
+      <div className={`live__venue live__venue-${this.props.watching.sport}`}>
+        { this.renderVenues() }
+      </div>
+    );
+  },
+});

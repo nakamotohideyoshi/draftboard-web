@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React from 'react';
 import { humanizeFP } from '../../lib/utils/numbers';
 import cleanDescription from '../../lib/utils/nfl-clean-pbp-description';
@@ -10,153 +11,82 @@ if (process.env.NODE_ENV !== 'test') {
   defaultPlayerSrc = require('../../../img/blocks/draft-list/lineup-no-player.png');
 }
 
+const block = 'live-big-play';
 
-/**
- * Stateless component that houses a single big play
- *
- * @param  {object} props React props
- * @return {jsx}          JSX of component
- */
-export const LiveBigPlay = React.createClass({
+export default React.createClass({
   propTypes: {
     event: React.PropTypes.object.isRequired,
   },
 
-  // shouldn't ever need to change
   shouldComponentUpdate(newProps) {
     return this.props.event.id !== newProps.event.id;
   },
 
-  render() {
-    const block = 'live-big-play';
-    const {
-      awayScoreStr,
-      description,
-      eventPlayers,
-      homeScoreStr,
-      id,
-      playerFPChanges,
-      sport,
-      when,
-      winning,
-    } = this.props.event;
+  /**
+   *  Renders the IMG element for a player's headshot.
+   */
+  renderPlayerHeadShotImg(playerId) {
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.event.sport}`;
 
-    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${sport}`;
-    const cleanedDescription = cleanDescription(description);
+    const onError = (e) => {
+      /* eslint-disable no-param-reassign */
+      e.target.className = `${block}__player-photo ${block}__player-photo--default`;
+      e.target.src = defaultPlayerSrc;
+      /* eslint-enable no-param-reassign */
+    };
 
-    if (eventPlayers.length === 1) {
-      const playerId = eventPlayers[0];
-      const classNames = `${block} ${block}--1-players`;
+    return (
+      <img
+        className={`${block}__player-photo`}
+        onError={ onError }
+        src={`${playerImagesBaseUrl}/120/${playerId}.png`}
+        alt="Player Headshot"
+      />
+    );
+  },
 
-      return (
-        <div
-          key={`${id}-${new Date().getTime()}`}
-          className={classNames}
-        >
-          <div className={`${block}__inner`}>
-            <img
-              alt="Player Headshot"
-              className={`${block}__player-photo`}
-              onError={
-                /* eslint-disable no-param-reassign */
-                (e) => {
-                  e.target.className = `${block}__player-photo ${block}__player-photo--default`;
-                  e.target.src = defaultPlayerSrc;
-                }
-                /* eslint-enable no-param-reassign */
-              }
-              src={`${playerImagesBaseUrl}/120/${playerId}.png`}
-            />
-            <div className={`${block}__description`}>
-              <div className={`${block}__description-content`}>
-                {cleanedDescription}
-              </div>
-            </div>
+  /**
+   * Renders the avatar and points for each featured player.
+   */
+  renderPlayersDOM(event) {
+    const players = _.uniq(event.eventPlayers)
+      .map(playerId => {
+        const playerPoints = event.playerFPChanges[playerId];
+
+        return (
+          <li key={playerId} className={`${block}__player`}>
             <div className={`${block}__player-points`}>
-              {humanizeFP(playerFPChanges[playerId] || 0, true)}
+              {!playerPoints ? '0' : humanizeFP(playerPoints || 0, true)}
             </div>
-            <div className={`${block}__game`}>
-              <div className={`${block}__score ${block}__${winning}-winning`}>
-                <div className={`${block}__home-team`}>
-                  {homeScoreStr}
-                </div>
-                &nbsp;-&nbsp;
-                <div className={`${block}__away-team`}>
-                  {awayScoreStr}
-                </div>
-              </div>
-              <div className={`${block}__when`}>
-                Q{when.quarter} {when.clock}
-              </div>
-            </div>
-          </div>
+            { this.renderPlayerHeadShotImg(playerId) }
+          </li>
+        );
+      });
+
+    return (
+      <ul className={`${block}__players`}>
+        {players}
+      </ul>
+    );
+  },
+
+  render() {
+    const { event } = this.props;
+    const id = `${event.id}-${new Date().getTime()}`;
+    const score = `${event.homeScoreStr} - ${event.awayScoreStr}`;
+    const time = `Q?! ${event.when}`;
+
+    return (
+      <article key={id} className={`${block} ${block}--${event.sport}`}>
+        <div className={`${block}__inner`}>
+          <p className={`${block}__description`}>{cleanDescription(event.description)}</p>
+          {this.renderPlayersDOM(event)}
         </div>
-      );
-    }
-
-    // different template, maybe combine these in the future?
-    if (eventPlayers.length > 1) {
-      const classNames = `${block} ${block}--2-players`;
-
-      const players = eventPlayers.map(playerId => (
-        <li
-          key={playerId}
-          className={`${block}__player`}
-        >
-          <div className={`${block}__player-points`}>
-            {humanizeFP(playerFPChanges[playerId] || 0, true)}
-          </div>
-          <div className={`${block}__fixed-player-photo`}>
-            <img
-              className={`${block}__player-photo`}
-              onError={
-                /* eslint-disable no-param-reassign */
-                (e) => {
-                  e.target.className = `${block}__player-photo ${block}__player-photo--default`;
-                  e.target.src = defaultPlayerSrc;
-                }
-                /* eslint-enable no-param-reassign */
-              }
-              src={`${playerImagesBaseUrl}/120/${playerId}.png`}
-              alt="Player Headshot"
-            />
-          </div>
-        </li>
-      ));
-
-      return (
-        <div
-          key={id}
-          className={classNames}
-        >
-          <div className={`${block}__inner`}>
-            <div className={`${block}__description`}>
-              <div className={`${block}__description-content`}>
-                {cleanedDescription}
-              </div>
-            </div>
-            <ul className={`${block}__players`}>
-              {players}
-            </ul>
-            <div className={`${block}__game`}>
-              <div className={`${block}__score ${block}__${winning}-winning`}>
-                <div className={`${block}__home-team`}>
-                  {homeScoreStr}
-                </div>
-                &nbsp;-&nbsp;
-                <div className={`${block}__away-team`}>
-                  {awayScoreStr}
-                </div>
-              </div>
-              <div className={`${block}__when`}>
-                Q{when.quarter} {when.clock}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
+        <footer className={`${block}__footer`}>
+          <div className={`${block}__score`}>{score}</div>
+          <div className={`${block}__when`}>{time}</div>
+        </footer>
+      </article>
+    );
   },
 });
