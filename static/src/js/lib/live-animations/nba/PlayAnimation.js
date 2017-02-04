@@ -9,7 +9,11 @@ export default class PlayAnimation extends LiveAnimation {
 
   play(recap, court) {
     const clips = [];
-    clips.push(() => new DebugPlayAnimation().play(recap, court));
+
+    if (window.DEBUG_LIVE_ANIMATIONS) {
+      clips.push(() => new DebugPlayAnimation().play(recap, court));
+    }
+
     clips.push(() => new PlayerAnimation().play(recap, court));
 
     if (recap.playType() === NBAPlayRecapVO.JUMPSHOT ||

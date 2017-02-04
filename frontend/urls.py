@@ -119,4 +119,10 @@ urlpatterns = [
         views.FrontendRestrictedLocationTemplateView.as_view(),
         name='restricted-location'
     ),
+
+    url(
+        r'^debug/live-animations/$',
+        views.FrontendDebugLiveAnimationsTemplateView.as_view(),
+        name='debug-live-animations'
+    ),
 ]
