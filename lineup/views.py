@@ -46,6 +46,7 @@ from lineup.serializers import (
     LineupUsernamesSerializer,
     EditLineupStatusSerializer,
     LineupCurrentSerializer,
+    LineupLiveSerializer,
 )
 from lineup.tasks import edit_lineup
 from mysite.celery_app import TaskHelper
@@ -394,13 +395,14 @@ class UserLiveAPIView(AbstractLineupAPIView):
     Get the User's lineups that are after the draft group start time, and within 12 hours of the
     end time.
 
-    This is exactly the same as the UserCurrentAPIView, except it keeps lineups around for longer.
+    This is similar to the UserCurrentAPIView, except it keeps lineups around for longer. And it
+    has players embeded in each lineup.
     It's used by the mobile app so that they are viewable the next day after contests are over.
     """
 
     lineup_model = Lineup
 
-    serializer_class = LineupCurrentSerializer
+    serializer_class = LineupLiveSerializer
 
     def get_queryset(self):
         """
@@ -418,9 +420,9 @@ class UserLiveAPIView(AbstractLineupAPIView):
         ).order_by(
             'draft_group__start'
         ).select_related(
-            'draft_group'
+            'draft_group', 'user'
         ).prefetch_related(
-            'entries'
+            'entries', 'players'
         ).distinct()
 
 
