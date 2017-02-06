@@ -201,7 +201,7 @@ class Player(models.Model):
 
     @property
     def name(self):
-        return '%s %s' % (self.salary_player.player.first_name, self.salary_player.player.last_name)
+        return ('%s %s' % (self.salary_player.player.first_name, self.salary_player.player.last_name)).replace('.', '')
 
     @property
     def player_id(self):
