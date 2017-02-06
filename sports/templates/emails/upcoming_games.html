@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upcoming Games</title>
+</head>
+<body>
+{% for sport in data %}
+    <p>Tomorrows’s {{ sport }}:</p>
+{% if sport.games %}
+<ul>
+  {% for game in sport.games %}
+  <li>{{ game.home }} - {{ game.away }}: {{ game.start }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if sport.contests %}
+    <ul>
+    {% for contest in sport.contests %}
+      <li>{{ contest.name }}: {{ contest.start }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+{% endfor %}
+</body>
+</html>
