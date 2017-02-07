@@ -96,4 +96,4 @@ def send_upcoming_issues(self):
     }
 
     message = render_to_string('emails/upcoming_games.html', ctx)
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [settings.SITE_ADMIN_EMAIL])
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, settings.SITE_ADMIN_EMAIL)
