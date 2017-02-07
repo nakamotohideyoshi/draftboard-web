@@ -53,7 +53,12 @@ export const sportsSelector = createSelector(
             period = newGame.boxscore.quarter;
         }
 
-        newGame.boxscore.periodDisplay = ordinal(period);
+        // If we have a period (the game has started), add an ordinal to it.
+        if (period) {
+          newGame.boxscore.periodDisplay = ordinal(period);
+        } else {
+          newGame.boxscore.periodDisplay = '';
+        }
         newGame.start = new Date(game.start).getTime();
       }
     });
