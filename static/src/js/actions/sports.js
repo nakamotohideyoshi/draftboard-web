@@ -642,11 +642,15 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
   // if game does not exist yet, we don't know what sport
   // so just cancel the update and wait for polling call
   const game = sports.games[gameId];
-  if (!game) return false;
+  if (!game) {
+    logAction.warn('Game does not exist yet.');
+    return false;
+  }
 
   const boxscore = game.boxscore;
 
   if (!boxscore || !hasGameStarted(game.sport, game)) {
+    logAction.warn('We have no boxscore for this game, attempating to fetch games...');
     return dispatch(fetchGames(game.sport));
   }
 

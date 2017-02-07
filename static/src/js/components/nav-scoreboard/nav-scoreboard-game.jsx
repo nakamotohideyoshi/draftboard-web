@@ -36,9 +36,9 @@ const NavScoreboardGame = React.createClass({
     ) {
       return (
         <div className="scores">
-          { game.away_score }
+          { game.boxscore.away_score }
           <br />
-          { game.home_score }
+          { game.boxscore.home_score }
         </div>
       );
     }

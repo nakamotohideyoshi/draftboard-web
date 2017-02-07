@@ -133,14 +133,19 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
  */
 export const onBoxscoreTeamReceived = (message) => (dispatch, getState) => {
   logAction.debug('actions.onBoxscoreTeamReceived', message);
-
   const gameId = message.srid_game;
   const state = getState();
-
   const sport = calcSportByGame(state.sports.games, gameId);
-  if (!sport) return false;
 
-  if (!isGameReady(state, dispatch, sport, gameId)) return false;
+  if (!sport) {
+    log.warn('no sport');
+    return false;
+  }
+
+  if (!isGameReady(state, dispatch, sport, gameId)) {
+    log.warn('game not ready');
+    return false;
+  }
 
   return dispatch(addEventAndStartQueue(gameId, message, 'boxscore-team', sport));
 };
