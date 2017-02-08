@@ -1,7 +1,6 @@
 import log from '../../lib/logging';
 import { addEventAndStartQueue } from '../events';
 import { isGameReady } from '../sports';
-import { trackUnexpected } from '../track-exceptions';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -52,7 +51,7 @@ const isMessageUsed = (message, sport) => {
   }
 
   // returns false
-  if (reasons.length > 0) return trackUnexpected('boxscores.isMessageUsed returned false', { message, reasons });
+  if (reasons.length > 0) return false;
 
   return true;
 };
