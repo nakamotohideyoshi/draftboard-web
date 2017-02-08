@@ -137,7 +137,7 @@ export const onBoxscoreTeamReceived = (message) => (dispatch, getState) => {
   const sport = calcSportByGame(state.sports.games, gameId);
 
   if (!sport) {
-    log.warn('no sport');
+    log.warn(`no sport exists for this gameId: ${gameId}`);
     return false;
   }
 
