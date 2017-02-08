@@ -5,6 +5,10 @@ import { getBasketClip } from './getClip';
 export default class BasketAnimation extends LiveAnimation {
 
   play(recap, court) {
+    if (!recap.madeShot()) {
+      return Promise.resolve();
+    }
+
     const courtPos = court.getRimPos(recap.teamBasket());
     const stagePos = court.getPosition(courtPos.x, courtPos.y);
     const zone = court.getZoneAtPosition(recap.courtPosition(), recap.teamBasket()) + 1;

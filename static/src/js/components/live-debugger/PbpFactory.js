@@ -1,5 +1,5 @@
 import NBAPlayRecapVO from '../../lib/live-animations/nba/NBAPlayRecapVO';
-
+import _ from 'lodash';
 const PBP_DATA = require('./debug_pbp.json');
 export default class PBPFactory {
 
@@ -11,10 +11,18 @@ export default class PBPFactory {
         if (a.playType() > b.playType()) return 1;
         return 0;
       });
-    this.curIndex = 0;
+    this.curIndex = -1;
     this.whichSide = 'mine';
     this.curEvent = this.recaps[this.curIndex];
     this.onChange = () => {};
+  }
+
+  hasPrev() {
+    return this.curIndex > 0;
+  }
+
+  hasNext() {
+    return this.curIndex < this.recaps.length;
   }
 
   prev() {
@@ -30,14 +38,19 @@ export default class PBPFactory {
   }
 
   goto(index) {
-    this.curEvent = this.recaps[index];
+    const maxIndex = this.recaps.length - 1;
+    const newIndex = Math.max(0, Math.min(maxIndex, index));
 
-    if (this.curEvent) {
-      this.curIndex = index;
-      this.curEvent._obj.whichSide = this.whichSide;
-      this.curEvent._obj.id = new Date().getTime();
-      this.onChange(this.curEvent._obj);
-    }
+    this.curIndex = newIndex;
+    this.curEvent = _.cloneDeep(this.recaps[this.curIndex]._obj);
+
+    // Randomize ID so the event is considered "new"
+    this.curEvent.id = `${new Date().getTime()}-${Math.round(Math.random() * 10000)}`;
+
+    // Override the whichSide property with our user defined setting.
+    this.curEvent.whichSide = this.whichSide;
+
+    this.onChange(this.curEvent);
   }
 
   getCurIndex() {
@@ -45,7 +58,7 @@ export default class PBPFactory {
   }
 
   getCurEventObj() {
-    return this.curEvent._obj;
+    return this.curEvent;
   }
 
   setWhichSide(side = 'mine') {

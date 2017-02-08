@@ -2,6 +2,11 @@ import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
 import LiveNFLField from './nfl/live-nfl-field';
 import LiveNBACourt from './nba/live-nba-court';
+import {
+  removeCurrentEvent,
+  shiftOldestEvent,
+} from '../../actions/events';
+import store from '../../store';
 
 export default React.createClass({
 
@@ -12,13 +17,26 @@ export default React.createClass({
   },
 
   /**
-   * Returns an array of MLB venues.
+   * Handler for when a venue's animation has completed.
+   */
+  nbaAnimationCompleted() {
+    // show the results, remove the animation
+    store.dispatch(removeCurrentEvent());
+
+    // enter the next item in the queue once everything is done.
+    setTimeout(() => {
+      store.dispatch(shiftOldestEvent());
+    }, 6000);
+  },
+
+  /**
+   * Returns an array of MLB stadiums based on the lineups currently being watched.
    * @param  {object} props
    * @return {array}
    */
-  getMLBVenues() {
-    const { watching } = this.props;
-    const { watchablePlayers, events } = this.props.eventsMultipart;
+  renderMLBStadiums(props) {
+    const { watching } = props;
+    const { watchablePlayers, events } = props.eventsMultipart;
     const myEventId = watchablePlayers[watching.myPlayerSRID];
     const myEvent = events[myEventId] || {};
     const venues = [];
@@ -43,12 +61,30 @@ export default React.createClass({
     return venues;
   },
 
-  renderVenues() {
-    switch (this.props.watching.sport) {
+  /**
+   * Renders a NBACourt component.
+   * @return {object} LiveNBACourt
+   */
+  renderNBACourt() {
+    return (
+      <LiveNBACourt
+        key="nba-court"
+        onAnimationComplete={() => this.nbaAnimationCompleted()}
+        animationEvent={this.props.animationEvent}
+      />
+    );
+  },
+
+  /**
+   * Renders the venue DOM for a given sport.
+   * @return {object} Sport specific DOM.
+   */
+  renderVenue(sport) {
+    switch (sport) {
       case 'mlb':
-        return this.getMLBVenues(this.props);
+        return this.renderMLBStadiums(this.props);
       case 'nba':
-        return <LiveNBACourt key="nba" animationEvent={this.props.animationEvent} />;
+        return this.renderNBACourt();
       case 'nfl':
         return <LiveNFLField key="nfl" animationEvent={this.props.animationEvent} />;
       default:
@@ -59,7 +95,7 @@ export default React.createClass({
   render() {
     return (
       <div className={`live__venue live__venue-${this.props.watching.sport}`}>
-        { this.renderVenues() }
+        { this.renderVenue(this.props.watching.sport) }
       </div>
     );
   },

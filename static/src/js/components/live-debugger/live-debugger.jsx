@@ -1,100 +1,103 @@
+import { connect } from 'react-redux';
 import React from 'react';
 import LiveAnimationArea from '../live/live-animation-area';
+import LiveHeader from '../live/live-header';
 import LiveBigPlays from '../live/live-big-plays';
-import PbpFactory from './PbpFactory';
+import DebugMenu from './debug-menu';
 
-const pbpQueue = new PbpFactory();
+const stubData = {
+  watching: {
+    sport: 'nba',
+    contestId: 2,
+    opponentLineupId: null, // Null if you don't want to see the opponents overall-stats
+  },
+  animationEvent: null,
+  eventsMultipart: {},
+  contest: {
+    name: 'Debug Contest',
+    potentialWinnings: 10,
+    rank: 2,
+    isLoading: false,
+  },
+  uniqueLineups: {
+    lineups: [],
+  },
+  myLineupInfo: {
+    name: 'MyLineup',
+    fp: 0,
+    id: 2,
+    isLoading: false,
+    potentialWinnings: 10,
+    rank: 1,
+    timeRemaining: {
+      decimal: 1,
+      duration: 50,
+    },
+  },
+  opponentLineup: {
+    name: 'OpponentLineup',
+    fp: 0,
+    id: 3,
+    rank: 2,
+    timeRemaining: {
+      decimal: 1,
+      duration: 50,
+    },
+    isLoading: false,
+  },
+  selectLineup: () => { },
+};
 
-export default React.createClass({
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+const mapStateToProps = (state) => ({
+  animationEvent: state.events.animationEvent,
+  showEventResult: state.events.showEventResult,
+});
+
+
+export default connect(mapStateToProps)(React.createClass({
+  propTypes: {
+    animationEvent: React.PropTypes.object,
+    bigPlays: React.PropTypes.array,
+    showEventResult: React.PropTypes.bool,
+  },
 
   getInitialState() {
     return {
-      pbp: pbpQueue.getCurEventObj(),
-      queue: [pbpQueue.getCurEventObj()],
+      queue: [],
     };
-  },
-
-  componentWillMount() {
-    pbpQueue.onChange = () => {
-      const pbp = pbpQueue.getCurEventObj();
-      const queue = this.state.queue.concat([pbp]);
-
-      this.setState({ pbp, queue });
-    };
-  },
-
-  changeLineup() {
-    pbpQueue.setWhichSide(document.getElementById('lineupMenu').value);
-  },
-
-  changePlay() {
-    pbpQueue.goto(parseInt(document.getElementById('playMenu').value, 10));
-  },
-
-  toggleDebug() {
-    window.DEBUG_LIVE_ANIMATIONS = !window.DEBUG_LIVE_ANIMATIONS;
-  },
-
-  renderDebugMenu() {
-    const styles = {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 999,
-      width: '100%',
-      padding: '20px',
-      backgroundColor: '#000',
-      color: '#fff',
-    };
-
-    const playOptions = pbpQueue.recaps
-      .map((vo, index) => {
-        const isDisabled = vo.playType() === 'unknown_play' ? 'disabed' : '';
-        const label = `${vo.playType()} - ${vo._obj.description}`;
-        return (
-          <option disabled={ isDisabled } value={ index } key={ vo._obj.id }>{ label }</option>
-        );
-      }
-    );
-
-    return (
-        <div style={ styles }>
-          <button onClick={ () => pbpQueue.next() }>Next</button>
-          <button onClick={ () => pbpQueue.prev() }>Prev</button>
-          <button onClick={ () => pbpQueue.replay() }>Replay</button>
-          <select id="playMenu" value={ pbpQueue.getCurIndex() } onChange={ () => this.changePlay() } >
-            { playOptions }
-          </select>
-          <select id="lineupMenu" onChange={ () => this.changeLineup() }>
-            <option value="mine">Mine</option>
-            <option value="both">Both</option>
-            <option value="opponent">Opponent</option>
-          </select>
-          <input
-            onChange={() => this.toggleDebug()}
-            id="debug"
-            type="checkbox"
-            name="debug"
-            value="1"
-            selected={window.DEBUG_LIVE_ANIMATIONS}
-          /><label htmlFor="debug">Show Debug</label>
-        </div>
-      );
   },
 
   render() {
+    const { eventsMultipart, watching } = stubData;
+    const { animationEvent, bigPlays, showEventResult } = this.props;
+
     return (
       <section className="debug-live-animations">
-        { this.renderDebugMenu() }
+        <DebugMenu />
         <div className="live">
           <section className="live__venues">
             <div className="live__venues-inner">
-              <LiveAnimationArea watching={ { sport: 'nba' } } animationEvent={ this.state.pbp } eventsMultipart={{}} />
+              <LiveHeader
+                animationEvent={animationEvent}
+                showEventResult={showEventResult}
+                contest={stubData.contest}
+                lineups={stubData.uniqueLineups.lineups}
+                myLineup={stubData.myLineupInfo}
+                opponentLineup={stubData.opponentLineup}
+                selectLineup={stubData.selectLineup}
+                watching={stubData.watching}
+              />
+              <LiveAnimationArea {...{ watching, animationEvent, eventsMultipart }} />
             </div>
           </section>
-          <LiveBigPlays queue={this.state.queue} />
+          <LiveBigPlays queue={bigPlays || []} />
         </div>
       </section>
     );
   },
-});
+}));
