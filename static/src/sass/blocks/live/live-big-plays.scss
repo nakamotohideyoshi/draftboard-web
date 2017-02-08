@@ -50,8 +50,8 @@ $block: '.live-big-plays';
     right: 0px;
   }
 
-  .items-list {
+  &__items {
+    display: flex;
     width: 100%;
-    overflow-x: hidden;
   }
 }

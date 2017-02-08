@@ -1,11 +1,8 @@
+import Raven from 'raven-js';
 import React from 'react';
-import LiveNBAPlay from './live-nba-play';
-import {
-  removeCurrentEvent,
-  shiftOldestEvent,
-  showAnimationEventResults,
-} from '../../../actions/events';
-import store from '../../../store';
+import PlayAnimation from '../../../lib/live-animations/nba/PlayAnimation';
+import NBACourt from '../../../lib/live-animations/nba/NBACourt';
+import NBAPlayRecapVO from '../../../lib/live-animations/nba/NBAPlayRecapVO';
 
 // assets
 require('../../../../sass/blocks/live/nba/live-nba-court.scss');
@@ -17,54 +14,51 @@ export default React.createClass({
 
   propTypes: {
     animationEvent: React.PropTypes.object,
+    onAnimationComplete: React.PropTypes.func,
+    onAnimationStart: React.PropTypes.func,
   },
 
-  getInitialState() {
-    return {
-      curAnimationEvent: this.props.animationEvent,
-    };
+  componentDidUpdate() {
+    if (!this.props.animationEvent) {
+      return;
+    }
+
+    // Simulate the current animationEvent.
+    const court = new NBACourt(this.refs.court);
+    const recap = new NBAPlayRecapVO(this.props.animationEvent);
+    const animation = new PlayAnimation();
+
+    this.animationStarted();
+
+    animation.play(recap, court).catch(error =>
+      Raven.captureMessage('Live animation failed', {
+        extra: {
+          message: error.message,
+          animationEvent: this.props.animationEvent,
+        },
+      })
+    ).then(
+      () => this.animationCompleted()
+    ).catch(
+      // ESLint forced catch (catch-or-return).
+    );
   },
 
-  shouldComponentUpdate() {
-    return !this.isAnimationPlaying;
+  animationStarted() {
+    if (this.props.onAnimationStart) {
+      this.props.onAnimationStart();
+    }
   },
 
-  pbpAnimationStarted() {
-    this.isAnimationPlaying = true;
-  },
-
-  pbpAnimationCompleted() {
-    this.isAnimationPlaying = false;
-
-    // show the results, remove the animation
-    store.dispatch(showAnimationEventResults(this.props.animationEvent));
-
-    // wait for the results to finish displaying before removing the
-    // currentEvent from the queue.
-    setTimeout(() => {
-      store.dispatch(removeCurrentEvent());
-    }, 4000);
-
-    // enter the next item in the queue once everything is done.
-    setTimeout(() => {
-      store.dispatch(shiftOldestEvent());
-    }, 6000);
+  animationCompleted() {
+    if (this.props.onAnimationComplete) {
+      this.props.onAnimationComplete();
+    }
   },
 
   render() {
-    const liveNBAPlay = this.props.animationEvent === null
-      ? null
-      : <LiveNBAPlay
-        key={ this.props.animationEvent.id }
-        event={ this.props.animationEvent }
-        animationStarted={ this.pbpAnimationStarted }
-        animationCompleted={ this.pbpAnimationCompleted }
-      />;
-
     return (
-      <section className="live-nba-court">
-        { liveNBAPlay }
-      </section>
+      <section key="court" ref="court" className="live-nba-court" ></section>
     );
   },
 });

@@ -6,12 +6,11 @@ import proxyquire from 'proxyquire';
 
 describe('<LiveHeader /> Component', () => {
   // use proxyquire to mock in responses
-  const proxyComponent = proxyquire('../../../components/live/live-header', {
+  const LiveHeader = proxyquire('../../../components/live/live-header', {
     './live-overall-stats': {
       LiveOverallStatsConnected: ({}) => (<div className="live-overall-stats"></div>),
     },
-  });
-  const LiveHeader = proxyComponent.LiveHeader;
+  }).default;
 
   const renderComponent = (props) => mount(<LiveHeader {...props} />);
 

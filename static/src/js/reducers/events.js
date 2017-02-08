@@ -55,6 +55,7 @@ module.exports = (state = initialState, action = {}) => {
     case ActionTypes.EVENT__SET_CURRENT: {
       const newState = merge({}, state);
       newState.animationEvent = action.value;
+      newState.showEventResult = true;
       return newState;
     }
 

@@ -97,7 +97,7 @@ export default class NBAPlayRecapVO {
     const hasFieldGoal = stats.hasOwnProperty('fieldgoal__list');
     const hasSteal = stats.hasOwnProperty('steal__list');
 
-    if (hasFreeThrow && stats.freethrow__list.made === 'true') {
+    if (hasFreeThrow) {
       return NBAPlayRecapVO.FREETHROW;
     }
 
@@ -110,14 +110,16 @@ export default class NBAPlayRecapVO {
     }
 
     if (hasFieldGoal) {
+      const shotType = stats.fieldgoal__list.shot_type;
+
       // Handle missed field goals that are not blocked. Everything else is
       // either a made shot or a blocked shot. The "made" property is set to the
       // string "false" in the API's returned object.
-      if (!hasBlock && stats.fieldgoal__list.made === 'false') {
+      if (!hasBlock && !this.madeShot() && shotType !== 'jump shot') {
         return NBAPlayRecapVO.UNKNOWN_PLAY;
       }
 
-      switch (stats.fieldgoal__list.shot_type) {
+      switch (shotType) {
         case 'dunk' :
           return hasBlock
             ? NBAPlayRecapVO.BLOCKED_DUNK
@@ -139,6 +141,23 @@ export default class NBAPlayRecapVO {
     }
 
     return NBAPlayRecapVO.UNKNOWN_PLAY;
+  }
+
+  /**
+   * Returns true if the play consists of a made shot.
+   */
+  madeShot() {
+    const stats = this._obj.pbp.statistics__list;
+
+    if (!stats) {
+      return false;
+    } else if (stats.hasOwnProperty('fieldgoal__list')) {
+      return stats.fieldgoal__list.made === 'true';
+    } else if (stats.hasOwnProperty('freethrow__list')) {
+      return stats.freethrow__list.made === 'true';
+    }
+
+    return false;
   }
 
   /**
@@ -172,17 +191,25 @@ export default class NBAPlayRecapVO {
       y: this._obj.pbp.location__list.coord_y / NBAPlayRecapVO.COURT_WIDTH_INCHES,
     };
 
+    // Do not transform "steals". Steals should be depicted where they happen on
+    // the court in real life. Everything else gets tranformed based on which
+    // teamBasket the play should be aimed at.
+    if (this.playType() === NBAPlayRecapVO.STEAL) {
+      return pos;
+    }
+
     // Determine the side of the court the play took place on by evaluating if
     // the x coordinate is over the half court line.
+    // Note: This could have undesirable outcomes for plays that take place in
+    // the backcourt (steals, turnovers, half court shots). The best solution
+    // would be for the team_basket to be specified via the API instead of
+    // guestimating it based on the play's position on the court..
     const basket = pos.x > 0.5
       ? NBAPlayRecapVO.BASKET_RIGHT
       : NBAPlayRecapVO.BASKET_LEFT;
 
     // Flip the x coordinate of the play if the original coordinate does not
-    // match our target court side.
-    // Note: This could have undesirable outcomes for plays that take place in
-    // the backcourt (steals, turnovers, half court shots). The best solution
-    // would be for the team_basket to be specified via the API for comparison.
+    // match our target teamBasket.
     if (this.teamBasket() !== basket) {
       pos.x = 1 - pos.x;
     }
