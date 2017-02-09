@@ -67,7 +67,7 @@ const mapStateToProps = (state) => ({
   opponentLineup: watchingOpponentLineupSelector(state),
   uniqueLineups: uniqueLineupsSelector(state),
   watching: state.watching,
-  animationEvent: state.events.animationEvent,
+  currentEvent: state.events.currentEvent,
   eventsMultipart: state.eventsMultipart,
   showEventResult: state.events.showEventResult,
 });
@@ -88,7 +88,7 @@ export const Live = React.createClass({
     params: React.PropTypes.object,
     uniqueLineups: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-    animationEvent: React.PropTypes.object,
+    currentEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object,
     showEventResult: React.PropTypes.bool,
   },
@@ -341,14 +341,14 @@ export const Live = React.createClass({
               opponentLineup={opponentLineup}
               selectLineup={this.selectLineup}
               watching={watching}
-              animationEvent={this.props.animationEvent}
+              currentEvent={this.props.currentEvent}
               showEventResult={this.props.showEventResult}
               eventsMultipart={this.props.eventsMultipart}
             />
 
             <LiveAnimationArea
               watching={ this.props.watching }
-              animationEvent={ this.props.animationEvent }
+              currentEvent={ this.props.currentEvent }
               eventsMultipart={ this.props.eventsMultipart }
             />
           </div>

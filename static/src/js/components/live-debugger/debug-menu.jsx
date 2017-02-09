@@ -1,16 +1,18 @@
 import React from 'react';
 import store from '../../store';
 import PbpFactory from './PbpFactory';
+import { addEventAndStartQueue } from '../../actions/events';
 
 const pbpQueue = new PbpFactory();
 
 export default React.createClass({
   componentWillMount() {
     pbpQueue.onChange = () => {
-      store.dispatch({
-        type: 'EVENT__SET_CURRENT',
-        value: pbpQueue.getCurEventObj(),
-      });
+      const gameId = 3;
+      const gameEvent = pbpQueue.getCurEventObj();
+      const eventType = 'pbp';
+      const sport = 'nba';
+      store.dispatch(addEventAndStartQueue(gameId, gameEvent, eventType, sport));
     };
   },
 

@@ -4,7 +4,7 @@ import merge from 'lodash/merge';
 import union from 'lodash/union';
 
 const initialState = {
-  animationEvent: null,
+  currentEvent: null,
   bigEvents: [],
   queue: [],
   playerEventDescriptions: {},
@@ -18,7 +18,7 @@ module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
     case ActionTypes.EVENT__SHOW_CURRENT_RESULT: {
       // don't bother if there is no event to show
-      if (state.animationEvent === null) return state;
+      if (state.currentEvent === null) return state;
 
       return merge({}, state, {
         showEventResult: true,
@@ -54,17 +54,17 @@ module.exports = (state = initialState, action = {}) => {
 
     case ActionTypes.EVENT__SET_CURRENT: {
       const newState = merge({}, state);
-      newState.animationEvent = action.value;
+      newState.currentEvent = action.value;
       newState.showEventResult = true;
       return newState;
     }
 
     case ActionTypes.EVENT__REMOVE_CURRENT:
       // perf optimization, memoization
-      if (state.animationEvent === null) return state;
+      if (state.currentEvent === null) return state;
 
       return merge({}, state, {
-        animationEvent: null,
+        currentEvent: null,
         showEventResult: false,
       });
 

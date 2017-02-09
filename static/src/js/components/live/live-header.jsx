@@ -7,7 +7,7 @@ require('../../../sass/blocks/live/live-header.scss');
 export default React.createClass({
 
   propTypes: {
-    animationEvent: React.PropTypes.object,
+    currentEvent: React.PropTypes.object,
     contest: React.PropTypes.object.isRequired,
     myLineup: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired,
@@ -28,10 +28,10 @@ export default React.createClass({
     return (
       <div className="live-header__animation-info live-header__animation-info--show">
         <h2 className="live-header__animation-info__type">
-          {`${this.props.animationEvent.type.toUpperCase()}!`}
+          {`${this.props.currentEvent.type.toUpperCase()}!`}
         </h2>
         <div className="live-header__animation-info__description">
-          {this.props.animationEvent.description}
+          {this.props.currentEvent.description}
         </div>
       </div>
     );

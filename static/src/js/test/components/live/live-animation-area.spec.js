@@ -15,7 +15,7 @@ describe('<LiveAnimationArea /> Component', () => {
   const renderComponent = (props) => mount(<LiveAnimationArea {...props} />);
 
   const defaultTestProps = {
-    animationEvent: null,
+    currentEvent: null,
     eventsMultipart: {
       events: [],
       watchablePlayers: [],
