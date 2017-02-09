@@ -3,11 +3,13 @@ from __future__ import absolute_import
 #
 # contest/schedule/tasks.py
 
-from datetime import timedelta
-
 from mysite.celery_app import app
 from django.core.cache import cache
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
 from contest.schedule.classes import ContestPoolScheduleManager
+from contest.schedule.models import UpcomingBlock
 from logging import getLogger
 
 logger = getLogger('contest.schedule.tasks')
@@ -73,3 +75,25 @@ def create_scheduled_contest_pools(self, sport):
 
         finally:
             release_lock()
+
+
+@app.task(bind=True)
+def send_upcoming_issues(self):
+    """
+    sending email with upcoming issues
+
+    """
+    sports = ['nba', 'nfl', 'mlb', 'nhl']
+    data = {}
+    for sport in sports:
+        blocks = UpcomingBlock.objects.get_tomorrow_blocks().filter(site_sport__name=sport)
+
+        if blocks.exists():
+            data[sport] = blocks
+    subject = 'Upcoming issues'
+    ctx = {
+        'data': data
+    }
+
+    message = render_to_string('emails/upcoming_games.html', ctx)
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, settings.SITE_ADMIN_EMAIL)

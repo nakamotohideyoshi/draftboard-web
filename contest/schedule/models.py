@@ -89,6 +89,11 @@ class UpcomingBlock(Block):
             return super().get_queryset().filter(
                 cutoff__gte=timezone.now()).order_by('dfsday_start', 'cutoff_time')
 
+        def get_tomorrow_blocks(self):
+            return super().get_queryset().filter(
+                cutoff__date=timezone.now().date()+timezone.timedelta(days=1)).order_by('dfsday_start', 'cutoff_time')
+
+
     objects = UpcomingBlockManager()
 
     class Meta:

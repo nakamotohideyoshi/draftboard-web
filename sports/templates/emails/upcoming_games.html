@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upcoming Games</title>
+</head>
+<body>
+{% for sport, blocks in data.items %}
+    <p>Tomorrows’s {{ sport|title }}:</p>
+    {% for block in blocks %}
+        <p>Lock: {{ block.cutoff_time }}:</p>
+        <p>Included games: {{ block.get_block_games.0|length  }}</p>
+        <ul>
+        {% for game in block.get_block_games.0 %}
+            <li>{{ game.game.start }} - {{ game.name }}</li>
+        {% endfor %}
+        </ul>
+            <p>Excluded games: {{ block.get_block_games.1|length }}</p>
+        <ul>
+        {% for game in block.get_block_games.1 %}
+            <li>{{ game.game.start }} - {{ game.name }}</li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+{% endfor %}
+</body>
+</html>
