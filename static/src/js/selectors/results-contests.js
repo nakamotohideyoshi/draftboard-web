@@ -5,7 +5,7 @@ import { rankContestLineups } from './live-contests';
 
 
 const liveDraftGroupsSelector = (state) => state.liveDraftGroups;
-const onlyLiveContestsSelector = (state) => state.liveContests;
+const onlyLiveContestsSelector = (state) => state.liveContestPools;
 const prizesSelector = (state) => state.prizes;
 const sportsSelector = (state) => state.sports;
 
@@ -16,24 +16,26 @@ export const resultsContestsSelector = createSelector(
   [onlyLiveContestsSelector, liveDraftGroupsSelector, sportsSelector, prizesSelector],
   (contests, draftGroups, sports, prizes) => {
     const contestsStats = {};
-
+    console.warn('contestsStats update')
     forEach(contests, (contest, id) => {
+      console.log(contest)
       // if we don't have contest information yet, then return
-      if (!contest.info || contest.hasRelatedInfo === false) return;
+      if (!contest.hasRelatedInfo) return;
 
-      const draftGroup = draftGroups[contest.info.draft_group];
-      const prizeStructure = prizes[contest.info.prize_structure];
+      console.log('contest has info, adding ot list')
+      const draftGroup = draftGroups[contest.draft_group];
+      // const prizeStructure = prizes[contest.prize_structure];
 
       const stats = {
         boxScores: null,
-        buyin: contest.info.buyin,
-        draftGroupId: contest.info.draft_group,
-        entriesCount: contest.info.entries,
+        buyin: contest.buyin,
+        draftGroupId: contest.draft_group,
+        entriesCount: contest.entries,
         id: contest.id,
-        name: contest.info.name,
-        prizeStructure,
-        sport: contest.info.sport,
-        teams: sports[contest.info.sport],
+        name: contest.name,
+        prizeStructure: contest.prize_structure,
+        sport: contest.sport,
+        teams: sports[contest.sport],
       };
 
       // if undefined and we're still trying, then return. occurs when cached for days
@@ -42,13 +44,15 @@ export const resultsContestsSelector = createSelector(
 
         contestsStats[id] = merge(
           stats,
-          rankContestLineups(contest, draftGroup, {}, prizeStructure.info, [])
+          rankContestLineups(contest, draftGroup, {}, contest.prize_structure, [])
         );
       } else {
         contestsStats[id] = stats;
       }
     });
 
+
+    console.log(contestsStats)
     return contestsStats;
   }
 );

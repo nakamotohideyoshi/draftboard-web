@@ -132,7 +132,7 @@ const ResultsLineup = React.createClass({
           </div>
 
           <span className="name">{player.full_name}</span>
-          <span classNmae="team">{team}</span>
+          <span className="team">{team}</span>
           <span className={scoreClassName}>
             {score}
           </span>
