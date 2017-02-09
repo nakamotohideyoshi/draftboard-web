@@ -90,10 +90,16 @@ def send_upcoming_issues(self):
 
         if blocks.exists():
             data[sport] = blocks
-    subject = 'Upcoming issues'
+    subject = "Today's Draftboard Games"
     ctx = {
         'data': data
     }
 
     message = render_to_string('emails/upcoming_games.html', ctx)
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, settings.SITE_ADMIN_EMAIL)
+    send_mail(
+        subject=subject,
+        message=message,
+        html_message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=settings.SITE_ADMIN_EMAIL
+    )
