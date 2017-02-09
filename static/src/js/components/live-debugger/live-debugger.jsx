@@ -11,7 +11,7 @@ const stubData = {
     contestId: 2,
     opponentLineupId: null, // Null if you don't want to see the opponents overall-stats
   },
-  animationEvent: null,
+  currentEvent: null,
   eventsMultipart: {},
   contest: {
     name: 'Debug Contest',
@@ -54,27 +54,26 @@ const stubData = {
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  animationEvent: state.events.animationEvent,
+  currentEvent: state.events.currentEvent,
   showEventResult: state.events.showEventResult,
+  bigEvents: state.events.bigEvents,
 });
 
 
 export default connect(mapStateToProps)(React.createClass({
   propTypes: {
-    animationEvent: React.PropTypes.object,
-    bigPlays: React.PropTypes.array,
+    currentEvent: React.PropTypes.object,
+    bigEvents: React.PropTypes.array,
     showEventResult: React.PropTypes.bool,
   },
 
   getInitialState() {
-    return {
-      queue: [],
-    };
+    return {};
   },
 
   render() {
     const { eventsMultipart, watching } = stubData;
-    const { animationEvent, bigPlays, showEventResult } = this.props;
+    const { currentEvent, bigEvents, showEventResult } = this.props;
 
     return (
       <section className="debug-live-animations">
@@ -83,7 +82,7 @@ export default connect(mapStateToProps)(React.createClass({
           <section className="live__venues">
             <div className="live__venues-inner">
               <LiveHeader
-                animationEvent={animationEvent}
+                currentEvent={currentEvent}
                 showEventResult={showEventResult}
                 contest={stubData.contest}
                 lineups={stubData.uniqueLineups.lineups}
@@ -92,10 +91,10 @@ export default connect(mapStateToProps)(React.createClass({
                 selectLineup={stubData.selectLineup}
                 watching={stubData.watching}
               />
-              <LiveAnimationArea {...{ watching, animationEvent, eventsMultipart }} />
+              <LiveAnimationArea {...{ watching, currentEvent, eventsMultipart }} />
             </div>
           </section>
-          <LiveBigPlays queue={bigPlays || []} />
+          <LiveBigPlays queue={bigEvents || []} />
         </div>
       </section>
     );

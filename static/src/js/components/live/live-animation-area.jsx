@@ -3,15 +3,16 @@ import LiveMLBStadium from './mlb/live-mlb-stadium';
 import LiveNFLField from './nfl/live-nfl-field';
 import LiveNBACourt from './nba/live-nba-court';
 import {
-  removeCurrentEvent,
+  clearCurrentEvent,
   shiftOldestEvent,
+  showAnimationEventResults,
 } from '../../actions/events';
 import store from '../../store';
 
 export default React.createClass({
 
   propTypes: {
-    animationEvent: React.PropTypes.object,
+    currentEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
   },
@@ -21,12 +22,15 @@ export default React.createClass({
    */
   nbaAnimationCompleted() {
     // show the results, remove the animation
-    store.dispatch(removeCurrentEvent());
+    store.dispatch(showAnimationEventResults(this.props.currentEvent));
+
+    // remove the event
+    store.dispatch(clearCurrentEvent());
 
     // enter the next item in the queue once everything is done.
     setTimeout(() => {
       store.dispatch(shiftOldestEvent());
-    }, 6000);
+    }, 1000);
   },
 
   /**
@@ -70,7 +74,7 @@ export default React.createClass({
       <LiveNBACourt
         key="nba-court"
         onAnimationComplete={() => this.nbaAnimationCompleted()}
-        animationEvent={this.props.animationEvent}
+        currentEvent={this.props.currentEvent}
       />
     );
   },
@@ -86,7 +90,7 @@ export default React.createClass({
       case 'nba':
         return this.renderNBACourt();
       case 'nfl':
-        return <LiveNFLField key="nfl" animationEvent={this.props.animationEvent} />;
+        return <LiveNFLField key="nfl" currentEvent={this.props.currentEvent} />;
       default:
         return [];
     }

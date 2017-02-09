@@ -9,7 +9,7 @@ describe('reducers.events', () => {
 
   it('should return the initial state', () => {
     assert.deepEqual(defaultState, {
-      animationEvent: null,
+      currentEvent: null,
       bigEvents: [],
       queue: [],
       playerEventDescriptions: {},
@@ -36,20 +36,20 @@ describe('reducers.events', () => {
       value: { foo: 'bar' },
     });
     assert.deepEqual(
-      newState.animationEvent,
+      newState.currentEvent,
       { foo: 'bar' }
     );
 
     // should replace existing animation event
     newState = merge({}, defaultState, {
-      animationEvent: { oldKey: 'oldValue' },
+      currentEvent: { oldKey: 'oldValue' },
     });
     newState = reducer(newState, {
       type: types.EVENT__SET_CURRENT,
       value: { foo: 'bar' },
     });
     assert.deepEqual(
-      newState.animationEvent,
+      newState.currentEvent,
       { foo: 'bar' }
     );
   });
@@ -58,7 +58,7 @@ describe('reducers.events', () => {
     // should work normally
     assert.deepEqual(
       reducer({
-        animationEvent: null,
+        currentEvent: null,
         bigEvents: [{ foo: 'bar' }],
         queue: [],
         playerEventDescriptions: {},
@@ -70,7 +70,7 @@ describe('reducers.events', () => {
         value: { bar: 'baz' },
       }),
       {
-        animationEvent: null,
+        currentEvent: null,
         bigEvents: [{ foo: 'bar' }, { bar: 'baz' }],
         queue: [],
         playerEventDescriptions: {},
@@ -86,7 +86,7 @@ describe('reducers.events', () => {
     }
 
     const initialState = reducer({
-      animationEvent: null,
+      currentEvent: null,
       bigEvents,
       queue: [],
       playerEventDescriptions: {},
@@ -105,7 +105,7 @@ describe('reducers.events', () => {
     // should work normally
     assert.deepEqual(
       reducer({
-        animationEvent: null,
+        currentEvent: null,
         queue: [{ foo: 'bar' }],
         playerEventDescriptions: {},
         playerHistories: {},
@@ -117,7 +117,7 @@ describe('reducers.events', () => {
         event: { bar: 'baz' },
       }),
       {
-        animationEvent: null,
+        currentEvent: null,
         queue: [{ foo: 'bar' }, { bar: 'baz' }],
         playerEventDescriptions: {},
         playerHistories: {},
