@@ -4,6 +4,7 @@ import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { fetchContestLineupsIfNeeded } from '../../actions/live-contests';
+import { fetchContestPoolIfNeeded } from '../../actions/live-contest-pools';
 import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupBoxscoresIfNeeded } from '../../actions/live-draft-groups.js';
@@ -39,10 +40,16 @@ const ResultsPane = React.createClass({
 
     if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
       return this.props.dispatch(
-        fetchContestLineupsIfNeeded(nextProps.contestId, this.props.sport, true)
+        fetchContestLineupsIfNeeded(nextProps.contestId, this.props.sport)
+      ).then(
+        () => this.props.dispatch(fetchContestPoolIfNeeded(nextProps.contestId))
       ).then(() => {
-        newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
 
+        console.log(this.props.resultsContestsSelector)
+
+        newContestInfo = this.props.resultsContestsSelector[this.props.contestId] || {};
+        // if (!newContestInfo) newContestInfo={};
+        console.log('we have contestInfo!!!')
         // if we don't have a draft group, retrieve!
         if (newContestInfo.hasOwnProperty('rankedLineups') === false) {
           return this.props.dispatch(
@@ -216,7 +223,7 @@ const ResultsPane = React.createClass({
       );
     }
 
-    const prize = humanizeCurrency(contest.prizeStructure.info.ranks[0].value);
+    const prize = humanizeCurrency(contest.prizeStructure.ranks[0].value);
 
     let hasEnded = (
       <div className="has-ended">
