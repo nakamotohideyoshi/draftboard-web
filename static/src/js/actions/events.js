@@ -25,10 +25,6 @@ const addEventToBigPlays = (value) => ({
   value,
 });
 
-const showCurrentResults = () => ({
-  type: ActionTypes.EVENT__SHOW_CURRENT_RESULT,
-});
-
 const setCurrentAnimation = (value) => ({
   type: ActionTypes.EVENT__SET_CURRENT,
   value,
@@ -148,7 +144,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them
@@ -164,7 +159,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them

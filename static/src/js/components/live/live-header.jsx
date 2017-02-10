@@ -13,7 +13,6 @@ export default React.createClass({
     lineups: React.PropTypes.array.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
     selectLineup: React.PropTypes.func.isRequired,
-    showEventResult: React.PropTypes.bool,
     watching: React.PropTypes.object.isRequired,
   },
 
@@ -21,7 +20,7 @@ export default React.createClass({
    * Renders the DOM for displaying the current animation event's information.
    */
   renderAnimationInfo() {
-    if (!this.props.showEventResult) {
+    if (!this.props.currentEvent) {
       return null;
     }
 
@@ -41,7 +40,7 @@ export default React.createClass({
    * Renders a LiveOverallStatsConnected component.
    */
   renderOverallStats(whichSide, lineup, potentialWinnings, rank) {
-    const modifiers = !this.props.showEventResult ? [] : ['event-ended'];
+    const modifiers = !this.props.currentEvent ? [] : ['event-ended'];
 
     return (
       <LiveOverallStatsConnected
