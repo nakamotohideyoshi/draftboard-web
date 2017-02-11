@@ -112,13 +112,6 @@ export default class NBAPlayRecapVO {
     if (hasFieldGoal) {
       const shotType = stats.fieldgoal__list.shot_type;
 
-      // Handle missed field goals that are not blocked. Everything else is
-      // either a made shot or a blocked shot. The "made" property is set to the
-      // string "false" in the API's returned object.
-      if (!hasBlock && !this.madeShot() && shotType !== 'jump shot') {
-        return NBAPlayRecapVO.UNKNOWN_PLAY;
-      }
-
       switch (shotType) {
         case 'dunk' :
           return hasBlock
