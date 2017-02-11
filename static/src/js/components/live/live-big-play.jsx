@@ -56,7 +56,7 @@ export default React.createClass({
         return (
           <li key={playerId} className={`${block}__player`}>
             <div className={`${block}__player-points`}>
-              {!playerPoints ? '0' : humanizeFP(playerPoints || 0, true)}
+              {!playerPoints ? '' : humanizeFP(playerPoints, true)}
             </div>
             { this.renderPlayerHeadShotImg(playerId) }
           </li>
