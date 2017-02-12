@@ -137,8 +137,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       break;
     }
     case 'nba': {
-      eventDescription.when = when;
-
       // show event beside player and in their history
       forEach(relevantPlayersInEvent, (playerId) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
@@ -329,6 +327,8 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
     gameEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
     gameEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
     gameEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
+    gameEvent.when = message.pbp.clock;
+    gameEvent.quarter = game.boxscore.quarter;
   }
 
   return Promise.all([
