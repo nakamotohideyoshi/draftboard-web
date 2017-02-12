@@ -136,6 +136,10 @@ export default class NBAPlayRecapVO {
     return NBAPlayRecapVO.UNKNOWN_PLAY;
   }
 
+  playDescription() {
+    return this._obj.pbp.description;
+  }
+
   /**
    * Returns true if the play consists of a made shot.
    */
@@ -208,5 +212,32 @@ export default class NBAPlayRecapVO {
     }
 
     return pos;
+  }
+
+  /**
+   * Returns the play's "title" associated with the play's playType.
+   */
+  playTitle() {
+    const playTypeToTitle = {
+      [NBAPlayRecapVO.FREETHROW]: 'Freethrow',
+      [NBAPlayRecapVO.DUNK]: 'Dunk',
+      [NBAPlayRecapVO.BLOCKED_DUNK]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_HOOKSHOT]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_JUMPSHOT]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_LAYUP]: 'Block',
+      [NBAPlayRecapVO.JUMPSHOT]: 'Jumpshot',
+      [NBAPlayRecapVO.HOOKSHOT]: 'Hookshot',
+      [NBAPlayRecapVO.LAYUP]: 'Layup',
+      [NBAPlayRecapVO.STEAL]: 'Steal',
+      [NBAPlayRecapVO.REBOUND]: 'Rebound',
+    };
+
+    const type = this.playType();
+
+    if (!playTypeToTitle.hasOwnProperty(type)) {
+      return '';
+    }
+
+    return playTypeToTitle[this.playType()];
   }
 }
