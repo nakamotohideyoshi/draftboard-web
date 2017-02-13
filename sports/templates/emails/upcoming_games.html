@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Upcoming Games</title>
 </head>
+{% timezone "US/Pacific" %}
 <body>
 {% for sport, blocks in data.items %}
     <p>Tomorrows’s {{ sport|title }}:</p>
@@ -24,4 +25,5 @@
     {% endfor %}
 {% endfor %}
 </body>
+{% endtimezone %}
 </html>
