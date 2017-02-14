@@ -1,14 +1,11 @@
+from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
-from django import forms
-from django.conf import settings
-from .models import UserLog, Information
-from .utils import CheckUserAccess
-from account.utils import create_user_log
+
+from .models import Limit, Information
 
 
 class LoginForm(AuthenticationForm):
-
     def clean(self):
         cleaned_data = super().clean()
         # This is disabled because users CAN login, even with a restricted IP.
@@ -20,8 +17,17 @@ class LoginForm(AuthenticationForm):
         #     raise forms.ValidationError(msg)
         exclude_date = self.user_cache.information.exclude_date
         if exclude_date and exclude_date > timezone.now().date():
-            raise forms.ValidationError("Your user was self-excluded. Please contact support to get more details")
+            raise forms.ValidationError(
+                "Your user was self-excluded. Please contact support to get more details")
         return cleaned_data
+
+
+class LimitForm(forms.ModelForm):
+    value = forms.ChoiceField(choices=Limit.DEPOSIT_MAX + Limit.ENTRY_FEE_MAX)
+
+    class Meta:
+        model = Limit
+        fields = ['type', 'value', 'time_period', 'user']
 
 
 class SelfExclusionForm(forms.ModelForm):

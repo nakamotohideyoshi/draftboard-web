@@ -36,7 +36,7 @@ urlpatterns = [
     # "buyin" api - ie: enter a lineup into a contest.
     # This endpoint returns a task id which should
     # be used subsequently to check if the buy was successful.
-    url(r'^enter-lineup/$', EnterLineupAPIView.as_view()),
+    url(r'^enter-lineup/$', EnterLineupAPIView.as_view(), name='enter-lineup'),
 
     #
     # edit entry (ie: edit a lineup that is associated in a contest)
