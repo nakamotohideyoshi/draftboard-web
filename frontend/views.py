@@ -62,6 +62,7 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
             'opponent_lineup_id'] if 'opponent_lineup_id' in kwargs else None
         if opponent_lineup_id:
             # if 1 then we know it's the villian watch
+
             if opponent_lineup_id is '1' or Entry.objects.filter(
                     contest__id=contest_id, lineup__pk=opponent_lineup_id).count() == 0:
                 return HttpResponseRedirect(reverse('frontend:live-contest-mode', kwargs={
@@ -111,6 +112,13 @@ class FrontendSettingsWithdrawTemplateView(LoginRequiredMixin, TemplateView):
     Account Withdrawals page.
     """
     template_name = 'frontend/account/partials/withdraw.html'
+
+
+class FrontendSettingsUserLimitsTemplateView(LoginRequiredMixin, TemplateView):
+    """
+    User Limits page
+    """
+    template_name = 'frontend/account/partials/user_limits.html'
 
 
 class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
@@ -165,6 +173,10 @@ class FrontendTermsConditionsTemplateView(TemplateView):
 
 class FrontendPrivacyPolicyTemplateView(TemplateView):
     template_name = 'frontend/privacy-policy.html'
+
+
+class FrontendResponsiblePlayTemplateView(TemplateView):
+    template_name = 'frontend/responsible-play.html'
 
 
 class FrontendRestrictedLocationTemplateView(TemplateView):

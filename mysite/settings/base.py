@@ -438,3 +438,8 @@ GOOGLE_ANALYTICS_CODE = 'UA-85293033-1'
 
 # Trusted sources for swish update
 TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
+
+
+# once limits applied, residents of specific states will not be able to increase
+# this limit for days respectively.
+LIMIT_DAYS_RESTRAINT = {'MA': 90}

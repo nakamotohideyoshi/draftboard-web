@@ -2,25 +2,30 @@
 # serializers.py
 
 from re import search
-from rest_framework import serializers
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
 from account.blacklist import BLACKLIST
 from account.models import (
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
+    Limit,
     Identity,
 )
-from django.contrib.auth import get_user_model
 
 
 class UserIdentitySerializer(serializers.ModelSerializer):
     """
     Serializer for User.Identity. This gets nested in UserSerializer.
     """
+
     class Meta:
         model = Identity
-        fields = ('first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year', 'postal_code')
+        fields = ('first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
+                  'postal_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -55,7 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
             'can_bypass_location_check': user.has_perm('account.can_bypass_location_check'),
             'can_bypass_age_check': user.has_perm('account.can_bypass_age_check'),
             'can_bypass_identity_verification': user.has_perm(
-                                                'account.can_bypass_identity_verification')
+                'account.can_bypass_identity_verification')
         }
 
     class Meta:
@@ -111,7 +116,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         UserModel = get_user_model()
 
         if UserModel.objects.filter(email__iexact=value):
-
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
@@ -160,14 +164,12 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializerNoPassword(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ('email',)
 
 
 class EmailNotificationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = EmailNotification
         fields = ("id", "category", "name", "description", "deprecated")
@@ -182,7 +184,6 @@ class UserEmailNotificationSerializer(serializers.ModelSerializer):
 
 
 class UpdateUserEmailNotificationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserEmailNotification
         fields = ("id", "enabled")
@@ -203,7 +204,6 @@ class PasswordResetSerializer(serializers.Serializer):
 
 
 class SavedCardSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SavedCardDetails
         fields = ('user', 'token', 'type', 'last_4', 'exp_month', 'exp_year', 'default')
@@ -251,3 +251,28 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
     birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
     postal_code = serializers.CharField(max_length=16)
+
+
+class LimitsListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        limit_mapping = {limit.type: limit for limit in instance}
+        data_mapping = {item['type']: item for item in validated_data}
+
+        # Perform updates.
+        updated = []
+        for limit_type, data in data_mapping.items():
+            limit = limit_mapping.get(limit_type, None)
+
+            updated.append(self.child.update(limit, data))
+        return updated
+
+
+class UserLimitsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user limits.
+    """
+
+    class Meta:
+        model = Limit
+        field = ('type', 'value', 'time_period')
+        list_serializer_class = LimitsListSerializer
