@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 
 import dataden.classes
 import dataden.classes
@@ -860,6 +861,7 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
         self.key_fullname = 'full_name'
         self.key_position = 'primary_position'
 
+
 # class Fppg(object):
 #
 #     def __init__(self):
@@ -917,3 +919,53 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
 #
 # this way we could make a method to parse fppgs( start_dt, end_dt ) which is more
 # generic and useful   OR MAY BE EXISTING IN THE SALARY STUFF RYAN WROTE BTW
+
+
+class TeamNameCache(object):
+    """
+    This is a cache for all <sport>.Team models. It is an easy and quick way to get team info without
+    having to hit the database.
+    """
+    cache_key = 'team_cache_v1'
+
+    def __init__(self):
+        # Fetch teams from the cache (if they exist)
+        self.team_cache = cache.get(self.cache_key)
+
+        # If the cache is not populated, fill it up with all teams from all sports!
+        if self.team_cache is None:
+            teams = {}
+            # Get the names of sports we support.
+            ssm = SiteSportManager()
+            sports = ssm.get_sport_names()
+
+            # Run through each sport and grab its teams.
+            for sport in sports:
+                sport_teams = ssm.get_team_class(sport).objects.values()
+                logger.warning('caching %s %s teams' % (len(sport_teams), sport))
+                for team in sport_teams:
+                    teams[team['srid']] = team
+                    # Add in sport field for easy filtering.
+                    teams[team['srid']].update({'sport': sport})
+
+            # Set the teams into the cache
+            cache.set(self.cache_key, teams)
+            logger.warning(
+                'cached %s teams from %s sports into the team cache' % (len(teams), len(sports)))
+            self.team_cache = teams
+
+    def get_team_from_srid(self, srid):
+        """
+        Get a team entry from a team_srid
+        Args:
+            srid: <sport>.models.Team.team_srid
+        """
+        return self.team_cache[srid]
+
+    @staticmethod
+    def search(values, search_for):
+        for k in values:
+            for v in values[k]:
+                if search_for in v:
+                    return k
+        return None

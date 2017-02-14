@@ -1,6 +1,6 @@
 import * as ActionTypes from '../action-types';
 import Cookies from 'js-cookie';
-import { handleError } from './track-exceptions';
+// import { handleError } from './track-exceptions';
 import fetch from 'isomorphic-fetch';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
@@ -61,9 +61,8 @@ const requestContestLineupsUsernames = (id) => ({
  * @param  {object} parsedLineups Parsed lineups, generated from binary hex
  * @return {object}               Changes for reducer
  */
-const receiveContestLineups = (id, contestPoolId, response, parsedLineups) => ({
+const receiveContestLineups = (id, response, parsedLineups) => ({
   type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS,
-  contestPoolId,
   id,
   lineupBytes: response,
   lineups: parsedLineups,
@@ -156,7 +155,6 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
  */
 const parseContestLineups = (apiContestLineupsBytes, sport) => {
   logAction.debug('actions.parseContestLineups');
-
   // add up who's in what place
   const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex');
   const lineups = {};
@@ -180,7 +178,7 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestLineups = (id, poolId, sport) => (dispatch) => {
+const fetchContestLineups = (id, sport) => (dispatch) => {
   logAction.debug('actions.fetchContestLineups');
 
   dispatch(requestContestLineups(id));
@@ -198,13 +196,8 @@ const fetchContestLineups = (id, poolId, sport) => (dispatch) => {
 
     return response.text();
   }).then(res =>
-    dispatch(receiveContestLineups(id, poolId, res, parseContestLineups(res, sport)))
-  ).catch((err) => dispatch(handleError(err, {
-    header: 'Failed to connect to API.',
-    content: 'Please refresh the page to reconnect.',
-    level: 'warning',
-    id: 'apiFailure',
-  })));
+    dispatch(receiveContestLineups(id, res, parseContestLineups(res, sport)))
+  );
 };
 
 
@@ -240,14 +233,7 @@ const fetchContestLineupsUsernames = (id) => (dispatch) => {
 
     // Otherwise parse the (hopefully) json from the response body.
     return response.json().then(json => ({ json, response }));
-  }).catch(
-    (err) => dispatch(handleError(err, {
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }))
-  ).then(
+  }).then(
     ({ json }) => dispatch(receiveContestLineupsUsernames(id, json))
   );
 };
@@ -313,10 +299,12 @@ export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState)
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchContestLineupsIfNeeded = (id, poolId, sport) => (dispatch, getState) => {
+export const fetchContestLineupsIfNeeded = (id, sport) => (dispatch, getState) => {
   logAction.debug('actions.fetchContestLineupsIfNeeded');
 
-  if (shouldFetchContestLineups(getState().liveContests, id)) return dispatch(fetchContestLineups(id, poolId, sport));
+  if (shouldFetchContestLineups(getState().liveContests, id)) {
+    return dispatch(fetchContestLineups(id, sport));
+  }
 };
 
 /**
