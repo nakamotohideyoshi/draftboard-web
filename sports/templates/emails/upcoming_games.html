@@ -1,16 +1,23 @@
+{% load tz %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Upcoming Games</title>
+    <title>Draftboard Contest Schedule</title>
 </head>
 {% timezone "US/Pacific" %}
 <body>
+
+<h2>Draftboard Contest Schedule</h2>
+<em>All times are US/Pacific</em>
+
 {% for sport, blocks in data.items %}
-    <p>Tomorrows’s {{ sport|title }}:</p>
+    <hr />
+
+    <h3>Today &amp; Tomorrow’s {{ sport|upper }}:</h3>
     {% for block in blocks %}
-        <p>Lock: {{ block.cutoff_time }}:</p>
-        <p>Included games: {{ block.get_block_games.0|length  }}</p>
+      <p>
+        <strong>{{ block.cutoff|date:"l, M jS" }}:</strong> <em>cutoff time: {{ block.cutoff|date:"g:iA" }}</em> - {{ block.get_block_games.0|length }} games</p>
         <ul>
         {% for game in block.get_block_games.0 %}
             <li>{{ game.game.start }} - {{ game.name }}</li>
@@ -19,7 +26,7 @@
             <p>Excluded games: {{ block.get_block_games.1|length }}</p>
         <ul>
         {% for game in block.get_block_games.1 %}
-            <li>{{ game.game.start }} - {{ game.name }}</li>
+            <li><strong>{{ game.game.start }} - {{ game.name }}<strong></li>
         {% endfor %}
         </ul>
     {% endfor %}
