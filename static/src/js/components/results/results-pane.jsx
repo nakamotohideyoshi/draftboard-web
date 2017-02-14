@@ -1,17 +1,11 @@
-import GamesList from '../contest-list/games-list.jsx';
 import PrizeStructure from '../contest-list/prize-structure.jsx';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
-import { fetchContestLineupsIfNeeded } from '../../actions/live-contests';
-import { fetchContestPoolIfNeeded } from '../../actions/live-contest-pools';
-import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups';
-import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
-import { fetchDraftGroupBoxscoresIfNeeded } from '../../actions/live-draft-groups.js';
 import { humanizeCurrency } from '../../lib/utils/currency';
 import { Provider, connect } from 'react-redux';
-import { resultsContestsSelector } from '../../selectors/results-contests';
-
+import { focusedEntryResultSelector } from '../../selectors/results-contests';
+import ScoringInfo from '../contest-list/scoring-info';
 
 const ResultsPane = React.createClass({
 
@@ -19,11 +13,12 @@ const ResultsPane = React.createClass({
     contestId: React.PropTypes.number,
     dispatch: React.PropTypes.func.isRequired,
     entry: React.PropTypes.object.isRequired,
-    resultsContestsSelector: React.PropTypes.object.isRequired,
     onHide: React.PropTypes.func,
     numToPlace: React.PropTypes.func,
     sport: React.PropTypes.string.isRequired,
+    entryResult: React.PropTypes.object.isRequired,
   },
+
 
   getInitialState() {
     return {
@@ -31,53 +26,25 @@ const ResultsPane = React.createClass({
     };
   },
 
+
   componentWillMount() {
     document.body.classList.add('results-pane');
   },
 
-  componentWillUpdate(nextProps) {
-    let newContestInfo = {};
-
-    if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
-      return this.props.dispatch(
-        fetchContestLineupsIfNeeded(nextProps.contestId, this.props.sport)
-      ).then(
-        () => this.props.dispatch(fetchContestPoolIfNeeded(nextProps.contestId))
-      ).then(() => {
-
-        console.log(this.props.resultsContestsSelector)
-
-        newContestInfo = this.props.resultsContestsSelector[this.props.contestId] || {};
-        // if (!newContestInfo) newContestInfo={};
-        console.log('we have contestInfo!!!')
-        // if we don't have a draft group, retrieve!
-        if (newContestInfo.hasOwnProperty('rankedLineups') === false) {
-          return this.props.dispatch(
-            fetchDraftGroupIfNeeded(newContestInfo.draftGroupId, this.props.sport)
-          );
-        }
-
-        return;
-      }).then(
-        () => this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId))
-      ).then(
-        () => this.props.dispatch(fetchContestLineupsUsernamesIfNeeded(this.props.contestId))
-      );
-    }
-  },
 
   componentWillUnmount() {
     document.body.classList.remove('results-pane');
   },
 
+
   // I know making these their own components would be more 'react', but I don't want to deal with
   // the hassle right now.
   getTabNav() {
     const tabs = [
+      { title: 'Standings', tab: 'standings' },
       { title: 'Payout', tab: 'prizes' },
       { title: 'Games', tab: 'games' },
       { title: 'Scoring', tab: 'scoring' },
-      { title: 'Standings', tab: 'standings' },
     ];
 
     return tabs.map((tab) => {
@@ -99,24 +66,31 @@ const ResultsPane = React.createClass({
     });
   },
 
+
   handleHide() {
     this.props.onHide();
   },
+
 
   // When a tab is clicked, tell the state to show it'scontent.
   handleTabClick(tabName) {
     this.setState({ activeTab: tabName });
   },
 
-  renderStandings(contest) {
-    const standings = contest.rankedLineups.map((lineupId) => {
-      const lineup = contest.lineups[lineupId];
-      const username = (lineup.user) ? lineup.user.username : `user${lineupId}`;
+
+  renderStandings(rankedEntries) {
+    const standings = rankedEntries.map((lineup) => {
+      let payout = 0.0;
+
+      if (lineup.payout) {
+        payout = lineup.payout.amount;
+      }
 
       return (
-        <tr key={lineup.id}>
-          <td>{username}</td>
-          <td>{humanizeCurrency(lineup.potentialWinnings)}</td>
+        <tr key={lineup.final_rank}>
+          <td>{lineup.username}</td>
+          <td>{humanizeCurrency(payout)}</td>
+          <td>{lineup.fantasy_points}</td>
         </tr>
       );
     });
@@ -127,6 +101,7 @@ const ResultsPane = React.createClass({
           <tr>
             <th>entry</th>
             <th>prize</th>
+            <th>points</th>
           </tr>
         </thead>
         <tbody>
@@ -136,22 +111,41 @@ const ResultsPane = React.createClass({
     );
   },
 
+
   // Get the content of the selected tab.
   renderActiveTab() {
-    const contest = this.props.resultsContestsSelector[this.props.contestId] || {};
+    const contest = this.props.entryResult.contest || {};
 
     switch (this.state.activeTab) {
       case 'prizes': {
-        return (<PrizeStructure structure={contest.prizeStructure} />);
+        return (<PrizeStructure structure={this.props.entryResult.prize_structure} />);
       }
 
       case 'games': {
-        if (contest.boxScores !== null) {
+        const gameList = this.props.entryResult.games.map((game) => (
+            <tr key={game.home_team}>
+              <td className="teams">
+                {game.away_team}&nbsp;vs&nbsp;
+                {game.home_team}
+              </td>
+            </tr>
+        ));
+
+        if (contest.games !== null) {
           return (
-            <GamesList
-              boxScores={contest.boxScores}
-              teams={contest.teams}
-            />
+            <div className="cmp-games-list">
+
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="place">Teams</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gameList}
+                </tbody>
+              </table>
+            </div>
           );
         }
 
@@ -159,31 +153,11 @@ const ResultsPane = React.createClass({
       }
 
       case 'scoring': {
-        const scoringVals = [
-          ['Point', '+1'],
-          ['Rebound', '+1.25'],
-          ['Assist', '+1.25'],
-          ['Steal', '+2'],
-          ['Block', '+2'],
-          ['Turnover', '-0.5'],
-        ];
-
-        const scoring = scoringVals.map((scoreType) => (
-            <li key={scoreType[0]}>
-              <span className="scoring__type">{scoreType[0]}</span>
-              <span className="scoring__value">{scoreType[1]} PTS.</span>
-            </li>
-        ));
-
-        return (
-          <ul className="scoring">
-            {scoring}
-          </ul>
-        );
+        return <ScoringInfo sport={contest.sport} />;
       }
 
       case 'standings': {
-        return this.renderStandings(contest);
+        return this.renderStandings(this.props.entryResult.ranked_entries);
       }
 
       default: {
@@ -192,16 +166,15 @@ const ResultsPane = React.createClass({
     }
   },
 
+
   render() {
-    const contest = this.props.resultsContestsSelector[this.props.contestId] || {};
-    const entry = this.props.entry;
+    const contest = this.props.entryResult.contest || {};
+    const entry = this.props.entryResult;
     const tabNav = this.getTabNav();
+    const prizeStructure = this.props.entryResult.prize_structure;
 
     // show loading until we have data
-    if (contest.hasOwnProperty('prizeStructure') === false ||
-      contest.boxScores === null ||
-      contest.hasOwnProperty('rankedLineups') === false
-    ) {
+    if (Object.keys(this.props.entryResult).length === 0) {
       return (
         <section className="pane pane--contest-detail pane--contest-results">
           <div className="pane__close" onClick={this.handleHide}></div>
@@ -223,7 +196,7 @@ const ResultsPane = React.createClass({
       );
     }
 
-    const prize = humanizeCurrency(contest.prizeStructure.ranks[0].value);
+    const prize = humanizeCurrency(prizeStructure.ranks[0].value);
 
     let hasEnded = (
       <div className="has-ended">
@@ -254,17 +227,17 @@ const ResultsPane = React.createClass({
                 </div>
               </div>
 
-              <div className="header__extra-info">
+              {/* <div className="header__extra-info">
                 <div className="m badge">M</div>
                 <div className="g badge">G</div>
-              </div>
+              </div> */}
 
               <div className="header__fee-prizes-pool">
-                <div><span className="info-title">Prize</span><div>{humanizeCurrency(prize)}</div></div>
-                <div><span className="info-title">Fee</span><div>{humanizeCurrency(contest.buyin)}</div></div>
-                <div><span className="info-title">Entrants</span><div>
-                  {contest.rankedLineups.length}/{contest.entriesCount}
+                <div><span className="info-title">Prize Pool</span><div>{humanizeCurrency(prize)}</div></div>
+                <div><span className="info-title">Entries</span><div>
+                  {contest.current_entries}/{contest.entries}
                 </div></div>
+                <div><span className="info-title">Fee</span><div>{humanizeCurrency(contest.buyin)}</div></div>
               </div>
             </div>
           </div>
@@ -281,15 +254,17 @@ const ResultsPane = React.createClass({
   },
 });
 
+
 // Which part of the Redux global state does our component want to receive as props?
 const mapStateToProps = (state) => ({
-  resultsContestsSelector: resultsContestsSelector(state),
+  entryResult: focusedEntryResultSelector(state),
 });
 
 // Wrap the component to inject dispatch and selected state into it.
 const ResultsPaneConnected = connect(
   mapStateToProps
 )(ResultsPane);
+
 
 renderComponent(
   <Provider store={store}>
