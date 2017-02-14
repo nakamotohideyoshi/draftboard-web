@@ -62,13 +62,17 @@ const ResultsLineup = React.createClass({
     this.setState({ renderLineup: false });
   },
 
-  handleShowContestPane(contestId, entry) {
-    this.props.fetchEntryResults(entry.id);
-    this.setState({
-      contestPaneId: contestId,
-      renderContestPane: true,
-      currentEntry: entry,
-    });
+  handleShowContestPane(contestId, entry, isLive) {
+    // Don't show contest details for the live lineup view.
+    // It's broken and we want to send people to the live section anyway.
+    if (!isLive) {
+      this.props.fetchEntryResults(entry.id);
+      this.setState({
+        contestPaneId: contestId,
+        renderContestPane: true,
+        currentEntry: entry,
+      });
+    }
   },
 
   handleHideContestPane() {
@@ -305,7 +309,7 @@ const ResultsLineup = React.createClass({
       return (
         <div key={contest.id}
           className="contest"
-          onClick={this.handleShowContestPane.bind(this, contest.id, entry)}
+          onClick={this.handleShowContestPane.bind(this, contest.id, entry, isLive)}
         >
           <div className="place">{entry.final_rank}</div>
           <div className="title">{contest.name}</div>
