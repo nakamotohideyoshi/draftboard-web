@@ -40,6 +40,7 @@ const ResultsLineup = React.createClass({
       points: React.PropTypes.number,
       potentialWinnings: React.PropTypes.object,
     }),
+    fetchEntryResults: React.PropTypes.func.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -62,6 +63,7 @@ const ResultsLineup = React.createClass({
   },
 
   handleShowContestPane(contestId, entry) {
+    this.props.fetchEntryResults(entry.id);
     this.setState({
       contestPaneId: contestId,
       renderContestPane: true,
@@ -132,7 +134,7 @@ const ResultsLineup = React.createClass({
           </div>
 
           <span className="name">{player.full_name}</span>
-          <span classNmae="team">{team}</span>
+          <span className="team">{team}</span>
           <span className={scoreClassName}>
             {score}
           </span>
@@ -358,7 +360,7 @@ const ResultsLineup = React.createClass({
   },
 
   render() {
-    let className = 'flip-container';
+    let className = 'cmp-results-lineup flip-container';
 
     if (!this.state.renderLineup) className += ' hover';
     if (this.state.renderContestPane) {

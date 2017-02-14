@@ -567,7 +567,7 @@ class Entry(models.Model):
     """
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    contest = models.ForeignKey(Contest, null=True, related_name='contests')
+    contest = models.ForeignKey(Contest, null=True, related_name='contest_entries')
     # although this field will never be null, we allow it
     # because replays will break if it cannot be migrated easily
     contest_pool = models.ForeignKey(ContestPool, null=True, related_name='contest_pools')

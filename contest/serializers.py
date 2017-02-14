@@ -1,7 +1,6 @@
-#
-# contest/serializers.py
-
 from rest_framework import serializers
+
+import contest.payout.models
 from contest.models import (
     Contest,
     ClosedContest,
@@ -10,18 +9,18 @@ from contest.models import (
     ContestPool,
     SkillLevel,
 )
+from draftgroup.classes import DraftGroupManager
 from lineup.models import (
     Lineup,
 )
-import contest.payout.models
-from prize.models import PrizeStructure, Rank
 from lineup.serializers import (
     PlayerSerializer,
 )
+from prize.models import PrizeStructure, Rank
+from sports.classes import TeamNameCache
 
 
 class SkillLevelSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SkillLevel
         fields = (
@@ -30,7 +29,6 @@ class SkillLevelSerializer(serializers.ModelSerializer):
 
 
 class RankSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Rank
         fields = (
@@ -40,11 +38,11 @@ class RankSerializer(serializers.ModelSerializer):
 
 
 class PrizeStructureSerializer(serializers.ModelSerializer):
-
     ranks = RankSerializer(many=True, read_only=True)
     is_h2h = serializers.SerializerMethodField()
 
-    def get_is_h2h(self, prize_structure):
+    @staticmethod
+    def get_is_h2h(prize_structure):
         return prize_structure.get_entries() == 2
 
     class Meta:
@@ -60,16 +58,15 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
 
 
 class ContestPoolSerializer(serializers.ModelSerializer):
-
     skill_level = SkillLevelSerializer()
     prize_structure = PrizeStructureSerializer()
     contest_size = serializers.SerializerMethodField()
 
-    def get_contest_size(self, contest_pool):
+    @staticmethod
+    def get_contest_size(contest_pool):
         return contest_pool.prize_structure.get_entries()
 
     class Meta:
-
         model = ContestPool
         fields = ('id', 'name', 'sport', 'start', 'buyin',
                   'draft_group', 'max_entries', 'prize_structure', 'prize_pool',
@@ -77,11 +74,9 @@ class ContestPoolSerializer(serializers.ModelSerializer):
 
 
 class ContestSerializer(serializers.ModelSerializer):
-
     skill_level = SkillLevelSerializer()
 
     class Meta:
-
         model = Contest
         fields = ('id', 'name', 'sport', 'status', 'start', 'buyin',
                   'draft_group', 'max_entries', 'prize_structure', 'prize_pool',
@@ -90,9 +85,7 @@ class ContestSerializer(serializers.ModelSerializer):
 
 
 class ContestIdSerializer(serializers.ModelSerializer):
-
     class Meta:
-
         model = Contest
         fields = ('id', 'draft_group')
 
@@ -102,27 +95,27 @@ class UpcomingEntrySerializer(serializers.ModelSerializer):
     serializer for an Entry in an upcoming ContestPool
     """
     draft_group = serializers.SerializerMethodField()
-
-    def get_draft_group(self, entry):
-        return entry.contest_pool.draft_group.id
-
     start = serializers.SerializerMethodField()
-
-    def get_start(self, entry):
-        return entry.contest_pool.start
-
     lineup_name = serializers.SerializerMethodField()
-
-    def get_lineup_name(self, entry):
-        return entry.lineup.name
-
     sport = serializers.SerializerMethodField()
 
-    def get_sport(self, entry):
+    @staticmethod
+    def get_draft_group(entry):
+        return entry.contest_pool.draft_group.id
+
+    @staticmethod
+    def get_start(entry):
+        return entry.contest_pool.start
+
+    @staticmethod
+    def get_lineup_name(entry):
+        return entry.lineup.name
+
+    @staticmethod
+    def get_sport(entry):
         return entry.lineup.sport
 
     class Meta:
-
         model = Entry
         fields = (
             'id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start',
@@ -135,31 +128,31 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
     """
 
     draft_group = serializers.SerializerMethodField()
+    lineup_name = serializers.SerializerMethodField()
+    start = serializers.SerializerMethodField()
+    sport = serializers.SerializerMethodField()
 
-    def get_draft_group(self, entry):
+    @staticmethod
+    def get_draft_group(entry):
         # if entry.contest is None:
         #     return None
         # print('get_draft_group(self, entry):', str(entry), 'contest:', str(entry.contest),
         #         'draft_group:', str(entry.contest.draft_group))
         return entry.contest_pool.draft_group.id
 
-    start = serializers.SerializerMethodField()
-
-    def get_start(self, entry):
+    @staticmethod
+    def get_start(entry):
         return entry.contest_pool.start
 
-    lineup_name = serializers.SerializerMethodField()
-
-    def get_lineup_name(self, entry):
+    @staticmethod
+    def get_lineup_name(entry):
         return entry.lineup.name
 
-    sport = serializers.SerializerMethodField()
-
-    def get_sport(self, entry):
+    @staticmethod
+    def get_sport(entry):
         return entry.lineup.sport
 
     class Meta:
-
         model = Entry
         fields = (
             'id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start',
@@ -181,36 +174,32 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
 
 
 class EnterLineupSerializer(serializers.Serializer):
-
     contest = serializers.IntegerField()
     lineup = serializers.IntegerField()
 
 
 class EnterLineupStatusSerializer(serializers.Serializer):
-
     task = serializers.CharField()
 
 
 class PayoutSerializer(serializers.ModelSerializer):
-
     user = serializers.SerializerMethodField()
-
-    def get_user(self, payout):
-        return payout.transaction.user
-
     contest = serializers.SerializerMethodField()
 
-    def get_contest(self, payout):
+    @staticmethod
+    def get_user(payout):
+        return payout.transaction.user
+
+    @staticmethod
+    def get_contest(payout):
         return payout.entry.contest
 
     class Meta:
         model = contest.payout.models.Payout
-
         fields = ('contest', 'rank', 'amount', 'user')
 
 
 class EditEntryLineupSerializer(serializers.Serializer):
-
     entry = serializers.IntegerField(
         help_text='the pk of the Entry'
     )
@@ -222,25 +211,87 @@ class EditEntryLineupSerializer(serializers.Serializer):
 
 
 class EditEntryLineupStatusSerializer(serializers.Serializer):
-
     task = serializers.CharField()
 
 
-class RemoveAndRefundEntrySerializer(serializers.Serializer):
+class SimpleBoxscoreSerialzer(serializers.Serializer):
+    """
+    A reduced boxscore serializer that will work with all types of sport-specific boxscore models.
+    Only contains fields that are in the abstract `sports.models.GameBoxscore` model.
+    """
+    home_team = serializers.SerializerMethodField()
+    away_team = serializers.SerializerMethodField()
 
+    def get_home_team(self, game):
+        return self.get_team_name_from_srid(game.srid_home)
+
+    def get_away_team(self, game):
+        return self.get_team_name_from_srid(game.srid_away)
+
+    @staticmethod
+    def get_team_name_from_srid(srid):
+        tnc = TeamNameCache()
+        return tnc.get_team_from_srid(srid).get('alias', 'not found')
+
+    class Meta:
+        fields = ('home_team', 'away_team')
+
+
+class EntryResultSerializer(serializers.ModelSerializer):
+    """
+    Everything we need to show the results of a contest for a single entry.
+        This includes the contest details, prize structure, and other entries
+        in the contest.
+    """
+    contest = ContestSerializer()
+    prize_structure = serializers.SerializerMethodField()
+    ranked_entries = serializers.SerializerMethodField()
+    games = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_games(entry):
+        """
+        Grab the boxscore for this entry's draftgroup and run it through a very simplified
+        serializers, all we need is the team names.
+        """
+        dgm = DraftGroupManager()
+        boxscores = dgm.get_game_boxscores(entry.contest.draft_group)
+        games = SimpleBoxscoreSerialzer(boxscores, many=True)
+        return games.data
+
+    @staticmethod
+    def get_prize_structure(entry):
+        prize = PrizeStructureSerializer(entry.contest.prize_structure)
+        return prize.data
+
+    @staticmethod
+    def get_ranked_entries(entry):
+        """
+        Get a ranked list of all entries in the contest
+        """
+        entries = Entry.objects.filter(
+            contest=entry.contest).order_by('final_rank').select_related('lineup', 'user')
+        ranked_entries = RankedEntrySerializer(entries, many=True)
+        return ranked_entries.data
+
+    class Meta:
+        model = Entry
+        fields = (
+            'id', 'final_rank', 'lineup', 'contest', 'prize_structure', 'ranked_entries',
+            'games')
+
+
+class RemoveAndRefundEntrySerializer(serializers.Serializer):
     entry = serializers.IntegerField(help_text='the id of the Entry to remove and refund')
 
 
 class RemoveAndRefundEntryStatusSerializer(serializers.Serializer):
-
     task = serializers.CharField()
 
 
 class SuccinctPayoutSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = contest.payout.models.Payout
-
         fields = ('amount',)
 
 
@@ -248,8 +299,8 @@ class SuccinctContestSerializer(serializers.ModelSerializer):
     """
     limited number of contest properties (basically just the name)
     """
-    class Meta:
 
+    class Meta:
         model = ClosedContest
         fields = ('id', 'name', 'status')
 
@@ -260,7 +311,6 @@ class EntrySerializer(serializers.ModelSerializer):
     """
 
     contest = SuccinctContestSerializer()
-
     payout = SuccinctPayoutSerializer()
 
     class Meta:
@@ -278,7 +328,6 @@ class UserLineupHistorySerializer(serializers.ModelSerializer):
     #     return EntrySerializer(many=True, read_only=True)
 
     entries = EntrySerializer(many=True, read_only=True)
-
     players = PlayerSerializer(many=True, read_only=True)
 
     class Meta:
@@ -295,17 +344,18 @@ class RankedEntrySerializer(serializers.ModelSerializer):
 
     username = serializers.SerializerMethodField()
 
-    def get_username(self, entry):
+    @staticmethod
+    def get_username(entry):
         return entry.user.username
 
     fantasy_points = serializers.SerializerMethodField()
 
-    def get_fantasy_points(self, entry):
+    @staticmethod
+    def get_fantasy_points(entry):
         return entry.lineup.fantasy_points
 
     payout = SuccinctPayoutSerializer()
 
     class Meta:
-
         model = Entry
         fields = ('username', 'final_rank', 'payout', 'fantasy_points')
