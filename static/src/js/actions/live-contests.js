@@ -1,6 +1,6 @@
 import * as ActionTypes from '../action-types';
 import Cookies from 'js-cookie';
-import { handleError } from './track-exceptions';
+// import { handleError } from './track-exceptions';
 import fetch from 'isomorphic-fetch';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
@@ -303,8 +303,8 @@ export const fetchContestLineupsIfNeeded = (id, sport) => (dispatch, getState) =
   logAction.debug('actions.fetchContestLineupsIfNeeded');
 
   if (shouldFetchContestLineups(getState().liveContests, id)) {
-    return dispatch(fetchContestLineups(id, sport))
-  };
+    return dispatch(fetchContestLineups(id, sport));
+  }
 };
 
 /**

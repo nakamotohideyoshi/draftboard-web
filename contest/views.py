@@ -14,7 +14,9 @@ from rest_framework.exceptions import (
     ValidationError,
     NotFound,
     APIException,
+    PermissionDenied,
 )
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -60,6 +62,7 @@ from contest.serializers import (
     EnterLineupSerializer,
     PayoutSerializer,
     EditEntryLineupSerializer,
+    EntryResultSerializer,
     RemoveAndRefundEntrySerializer,
     UserLineupHistorySerializer,
     # PlayHistoryLineupSerializer,
@@ -516,6 +519,23 @@ class EnterLineupAPIView(generics.CreateAPIView):
         )
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class EntryResultAPIView(generics.RetrieveAPIView):
+    """
+    Returns everything we need to display the results of the specified contest entry.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EntryResultSerializer
+
+    def get_object(self):
+        obj = get_object_or_404(Entry.objects.select_related('contest', 'contest__prize_structure'),
+                                id=self.kwargs['entry_id'])
+        if not (obj.user == self.request.user):
+            raise PermissionDenied()
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
 class PayoutsAPIView(generics.ListAPIView):
