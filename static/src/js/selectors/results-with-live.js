@@ -38,7 +38,7 @@ export const resultsWithLive = createSelector(
       // hack, need to find better way to know when contests are loaded
       const firstContestsStats = contestsStats[Object.keys(contestsStats)[0]];
 
-      if (currentLineups.hasRelatedInfo === true && Object.keys(firstContestsStats).length > 0) {
+      if (currentLineups.hasRelatedInfo === true && firstContestsStats && Object.keys(firstContestsStats).length > 0) {
         const lineupSelector = currentLineupsStats[lineup.id];
         const draftGroup = liveDraftGroups[lineup.draftGroup] || {};
         const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
