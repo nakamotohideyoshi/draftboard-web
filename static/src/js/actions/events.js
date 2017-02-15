@@ -192,7 +192,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
   // if there are no more relevant players, just update stats
-  if (relevantPlayersInEvent.length === 0) {
+  if (relevantPlayersInEvent.length === 0 && !window.is_debugging_live_animation) {
     const calls = [];
     calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
     return Promise.all(calls);
