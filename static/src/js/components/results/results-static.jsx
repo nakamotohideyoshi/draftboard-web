@@ -22,6 +22,7 @@ const ResultsStatic = (props) => {
         <ResultsLineups
           isWatchingLive={isWatchingLive}
           lineups={dayResults.lineups}
+          fetchEntryResults={props.fetchEntryResults}
         />
       </div>
     );
@@ -62,6 +63,7 @@ ResultsStatic.propTypes = {
   onSelectDate: React.PropTypes.func.isRequired,
   resultsWithLive: React.PropTypes.object.isRequired,
   watchLiveLineups: React.PropTypes.func,
+  fetchEntryResults: React.PropTypes.func.isRequired,
 };
 
 export default ResultsStatic;

@@ -1,4 +1,5 @@
 from django.conf.urls import url
+
 from account.views import (
     AuthAPIView,
     ForgotPasswordAPIView,
@@ -10,8 +11,8 @@ from account.views import (
 )
 from .views import (
     # paypal apis:
-    PayPalDepositWithPayPalAccountAPIView,              # not fully implemented
-    PayPalDepositWithPayPalAccountSuccessAPIView,       # not fully implemented
+    PayPalDepositWithPayPalAccountAPIView,  # not fully implemented
+    PayPalDepositWithPayPalAccountSuccessAPIView,  # not fully implemented
     # PayPalDepositWithPayPalAccountFailAPIView,          # not fully implemented
     # PayPalDepositCreditCardAPIView,
     # PayPalDepositSavedCardAPIView,
@@ -24,7 +25,7 @@ from .views import (
     VZeroDepositView,
     VerifyLocationAPIView,
     TruliooVerifyUserAPIView,
-
+    UserLimitsAPIView,
 )
 
 urlpatterns = [
@@ -93,5 +94,8 @@ urlpatterns = [
 
     # verify a user using Trulioo
     url(r'^verify-user/$', TruliooVerifyUserAPIView.as_view()),
+
+    # get a list of user limits
+    url(r'^user-limits/$', UserLimitsAPIView.as_view()),
 
 ]

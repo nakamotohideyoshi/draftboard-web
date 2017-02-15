@@ -2,7 +2,7 @@ from django.conf.urls import include
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-# from debreach.decorators import csrf_protect, csrf_decrypt
+
 from account.views import (
     login,
     RegisterView,
@@ -11,7 +11,6 @@ from account.views import (
     AccessSubdomainsTemplateView,
     ConfirmUserEmailView,
 )
-
 
 urlpatterns = [
     # django auth views we choose to have
@@ -23,15 +22,14 @@ urlpatterns = [
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.password_reset_confirm, name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
-
     url(r'^register/', RegisterView.as_view(), name='register'),
-
     url(r'^admin/', include(admin.site.urls)),
 
     # frontend templates, will eventually be separated out
     url(r'', include('frontend.urls', namespace='frontend')),
     url(r'^self-exclusion/$', ExclusionFormView.as_view(), name='self-exclusion'),
-    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(), name='site-subdomains-access'),
+    url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(),
+        name='site-subdomains-access'),
     # TODO swagger docs should not be on production
     url(r'^docs/', schema_view),
 ]

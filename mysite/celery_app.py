@@ -327,6 +327,12 @@ app.conf.update(
             'schedule': crontab(minute=0, hour='12'),  # ~ noon
             'options': {'queue': 'long_running'},
         },
+
+        # tomorrow draftboard games
+        'send_upcoming_issues': {
+            'task': 'contest.schedule.tasks.send_upcoming_issues',
+            'schedule': crontab(hour='10'),  # ~ 7 AM PST
+        },
     },
 )
 

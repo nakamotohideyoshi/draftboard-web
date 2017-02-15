@@ -6,12 +6,11 @@ from transaction.classes import AbstractTransaction, CanDeposit
 from transaction.models import TransactionType
 from transaction.constants import TransactionTypeConstants
 from cash.exceptions import OverdraftException
-from mysite.exceptions import IncorrectVariableTypeException
 from dfslog.classes import Logger, ErrorCodes
-from django.contrib.auth.models import User
-from django.conf import settings
+
 from django.db import models
 import datetime
+
 
 class CashTransaction(CanDeposit, AbstractTransaction):
     """
@@ -173,7 +172,19 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         ).aggregate(models.Sum('amount'))
         return abs(total_withdrawal['amount__sum'] or 0) - (total_deposit['amount__sum'] or 0)
 
+    def get_all_deposits(self, date_range):
+        """
+        Gets all deposits for the user in the range of days.
 
+        :param date_range: The range of days chosen as time period for deposit limit.
+        :return: the sum of all deposits for date range
+        """
 
+        category = TransactionType.objects.get(
+            pk=TransactionTypeConstants.CashDeposit.value
+        )
 
-
+        return self.transaction_detail_class.objects.filter(
+            created__range=date_range,
+            transaction__category=category
+        ).aggregate(models.Sum('amount'))

@@ -421,7 +421,7 @@ TRULIOO_DEMO_MODE = True
 INACTIVE_USERS_EMAILS = []
 # Who will recieve flagged identity emails. (this can be empty)
 FLAGGED_IDENTITY_EMAIL_RECIPIENTS = ['dan@draftboard.com', 'devs@draftboard.com']
-SITE_ADMIN_EMAIL = ['dan@draftboard.com', 'zach@draftboard.com']
+SITE_ADMIN_EMAIL = ['dan@draftboard.com', 'zach@draftboard.com', 'ryan@draftboard.com']
 
 # Sentry Config
 RAVEN_CONFIG = {
@@ -438,3 +438,8 @@ GOOGLE_ANALYTICS_CODE = 'UA-85293033-1'
 
 # Trusted sources for swish update
 TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
+
+
+# once limits applied, residents of specific states will not be able to increase
+# this limit for days respectively.
+LIMIT_DAYS_RESTRAINT = {'MA': 90}

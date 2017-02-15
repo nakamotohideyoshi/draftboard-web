@@ -80,3 +80,40 @@ export const fetchResultsIfNeeded = (when) => (dispatch, getState) => {
 
   return Promise.resolve('Day of results already exists');
 };
+
+
+/**
+ * Fetch the detailed results for a single entry. This will get us everything we
+ * need to render the results detail pane.
+ * @param  {[type]} whenStr [description]
+ * @return {[type]}         [description]
+ */
+export const fetchEntryResults = (entryId) => (dispatch) => {
+  dispatch({
+    type: ActionTypes.ENTRY_RESULTS__REQUEST,
+    entryId,
+  });
+
+  const apiResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        ActionTypes.NULL,
+        ActionTypes.ENTRY_RESULTS__SUCCESS,
+        ActionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/contest/entries/${entryId}/results/`,
+    },
+  });
+
+  return apiResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      return dispatch({
+        type: ActionTypes.ENTRY_RESULTS__FAIL,
+        response: action.error,
+      });
+    }
+
+    return action;
+  });
+};
