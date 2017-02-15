@@ -128,7 +128,7 @@ const ContestListRow = React.createClass({
     }
 
     const entryDots = entries.map((entry, i) => {
-      if (entry.lineup === this.props.focusedLineup.id) {
+      if (this.props.focusedLineup && entry.lineup === this.props.focusedLineup.id) {
         return (
           <span
             key={`dot-${i}`}

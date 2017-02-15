@@ -2,6 +2,7 @@ import merge from 'lodash/merge';
 
 const actionTypes = require('../action-types');
 const initialState = {
+  hasFetchedLineups: false,
   lineups: {},
   draftGroupIdFilter: null,
   draftGroupsWithLineups: [],
@@ -29,6 +30,7 @@ module.exports = (state = initialState, action) => {
         lineups: action.response.lineups || {},
         draftGroupsWithLineups: action.response.draftGroupsWithLineups,
         focusedLineupId,
+        hasFetchedLineups: true,
       });
     }
 
@@ -51,6 +53,7 @@ module.exports = (state = initialState, action) => {
     case actionTypes.EDIT_LINEUP_INIT:
       return merge({}, state, {
         lineupBeingEdited: action.lineupId,
+        hasFetchedLineups: true,
       });
 
 
