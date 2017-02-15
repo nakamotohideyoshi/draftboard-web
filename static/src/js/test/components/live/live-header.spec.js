@@ -27,7 +27,6 @@ describe('<LiveHeader /> Component', () => {
       },
       lineups: [],
       selectLineup: () => {},
-      showEventResult: false,
       opponentLineup: { isLoading: true },
       watching: {
         myLineupId: 2,
@@ -57,7 +56,6 @@ describe('<LiveHeader /> Component', () => {
       },
       lineups: [],
       selectLineup: () => {},
-      showEventResult: false,
       opponentLineup: { isLoading: true },
       watching: {
         myLineupId: 2,
@@ -81,7 +79,6 @@ describe('<LiveHeader /> Component', () => {
       },
       lineups: [],
       selectLineup: () => {},
-      showEventResult: false,
       myLineup: {
         isLoading: false,
         potentialWinnings: 80,
@@ -128,7 +125,6 @@ describe('<LiveHeader /> Component', () => {
       },
       lineups: [],
       selectLineup: () => {},
-      showEventResult: false,
       opponentLineup: {
         isLoading: false,
         potentialWinnings: 20,

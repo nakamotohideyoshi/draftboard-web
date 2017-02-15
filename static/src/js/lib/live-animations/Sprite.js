@@ -60,8 +60,8 @@ export default class Sprite {
 
     return new Promise((resolve) => {
       this.animate(frameRate, () => {
-        const hasNextFrame = curFrameIndex < targetFrame;
-        this.drawFrame(curFrameIndex++, image, context, frameWidth, frameHeight);
+        this.drawFrame(curFrameIndex, image, context, frameWidth, frameHeight);
+        const hasNextFrame = ++curFrameIndex < targetFrame;
         if (!hasNextFrame) {
           resolve();
         }

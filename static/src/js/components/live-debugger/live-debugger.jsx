@@ -55,7 +55,6 @@ const stubData = {
  */
 const mapStateToProps = (state) => ({
   currentEvent: state.events.currentEvent,
-  showEventResult: state.events.showEventResult,
   bigEvents: state.events.bigEvents,
 });
 
@@ -64,16 +63,19 @@ export default connect(mapStateToProps)(React.createClass({
   propTypes: {
     currentEvent: React.PropTypes.object,
     bigEvents: React.PropTypes.array,
-    showEventResult: React.PropTypes.bool,
   },
 
   getInitialState() {
     return {};
   },
 
+  componentWillMount() {
+    window.is_debugging_live_animation = true;
+  },
+
   render() {
     const { eventsMultipart, watching } = stubData;
-    const { currentEvent, bigEvents, showEventResult } = this.props;
+    const { currentEvent, bigEvents } = this.props;
 
     return (
       <section className="debug-live-animations">
@@ -83,7 +85,6 @@ export default connect(mapStateToProps)(React.createClass({
             <div className="live__venues-inner">
               <LiveHeader
                 currentEvent={currentEvent}
-                showEventResult={showEventResult}
                 contest={stubData.contest}
                 lineups={stubData.uniqueLineups.lineups}
                 myLineup={stubData.myLineupInfo}
