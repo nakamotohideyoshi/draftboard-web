@@ -69,6 +69,10 @@ export default connect(mapStateToProps)(React.createClass({
     return {};
   },
 
+  componentWillMount() {
+    window.is_debugging_live_animation = true;
+  },
+
   render() {
     const { eventsMultipart, watching } = stubData;
     const { currentEvent, bigEvents } = this.props;
