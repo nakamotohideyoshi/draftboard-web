@@ -25,10 +25,6 @@ const addEventToBigPlays = (value) => ({
   value,
 });
 
-const showCurrentResults = () => ({
-  type: ActionTypes.EVENT__SHOW_CURRENT_RESULT,
-});
-
 const setCurrentAnimation = (value) => ({
   type: ActionTypes.EVENT__SET_CURRENT,
   value,
@@ -141,14 +137,11 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       break;
     }
     case 'nba': {
-      eventDescription.when = when;
-
       // show event beside player and in their history
       forEach(relevantPlayersInEvent, (playerId) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them
@@ -164,7 +157,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them
@@ -200,7 +192,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
   // if there are no more relevant players, just update stats
-  if (relevantPlayersInEvent.length === 0) {
+  if (relevantPlayersInEvent.length === 0 && !window.is_debugging_live_animation) {
     const calls = [];
     calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
     return Promise.all(calls);
@@ -335,6 +327,8 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
     gameEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
     gameEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
     gameEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
+    gameEvent.when = message.pbp.clock;
+    gameEvent.quarter = game.boxscore.quarter;
   }
 
   return Promise.all([

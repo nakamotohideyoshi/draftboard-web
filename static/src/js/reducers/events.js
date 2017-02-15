@@ -10,21 +10,11 @@ const initialState = {
   playerEventDescriptions: {},
   playerHistories: {},
   playersPlaying: [],
-  showEventResult: false,
 };
 
 // Reducer for the pusher events coming through
 module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
-    case ActionTypes.EVENT__SHOW_CURRENT_RESULT: {
-      // don't bother if there is no event to show
-      if (state.currentEvent === null) return state;
-
-      return merge({}, state, {
-        showEventResult: true,
-      });
-    }
-
     case ActionTypes.EVENT_ADD_TO_BIG_QUEUE: {
       const newState = merge({}, state);
 
@@ -55,7 +45,6 @@ module.exports = (state = initialState, action = {}) => {
     case ActionTypes.EVENT__SET_CURRENT: {
       const newState = merge({}, state);
       newState.currentEvent = action.value;
-      newState.showEventResult = true;
       return newState;
     }
 
@@ -65,7 +54,6 @@ module.exports = (state = initialState, action = {}) => {
 
       return merge({}, state, {
         currentEvent: null,
-        showEventResult: false,
       });
 
     case ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION: {
