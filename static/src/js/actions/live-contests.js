@@ -61,12 +61,13 @@ const requestContestLineupsUsernames = (id) => ({
  * @param  {object} parsedLineups Parsed lineups, generated from binary hex
  * @return {object}               Changes for reducer
  */
-const receiveContestLineups = (id, response, parsedLineups) => ({
+const receiveContestLineups = (id, response, parsedLineups, poolId) => ({
   type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS,
   id,
   lineupBytes: response,
   lineups: parsedLineups,
   expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
+  contestPoolId: poolId,
 });
 
 /**
@@ -159,7 +160,6 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
   const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex');
   const lineups = {};
   const sportConst = SPORT_CONST[sport];
-
   // each lineup is 20 bytes long
   for (let i = 6; i < responseByteArray.length; i += sportConst.lineupByteLength) {
     const lineup = convertLineup(sportConst.players, responseByteArray, i);
@@ -178,7 +178,7 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestLineups = (id, sport) => (dispatch) => {
+const fetchContestLineups = (id, sport, poolId) => (dispatch) => {
   logAction.debug('actions.fetchContestLineups');
 
   dispatch(requestContestLineups(id));
@@ -196,7 +196,7 @@ const fetchContestLineups = (id, sport) => (dispatch) => {
 
     return response.text();
   }).then(res =>
-    dispatch(receiveContestLineups(id, res, parseContestLineups(res, sport)))
+    dispatch(receiveContestLineups(id, res, parseContestLineups(res, sport), poolId))
   );
 };
 
@@ -299,11 +299,11 @@ export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState)
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchContestLineupsIfNeeded = (id, sport) => (dispatch, getState) => {
+export const fetchContestLineupsIfNeeded = (id, sport, poolId) => (dispatch, getState) => {
   logAction.debug('actions.fetchContestLineupsIfNeeded');
 
   if (shouldFetchContestLineups(getState().liveContests, id)) {
-    return dispatch(fetchContestLineups(id, sport));
+    return dispatch(fetchContestLineups(id, sport, poolId));
   }
 };
 

@@ -240,7 +240,7 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
       Object.keys(contestsByPool).map((poolId) => {
         const poolContests = contestsByPool[poolId];
         // pull relevant contests
-        poolContests.map((contest) => calls.push(dispatch(fetchContestLineupsIfNeeded(contest, poolId, sport))));
+        poolContests.map((contest) => calls.push(dispatch(fetchContestLineupsIfNeeded(contest, sport, poolId))));
       });
     }
   });

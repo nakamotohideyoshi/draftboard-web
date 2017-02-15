@@ -47,6 +47,7 @@ module.exports = (state = {}, action = {}) => {
             lineupBytes: action.lineupBytes,
             lineups: action.lineups,
             isFetchingLineups: false,
+            contestPoolId: action.contestPoolId,
           },
         },
       });
