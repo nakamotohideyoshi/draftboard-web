@@ -310,6 +310,9 @@ STATSCOM_KEYS = {
     }
 }
 
+# RotoWire API Key
+ROTOWIRE_API_KEY = 'mg9meedahh812af5sfgl'
+
 # Swish analytics
 SWISH_API_KEY = 'e7ec4ca5fca54a01ac0038205b8235e9'
 
