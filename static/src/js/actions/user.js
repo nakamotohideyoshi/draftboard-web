@@ -355,3 +355,55 @@ export function verifyIdentity(postData) {
     });
   };
 }
+
+
+/**
+ * Get && fetch user's limits .
+ */
+
+function receiveUserLimitsSuccess(body) {
+  return {
+    type: actionTypes.RECEIVE_USER_LIMITS_SUCCESS,
+    body,
+  };
+}
+
+export function fetchUserLimits(body) {
+  return {
+    type: actionTypes.FETCH_USER_LIMITS,
+    body,
+  };
+}
+
+export function receiveUserLimits() {
+  return dispatch => {
+    dispatch({
+      type: actionTypes.RECEIVE_USER_LIMITS,
+    });
+    return new Promise((resolve, reject) => {
+      request
+          .get('/api/account/user-limits/')
+          .set({
+            'X-REQUESTED-WITH': 'XMLHttpRequest',
+            'X-CSRFToken': Cookies.get('csrftoken'),
+            Accept: 'application/json',
+          })
+          .end((err, res) => {
+            if (err) {
+              log.error("Could not fetch user's limits", err);
+              reject(err);
+              dispatch(addMessage({
+                header: 'Unable to get your limits.',
+                level: 'warning',
+                content: 'Check your internet connection or reload the page',
+              }));
+            } else {
+              const resData = Object.assign({}, res);
+              resData.body.selected_values = res.body.current_values;
+              dispatch(receiveUserLimitsSuccess(resData.body));
+              resolve(res);
+            }
+          });
+    });
+  };
+}

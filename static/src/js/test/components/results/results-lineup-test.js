@@ -52,7 +52,7 @@ describe('ResultsLineup Component', () => {
 
     const footerItems = wrapper.find('.footer').find('.item');
     expect(footerItems.at(0).text()).to.contain('Won');
-    expect(footerItems.at(1).text()).to.contain('PTS');
+    expect(footerItems.at(1).text()).to.contain('Entries');
   });
 
   it('should render lineup and allow switching to contests', () => {
@@ -75,7 +75,7 @@ describe('ResultsLineup Component', () => {
     footerItems = wrapper.find('.footer').find('.item');
     expect(footerItems).to.have.length(2);
     expect(footerItems.at(0).text()).to.contain('Won');
-    expect(footerItems.at(1).text()).to.contain('PTS');
+    expect(footerItems.at(1).text()).to.contain('Entries');
     expect(wrapper.find('.icon-flip.action')).to.have.length(1);
     expect(wrapper.find('.right-stat-title').text()).to.contain('PTS');
 

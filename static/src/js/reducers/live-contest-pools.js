@@ -29,6 +29,7 @@ module.exports = (state = {}, action = {}) => {
         {
           expiresAt: action.expiresAt,
           isFetchingInfo: false,
+          hasRelatedInfo: true,
         },
         info
       );

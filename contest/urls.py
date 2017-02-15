@@ -1,9 +1,8 @@
-#
-# contest/urls.py
-
-from django.views.decorators.cache import cache_page
-from django.conf.urls import url
 from django.conf import settings
+from django.conf.urls import url
+from django.views.decorators.cache import cache_page
+
+from contest.views import ContestCreate, ContestUpdate
 from contest.views import (
     LobbyAPIView,
     AllLineupsView,
@@ -18,14 +17,13 @@ from contest.views import (
     RegisteredUsersAPIView,
     EnterLineupAPIView,
     PayoutsAPIView,
-    EditEntryLineupAPIView,
+    EntryResultAPIView,
     RemoveAndRefundEntryAPIView,
     UserPlayHistoryAPIView,
     UserPlayHistoryWithCurrentAPIView,
     ContestRanksAPIView,
     UserUpcomingContestPoolAndLiveContestEntriesAPIView,
 )
-from contest.views import ContestCreate, ContestUpdate
 
 urlpatterns = [
     url(r'^add/$', ContestCreate.as_view(), name='contest_add'),
@@ -38,7 +36,7 @@ urlpatterns = [
     # "buyin" api - ie: enter a lineup into a contest.
     # This endpoint returns a task id which should
     # be used subsequently to check if the buy was successful.
-    url(r'^enter-lineup/$', EnterLineupAPIView.as_view()),
+    url(r'^enter-lineup/$', EnterLineupAPIView.as_view(), name='enter-lineup'),
 
     #
     # edit entry (ie: edit a lineup that is associated in a contest)
@@ -68,7 +66,9 @@ urlpatterns = [
     # get the users Entries from Upcoming Contest pools, as well as Entries
     # in "live" Contests (ie: contests which have just been created due
     # to a Contest Pool having started)
-    url(r'^contest-pools/current-entries/$', UserUpcomingContestPoolAndLiveContestEntriesAPIView.as_view()),
+    url(
+        r'^contest-pools/current-entries/$',
+        UserUpcomingContestPoolAndLiveContestEntriesAPIView.as_view()),
 
     #
     # get a logged in user's live contests
@@ -122,4 +122,5 @@ urlpatterns = [
     # Request to remove a contest pool Entry, and refund the user
     url(r'^unregister-entry/(?P<entry_id>[0-9]+)/$', RemoveAndRefundEntryAPIView.as_view()),
 
+    url(r'^entries/(?P<entry_id>[0-9]+)/results/$', EntryResultAPIView.as_view()),
 ]

@@ -160,7 +160,12 @@ export const Live = React.createClass({
       }
 
       // if there's only one contest, default to it
-      if (watching.contestId === null && myLineup.hasStarted && myLineupNext.contests.length === 1) {
+      if (
+        watching.contestId === null &&
+        myLineup.hasStarted &&
+        myLineupNext.contests &&
+        myLineupNext.contests.length === 1
+      ) {
         const contestId = myLineupNext.contests[0];
         const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${contestId}/`;
         const changedFields = {

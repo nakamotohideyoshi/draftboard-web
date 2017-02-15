@@ -40,6 +40,7 @@ const ResultsLineup = React.createClass({
       points: React.PropTypes.number,
       potentialWinnings: React.PropTypes.object,
     }),
+    fetchEntryResults: React.PropTypes.func.isRequired,
   },
 
   mixins: [PureRenderMixin],
@@ -61,12 +62,17 @@ const ResultsLineup = React.createClass({
     this.setState({ renderLineup: false });
   },
 
-  handleShowContestPane(contestId, entry) {
-    this.setState({
-      contestPaneId: contestId,
-      renderContestPane: true,
-      currentEntry: entry,
-    });
+  handleShowContestPane(contestId, entry, isLive) {
+    // Don't show contest details for the live lineup view.
+    // It's broken and we want to send people to the live section anyway.
+    if (!isLive) {
+      this.props.fetchEntryResults(entry.id);
+      this.setState({
+        contestPaneId: contestId,
+        renderContestPane: true,
+        currentEntry: entry,
+      });
+    }
   },
 
   handleHideContestPane() {
@@ -132,7 +138,7 @@ const ResultsLineup = React.createClass({
           </div>
 
           <span className="name">{player.full_name}</span>
-          <span classNmae="team">{team}</span>
+          <span className="team">{team}</span>
           <span className={scoreClassName}>
             {score}
           </span>
@@ -158,7 +164,7 @@ const ResultsLineup = React.createClass({
             </span>
           </div>
           <div className="item">
-            <span className="title">PTS</span>
+            <span className="title">Entries</span>
             <span className="value">
               {this.props.stats.entries}
             </span>
@@ -303,7 +309,7 @@ const ResultsLineup = React.createClass({
       return (
         <div key={contest.id}
           className="contest"
-          onClick={this.handleShowContestPane.bind(this, contest.id, entry)}
+          onClick={this.handleShowContestPane.bind(this, contest.id, entry, isLive)}
         >
           <div className="place">{entry.final_rank}</div>
           <div className="title">{contest.name}</div>
@@ -358,7 +364,7 @@ const ResultsLineup = React.createClass({
   },
 
   render() {
-    let className = 'flip-container';
+    let className = 'cmp-results-lineup flip-container';
 
     if (!this.state.renderLineup) className += ' hover';
     if (this.state.renderContestPane) {
