@@ -164,7 +164,7 @@ const ResultsLineup = React.createClass({
             </span>
           </div>
           <div className="item">
-            <span className="title">PTS</span>
+            <span className="title">Entries</span>
             <span className="value">
               {this.props.stats.entries}
             </span>
