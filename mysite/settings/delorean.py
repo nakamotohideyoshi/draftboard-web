@@ -82,8 +82,8 @@ INSTALLED_APPS += (
 )
 
 # Pusher
-PUSHER_APP_ID = '159447'
-PUSHER_KEY = '32343d7634872062c03e'
+PUSHER_APP_ID = environ.get('PUSHER_APP_ID')
+PUSHER_KEY = environ.get('PUSHER_KEY')
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
 PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')  # heroku config vars are strings!
 
