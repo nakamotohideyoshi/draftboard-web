@@ -10,15 +10,27 @@ from .base import *
 DOMAIN = 'delorean.draftboard.com'
 ALLOWED_HOSTS = [DOMAIN]
 
+
+# Testing mode off for production
+DEBUG = False
+
+
 # Connect Heroku database
-# Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
-# and Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our Premium 2 database.
-# 4 workers * up to 10 dynos * 10 connections = 400
+"""
+Based on: https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-o
+f-active-connections
+
+And Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our
+Premium 2 database.
+4 workers * up to 10 dynos * 10 connections = 400
+"""
 DATABASES = {
     'default': heroku_db_config()
 }
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 500
+
+DEFAULT_FROM_EMAIL = 'support+staging@draftboard.com'
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -64,15 +76,9 @@ CACHES = {
 # Static assets, served via django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
-# Testing mode off for production
-DEBUG = False
-
 # Add gunicorn
 INSTALLED_APPS += (
     'gunicorn',
-
-    # sentry for heroku
-    'raven.contrib.django.raven_compat',
 )
 
 # Pusher
@@ -89,14 +95,22 @@ PAYPAL_REST_API_BASE = environ.get('PAYPAL_REST_API_BASE')
 PAYPAL_CLIENT_ID = environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = environ.get('PAYPAL_SECRET')
 
-
 ##########################################################################
 # paypal vzero minimal deposit server access_token
 ##########################################################################
 VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 
-DATETIME_DELTA_ENABLE = True   # time travel
-
 # dont allow updates to be saved.
 # they are only being sent if they already exist!
 DISABLE_REPLAYER_UPDATE_RECORDING = True
+
+# Allow time travel on delorean server!
+DATETIME_DELTA_ENABLE = True
+
+# Inactive users
+INACTIVE_USERS_EMAILS = []
+
+
+MIDDLEWARE_CLASSES += (
+    'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
+)
