@@ -23,6 +23,19 @@ export default React.createClass({
   },
 
   /**
+   * Formats the specified `quarter` and `clock` into a human readable gametime.
+   */
+  formatGameTime(quarter, clock) {
+    if (quarter > 5) {
+      return `${quarter - 4}OT ${clock}`;
+    }
+
+    return quarter === 5
+      ? `OT ${clock}`
+      : `Q${quarter} ${clock}`;
+  },
+
+  /**
    *  Renders the IMG element for a player's headshot.
    */
   renderPlayerHeadShotImg(playerId) {
@@ -56,7 +69,7 @@ export default React.createClass({
         return (
           <li key={playerId} className={`${block}__player`}>
             <div className={`${block}__player-points`}>
-              {!playerPoints ? '0' : humanizeFP(playerPoints || 0, true)}
+              {!playerPoints ? '' : humanizeFP(playerPoints, true)}
             </div>
             { this.renderPlayerHeadShotImg(playerId) }
           </li>
@@ -74,7 +87,7 @@ export default React.createClass({
     const { event } = this.props;
     const id = `${event.id}-${new Date().getTime()}`;
     const score = `${event.homeScoreStr} - ${event.awayScoreStr}`;
-    const time = `Q?! ${event.when}`;
+    const time = this.formatGameTime(event.quarter, event.when);
 
     return (
       <article key={id} className={`${block} ${block}--${event.sport}`}>

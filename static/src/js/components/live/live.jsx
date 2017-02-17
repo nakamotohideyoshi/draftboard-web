@@ -69,7 +69,6 @@ const mapStateToProps = (state) => ({
   watching: state.watching,
   currentEvent: state.events.currentEvent,
   eventsMultipart: state.eventsMultipart,
-  showEventResult: state.events.showEventResult,
 });
 
 /*
@@ -90,7 +89,6 @@ export const Live = React.createClass({
     watching: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object,
-    showEventResult: React.PropTypes.bool,
   },
 
   getInitialState() {
@@ -162,7 +160,12 @@ export const Live = React.createClass({
       }
 
       // if there's only one contest, default to it
-      if (watching.contestId === null && myLineup.hasStarted && myLineupNext.contests.length === 1) {
+      if (
+        watching.contestId === null &&
+        myLineup.hasStarted &&
+        myLineupNext.contests &&
+        myLineupNext.contests.length === 1
+      ) {
         const contestId = myLineupNext.contests[0];
         const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${contestId}/`;
         const changedFields = {
@@ -342,7 +345,6 @@ export const Live = React.createClass({
               selectLineup={this.selectLineup}
               watching={watching}
               currentEvent={this.props.currentEvent}
-              showEventResult={this.props.showEventResult}
               eventsMultipart={this.props.eventsMultipart}
             />
 

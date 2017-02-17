@@ -10,8 +10,9 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.models import User
 from django.contrib.auth.views import logout
 from django.core.urlresolvers import reverse
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.http import HttpResponseRedirect
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.views.generic.base import TemplateView
@@ -32,7 +33,7 @@ import account.tasks
 from account import const as _account_const
 from account.forms import (
     LoginForm,
-    SelfExclusionForm
+    SelfExclusionForm,
 )
 from account.models import (
     Information,
@@ -40,7 +41,8 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
     Identity,
-    Confirmation
+    Confirmation,
+    Limit
 )
 from account.permissions import (
     IsNotAuthenticated,
@@ -65,6 +67,7 @@ from account.serializers import (
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
     TruliooVerifyUserSerializer,
+    UserLimitsSerializer
 )
 from account.utils import create_user_log
 from cash.classes import (
@@ -173,7 +176,6 @@ class PasswordResetAPIView(APIView):
         uid = args.get('uid')
         token = args.get('token')
 
-        print(uid, token)
         if uid and token:
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
@@ -783,8 +785,7 @@ class SetSavedCardDefaultAPIView(APIView):
         user = self.request.user
         args = self.request.data
         token = args.get('token')
-        print('args:', str(args))
-        print('token:', str(token))
+
         # if token is None: # TODO raise error if token is not set
         #     raise rest_framework
 
@@ -859,6 +860,11 @@ class VZeroDepositView(APIView):
         serializer.is_valid(raise_exception=True)
         transaction_data = serializer.data
         amount = float(transaction_data.get('amount'))
+        user_deposits = float(request.user.information.deposits_for_period)
+        user_limit = request.user.information.deposits_limit
+        if user_limit:
+            if amount + user_deposits > user_limit:
+                raise APIException('Sorry but you have exceeded your limit')
 
         # shipping_serializer = VZeroShippingSerializer(data=self.request.data)
         # shipping_serializer.is_valid(raise_exception=True)
@@ -1127,3 +1133,55 @@ class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
             confirmation.confirmed = True
             confirmation.save()
             return self.render_to_response({'message': 'Successful confirmation'}, )
+
+
+class UserLimitsAPIView(APIView):
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    serializer_class = UserLimitsSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        limits = user.limits.all()
+        user_limits = []
+        serializer = None
+        if limits.exists():
+            serializer = self.serializer_class(limits, many=True)
+        else:
+            for limit_type in Limit.TYPES:
+                limit_type_index = limit_type[0]
+                val = Limit.TYPES_GLOBAL[limit_type_index]['value'][0][0]
+                user_limits.append({'user': user.pk,
+                                    'type': limit_type_index,
+                                    'value': val,
+                                    'time_period': Limit.PERIODS[0][
+                                        0] if limit_type != Limit.ENTRY_FEE else None})
+        limits_data = {'types': Limit.TYPES_GLOBAL,
+                       'current_values': serializer.data if serializer else user_limits}
+        return Response(limits_data)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        limits = user.limits.all()
+
+        if limits.exists():
+            serializer = self.serializer_class(limits, data=self.request.data, many=True)
+            # If the user has no Identity, we can't set play limits.
+            if not user.information.has_verified_identity:
+                raise ValidationError(
+                    {'detail': 'You must verify your identity before setting play limits.'})
+            state = user.identity.state
+            if state:
+                days = settings.LIMIT_DAYS_RESTRAINT.get(state)
+                if days:
+                    change_allowed_on = limits[0].updated + timedelta(days=days)
+                    if timezone.now() < change_allowed_on:
+                        return JsonResponse(data={
+                            "detail": "Not allowed to change limits until {}".format(
+                                change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400,
+                                            safe=False)
+
+        else:
+            serializer = self.serializer_class(data=self.request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data={"detail": "Limits Saved"}, status=200)
