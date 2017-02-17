@@ -101,7 +101,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
                        created__range=(start, end) ).order_by('-created')
 
         response = HttpResponse(content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename="users.xls"'
+        response['Content-Disposition'] = 'attachment; filename="transactions-history.xls"'
         wb = xlwt.Workbook(encoding='utf-8')
         ws = wb.add_sheet('History')
         row_num = 0
