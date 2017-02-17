@@ -128,7 +128,7 @@ const ContestListRow = React.createClass({
     }
 
     const entryDots = entries.map((entry, i) => {
-      if (entry.lineup === this.props.focusedLineup.id) {
+      if (this.props.focusedLineup && entry.lineup === this.props.focusedLineup.id) {
         return (
           <span
             key={`dot-${i}`}
@@ -183,8 +183,12 @@ const ContestListRow = React.createClass({
         <td key="sport" className="sport">
           <SportIcon sport={this.props.contest.sport} />
         </td>
+
         <td key="name" className="name">
           {this.props.contest.name}
+        </td>
+
+        <td key="details" className="details-row">
           <span className="details">
             <span className="fairmatch">
               <span className="icon-fairmatch" title="This is a FairMatch contest"></span>
@@ -196,19 +200,22 @@ const ContestListRow = React.createClass({
             </span>
           </span>
         </td>
+
         <td key="payouts" className="payouts">
           {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
+
         <td key="entries" className="entries">{this.props.contest.current_entries}</td>
+
+        <td key="user-entries" className="user-entries">
+          {this.renderEntries(this.props.contest.entryInfo)}
+        </td>
+
         <td key="start" className="start">
           <CountdownClock
             time={this.props.contest.start}
             timePassedDisplay="Live"
           />
-        </td>
-
-        <td key="user-entries" className="user-entries">
-          {this.renderEntries(this.props.contest.entryInfo)}
         </td>
 
         <td

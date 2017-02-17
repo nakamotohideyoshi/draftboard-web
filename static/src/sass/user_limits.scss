@@ -1,0 +1,132 @@
+@import './variables.scss';
+
+$block: '#set_user_limits';
+
+#{$block}{
+  max-width: 800px;
+  text-align: center;
+
+  .p_container{
+    margin-bottom: 20px;
+    width: 80%;
+    display: inline-block;
+  }
+  form {
+    text-align: left;
+    display: inline-block;
+    margin-top: 20px;
+    width: 100%;
+    .line{
+      clear: both;
+      margin-bottom: 30px;
+      .selects_description {
+        text-align: left;
+        font-size: 14px;
+        .description_head {
+          font-weight: 700;
+        }
+        .current_value {
+          font-size: 0.9em;
+          font-weight: 700;
+        }
+        .current_value_text {
+          font-size: 0.9em;
+        }
+      }
+      .container-line-block {
+        @media (max-width: 1317px) {
+          text-align: center;
+        }
+        .line-block {
+          margin: 25px 0;
+          position: relative;
+          display: inline-block;
+
+          &:first-child {
+            margin-right: 25px;
+          }
+
+
+          @media (max-width: 480px) {
+
+          }
+          @media (max-width: 1317px) {
+            &:nth-child(2n) {
+              float: none;
+            }
+          }
+          select {
+            padding: 10px 0;
+            width: 310px;
+            color: #46495e;
+            font-size: 16px;
+            font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+            box-shadow: none;
+            background: url('../img/common/select-arrow.png') no-repeat right white;
+            transition: none 0s ease 0s;
+            border: 0;
+            border-bottom: 1px solid #9ca1ae;
+            outline: 0;
+            appearance: none;
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            &:hover {
+              cursor: pointer;
+            }
+          }
+          label {
+            sup {
+              color: #b0b2c1;
+              font-family: $font-open-sans;
+              font-size: 9px;
+              font-weight: 400; // comp had 600 but looked closer @ 400 in browser
+              letter-spacing: 1.5px;
+              position: absolute;
+              top: -1.2em;
+            }
+          }
+          input[type=text] {
+            padding: 10px 0;
+            width: 310px;
+            color: #46495e;
+            font-size: 16px;
+            font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+            box-shadow: none;
+            transition: none 0s ease 0s;
+            border: 0;
+            border-bottom: 1px solid #9ca1ae;
+            outline: 0
+          }
+        }
+      }
+    }
+    .button_container{
+      text-align: center;
+      button {
+        display: inline-block;
+        width: 310px;
+        padding: 12px 0;
+        vertical-align: middle;
+        color: #fff;
+        font-size: 11px;
+        font-family: Open Sans, Arial, Helvetica, sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+        text-decoration: none;
+        white-space: nowrap;
+        border: none;
+        border-radius: 1px;
+        background-image: linear-gradient(90deg, #219d87, #34cc68);
+        box-shadow: 0 24px 57px 0 rgba(21, 89, 65, .38);
+        margin: 20px 0 58px;
+        cursor: pointer;
+        transition: all .2s;
+        &:hover {
+          opacity: .9;
+        }
+      }
+    }
+  }
+}

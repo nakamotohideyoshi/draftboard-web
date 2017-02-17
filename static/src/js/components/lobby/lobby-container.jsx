@@ -21,7 +21,7 @@ import ContestList from '../contest-list/contest-list';
 import SkillLevelOverlay from '../contest-list/skill-level-overlay';
 import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal';
-import { addMessage } from '../../actions/message-actions';
+import { addMessage, removeMessage } from '../../actions/message-actions';
 import { removeParamFromURL } from '../../lib/utils';
 import Pusher from '../../lib/pusher';
 
@@ -52,6 +52,7 @@ function mapStateToProps(state) {
     orderByDirection: state.contestPools.filters.orderBy.direction,
     orderByProperty: state.contestPools.filters.orderBy.property,
     queryAction: state.routing.locationBeforeTransitions.query.action,
+    hasFetchedLineups: state.upcomingLineups.hasFetchedLineups,
   };
 }
 
@@ -75,6 +76,7 @@ function mapDispatchToProps(dispatch) {
     ),
     routerPush: (path) => dispatch(routerPush(path)),
     addMessage: (options) => dispatch(addMessage(options)),
+    removeMessage: (options) => dispatch(removeMessage(options)),
     upcomingContestUpdateReceived: (contest) => dispatch(upcomingContestUpdateReceived(contest)),
   };
 }
@@ -87,6 +89,7 @@ const LobbyContainer = React.createClass({
 
   propTypes: {
     addMessage: React.PropTypes.func,
+    removeMessage: React.PropTypes.func,
     allContests: React.PropTypes.object,
     contestFilters: React.PropTypes.object,
     draftGroupsWithLineups: React.PropTypes.array,
@@ -101,6 +104,7 @@ const LobbyContainer = React.createClass({
     filteredContests: React.PropTypes.array,
     focusedContest: React.PropTypes.object,
     focusedLineup: React.PropTypes.object,
+    hasFetchedLineups: React.PropTypes.bool.isRequired,
     hoveredLineupId: React.PropTypes.number,
     isFetchingContestPools: React.PropTypes.bool.isRequired,
     lineupsInfo: React.PropTypes.object,
@@ -148,6 +152,20 @@ const LobbyContainer = React.createClass({
     }
 
     this.listenToSockets();
+  },
+
+
+  componentWillReceiveProps(nextProps) {
+    // If we've fetched the user's lineups, and none exist, show a message.
+    if (nextProps.hasFetchedLineups && Object.keys(nextProps.lineupsInfo).length === 0) {
+      this.props.addMessage({
+        header: 'Welcome to Draftboard. Create a lineup to get started.',
+        level: 'success',
+        id: 'create-lineup-message',
+      });
+    } else {
+      this.props.removeMessage({ id: 'create-lineup-message' });
+    }
   },
 
 

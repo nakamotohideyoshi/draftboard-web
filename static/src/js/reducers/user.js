@@ -6,6 +6,9 @@ const initialState = {
     isFetching: false,
     isIdentityVerified: false,
     identity: {},
+    userLimits: [],
+    currentLimits: [],
+    selectedLimits: [],
   },
   username: window.dfs.user.username,
   identityFormErrors: {},
@@ -89,6 +92,8 @@ module.exports = (state = initialState, action) => {
         cashBalance: {
           isFetching: false,
           amount: action.body.cash_balance,
+          depositLimit: action.body.deposit_limit,
+          depositSum: action.body.deposit_sum,
         },
       });
 
@@ -152,6 +157,31 @@ module.exports = (state = initialState, action) => {
         },
       });
 
+    /**
+     * User's limits
+     */
+    case actionTypes.FETCH_USER_LIMITS:
+      return merge({}, state, {
+        user: {
+          selectedLimits: action.body,
+        },
+      });
+
+    case actionTypes.RECEIVE_USER_LIMITS_SUCCESS:
+      return merge({}, state, {
+        user: {
+          userLimits: action.body.types,
+          currentLimits: action.body.current_values,
+          selectedLimits: action.body.selected_values,
+        },
+      });
+
+    case actionTypes.RECEIVE_USER_LIMITS:
+      return merge({}, state, {
+        user: {
+          userLimits: [],
+        },
+      });
 
     /**
      * User Verification

@@ -7,7 +7,7 @@ import store from '../../store';
 import uniqBy from 'lodash/uniqBy';
 import { dateNow } from '../../lib/utils';
 import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
-import { fetchResultsIfNeeded } from '../../actions/results';
+import { fetchResultsIfNeeded, fetchEntryResults } from '../../actions/results';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
@@ -32,6 +32,7 @@ const mapStateToProps = (state) => ({
   resultsWithLive: resultsWithLive(state),
   sportsSelector: sportsSelector(state),
 });
+
 
 /*
  * The overarching component for the results section.
@@ -165,6 +166,7 @@ export const Results = React.createClass({
           onSelectDate={this.handleSelectDate}
           date={this.state}
           watchLiveLineups={this.watchLiveLineups}
+          fetchEntryResults={(entryId) => this.props.dispatch(fetchEntryResults(entryId))}
         />
     );
   },

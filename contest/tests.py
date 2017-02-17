@@ -1,7 +1,7 @@
 import unittest
 
 from django.utils import timezone
-
+from django.core.urlresolvers import reverse
 from contest.classes import (
     ContestPoolCreator,
     FairMatch,
@@ -9,6 +9,16 @@ from contest.classes import (
 )
 from contest.models import (
     ContestPool,
+    Contest,
+    Entry
+)
+
+from contest.views import (
+    EnterLineupAPIView
+)
+
+from lineup.models import (
+    Lineup
 )
 from mysite.exceptions import (
     IncorrectVariableTypeException,
@@ -16,11 +26,20 @@ from mysite.exceptions import (
 from prize.models import (
     PrizeStructure,
 )
+
+from account.models import (
+    Limit,
+    Confirmation,
+    Identity,
+    Information
+)
+
 from sports.models import (
     SiteSport,
 )
 from test.classes import (
     AbstractTest,
+    ForceAuthenticateAndRequestMixin
 )
 from test.classes import (
     BuildWorldMixin,
@@ -274,6 +293,59 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         self.assertEquals(target_skill_level.enforced, contest_pool.skill_level.enforced)
 
 
+class SetLimitsTest(AbstractTest, BuildWorldMixin, ForceAuthenticateAndRequestMixin):
+    """
+        test the enter-lineup view to ensure we raise
+        exceptions if users reach their entry limits.
+    """
+    def setUp(self):
+        super().setUp()
+        self.build_world()
+        self.user = self.get_user_with_account_information()
+        self.view = EnterLineupAPIView
+        # the url of the endpoint and a default user
+        self.url = reverse('enter-lineup')
+        self.create_valid_lineup(user=self.user)
+        self.draft_group = self.world.draftgroup
+        self.contest = self.world.contest
+        prize_structure = self.contest.prize_structure
+        sport = 'nfl'
+        start = timezone.now()
+        duration = int(300)
+        self.contest_pool, created = ContestPoolCreator(sport, prize_structure, start, duration, self.draft_group).get_or_create()
+
+        prize = prize_structure.buyin
+        entry_alert_limit = Limit.objects.create(type=1, value=prize/4, user=self.user, time_period=7)
+        entry_limit = Limit.objects.create(type=2, value=3, user=self.user, time_period=7)
+        entry_fee_limit = Limit.objects.create(type=3, value=prize/2, user=self.user)
+
+        Identity.objects.create(
+            user=self.user,
+            first_name='test',
+            last_name='user',
+            birth_day=1,
+            birth_month=1,
+            birth_year=1984,
+            postal_code='80203',
+        )
+        Confirmation.objects.create(user=self.user,
+                                    confirmed=True)
+
+    def test_entry_fee(self):
+        data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+        self.assertEqual(response.status_code, 500)
+
+    def test_entry_limit(self):
+        data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}
+        entries=[Entry(contest=self.contest, contest_pool=self.contest_pool, lineup=self.lineup, user=self.user),
+              Entry(contest=self.contest, contest_pool=self.contest_pool, lineup=self.lineup, user=self.user),
+              Entry(contest=self.contest, contest_pool=self.contest_pool, lineup=self.lineup, user=self.user)]
+        Entry.objects.bulk_create(entries)
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+        self.assertEqual(response.status_code, 500)
+
+
 class ContestManagerTest(AbstractTest):
     """
     tests the managers for:
@@ -307,6 +379,9 @@ class ContestCreatorRespawn(AbstractTest):
     def setUp(self):
         super().setUp()
         # TODO
+
+
+
 
 # class ContestOnGameClosedRaceCondition(AbstractTest):
 #

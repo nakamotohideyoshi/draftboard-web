@@ -1,4 +1,5 @@
 import React from 'react';
+import NBAPlayRecapVO from '../../lib/live-animations/nba/NBAPlayRecapVO';
 import { LiveOverallStatsConnected } from './live-overall-stats';
 
 // assets
@@ -13,7 +14,6 @@ export default React.createClass({
     lineups: React.PropTypes.array.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
     selectLineup: React.PropTypes.func.isRequired,
-    showEventResult: React.PropTypes.bool,
     watching: React.PropTypes.object.isRequired,
   },
 
@@ -21,17 +21,19 @@ export default React.createClass({
    * Renders the DOM for displaying the current animation event's information.
    */
   renderAnimationInfo() {
-    if (!this.props.showEventResult) {
+    if (!this.props.currentEvent) {
       return null;
     }
+
+    const playVO = new NBAPlayRecapVO(this.props.currentEvent);
 
     return (
       <div className="live-header__animation-info live-header__animation-info--show">
         <h2 className="live-header__animation-info__type">
-          {`${this.props.currentEvent.type.toUpperCase()}!`}
+          {`${playVO.playTitle().toUpperCase()}`}
         </h2>
         <div className="live-header__animation-info__description">
-          {this.props.currentEvent.description}
+          {playVO.playDescription()}
         </div>
       </div>
     );
@@ -41,7 +43,7 @@ export default React.createClass({
    * Renders a LiveOverallStatsConnected component.
    */
   renderOverallStats(whichSide, lineup, potentialWinnings, rank) {
-    const modifiers = !this.props.showEventResult ? [] : ['event-ended'];
+    const modifiers = !this.props.currentEvent ? [] : ['event-ended'];
 
     return (
       <LiveOverallStatsConnected

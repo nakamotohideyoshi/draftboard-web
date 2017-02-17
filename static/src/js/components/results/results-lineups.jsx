@@ -14,7 +14,13 @@ const ResultsLineups = (props) => {
     <div className="results-page--lineups">
       {props.lineups.map((lineup) => React.createElement(
         ResultsLineup, extend(
-          {}, lineup, { key: lineup.id, isWatchingLive: props.isWatchingLive }
+          {},
+          lineup,
+          {
+            key: lineup.id,
+            isWatchingLive: props.isWatchingLive,
+            fetchEntryResults: props.fetchEntryResults,
+          }
         ))
       )}
     </div>
@@ -24,6 +30,7 @@ const ResultsLineups = (props) => {
 ResultsLineups.propTypes = {
   isWatchingLive: React.PropTypes.bool.isRequired,
   lineups: React.PropTypes.array.isRequired,
+  fetchEntryResults: React.PropTypes.func.isRequired,
 };
 
 export default ResultsLineups;

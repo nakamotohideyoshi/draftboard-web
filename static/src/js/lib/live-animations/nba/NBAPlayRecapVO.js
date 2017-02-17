@@ -112,13 +112,6 @@ export default class NBAPlayRecapVO {
     if (hasFieldGoal) {
       const shotType = stats.fieldgoal__list.shot_type;
 
-      // Handle missed field goals that are not blocked. Everything else is
-      // either a made shot or a blocked shot. The "made" property is set to the
-      // string "false" in the API's returned object.
-      if (!hasBlock && !this.madeShot() && shotType !== 'jump shot') {
-        return NBAPlayRecapVO.UNKNOWN_PLAY;
-      }
-
       switch (shotType) {
         case 'dunk' :
           return hasBlock
@@ -141,6 +134,10 @@ export default class NBAPlayRecapVO {
     }
 
     return NBAPlayRecapVO.UNKNOWN_PLAY;
+  }
+
+  playDescription() {
+    return this._obj.pbp.description;
   }
 
   /**
@@ -215,5 +212,32 @@ export default class NBAPlayRecapVO {
     }
 
     return pos;
+  }
+
+  /**
+   * Returns the play's "title" associated with the play's playType.
+   */
+  playTitle() {
+    const playTypeToTitle = {
+      [NBAPlayRecapVO.FREETHROW]: 'Freethrow',
+      [NBAPlayRecapVO.DUNK]: 'Dunk',
+      [NBAPlayRecapVO.BLOCKED_DUNK]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_HOOKSHOT]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_JUMPSHOT]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_LAYUP]: 'Block',
+      [NBAPlayRecapVO.JUMPSHOT]: 'Jumpshot',
+      [NBAPlayRecapVO.HOOKSHOT]: 'Hookshot',
+      [NBAPlayRecapVO.LAYUP]: 'Layup',
+      [NBAPlayRecapVO.STEAL]: 'Steal',
+      [NBAPlayRecapVO.REBOUND]: 'Rebound',
+    };
+
+    const type = this.playType();
+
+    if (!playTypeToTitle.hasOwnProperty(type)) {
+      return '';
+    }
+
+    return playTypeToTitle[this.playType()];
   }
 }
