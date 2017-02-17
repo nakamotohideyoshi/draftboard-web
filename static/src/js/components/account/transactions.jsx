@@ -40,7 +40,18 @@ const Transactions = React.createClass({
 
 
   componentWillMount() {
-    this.props.fetchTransactions();
+    const fromTo = window.location.search;
+    let endDate = new Date();
+    let startDate = new Date().setMonth(endDate.getMonth() - 1);
+    if (fromTo === '') {
+      this.props.fetchTransactions(startDate, endDate.getTime());
+    } else {
+      // regexp for searching timestamp from url
+      const regexp = new RegExp('[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}', 'g');
+      endDate = new Date(fromTo.match(regexp)[1]);
+      startDate = new Date(fromTo.match(regexp)[0]);
+      this.props.fetchTransactions(startDate.getTime(), endDate.getTime());
+    }
   },
 
 

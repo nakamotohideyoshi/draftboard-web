@@ -71,7 +71,20 @@ const TransactionsForm = React.createClass({
       endDate: null,
     });
   },
-
+  getExcel(){
+    const fromTo = window.location.search;
+    let endDate = new Date();
+    let startDate = new Date().setMonth(endDate.getMonth() - 1);
+    if (fromTo === '') {
+      window.location.href = `/api/cash/transactions/?start_ts=${startDate/1000}&end_ts=${endDate.getTime()/1000}&export=1`
+    } else {
+      // regexp for searching timestamp from url
+      const regexp = new RegExp('[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}', 'g');
+      endDate = new Date(fromTo.match(regexp)[1]);
+      startDate = new Date(fromTo.match(regexp)[0]);
+      window.location.href = `/api/cash/transactions/?start_ts=${startDate.getTime() / 1000}&end_ts=${endDate.getTime() / 1000}&export=1`
+    }
+  },
   render() {
     return (
       <form
@@ -121,9 +134,10 @@ const TransactionsForm = React.createClass({
           </div>
 
           <input
-            type="submit"
+            type="button"
             className="button button--flat-alt1 button--sm pull-right"
             value="Export"
+            onClick={this.getExcel}
           />
         </fieldset>
       </form>
