@@ -72,7 +72,6 @@ target/
 
 # Logs
 logs
-*.log
 
 # Runtime data
 pids
@@ -127,7 +126,11 @@ mysite/smugglin/
 # bundler, related to craig's stupid machine having powder running and messing with vagrant's port forwarding
 .bundle/*
 
+# All DB Dumps
 *.dump
 
 # pyenv named '.pythonenv'
 .pythonenv/*
+
+# Pycharm editor config file.
+.editorconfig

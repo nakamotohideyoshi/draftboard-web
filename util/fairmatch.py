@@ -1,12 +1,12 @@
 #
 # fairmatch.py
 
-from random import Random, shuffle
 from collections import Counter
 from functools import reduce
+from random import Random, shuffle
+
 
 class DictTools:
-
     @staticmethod
     def combine(d1, d2):
         """
@@ -52,13 +52,16 @@ class DictTools:
                 pass
         return d1
 
+
 class FairMatch(object):
+    class ZeroEntriesException(Exception):
+        pass
 
-    class ZeroEntriesException(Exception): pass
+    class NotEnoughEntriesException(Exception):
+        pass
 
-    class NotEnoughEntriesException(Exception): pass
-
-    def __init__(self, entries=[], contest_size=2):  # size / prize_structure will come from ContestPool instance
+    def __init__(self, entries=[],
+                 contest_size=2):  # size / prize_structure will come from ContestPool instance
         # instance of random number generator
         self.r = Random()
 
@@ -78,18 +81,6 @@ class FairMatch(object):
         # for debugging - a list of all the contests made
         self.contests = None
 
-    def get_contests(self):
-        """
-        :return: a list of lists-of-entries to fill contests
-        """
-        return self.contests['contests']
-
-    def get_contests_forced(self):
-        """
-        :return: a list of lists-of-unfilled-entries, ie the superlay contest entries
-        """
-        return self.contests['contests_forced']
-
     def fill_contest(self, entries, force=False):
         """
         :param force: if force is true, skip the size check, and add the entries to contest regardless
@@ -100,13 +91,14 @@ class FairMatch(object):
             raise self.ZeroEntriesException(err_msg)
 
         if not force and len(entries) < self.contest_size:
-            err_msg = 'Exception fill_contest() - contest_size: %s, entries: %s' % (self.contest_size, str(entries))
+            err_msg = 'Exception fill_contest() - contest_size: %s, entries: %s' % (
+                self.contest_size, str(entries))
             raise self.NotEnoughEntriesException(err_msg)
 
         ss = ''
         if force:
             ss = '** = superlay is possible here.'
-        print('    making contest:', str(sorted(entries)), 'force:', str(force), '%s'%ss)
+        print('    making contest:', str(sorted(entries)), 'force:', str(force), '%s' % ss)
 
         self.__add_contest_debug(entries, self.contest_size, force=force)
 
@@ -121,13 +113,14 @@ class FairMatch(object):
     def __add_contest_debug(self, entries, size, force=False):
         if force:
             # entries we need to enter into a contest no matter what (first entries)
-            self.contests['contests_forced'].append( entries )
+            self.contests['contests_forced'].append(entries)
         else:
             # this
-            self.contests['contests'].append( entries )
+            self.contests['contests'].append(entries)
         self.contests['contest_size'] = size
 
-    def lsubtract(self, l1, l2):
+    @staticmethod
+    def lsubtract(l1, l2):
         """
         subtract the values in l2 from l1 and return the resulting list
 
@@ -137,12 +130,12 @@ class FairMatch(object):
         :param l2:
         :return:
         """
-        l = list(l1) # copy l1 so we dont side effect it
+        l = list(l1)  # copy l1 so we dont side effect it
         for x in l2:
             try:
                 l.remove(x)
             except ValueError:
-                print('    <!> couldnt remove entry: %s' % str(x) )
+                print('    <!> couldnt remove entry: %s' % str(x))
         return l
 
     def run(self, verbose=True):
@@ -155,10 +148,10 @@ class FairMatch(object):
         self.counter_runtime_entries = Counter()
 
         self.contests = {
-            'entry_pool_size'   : len(list(self.original_entries)),
-            'entry_pool'        : list(self.original_entries),
-            'contests'          : [],
-            'contests_forced'   : []
+            'entry_pool_size': len(list(self.original_entries)),
+            'entry_pool': list(self.original_entries),
+            'contests': [],
+            'contests_forced': []
         }
 
         # run the algorithm. give it a copy of the total entries
@@ -179,9 +172,9 @@ class FairMatch(object):
         n_uniques = len(uniques)
 
         if n_uniques < self.contest_size:
-            self.contests['unused_entries']                 = entries
-            self.contests['FairMatch_unused_uniques']       = uniques
-            self.contests['FairMatch_unused_unq_cnt']       = n_uniques
+            self.contests['unused_entries'] = entries
+            self.contests['FairMatch_unused_uniques'] = uniques
+            self.contests['FairMatch_unused_unq_cnt'] = n_uniques
             print('done! unique entries: %s < contest size: %s   '
                   '-> so we cant make anymore contests' % (n_uniques, self.contest_size))
             return
@@ -193,10 +186,10 @@ class FairMatch(object):
         if verbose:
             print('')
             print('+++ round %s +++' % str(round))
-            print('entries              :', str(sorted(entries)), '   (%s total)' %str(len(entries)))
-            print('uniques              :', str(sorted(uniques)), '   (%s total)' % str(len(uniques)))
-            print('additional           :', str(sorted(additional)), '   (%s total)' % str(len(additional)))
-            print('exclude              :', str(sorted(exclude)), '   (%s total)' % str(len(exclude)))
+            print('entries:', str(sorted(entries)), '   (%s total)' % str(len(entries)))
+            print('uniques:', str(sorted(uniques)), '   (%s total)' % str(len(uniques)))
+            print('additional:', str(sorted(additional)), '   (%s total)' % str(len(additional)))
+            print('exclude:', str(sorted(exclude)), '   (%s total)' % str(len(exclude)))
 
         while True:
             # 0. randomize the order of the values in the lists we will take from
@@ -226,9 +219,9 @@ class FairMatch(object):
         if round == 1:
             used_entries = self.fill_contest(uniques + chosen_additional, force=True)
             # contest filled, now remove the values from entries (and update additional)
-            #entries = self.lsubtract(entries, used_entries)
+            # entries = self.lsubtract(entries, used_entries)
             # update additional in case we use later, though that is unlikely
-            #additional = self.lsubtract(additional, chosen_additional)
+            # additional = self.lsubtract(additional, chosen_additional)
 
         # 3. round >= 2. (ie: dealing with 2nd+ entries)
         else:
@@ -242,9 +235,9 @@ class FairMatch(object):
                 # used_entries = self.fill_contest(chosen_entries, force=False)
                 # entries = self.lsubtract(entries, chosen_entries)
                 # # update remaining
-                pass # it will all work when this falls outside this elif block
+                pass  # it will all work when this falls outside this elif block
 
-            else: # ie: n > 0
+            else:  # ie: n > 0
                 # grab values from the excludes as a last resort.
                 # be sure to remove duplicates already in the chosen ones
                 possible_excludes = list(set(exclude) - set(chosen_entries))
@@ -268,9 +261,11 @@ class FairMatch(object):
             if exclude_entry in entries:
                 existing_excludes.append(exclude_entry)
 
-        print('+++ and round %s >>> entries %s <<<  and > excludes %s <  ]]] existing_excludes: %s [[['
-              'heading into round [%s]' % (str(round), str(entries),
-                                           str(chosen_additional), str(existing_excludes), str(round+1)))
+        print(
+            '+++ and round %s >>> entries %s <<<  and > excludes %s <  ]]] existing_excludes: %s [[['
+            'heading into round [%s]' % (str(round), str(entries),
+                                         str(chosen_additional), str(existing_excludes),
+                                         str(round + 1)))
 
         self.run_h(round + 1, entries, exclude=existing_excludes, verbose=verbose)
 
@@ -286,10 +281,10 @@ class FairMatch(object):
         #
         print('*** %s *** post run() information ***' % self.__class__.__name__)
         # print(self.contests)
-        for k,v in self.contests.items():
+        for k, v in self.contests.items():
             if k == 'entry_pool':
                 continue
-            print('%-16s:'%k, v)
+            print('%-16s:' % k, v)
 
         count_total_entries = 0
         counter = Counter()
@@ -315,21 +310,24 @@ class FairMatch(object):
 
         print('%s original entries, %s final entries in contests + %s in '
               'unused_entries' % (str(len(self.original_entries)),
-                                  str(count_total_entries), str(len(self.contests['unused_entries']))))
+                                  str(count_total_entries),
+                                  str(len(self.contests['unused_entries']))))
         print('%s total contests (%s standard, %s forced)' % (total, standard, forced))
         if orig != after:
-            print('(debug) orig != after   ->   this indicates we lost/added a rando entry somewhere. very bad.')
+            print(
+                '(debug) orig != after   ->   this indicates we lost/added a rando entry somewhere. very bad.')
             print('orig : %s' % str(orig))
             print('')
             print('after: %s' % str(after))
+
 
 class FairMatchNoCancel(FairMatch):
     """
     extends FairMatch to guarantee all lineups get filled into contests.
     """
 
-    unused_entries      = 'unused_entries'
-    contests_no_cancel  = 'contests_no_cancel'
+    unused_entries = 'unused_entries'
+    contests_no_cancel = 'contests_no_cancel'
 
     def run(self):
         """
@@ -353,7 +351,7 @@ class FairMatchNoCancel(FairMatch):
             used_entries = self.fill_contest(uniques, force=True)
             contests.append(used_entries)
             entries = self.lsubtract(entries, used_entries)
-            self.contests[self.unused_entries] = entries # set the remaining entries
+            self.contests[self.unused_entries] = entries  # set the remaining entries
 
         # set the FairMatchNoCancel contests we just created
         self.contests[self.contests_no_cancel] = contests
