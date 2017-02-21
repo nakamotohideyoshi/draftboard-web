@@ -1,46 +1,48 @@
-from util.dicts import DictTools
+import os
+import struct
 from collections import (
     OrderedDict,
     Counter,
 )
-from random import Random, shuffle
-from django.db.transaction import atomic
-import os
-import struct
-from .models import (
-    ContestPool,
-    SkillLevel,
-)
-from sports.models import SiteSport
-from mysite.exceptions import (
-    IncorrectVariableTypeException,
-)
-from dataden.util.timestamp import DfsDateTimeUtil
 from datetime import (
     datetime,
     timedelta,
     time,
 )
+from logging import getLogger
+from random import Random, shuffle
+
+from django.db.transaction import atomic
 from django.utils import timezone
-from sports.classes import SiteSportManager as SSM
-from ticket.classes import TicketManager
-from ticket.models import TicketAmount
+
+import draftgroup.models
+import lineup.models
+import prize.models
+from contest.buyin.models import Buyin
 from contest.models import (
     Contest,
     Entry,
     ClosedContest,
 )
-from lineup.classes import LineupManager
-import lineup.models
-import prize.models
-from prize.classes import TicketPrizeStructureCreator
-import draftgroup.models
+from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.classes import DraftGroupManager
+from lineup.classes import LineupManager
+from mysite.exceptions import (
+    IncorrectVariableTypeException,
+)
+from prize.classes import TicketPrizeStructureCreator
 from roster.classes import RosterManager
-from contest.buyin.models import Buyin
+from sports.classes import SiteSportManager as SSM
+from sports.models import SiteSport
+from ticket.classes import TicketManager
+from ticket.models import TicketAmount
 from util.dfsdate import DfsDate
-from logging import getLogger
+from util.dicts import DictTools
 from util.slack import WebhookContestInfo
+from .models import (
+    ContestPool,
+    SkillLevel,
+)
 
 logger = getLogger('contests.classes')
 slack = WebhookContestInfo()
@@ -164,7 +166,8 @@ class ContestPoolCreator(object):
         if self.draft_group is None:
             # use the DraftGroupManager class to create (or retrieve a matching) draft group
             draft_group_manager = DraftGroupManager()
-            self.draft_group = draft_group_manager.get_for_site_sport(self.site_sport, self.start, self.get_end())
+            self.draft_group = draft_group_manager.get_for_site_sport(self.site_sport, self.start,
+                                                                      self.get_end())
 
         # now create the ContestPool model instance
         contest_pool, created = ContestPool.objects.get_or_create(site_sport=self.site_sport,
@@ -356,7 +359,8 @@ class Dummy(object):
         ticket_amount = TicketAmount.objects.all()[0]
         # ticket_amount.amount
         ticket_prize_creator = TicketPrizeStructureCreator(ticket_value=5.00,
-                                                           number_of_prizes=1, name='contest-dummy-prize-structure')
+                                                           number_of_prizes=1,
+                                                           name='contest-dummy-prize-structure')
         prize_structure = ticket_prize_creator.save()
         # prize_structure.name
         now = timezone.now()
@@ -482,7 +486,8 @@ class ContestLineupManager(object):
 
         :return:
         """
-        return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.entries.count()
+        return (
+                   self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.entries.count()
 
     def get_size_in_bytes(self):
         # print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
@@ -559,7 +564,8 @@ class ContestLineupManager(object):
         settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
         # 'mysite.settings.local'   should let this method work
         if 'local' not in settings_module_name:
-            raise Exception('json from dev_get_all_lineups not allowed unless local settings being used')
+            raise Exception(
+                'json from dev_get_all_lineups not allowed unless local settings being used')
 
         lineups = []
 
@@ -599,7 +605,8 @@ class FairMatch(object):
     class NotEnoughEntriesException(Exception):
         pass
 
-    def __init__(self, entries=[], contest_size=2):  # size / prize_structure will come from ContestPool instance
+    # size / prize_structure will come from ContestPool instance
+    def __init__(self, entries=[], contest_size=2, contest_pool_id=None):
         # instance of random number generator
         self.r = Random()
 
@@ -609,6 +616,10 @@ class FairMatch(object):
         # make a copy of original list of all the entries
         self.original_entries = list(entries)
 
+        # This is just a way for us to look up how a contest was formed in the logs based
+        # on it's ID.
+        self.contest_pool_id = contest_pool_id
+
         # for debugging - a list of all the contests made
         self.contests = None
 
@@ -616,7 +627,7 @@ class FairMatch(object):
         """
         :return: a list of lists-of-entries to fill contests
         """
-        return self.contests['contests']
+        return self.contests['contests'] + self.contests['contests_forced']
 
     def get_contests_forced(self):
         """
@@ -630,17 +641,17 @@ class FairMatch(object):
         :return:
         """
         if len(entries) == 0:
-            err_msg = '0 entries passed to fill_contest()'
+            err_msg = '\t0 entries passed to fill_contest()'
             raise self.ZeroEntriesException(err_msg)
 
         if not force and len(entries) < size:
-            err_msg = '%s needed, entries list: %s' % (size, str(entries))
+            err_msg = '\t%s needed, entries list: %s' % (size, str(entries))
             raise self.NotEnoughEntriesException(err_msg)
 
         ss = ''
         if force:
             ss = '** = superlay is possible here.'
-        logger.info('making contest: %s force: %s %s' % (entries, force, ss))
+        logger.info('\tmaking contest: %s force: %s %s' % (entries, force, ss))
         # TODO fill c
 
         self.__add_contest_debug(entries, size, force=force)
@@ -660,7 +671,8 @@ class FairMatch(object):
         create all required contests using the FairMatch algorithm
         with the given user entries.
         """
-
+        logger.info('running FairMatch for %s entries | contest size: %s | contests: %s' % (
+            len(self.original_entries), self.contest_size, self.contests))
         self.contests = {
             'entry_pool_size': len(list(self.original_entries)),
             'entry_pool': list(self.original_entries),
@@ -675,17 +687,24 @@ class FairMatch(object):
 
         # now remove the unused entries
         unused_entries = self.contests['entry_pool']
-        logger.info('%s unmatched entries are being discarded' % len(unused_entries))
-        for c in self.contests['contests']:
-            for entry in c:
+
+        for contest in self.contests['contests'] + self.contests['contests_forced']:
+            for entry in contest:
+                logger.info("\tremoving matched entry `%s` the from 'unused_entries' list", entry)
                 unused_entries.remove(entry)
         self.contests['unused_entries'] = unused_entries
 
-    def get_and_remove_uniques(self, entries, exclude):
+        # Now refund unused entries.
+
+        logger.info("FairMatch Summary for ContestPool.id=%s: %s" % (
+            self.contest_pool_id, self.contests))
+
+    @staticmethod
+    def get_and_remove_uniques(entries, exclude):
         """
         breaks up the list of entries into two lists:
-         a) all unique entries
-         b) the remaining pool of entries after 1 of each unique has been removed
+            a) all unique entries
+            b) the remaining pool of entries after 1 of each unique has been removed
 
         :param entries: all entries pool
         :param exclude: ignore these entries
@@ -698,37 +717,40 @@ class FairMatch(object):
         # entirely removed because uniques will not
         return uniques, entries
 
-    def remove_from_list(self, target, removes):
+    @staticmethod
+    def remove_from_list(target, removes):
         for e in removes:
             target.remove(e)
         return target
 
-    def get_additional_uniques(self, entries, n, exclude):
-        """
-        get 'n' uniques out of 'entries', excluding those in 'exclude' list
-
-        removes the entries return from the original 'entries' list
-
-        :param entries:
-        :param n:
-        :param exclude:
-        :return:
-        """
-
-        additional_uniques = list(set(entries))
-        logger.info('get %sx entry from %s ignoring entries in %s' % (n, additional_uniques, exclude))
-        # excludes the entries we already have
-        for e in exclude:
-            try:
-                additional_uniques.remove(e)
-            except ValueError:
-                pass  # e didnt exist
-        shuffle(additional_uniques)
-        additional_uniques = additional_uniques[:n]
-
-        entries = self.remove_from_list(entries, additional_uniques)
-
-        return additional_uniques, entries
+    # I don't know why this exists, but it isn't used so I left it for posterity's sake (zach)
+    # def get_additional_uniques(self, entries, n, exclude):
+    #     """
+    #     get 'n' uniques out of 'entries', excluding those in 'exclude' list
+    #
+    #     removes the entries return from the original 'entries' list
+    #
+    #     :param entries:
+    #     :param n:
+    #     :param exclude:
+    #     :return:
+    #     """
+    #
+    #     additional_uniques = list(set(entries))
+    #     logger.info(
+    #         'get %sx entry from %s ignoring entries in %s' % (n, additional_uniques, exclude))
+    #     # excludes the entries we already have
+    #     for e in exclude:
+    #         try:
+    #             additional_uniques.remove(e)
+    #         except ValueError:
+    #             pass  # e didnt exist
+    #     shuffle(additional_uniques)
+    #     additional_uniques = additional_uniques[:n]
+    #
+    #     entries = self.remove_from_list(entries, additional_uniques)
+    #
+    #     return additional_uniques, entries
 
     def run_h(self, entries, round, exclude, verbose=False):
         """
@@ -745,24 +767,29 @@ class FairMatch(object):
         """
         if entries == [] and exclude == []:
             if verbose:
-                logger.info('done!')
+                logger.info('Done FairMatching contest pool into contests.')
             return  # we are done
 
         if verbose:
-            logger.info('++++ beginning of round %s ++++' % round)
-            logger.info('(pre-round) entry pool: %s' % entries)
+            logger.info(
+                '++++ beginning of round %s - (pre-round) entry pool: %s ++++' % (round, entries))
 
         # get the unique entries for this round
+        # returns (unique entries (one from each user), all other entries)
         round_uniques, remaining_entries = self.get_and_remove_uniques(entries, exclude)
+        # take all non-user-unique entries and remove any of those we've explicitly excluded.
         remaining_uniques = list(set(remaining_entries) - set(exclude))
         if verbose:
-            logger.info('excluded(for fairness): %s' % exclude)
-            logger.info('round uniques: %s' % round_uniques)
-            logger.info('remaining entries: %s including any entries in exclude (debug)' % remaining_entries)
-            logger.info('remaining uniques: %s not including excludes. potential additional entries this round' % (
-                        remaining_uniques))
+            logger.info('\texcluded(for fairness): %s' % exclude)
+            logger.info('\tround uniques: %s' % round_uniques)
+            logger.info(
+                '\tremaining entries: %s including any entries in exclude (debug)' % remaining_entries)
+            logger.info(
+                ('\tremaining uniques: %s not including excludes. potential additional entries '
+                 'this round') % remaining_uniques)
 
         exclude_users_for_fairness = []
+
         while True:
             # shuffle the entries and then select enough for a contest
             shuffle(round_uniques)
@@ -791,21 +818,26 @@ class FairMatch(object):
                 selected_additional_entries = additional_uniques[:n]
 
                 if verbose:
-                    logger.info('-> %s didnt get filled.' % round_uniques)
+                    logger.info('\tthese entries didn\'t get matched %s.' % round_uniques)
                     # print('        -> selected_additional_entries = '
                     #       'list(set(remaining_uniques) - set(round_uniques))[:n]')
-                    logger.info('-> randomly chose: %s from %s (avoiding these obviously: %s' % (
-                                selected_additional_entries, additional_uniques, round_uniques))
+                    logger.info(
+                        "\trandomly chose: %s from %s (next round's entries) in order to match %s" %
+                        (selected_additional_entries, additional_uniques, round_uniques))
 
                 # now make the last contest of the round, or issue refunds
                 first_round = round == 1
                 try:
-                    self.fill_contest(round_uniques + selected_additional_entries, self.contest_size, force=first_round)
-                except:
+                    self.fill_contest(round_uniques + selected_additional_entries,
+                                      self.contest_size, force=first_round)
+                except self.NotEnoughEntriesException as e:
                     # failed on the last time around, but there may be enough
                     # excludes required to create the last contest on
                     # one more round so break and try again
-
+                    logger.warning(
+                        ("\tContest creation failed. There are not enough entries. Another "
+                         "round will be attempted - %s" % e)
+                    )
                     break
 
                 exclude_users_for_fairness = selected_additional_entries
@@ -814,23 +846,24 @@ class FairMatch(object):
                 break
 
         if verbose:
-            logger.info('(exclude %s in round %s)' % (exclude_users_for_fairness, str(round + 1)))
+            logger.info('\t(exclude %s in round %s)' % (exclude_users_for_fairness, str(round + 1)))
 
         # post while loop
         self.run_h(entries, round + 1, exclude_users_for_fairness, verbose=verbose)
 
     def print_debug_info(self):
-        logger.info('*** post run() information ***')
+        logger.info('\t*** post run() information ***')
         # print(self.contests)
         for k, v in self.contests.items():
-            logger.info('%s: %s' % (k, v))
-            logger.info('%s contests created' % len(self.contests['contests']))
+            logger.info('\t%s: %s' % (k, v))
+            logger.info('\t%s contests created' % len(
+                self.contests['contests'] + self.contests['forced_contests']))
             # This removes unused entries, but has been commented out. I have no idea why it is. (zach)
             # unused_entries = self.contests['entry_pool']
             # for c in self.contests['contests']:
             #     for entry in c:
             #         unused_entries.remove(entry)
-            logger.info('unused entries: %s' % self.contests['unused_entries'])
+            logger.info('\tunused entries: %s' % self.contests['unused_entries'])
 
 
 # from contest.classes import ContestPoolCreator
@@ -900,13 +933,17 @@ class ContestPoolFiller(object):
         """
         self.new_contests = []
 
+        # how many entries the contest should consist of. - this is based on the prize structure.
         contest_size = self.contest_pool.prize_structure.get_entries()
+        # All entries that have registered for this contest pool.
         entry_pool = [e.user.pk for e in self.entries]
+        # log + send a message to slack.
         count_msg = '> 💁 %s unique users and %s total entries' % (
             len(entry_pool), len(self.entries))
         logger.info(count_msg)
         slack.send(count_msg)
 
+        # Create a dict of user PKs, each key containing a list of that user's entries.
         self.user_entries = {}
         for e in self.entries:
             try:
@@ -916,7 +953,7 @@ class ContestPoolFiller(object):
 
         # run the FairMatch algorithm to get the
         # information on how to fill the contests
-        fm = FairMatch(entry_pool, contest_size)
+        fm = FairMatch(entry_pool, contest_size, self.contest_pool.id)
         fm.run()
 
         # debug - can be removed
@@ -1131,7 +1168,8 @@ class RecentPlayerOwnership(object):
             start, end = DfsDate.get_current_dfs_date_range(offset_hours=24 * i * -1)
             # get the 'group', ie: the DraftGroups (a subset of our self.draft_groups) for the day.
             group = draftgroup.models.DraftGroup.objects.filter(start__range=(start, end),
-                                                                pk__in=[dg.pk for dg in self.draft_groups])
+                                                                pk__in=[dg.pk for dg in
+                                                                        self.draft_groups])
             # print('%s draft groups added' % len(group))
             draft_groups_by_day.append(group)
             i += 1
@@ -1156,7 +1194,8 @@ class RecentPlayerOwnership(object):
             # and the 'day_ownerships' without replacing existing keys in 'player_ownerships'
             new_day_ownerships = DictTools.subtract(day_ownerships.copy(), player_ownerships)
             # print('new_day_ownerships', str(new_day_ownerships))
-            dfs_day_ownership_list.append(self.DfsDayOwnership(num_lineups_in_group, new_day_ownerships))
+            dfs_day_ownership_list.append(
+                self.DfsDayOwnership(num_lineups_in_group, new_day_ownerships))
             day_ownerships.update(player_ownerships)
             # replace player_ownerships with the updated copy of all ownerships we've seen thus far
             player_ownerships = day_ownerships.copy()
