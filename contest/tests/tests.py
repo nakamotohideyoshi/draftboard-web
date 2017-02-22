@@ -1,4 +1,3 @@
-import unittest
 from logging import getLogger
 
 from django.core.urlresolvers import reverse
@@ -11,12 +10,11 @@ from account.models import (
 )
 from contest.classes import (
     ContestPoolCreator,
-    FairMatch,
-    SkillLevelManager,
+    SkillLevelManager
 )
 from contest.models import (
     ContestPool,
-    Entry
+    Entry,
 )
 from contest.views import (
     EnterLineupAPIView
@@ -39,116 +37,6 @@ from test.classes import (
 )
 
 logger = getLogger('contest.tests')
-
-
-class FairMatchTest(unittest.TestCase):
-    """
-    unit tests (no database required) for contest.classes.FairMatch
-    """
-
-    @staticmethod
-    def get_matched_entry_count(fm):
-        # count the number of entries that are nested into their own lists.
-        matched_entry_count = sum(len(x) for x in fm.contests['contests'])
-        forced_entry_count = sum(len(x) for x in fm.contests['contests_forced'])
-        # Add up # of contests created * contest size in order to find the # of matched entries.
-        return forced_entry_count + matched_entry_count
-
-    def get_accounted_for_entry_count(self, fm):
-        # Get ALL entries, both match and unmatched.
-        return self.get_matched_entry_count(fm) + len(fm.contests['unused_entries'])
-
-    # Some basic sanity checks.
-    def basic_contest_tests(self, fm, test_entries, contest_size):
-        # make sure entry count is the same
-        self.assertEqual(fm.contests['entry_pool_size'], len(test_entries))
-        # make sure contest size is the same
-        self.assertEqual(fm.contests['contest_size'], contest_size)
-        # Make sure all entries were either matched or unmatched.
-        self.assertEqual(self.get_accounted_for_entry_count(fm), len(test_entries))
-
-    def test_simple_h2h_contest_1(self):
-        test_entries = [1, 1, 2, 3, 4, 5, 5, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9]
-        contest_size = 2
-        fm = FairMatch(test_entries, contest_size, 'test_id')
-        fm.run()
-        self.basic_contest_tests(fm, test_entries, contest_size)
-
-        # Did all entries either get matched or unmatched?
-        self.assertEqual(self.get_accounted_for_entry_count(fm), len(test_entries))
-        # 9's 4-6 entries should never match because they are the only user with more th an 3
-        # entries
-        self.assertEqual(fm.contests['unused_entries'], [9, 9, 9, 9])
-
-    def test_simple_h2h_contest_2(self):
-        test_entries = [1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9]
-        contest_size = 2
-        fm = FairMatch(test_entries, contest_size)
-        fm.run()
-        self.basic_contest_tests(fm, test_entries, contest_size)
-
-        # Did all entries either get matched or unmatched?
-        self.assertEqual(self.get_accounted_for_entry_count(fm), len(test_entries))
-        # There should only be 1 entry left out  of this contest pool configuration.
-        self.assertEqual(len(fm.contests['unused_entries']), 1)
-
-    def test_simple_h2h_contest_1_superlay(self):
-        # In this situation there is only 1 entry, which means it must get a contest even if there
-        # is nothing to match it against.
-        test_entries = [1]
-        contest_size = 2
-        fm = FairMatch(test_entries, contest_size)
-        fm.run()
-        self.basic_contest_tests(fm, test_entries, contest_size)
-
-        # In a Superlay contest, there are not enough entries to match into a contest, but a user
-        # still has an unmatched 1st roudn entry, so they get a contest created even if there is no
-        # opponent
-        self.assertEqual(len(fm.contests['unused_entries']), 0)
-        self.assertEqual(len(fm.contests['contests_forced']), 1)
-        self.assertEqual(len(fm.contests['contests']), 0)
-
-    def test_simple_h2h_contest_2_superlay(self):
-        # Here there are 3 entries, which means two will match, and the other 1st rounder will get
-        # a contest matched by itself.
-        test_entries = [1, 2, 3]
-        contest_size = 2
-        fm = FairMatch(test_entries, contest_size)
-        fm.run()
-        self.basic_contest_tests(fm, test_entries, contest_size)
-
-        # In a Superlay contest, there are not enough entries to match into a contest, but a user
-        # still has an unmatched 1st roudn entry, so they get a contest created even if there is no
-        # opponent
-        self.assertEqual(len(fm.contests['unused_entries']), 0)
-        # This is the important part: one of the entries needs to be forced into it's own contest.
-        self.assertEqual(len(fm.contests['contests_forced']), 1)
-        self.assertEqual(len(fm.contests['contests']), 1)
-
-    def test_simple_3man_contest_1(self):
-        test_entries = [1, 2, 3]
-        contest_size = 3
-        fm = FairMatch(test_entries, contest_size)
-        fm.run()
-        self.basic_contest_tests(fm, test_entries, contest_size)
-
-        # 3 entries, contest size of 3: should have 1 contest and nothing else.
-        self.assertEqual(len(fm.contests['unused_entries']), 0)
-        self.assertEqual(len(fm.contests['contests_forced']), 0)
-        self.assertEqual(len(fm.contests['contests']), 1)
-
-    def test_simple_3man_contest_2(self):
-        #
-        test_entries = [1, 2, 3, 9]
-        contest_size = 3
-        fm = FairMatch(test_entries, contest_size)
-        fm.run()
-        self.basic_contest_tests(fm, test_entries, contest_size)
-
-        # 3 entries, contest size of 3: should have 1 contest and nothing else.
-        self.assertEqual(len(fm.contests['unused_entries']), 0)
-        self.assertEqual(len(fm.contests['contests_forced']), 1)
-        self.assertEqual(len(fm.contests['contests']), 1)
 
 
 class SkillLevelManagerTest(AbstractTest):
@@ -429,110 +317,113 @@ class ContestCreatorRespawn(AbstractTest):
         super().setUp()
         # TODO
 
-# class ContestOnGameClosedRaceCondition(AbstractTest):
-#
-#     def setUp(self):
-#         self.user = self.get_basic_user()
-#         ct = CashTransaction(self.user)
-#         ct.deposit(100)
-#
-#         # updated Dummy so we can get an instance for a sport, ie: 'nfl'
-#         # call generate and it works for that sport. this is the latest
-#         # and greatest Dummy.
-#         self.sport          = 'nfl'
-#         self.dummy          = Dummy(self.sport)
-#
-#         # does the same thing as generate_salaries()
-#         # but creates it for a specific sport, whereas
-#         # generate_salaries() uses the PlayerChild / GameChild/ test models only
-#         salary_generator    = self.dummy.generate()
-#
-#         self.salary_pool    = salary_generator.pool
-#         self.first = 100.0
-#         self.second = 50.0
-#         self.third = 25.0
-#
-#         #
-#         # create a simple Rank and Prize Structure
-#         self.buyin = 10
-#
-#         cps = CashPrizeStructureCreator(name='test-prizes')
-#         cps.add(1, self.first)
-#         cps.add(2, self.second)
-#         cps.add(3, self.third)
-#         cps.set_buyin( self.buyin )
-#         cps.save()
-#         cps.prize_structure.save()
-#
-#         self.prize_structure = cps.prize_structure
-#         self.ranks = cps.ranks
-#
-#         #
-#         # create the Contest
-#         ssm = SiteSportManager()
-#         site_sport = ssm.get_site_sport(self.sport)
-#         game_model = ssm.get_game_class(site_sport)
-#
-#         now = timezone.now() # get the current time
-#
-#         # increase the start time of all the upcoming games by 20 minutes,
-#         # then use the start time of the next game as the start time of the contest.
-#         # and add a bunch of hours to start to spoof the end
-#         for g in game_model.objects.filter(start__gte=now):
-#             g.start + timedelta(minutes=20)
-#             g.save()
-#         upcoming_games = game_model.objects.filter(start__gte=now).order_by('start')
-#         game = upcoming_games[0] # the closest upcoming game
-#         start   = game.start
-#         end     = start + timedelta(hours=12) # ahead 24 hours to capture all games
-#         cc      = ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
-#
-#         self.contest        = cc.create()
-#         self.contest.status = Contest.RESERVABLE
-#         self.contest.save()
-#
-#         # use the DraftGroupManager to create a draft group
-#         # for the contest.
-#         self.dgm = DraftGroupManager()
-#         self.draft_group = self.dgm.create( self.contest.site_sport,
-#                          self.contest.start, self.contest.end )
-#
-#         self.contest.draft_group = self.draft_group
-#         self.contest.save()
-#
-#     # @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
-#     #                    CELERY_ALWAYS_EAGER=True,
-#     #                    CELERYD_CONCURRENCY=1)
-#     def test_race_condition_on_game_closed(self):
-#         """
-#         when live games go to 'closed' status,
-#         they send a signal which should attempt to
-#         close Contests if ALL of the live games
-#         in the contest's draftgroup are closed.
-#         If this happens simultaneously we could potentially
-#         skip from ever setting the contest to be ready to be paid out.
-#         """
-#
-#         def run_now(self_obj):
-#             task = on_game_closed.delay(self_obj.contest.draft_group)
-#             self.assertTrue(task.successful())
-#
-#         # update all the games in the draft group to closed beforehand
-#         ssm = SiteSportManager()
-#         game_model = ssm.get_game_class(self.contest.site_sport)
-#         for game in self.contest.games():
-#             game.status = game_model.STATUS_CLOSED
-#             game.save()
-#             game.refresh_from_db()
-#             self.assertEquals( game.status, game_model.STATUS_CLOSED ) # for sanity
-#
-#         # make sure contest status is not already completed
-#         # self.contest.refresh_from_db()
-#         # self.assertNotEquals( self.contest.status, Contest.COMPLETED )
-#
-#         # run it concurrently
-#         self.concurrent_test(3, run_now, self)
-#
-#         # assert contest is ready to be paid out
-#         self.contest.refresh_from_db()
-#         self.assertEquals(self.contest.status, self.contest.COMPLETED )
+
+        # self.assertEqual(fm.contests['unused_entries'], [9, 9, 9, 9])
+
+        # class ContestOnGameClosedRaceCondition(AbstractTest):
+        #
+        #     def setUp(self):
+        #         self.user = self.get_basic_user()
+        #         ct = CashTransaction(self.user)
+        #         ct.deposit(100)
+        #
+        #         # updated Dummy so we can get an instance for a sport, ie: 'nfl'
+        #         # call generate and it works for that sport. this is the latest
+        #         # and greatest Dummy.
+        #         self.sport          = 'nfl'
+        #         self.dummy          = Dummy(self.sport)
+        #
+        #         # does the same thing as generate_salaries()
+        #         # but creates it for a specific sport, whereas
+        #         # generate_salaries() uses the PlayerChild / GameChild/ test models only
+        #         salary_generator    = self.dummy.generate()
+        #
+        #         self.salary_pool    = salary_generator.pool
+        #         self.first = 100.0
+        #         self.second = 50.0
+        #         self.third = 25.0
+        #
+        #         #
+        #         # create a simple Rank and Prize Structure
+        #         self.buyin = 10
+        #
+        #         cps = CashPrizeStructureCreator(name='test-prizes')
+        #         cps.add(1, self.first)
+        #         cps.add(2, self.second)
+        #         cps.add(3, self.third)
+        #         cps.set_buyin( self.buyin )
+        #         cps.save()
+        #         cps.prize_structure.save()
+        #
+        #         self.prize_structure = cps.prize_structure
+        #         self.ranks = cps.ranks
+        #
+        #         #
+        #         # create the Contest
+        #         ssm = SiteSportManager()
+        #         site_sport = ssm.get_site_sport(self.sport)
+        #         game_model = ssm.get_game_class(site_sport)
+        #
+        #         now = timezone.now() # get the current time
+        #
+        #         # increase the start time of all the upcoming games by 20 minutes,
+        #         # then use the start time of the next game as the start time of the contest.
+        #         # and add a bunch of hours to start to spoof the end
+        #         for g in game_model.objects.filter(start__gte=now):
+        #             g.start + timedelta(minutes=20)
+        #             g.save()
+        #         upcoming_games = game_model.objects.filter(start__gte=now).order_by('start')
+        #         game = upcoming_games[0] # the closest upcoming game
+        #         start   = game.start
+        #         end     = start + timedelta(hours=12) # ahead 24 hours to capture all games
+        #         cc      = ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
+        #
+        #         self.contest        = cc.create()
+        #         self.contest.status = Contest.RESERVABLE
+        #         self.contest.save()
+        #
+        #         # use the DraftGroupManager to create a draft group
+        #         # for the contest.
+        #         self.dgm = DraftGroupManager()
+        #         self.draft_group = self.dgm.create( self.contest.site_sport,
+        #                          self.contest.start, self.contest.end )
+        #
+        #         self.contest.draft_group = self.draft_group
+        #         self.contest.save()
+        #
+        #     # @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
+        #     #                    CELERY_ALWAYS_EAGER=True,
+        #     #                    CELERYD_CONCURRENCY=1)
+        #     def test_race_condition_on_game_closed(self):
+        #         """
+        #         when live games go to 'closed' status,
+        #         they send a signal which should attempt to
+        #         close Contests if ALL of the live games
+        #         in the contest's draftgroup are closed.
+        #         If this happens simultaneously we could potentially
+        #         skip from ever setting the contest to be ready to be paid out.
+        #         """
+        #
+        #         def run_now(self_obj):
+        #             task = on_game_closed.delay(self_obj.contest.draft_group)
+        #             self.assertTrue(task.successful())
+        #
+        #         # update all the games in the draft group to closed beforehand
+        #         ssm = SiteSportManager()
+        #         game_model = ssm.get_game_class(self.contest.site_sport)
+        #         for game in self.contest.games():
+        #             game.status = game_model.STATUS_CLOSED
+        #             game.save()
+        #             game.refresh_from_db()
+        #             self.assertEquals( game.status, game_model.STATUS_CLOSED ) # for sanity
+        #
+        #         # make sure contest status is not already completed
+        #         # self.contest.refresh_from_db()
+        #         # self.assertNotEquals( self.contest.status, Contest.COMPLETED )
+        #
+        #         # run it concurrently
+        #         self.concurrent_test(3, run_now, self)
+        #
+        #         # assert contest is ready to be paid out
+        #         self.contest.refresh_from_db()
+        #         self.assertEquals(self.contest.status, self.contest.COMPLETED )
