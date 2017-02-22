@@ -56,8 +56,8 @@ class CreateLineupAPIView(generics.CreateAPIView):
         players = request.data.get('players', [])
         name = request.data.get('name', '')
 
-        user_lineups = Lineup.objects.filter(user=request.user).values_list('name', flat=True)
-        if name in user_lineups:
+        user_lineups = Lineup.objects.filter(user=request.user, draft_group_id=draft_group_id).values_list('name', flat=True)
+        if name and name in user_lineups:
             raise ValidationError(
                 {'detail': 'You already have lineup with this name.'})
 
@@ -224,7 +224,7 @@ class EditLineupAPIView(generics.CreateAPIView):
         #
         # change the lineups name if it differs from the existing name
         if lineup.name != name:
-            user_lineups = Lineup.objects.filter(user=request.user).values_list('name', flat=True)
+            user_lineups = Lineup.objects.filter(user=request.user, draft_group_id=lineup.draft_group_id).values_list('name', flat=True)
             if name in user_lineups:
                 raise ValidationError(
                     {'detail': 'You already have lineup with this name.'})
