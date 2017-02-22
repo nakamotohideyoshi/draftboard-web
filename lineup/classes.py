@@ -177,24 +177,16 @@ class LineupManager(AbstractSiteUserClass):
                 players_with_nicknames = cleaned_players
         return players_with_nicknames, user_lineup_nicknames
 
-
     def set_lineup_nickname(self, lineup, players, draftgroup):
         players_with_nicknames, user_lineup_nicknames = self.get_players_with_nicknames(players, draftgroup)
         lineup_name = ''
         if players_with_nicknames:
             random_player_nickname = random.choice(players_with_nicknames).lineup_nickname
-            same_nick_count = user_lineup_nicknames.filter(name__contains=random_player_nickname).count()
-            if same_nick_count:
-                lineup_name = '{} #{}'.format(random_player_nickname, same_nick_count + 1)
-                check_exist = user_lineup_nicknames.filter(name__iexact=lineup_name)
-                if check_exist:
-                    i=1
-                    lineup_name = random_player_nickname
-                    while user_lineup_nicknames.filter(name__iexact=lineup_name):
-                        i=i+1
-                        lineup_name = '{} #{}'.format(random_player_nickname, i)
-            else:
-                lineup_name = random_player_nickname
+            i = 1
+            lineup_name = random_player_nickname
+            while user_lineup_nicknames.filter(name__iexact=lineup_name):
+                i += 1
+                lineup_name = '{} #{}'.format(random_player_nickname, i)
         return lineup_name
 
     def __create_lineup(self, player_ids, draftgroup, name=''):
@@ -372,10 +364,8 @@ class LineupManager(AbstractSiteUserClass):
             i += 1
             lineup_player.save()
         for player in removed_players:
-            if (player.lineup_nickname != '' and  player.lineup_nickname in lineup.name) or lineup.name == '':
-                # lineup.name = ''
-                # lineup.save()
-                lineup.name = self.set_lineup_nickname(lineup, players, draftgroup)
+            if (player.lineup_nickname != '' and player.lineup_nickname in lineup.name) or lineup.name == '':
+                lineup.name = self.set_lineup_nickname(lineup, players)
                 lineup.save()
 
         logger.info('action: lineup edited | lineup: %s' % lineup)
