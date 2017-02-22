@@ -1,5 +1,6 @@
 import * as types from '../action-types.js';
 import request from 'superagent';
+import { addMessage } from './message-actions';
 
 
 export function transactionFocused(transactionId) {
@@ -59,6 +60,13 @@ export function fetchTransactions(startDate = null, endDate = null) {
       })
       .end((err, res) => {
         if (err) {
+          dispatch(addMessage({
+            type: types.ADD_MESSAGE,
+            header: 'Wrong dates',
+            content: 'Start date is a later time that end date',
+            level: 'warning',
+            ttl: 3000,
+          }));
           return dispatch(fetchTransactionsFail(err));
         }
 

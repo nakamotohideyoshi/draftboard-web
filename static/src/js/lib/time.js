@@ -123,10 +123,12 @@ export function daysToWeekView(days) {
  */
 export function stringifyDate(date, delimiter) {
   if (date && delimiter) {
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    return month + delimiter + day + delimiter + year;
+    // const day = date.getDate();
+    // const month = date.getMonth() + 1;
+    // const year = date.getFullYear();
+    // return month + delimiter + day + delimiter + year;
+    console.log(date)
+    return date.format('MM'+ delimiter +'DD'+ delimiter + 'YYYY')
   }
 
   log.warn('Missing date or delimiter parameter');

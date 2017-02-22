@@ -100,5 +100,8 @@
     "webpack": "NODE_ENV=production ./node_modules/.bin/webpack --optimize-minimize --optimize-dedupe --optimize-occurence-order --colors --progress --profile --config webpack-production.config.js",
     "webpack_watch": "NODE_ENV=production ./node_modules/.bin/webpack --colors --progress --profile --config webpack-production.config.js --watch",
     "lint": "./node_modules/.bin/eslint ./static/src/js/*"
+  },
+  "dependencies": {
+    "react-datepicker": "^0.41.1"
   }
 }
