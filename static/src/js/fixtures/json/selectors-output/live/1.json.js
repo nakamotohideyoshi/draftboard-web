@@ -10234,7 +10234,7 @@ module.exports = {
     }
   },
   "events": {
-    "animationEvents": {},
+    "currentEvent": {},
     "gamesQueue": {},
     "playerEventDescriptions": {},
     "playerHistories": {},

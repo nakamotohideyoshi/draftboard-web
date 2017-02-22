@@ -1,8 +1,6 @@
-#
-# util/dicts.py
-
-from functools import reduce
 from collections import Counter
+from functools import reduce
+
 
 # %cpaste
 # class Dict2(dict):
@@ -19,7 +17,6 @@ from collections import Counter
 # d2.get('steve')
 
 class DictTools:
-
     @staticmethod
     def combine(d1, d2):
         """
@@ -65,6 +62,7 @@ class DictTools:
                 pass
         return d1
 
+
 class Reducer(object):
     """
     Removes key-values from the top level of a dict,
@@ -74,9 +72,11 @@ class Reducer(object):
     size of the dict by removing unwanted/unecessary key-values.
     """
 
-    class InvalidDataType(Exception): pass
+    class InvalidDataType(Exception):
+        pass
 
-    class RemoveFieldsNotSetException(Exception): pass
+    class RemoveFieldsNotSetException(Exception):
+        pass
 
     # inheriting classes should set this to a list of string field names to remove
     remove_fields = None
@@ -87,10 +87,10 @@ class Reducer(object):
 
     def __init__(self, data):
         if not isinstance(data, dict):
-            err_msg = '"data" must be of type: dict'
+            err_msg = '"data" must be of type: dict, not %s' % type(data)
             raise self.InvalidDataType(err_msg)
-        self.data = data # save the original data
-        self.reduced = self.data.copy() # clone the data coming in
+        self.data = data  # save the original data
+        self.reduced = self.data.copy()  # clone the data coming in
         self.__validate_remove_fields(self.remove_fields)
 
     def __validate_remove_fields(self, remove_fields):
@@ -115,7 +115,7 @@ class Reducer(object):
         elif val == self.str_true:
             return True
         else:
-            return False # default !?
+            return False  # default !?
 
     def get_internal_data(self):
         return self.reduced
@@ -126,7 +126,7 @@ class Reducer(object):
         to do anything that happens immediately prior
         to the code in reduce() being executed
         """
-        pass # by default does nothing, side effects nothing
+        pass  # by default does nothing, side effects nothing
 
     def reduce(self):
         self.pre_reduce()
@@ -142,6 +142,7 @@ class Reducer(object):
         #
         return self.reduced
 
+
 class Shrinker(object):
     """
     Shrinker is meant to be subclassed and have its 'fields' set, ie:
@@ -152,7 +153,8 @@ class Shrinker(object):
     Renames keys at the top of level of this object (ie: it shrinks them).
     """
 
-    class FieldsNotSetException(Exception): pass
+    class FieldsNotSetException(Exception):
+        pass
 
     # child classes must set a dict of the key:value pairs
     # that define the renamings. for example, setting 'fields':
@@ -172,24 +174,24 @@ class Shrinker(object):
         """ return shrunk data """
         self.shrunk = self.data.copy()
         for old_field, new_field in self.fields.items():
-            #print(self.__class__.__name__, 'old_field', old_field, 'new_field', new_field)
+            # print(self.__class__.__name__, 'old_field', old_field, 'new_field', new_field)
             if new_field in self.shrunk:
                 # prevent us from remapping a key
                 # to a keyname that already exists
-                #print('    new_field already exists:', new_field)
+                # print('    new_field already exists:', new_field)
                 continue
 
             try:
                 val = self.shrunk.pop(old_field)
             except KeyError:
-                #print('    old_field does not exist:', old_field)
-                continue # old_field didnt exist. dont hold it against them
+                # print('    old_field does not exist:', old_field)
+                continue  # old_field didnt exist. dont hold it against them
 
             # if val is None:
             #     print('    old_field pop()ed value:', str(val))
             #     continue # dont add a random default value if the field doesnt exist
 
-            #print('    remapping old_field[%s] to { "%s" : "%s" }' % (old_field, new_field, str(val)))
+            # print('    remapping old_field[%s] to { "%s" : "%s" }' % (old_field, new_field, str(val)))
             self.shrunk[new_field] = val
         #
         return self.shrunk
@@ -199,11 +201,14 @@ class Shrinker(object):
             err_msg = '"fields" must be set to a dict of key renamings!'
             raise self.FieldsNotSetException(err_msg)
 
-class Manager(object):
 
+class Manager(object):
     # exceptions for validity checking
-    class InvalidReducer(Exception): pass
-    class InvalidShrinker(Exception): pass
+    class InvalidReducer(Exception):
+        pass
+
+    class InvalidShrinker(Exception):
+        pass
 
     # must be set by child classes
     reducer_class = None
@@ -232,7 +237,7 @@ class Manager(object):
             val = int(val)
 
         if not isinstance(val, int):
-            return val # could raise here... idk
+            return val  # could raise here... idk
 
         return val == 1
 
@@ -259,7 +264,7 @@ class Manager(object):
 
     def add_data(self, base_data, additional=None):
         if additional is not None:
-            for k,v in additional.items():
+            for k, v in additional.items():
                 # add this key:value of additional data,
                 # but only if the field doesnt exist already in orig
                 if base_data.get(k, None) is None:

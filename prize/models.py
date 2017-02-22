@@ -54,6 +54,10 @@ class PrizeStructure(models.Model):
         return self.generator.payout_spots
 
     def get_entries(self):
+        """
+        Get the maximum number of entries allowed in the prize stucture. This is the size of
+        a contest that uses this prize structure.
+        """
         return int(self.prize_pool / (self.buyin * 0.9))
 
     def __str__(self):

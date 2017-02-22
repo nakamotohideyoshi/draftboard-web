@@ -1,7 +1,14 @@
 import unittest
+from logging import getLogger
 
+from django.core.urlresolvers import reverse
 from django.utils import timezone
 
+from account.models import (
+    Limit,
+    Confirmation,
+    Identity
+)
 from contest.classes import (
     ContestPoolCreator,
     FairMatch,
@@ -9,6 +16,10 @@ from contest.classes import (
 )
 from contest.models import (
     ContestPool,
+    Entry
+)
+from contest.views import (
+    EnterLineupAPIView
 )
 from mysite.exceptions import (
     IncorrectVariableTypeException,
@@ -21,11 +32,11 @@ from sports.models import (
 )
 from test.classes import (
     AbstractTest,
+    ForceAuthenticateAndRequestMixin
 )
 from test.classes import (
     BuildWorldMixin,
 )
-from logging import getLogger
 
 logger = getLogger('contest.tests')
 
@@ -35,50 +46,96 @@ class FairMatchTest(unittest.TestCase):
     unit tests (no database required) for contest.classes.FairMatch
     """
 
+    @staticmethod
+    def get_matched_entry_count(fm):
+        # count the number of entries that are nested into their own lists.
+        matched_entry_count = sum(len(x) for x in fm.contests['contests'])
+        forced_entry_count = sum(len(x) for x in fm.contests['contests_forced'])
+        # Add up # of contests created * contest size in order to find the # of matched entries.
+        return forced_entry_count + matched_entry_count
+
+    def get_accounted_for_entry_count(self, fm):
+        # Get ALL entries, both match and unmatched.
+        return self.get_matched_entry_count(fm) + len(fm.contests['unused_entries'])
+
+    # Some basic sanity checks.
+    def basic_contest_tests(self, fm, test_entries, contest_size):
+        # make sure entry count is the same
+        self.assertEqual(fm.contests['entry_pool_size'], len(test_entries))
+        # make sure contest size is the same
+        self.assertEqual(fm.contests['contest_size'], contest_size)
+        # Make sure all entries were either matched or unmatched.
+        self.assertEqual(self.get_accounted_for_entry_count(fm), len(test_entries))
+
     def test_simple_h2h_contest_1(self):
-        #            = [1   2 3 4 5     6 7 8 9            ]
         test_entries = [1, 1, 2, 3, 4, 5, 5, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9]
         contest_size = 2
-        fm = FairMatch(test_entries, contest_size)
+        fm = FairMatch(test_entries, contest_size, 'test_id')
         fm.run()
-        self.assertEqual(True, True)
-        fm.print_debug_info()
+        self.basic_contest_tests(fm, test_entries, contest_size)
+
+        # Did all entries either get matched or unmatched?
+        self.assertEqual(self.get_accounted_for_entry_count(fm), len(test_entries))
+        # 9's 4-6 entries should never match because they are the only user with more th an 3
+        # entries
+        self.assertEqual(fm.contests['unused_entries'], [9, 9, 9, 9])
 
     def test_simple_h2h_contest_2(self):
-        #            = [1     2     3   4   5 6 7 8 9
         test_entries = [1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9]
         contest_size = 2
         fm = FairMatch(test_entries, contest_size)
         fm.run()
-        self.assertEqual(True, True)
-        fm.print_debug_info()
+        self.basic_contest_tests(fm, test_entries, contest_size)
+
+        # Did all entries either get matched or unmatched?
+        self.assertEqual(self.get_accounted_for_entry_count(fm), len(test_entries))
+        # There should only be 1 entry left out  of this contest pool configuration.
+        self.assertEqual(len(fm.contests['unused_entries']), 1)
 
     def test_simple_h2h_contest_1_superlay(self):
-        #
+        # In this situation there is only 1 entry, which means it must get a contest even if there
+        # is nothing to match it against.
         test_entries = [1]
         contest_size = 2
         fm = FairMatch(test_entries, contest_size)
         fm.run()
-        self.assertEqual(True, True)
-        fm.print_debug_info()
+        self.basic_contest_tests(fm, test_entries, contest_size)
+
+        # In a Superlay contest, there are not enough entries to match into a contest, but a user
+        # still has an unmatched 1st roudn entry, so they get a contest created even if there is no
+        # opponent
+        self.assertEqual(len(fm.contests['unused_entries']), 0)
+        self.assertEqual(len(fm.contests['contests_forced']), 1)
+        self.assertEqual(len(fm.contests['contests']), 0)
 
     def test_simple_h2h_contest_2_superlay(self):
-        #
+        # Here there are 3 entries, which means two will match, and the other 1st rounder will get
+        # a contest matched by itself.
         test_entries = [1, 2, 3]
         contest_size = 2
         fm = FairMatch(test_entries, contest_size)
         fm.run()
-        self.assertEqual(True, True)
-        fm.print_debug_info()
+        self.basic_contest_tests(fm, test_entries, contest_size)
+
+        # In a Superlay contest, there are not enough entries to match into a contest, but a user
+        # still has an unmatched 1st roudn entry, so they get a contest created even if there is no
+        # opponent
+        self.assertEqual(len(fm.contests['unused_entries']), 0)
+        # This is the important part: one of the entries needs to be forced into it's own contest.
+        self.assertEqual(len(fm.contests['contests_forced']), 1)
+        self.assertEqual(len(fm.contests['contests']), 1)
 
     def test_simple_3man_contest_1(self):
-        #
         test_entries = [1, 2, 3]
         contest_size = 3
         fm = FairMatch(test_entries, contest_size)
         fm.run()
-        self.assertEqual(True, True)
-        fm.print_debug_info()
+        self.basic_contest_tests(fm, test_entries, contest_size)
+
+        # 3 entries, contest size of 3: should have 1 contest and nothing else.
+        self.assertEqual(len(fm.contests['unused_entries']), 0)
+        self.assertEqual(len(fm.contests['contests_forced']), 0)
+        self.assertEqual(len(fm.contests['contests']), 1)
 
     def test_simple_3man_contest_2(self):
         #
@@ -86,8 +143,12 @@ class FairMatchTest(unittest.TestCase):
         contest_size = 3
         fm = FairMatch(test_entries, contest_size)
         fm.run()
-        self.assertEqual(True, True)
-        fm.print_debug_info()
+        self.basic_contest_tests(fm, test_entries, contest_size)
+
+        # 3 entries, contest size of 3: should have 1 contest and nothing else.
+        self.assertEqual(len(fm.contests['unused_entries']), 0)
+        self.assertEqual(len(fm.contests['contests_forced']), 1)
+        self.assertEqual(len(fm.contests['contests']), 1)
 
 
 class SkillLevelManagerTest(AbstractTest):
@@ -124,7 +185,8 @@ class SkillLevelManagerTest(AbstractTest):
         for amount, expected_name in expected_data:
             sl = manager.get_for_amount(amount)
             name = sl.name
-            logger.info('    amount: %s | expected_name[%s] name[%s]' % (amount, expected_name, name))
+            logger.info(
+                '    amount: %s | expected_name[%s] name[%s]' % (amount, expected_name, name))
             self.assertEquals(expected_name, name)
 
 
@@ -272,6 +334,65 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         self.assertEquals(target_skill_level.name, contest_pool.skill_level.name)
         self.assertEquals(target_skill_level.gte, contest_pool.skill_level.gte)
         self.assertEquals(target_skill_level.enforced, contest_pool.skill_level.enforced)
+
+
+class SetLimitsTest(AbstractTest, BuildWorldMixin, ForceAuthenticateAndRequestMixin):
+    """
+        test the enter-lineup view to ensure we raise
+        exceptions if users reach their entry limits.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.build_world()
+        self.user = self.get_user_with_account_information()
+        self.view = EnterLineupAPIView
+        # the url of the endpoint and a default user
+        self.url = reverse('enter-lineup')
+        self.create_valid_lineup(user=self.user)
+        self.draft_group = self.world.draftgroup
+        self.contest = self.world.contest
+        prize_structure = self.contest.prize_structure
+        sport = 'nfl'
+        start = timezone.now()
+        duration = int(300)
+        self.contest_pool, created = ContestPoolCreator(sport, prize_structure, start, duration,
+                                                        self.draft_group).get_or_create()
+
+        prize = prize_structure.buyin
+        entry_alert_limit = Limit.objects.create(type=1, value=prize / 4, user=self.user,
+                                                 time_period=7)
+        entry_limit = Limit.objects.create(type=2, value=3, user=self.user, time_period=7)
+        entry_fee_limit = Limit.objects.create(type=3, value=prize / 2, user=self.user)
+
+        Identity.objects.create(
+            user=self.user,
+            first_name='test',
+            last_name='user',
+            birth_day=1,
+            birth_month=1,
+            birth_year=1984,
+            postal_code='80203',
+        )
+        Confirmation.objects.create(user=self.user,
+                                    confirmed=True)
+
+    def test_entry_fee(self):
+        data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+        self.assertEqual(response.status_code, 500)
+
+    def test_entry_limit(self):
+        data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}
+        entries = [Entry(contest=self.contest, contest_pool=self.contest_pool, lineup=self.lineup,
+                         user=self.user),
+                   Entry(contest=self.contest, contest_pool=self.contest_pool, lineup=self.lineup,
+                         user=self.user),
+                   Entry(contest=self.contest, contest_pool=self.contest_pool, lineup=self.lineup,
+                         user=self.user)]
+        Entry.objects.bulk_create(entries)
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+        self.assertEqual(response.status_code, 500)
 
 
 class ContestManagerTest(AbstractTest):

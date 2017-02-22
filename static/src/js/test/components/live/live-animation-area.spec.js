@@ -3,7 +3,7 @@ import React from 'react';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 
-import { LiveAnimationArea } from '../../../components/live/live-animation-area.jsx';
+import LiveAnimationArea from '../../../components/live/live-animation-area.jsx';
 import LiveMLBStadium from '../../../components/live/mlb/live-mlb-stadium.jsx';
 import LiveNBACourt from '../../../components/live/nba/live-nba-court.jsx';
 
@@ -15,7 +15,7 @@ describe('<LiveAnimationArea /> Component', () => {
   const renderComponent = (props) => mount(<LiveAnimationArea {...props} />);
 
   const defaultTestProps = {
-    animationEvent: null,
+    currentEvent: null,
     eventsMultipart: {
       events: [],
       watchablePlayers: [],

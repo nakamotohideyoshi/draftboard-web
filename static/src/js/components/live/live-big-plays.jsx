@@ -1,90 +1,91 @@
-import merge from 'lodash/merge';
 import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
-import Slider from 'react-slick';
-import { LiveBigPlay } from './live-big-play';
+import LiveBigPlay from './live-big-play';
 
 // assets
-require('../../../sass/lib/slick-carousel.scss');
 require('../../../sass/blocks/live/live-big-plays.scss');
 
+const ITEMS_PER_PAGE = 3;
 
-const LeftNavButton = (props) => (<div {...props}>&lt;</div>);
-const RightNavButton = (props) => (<div {...props}>&gt;</div>);
-
-export const LiveBigPlays = React.createClass({
+export default React.createClass({
 
   propTypes: {
     queue: React.PropTypes.array.isRequired,
   },
 
-  mixins: [PureRenderMixin],
-
   getInitialState() {
     return {
-      settings: {
-        dots: false,
-        infinite: false,
-        prevArrow: <LeftNavButton />,
-        nextArrow: <RightNavButton />,
-        speed: 500,
-        initialSlide: 1,
-        slidesToShow: 4,
-        slidesToScroll: 4,
-        rtl: true,
-      },
+      pointer: 1,
     };
   },
 
-  componentDidMount() {
-    window.addEventListener('resize', this.handleResize);
-
-    this.handleResize();
-  },
-
   componentWillReceiveProps(nextProps) {
-    const state = merge({}, this.state);
-
-    state.settings.initialSlide = nextProps.queue.length - 1;
-    this.setState(state);
-
-    this.refs.bigPlaysSlider.slickGoTo(state.settings.initialSlide);
-  },
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.handleResize);
-  },
-
-  handleResize() {
-    const windowWidth = window.innerWidth;
-    const state = merge({}, this.state);
-
-    if (windowWidth < 1140) {
-      state.settings.slidesToShow = 3;
-      state.settings.slidesToScroll = 3;
+    // Advance the pointer forward if the user is looking at the most recent play.
+    if (this.state.pointer === this.props.queue.length) {
+      this.setState({ pointer: nextProps.queue.length });
     }
-    if (windowWidth >= 1140) {
-      state.settings.slidesToShow = 4;
-      state.settings.slidesToScroll = 4;
+  },
+
+  /**
+   * Returns the current page's items from the queue.
+   */
+  getCurPage() {
+    if (this.state.pointer < ITEMS_PER_PAGE) {
+      return this.props.queue;
     }
 
-    this.setState(state);
+    const itemsPerPage = Math.min(this.props.queue.length, ITEMS_PER_PAGE);
+    const stop = this.state.pointer;
+    const start = this.state.pointer - itemsPerPage;
+
+    return this.props.queue.slice(start, stop);
   },
 
-  // weird bug with react-slick means you have to wrap each child in a div
-  // https://github.com/akiran/react-slick/issues/328#issuecomment-230662664
+  /**
+   * Moves the queue forward one place.
+   */
+  next() {
+    if (this.hasNext()) {
+      this.setState({ pointer: this.state.pointer + 1 });
+    }
+  },
+
+  /**
+   * Moves the queue backwards one place.
+   */
+  prev() {
+    if (this.hasPrev()) {
+      this.setState({ pointer: this.state.pointer - 1 });
+    }
+  },
+
+  /**
+   * Returns true if the queue can be moved forwards.
+   */
+  hasNext() {
+    const maxPointer = this.props.queue.length;
+    return this.props.queue.length > ITEMS_PER_PAGE && this.state.pointer < maxPointer;
+  },
+
+  /**
+   * Returns true if the queue can be moved backwards.
+   */
+  hasPrev() {
+    const minPointer = Math.min(this.props.queue.length, ITEMS_PER_PAGE);
+    return this.props.queue.length > ITEMS_PER_PAGE && this.state.pointer > minPointer;
+  },
+
   render() {
     return (
-      <div className="live-big-plays">
-        <Slider ref="bigPlaysSlider" {...this.state.settings}>
-          {this.props.queue.map((i) => (
-            <div key={i.id}><LiveBigPlay event={i} /></div>
-          ))}
-        </Slider>
-      </div>
+      <section className="live-big-plays">
+        <button className="btn-prev" disabled={ !this.hasPrev() } onClick={ this.prev }>&lt;</button>
+        <div className="live-big-plays__items">
+          { this.getCurPage().map(pbp =>
+              <LiveBigPlay key={pbp.id} event={pbp} />)
+          }
+        </div>
+        <button className="btn-next" disabled={ !this.hasNext() } onClick={ this.next }>&gt;</button>
+      </section>
     );
   },
 
 });
-
-export default LiveBigPlays;

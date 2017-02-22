@@ -4,6 +4,7 @@ import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { hasGameStarted } from '../../actions/sports';
 import { stringifyMLBWhen } from '../../actions/events/pbp';
 import { trackUnexpected } from '../../actions/track-exceptions';
+import log from '../../lib/logging';
 
 // assets
 if (process.env.NODE_ENV !== 'test') {
@@ -80,7 +81,7 @@ const GameTime = (props) => {
           value = moment(start).format('h:mma');
 
           // this shouldn't happen
-          trackUnexpected('<GameTime /> in live but no clock|periodDisplay', { props });
+          log.warn('<GameTime /> in live but no clock|periodDisplay', { props });
           break;
         }
 

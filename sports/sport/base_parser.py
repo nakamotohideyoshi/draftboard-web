@@ -1,20 +1,21 @@
-from raven.contrib.django.raven_compat.models import client
+import json
 import re
 from logging import getLogger
-from django.core.cache import cache
-from django.utils import timezone
-from dataden.util.timestamp import Parse as DataDenDatetime
-from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
-from django.db.transaction import atomic
-import json
-from django.contrib.contenttypes.models import ContentType
-# from django.db.models.base import ObjectDoesNotExist
-from sports.models import SiteSport, Position
-from dataden.classes import DataDen
-import sports.classes
+
 import dateutil.parser
+from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+from django.db.transaction import atomic
+from django.utils import timezone
+from raven.contrib.django.raven_compat.models import client
+
 import push.classes
+import sports.classes
+from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
+from dataden.classes import DataDen
+from dataden.util.timestamp import Parse as DataDenDatetime
 from sports.game_status import GameStatus
+from sports.models import SiteSport, Position
 
 logger = getLogger('sports.sport.base_parser')
 
@@ -102,8 +103,8 @@ class AbstractDataDenParser(object):
             print('%s.parse() | %s %s %s' % (self.name(),
                                              self.ns, self.parent_api, str(obj.get_o())))
 
-        # child parse() will execute here -- they must call super().parse( obj )
-        # then this class will have setup self.ns and self.parent_api for them
+            # child parse() will execute here -- they must call super().parse( obj )
+            # then this class will have setup self.ns and self.parent_api for them
 
     @atomic
     def cleanup_rosters(self, sport, team_class, player_class, parent_api):
@@ -189,7 +190,7 @@ class AbstractDataDenParseable(object):
         will strip the oplog wrapper from the obj, and set
         the mongo object to self.o.
         """
-
+        logger.debug('AbstractDataDenParseable.parse() obj: %s | target: %s' % (obj, target))
         self.parse_triggered_object(obj)
 
     def parse_triggered_object(self, obj):
@@ -203,6 +204,7 @@ class AbstractDataDenParseable(object):
         #
         # construct an SridFinder with the dictionary data
         self.srid_finder = SridFinder(self.o)
+        logger.debug('AbstractDataDenParseable.parse_triggered_object() obj: %s' % self.o)
 
     def get_site_sport(self, obj):
         """
@@ -657,7 +659,6 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         srid_game = o.get('game__id', None)
         srid_player = o.get('id', None)
 
-
         try:
             self.p = self.player_model.objects.get(srid=srid_player)
         except self.player_model.DoesNotExist:
@@ -685,10 +686,10 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         except self.player_stats_model.DoesNotExist:
             # We don't have a playerStats model for this player, so let's make one.
             logger.warning((
-                'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
-                '| game: %s | obj: %s | target: %s'
-                ) % (srid_player, srid_game, self.p, self.g, obj, target)
-            )
+                               'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
+                               '| game: %s | obj: %s | target: %s'
+                           ) % (srid_player, srid_game, self.p, self.g, obj, target)
+                           )
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
@@ -902,6 +903,7 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
             self.boxscore = self.gameboxscore_model.objects.get(
                 srid_game=srid_game)
         except self.gameboxscore_model.DoesNotExist:
+            logger.error('gameboxscore_model.DoesNotExist')
             # it hasnt been created yet, but only create it in GameBoxscores.
             return
 
@@ -918,6 +920,7 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
             self.boxscore.save()
 
         else:
+            logger.warning('The team %s doesnt match home or away team' % srid_team)
             # this team differs from the teams on this boxscore !
             self.boxscore = None
             # print( str(o) )
@@ -1070,7 +1073,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         :return:
         """
         super().parse(obj, target)
-
+        logger.info("Parsing PBP Object: %s" % obj)
         #
         # get the Game and set it to self.game
         srid_game = self.o.get(self.KEY_GAME_ID, None)

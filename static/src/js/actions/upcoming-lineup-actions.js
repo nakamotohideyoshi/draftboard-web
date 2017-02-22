@@ -252,14 +252,12 @@ export function saveLineupEdit(lineup, title, lineupId) {
           });
           dispatch(saveLineupFail(res.body));
         } else {
-          if (res.body.status === 'SUCCESS') {
-            dispatch({
-              type: actionTypes.SAVE_LINEUP_EDIT_SUCCESS,
-              lineupId,
-            });
-            // Redirect to lobby with url param.
-            window.location.href = `/contests/?action=lineup-saved&lineup=${lineupId}`;
-          }
+          dispatch({
+            type: actionTypes.SAVE_LINEUP_EDIT_SUCCESS,
+            lineupId,
+          });
+          // Redirect to lobby with url param.
+          window.location.href = `/contests/?action=lineup-saved&lineup=${lineupId}`;
         }
       });
   };

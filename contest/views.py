@@ -1,44 +1,45 @@
-#
-# contest/views.py
-from raven.contrib.django.raven_compat.models import client
-from django.contrib.auth.models import User
-from datetime import datetime, timedelta
 import json
-from rest_framework import status
-from rest_framework.response import Response
+import logging
+from datetime import datetime, timedelta
+
 from debreach.decorators import random_comment_exempt
-from rest_framework.views import APIView
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+from django.views.generic import View
+from django.views.generic.edit import CreateView, UpdateView
+from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from rest_framework.exceptions import (
     ValidationError,
     NotFound,
     APIException,
+    PermissionDenied,
 )
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from account import const as _account_const
+from account.models import Limit
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
     EmailConfirmed
 )
-from account import const as _account_const
-from contest.serializers import (
-    ContestSerializer,
-    UpcomingEntrySerializer,
-    CurrentEntrySerializer,
-    RegisteredUserSerializer,
-    EnterLineupSerializer,
-    PayoutSerializer,
-    EditEntryLineupSerializer,
-    RemoveAndRefundEntrySerializer,
-    UserLineupHistorySerializer,
-    # PlayHistoryLineupSerializer,
-    RankedEntrySerializer,
-    ContestPoolSerializer,
-)
+from account.tasks import send_entry_alert_email
+from account.utils import create_user_log
+from cash.exceptions import OverdraftException
+from contest.buyin.tasks import buyin_task
 from contest.classes import (
     ContestLineupManager,
     SkillLevelManager,
 )
+from contest.exceptions import (
+    ContestMaxEntriesReachedException,
+)
+from contest.forms import ContestForm, ContestFormAdd
 from contest.models import (
     Contest,
     ContestPool,
@@ -54,22 +55,26 @@ from contest.models import (
 from contest.payout.models import (
     Payout,
 )
-from contest.buyin.tasks import buyin_task
-from contest.exceptions import (
-    ContestMaxEntriesReachedException,
-)
 from contest.refund.tasks import unregister_entry_task
-from cash.exceptions import OverdraftException
+from contest.serializers import (
+    ContestSerializer,
+    UpcomingEntrySerializer,
+    CurrentEntrySerializer,
+    RegisteredUserSerializer,
+    EnterLineupSerializer,
+    PayoutSerializer,
+    EditEntryLineupSerializer,
+    EntryResultSerializer,
+    RemoveAndRefundEntrySerializer,
+    UserLineupHistorySerializer,
+    # PlayHistoryLineupSerializer,
+    RankedEntrySerializer,
+    ContestPoolSerializer,
+)
 from lineup.models import Lineup
 from lineup.tasks import edit_entry
-from django.http import HttpResponse
-from django.views.generic import View
-from django.views.generic.edit import CreateView, UpdateView
-from contest.forms import ContestForm, ContestFormAdd
 from mysite.celery_app import TaskHelper
 from util.dfsdate import DfsDate
-from account.utils import create_user_log
-import logging
 
 logger = logging.getLogger('contest.views')
 
@@ -483,7 +488,42 @@ class EnterLineupAPIView(generics.CreateAPIView):
         except SkillLevelManager.CanNotEnterSkillLevel:
             raise APIException('You may not enter this Skill Level.')
 
+        try:
+            contest_entry_alert = request.user.limits.get(type=Limit.ENTRY_ALERT)
+            entries_count = Entry.objects.filter(
+                user=request.user,
+                created__range=contest_entry_alert.time_period_boundaries,
+                contest_pool__draft_group=contest_pool.draft_group,
+            ).count()
+            if entries_count == contest_entry_alert.value:
+                send_entry_alert_email.delay(user=request.user)
+        except Limit.DoesNotExist:
+            pass
+
+        try:
+            contest_entry_limit = request.user.limits.get(type=Limit.ENTRY_LIMIT)
+            entries_count = Entry.objects.filter(
+                user=request.user,
+                created__range=contest_entry_limit.time_period_boundaries,
+                contest_pool__draft_group=contest_pool.draft_group,
+            ).count()
+            if entries_count == contest_entry_limit.value:
+                raise APIException(
+                    'You have reached your contest entry limit of {} entries.'.format(
+                        contest_entry_limit.value))
+        except Limit.DoesNotExist:
+            pass
+
+        try:
+            entry_fee_limit = request.user.limits.get(type=Limit.ENTRY_FEE)
+            if contest_pool.prize_structure.buyin > entry_fee_limit.value:
+                raise APIException(
+                    'You have reached your entry fee limit of {}.'.format(entry_fee_limit.value))
+        except Limit.DoesNotExist:
+            pass
+
         task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
+
         # get() blocks the view from returning until the task completes its work
         try:
             task_result.get()
@@ -498,7 +538,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
             raise APIException({"detail": "Unable to enter contest."})
 
         task_helper = TaskHelper(buyin_task, task_result.id)
-        # print('task_helper.get_data()', task_helper.get_data())
         data = task_helper.get_data()
         # dont break what was there by adding this extra field
         data['buyin_task_id'] = task_result.id
@@ -516,6 +555,23 @@ class EnterLineupAPIView(generics.CreateAPIView):
         )
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class EntryResultAPIView(generics.RetrieveAPIView):
+    """
+    Returns everything we need to display the results of the specified contest entry.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EntryResultSerializer
+
+    def get_object(self):
+        obj = get_object_or_404(Entry.objects.select_related('contest', 'contest__prize_structure'),
+                                id=self.kwargs['entry_id'])
+        if not (obj.user == self.request.user):
+            raise PermissionDenied()
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
 class PayoutsAPIView(generics.ListAPIView):
@@ -633,7 +689,8 @@ class UserPlayHistoryAPIView(APIView):
         end = start + timedelta(days=1)
 
         # get a list of the lineups in historical entries for the day
-        history_entries = ClosedEntry.objects.filter(user=self.request.user, contest__start__range=(start, end))
+        history_entries = ClosedEntry.objects.filter(user=self.request.user,
+                                                     contest__start__range=(start, end))
         payouts = Payout.objects.filter(entry__in=history_entries)
         # distinct_lineup_ids = [e.lineup.pk for e in history_entries]
         lineup_map = {}

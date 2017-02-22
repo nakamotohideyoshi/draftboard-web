@@ -23,6 +23,10 @@ export default class NBAPlayRecapVO {
     return 'blocked_dunk';
   }
 
+  static get BLOCKED_HOOKSHOT() {
+    return 'blocked_hookshot';
+  }
+
   static get BLOCKED_JUMPSHOT() {
     return 'blocked_jumpshot';
   }
@@ -37,6 +41,10 @@ export default class NBAPlayRecapVO {
 
   static get DUNK() {
     return 'dunk';
+  }
+
+  static get HOOKSHOT() {
+    return 'hookshot';
   }
 
   static get JUMPSHOT() {
@@ -89,7 +97,7 @@ export default class NBAPlayRecapVO {
     const hasFieldGoal = stats.hasOwnProperty('fieldgoal__list');
     const hasSteal = stats.hasOwnProperty('steal__list');
 
-    if (hasFreeThrow && stats.freethrow__list.made) {
+    if (hasFreeThrow) {
       return NBAPlayRecapVO.FREETHROW;
     }
 
@@ -102,13 +110,9 @@ export default class NBAPlayRecapVO {
     }
 
     if (hasFieldGoal) {
-      // Handle missed field goals that are not blocked. Everything else is
-      // either a made shot or a blocked shot.
-      if (!hasBlock && !stats.fieldgoal__list.made) {
-        return NBAPlayRecapVO.UNKNOWN_PLAY;
-      }
+      const shotType = stats.fieldgoal__list.shot_type;
 
-      switch (stats.fieldgoal__list.shot_type) {
+      switch (shotType) {
         case 'dunk' :
           return hasBlock
             ? NBAPlayRecapVO.BLOCKED_DUNK
@@ -117,6 +121,10 @@ export default class NBAPlayRecapVO {
           return hasBlock
             ? NBAPlayRecapVO.BLOCKED_LAYUP
             : NBAPlayRecapVO.LAYUP;
+        case 'hook shot' :
+          return hasBlock
+            ? NBAPlayRecapVO.BLOCKED_HOOKSHOT
+            : NBAPlayRecapVO.HOOKSHOT;
         case 'jump shot' :
           return hasBlock
             ? NBAPlayRecapVO.BLOCKED_JUMPSHOT
@@ -126,6 +134,27 @@ export default class NBAPlayRecapVO {
     }
 
     return NBAPlayRecapVO.UNKNOWN_PLAY;
+  }
+
+  playDescription() {
+    return this._obj.pbp.description;
+  }
+
+  /**
+   * Returns true if the play consists of a made shot.
+   */
+  madeShot() {
+    const stats = this._obj.pbp.statistics__list;
+
+    if (!stats) {
+      return false;
+    } else if (stats.hasOwnProperty('fieldgoal__list')) {
+      return stats.fieldgoal__list.made === 'true';
+    } else if (stats.hasOwnProperty('freethrow__list')) {
+      return stats.freethrow__list.made === 'true';
+    }
+
+    return false;
   }
 
   /**
@@ -159,21 +188,56 @@ export default class NBAPlayRecapVO {
       y: this._obj.pbp.location__list.coord_y / NBAPlayRecapVO.COURT_WIDTH_INCHES,
     };
 
+    // Do not transform "steals". Steals should be depicted where they happen on
+    // the court in real life. Everything else gets tranformed based on which
+    // teamBasket the play should be aimed at.
+    if (this.playType() === NBAPlayRecapVO.STEAL) {
+      return pos;
+    }
+
     // Determine the side of the court the play took place on by evaluating if
     // the x coordinate is over the half court line.
+    // Note: This could have undesirable outcomes for plays that take place in
+    // the backcourt (steals, turnovers, half court shots). The best solution
+    // would be for the team_basket to be specified via the API instead of
+    // guestimating it based on the play's position on the court..
     const basket = pos.x > 0.5
       ? NBAPlayRecapVO.BASKET_RIGHT
       : NBAPlayRecapVO.BASKET_LEFT;
 
     // Flip the x coordinate of the play if the original coordinate does not
-    // match our target court side.
-    // Note: This could have undesirable outcomes for plays that take place in
-    // the backcourt (steals, turnovers, half court shots). The best solution
-    // would be for the team_basket to be specified via the API for comparison.
+    // match our target teamBasket.
     if (this.teamBasket() !== basket) {
       pos.x = 1 - pos.x;
     }
 
     return pos;
+  }
+
+  /**
+   * Returns the play's "title" associated with the play's playType.
+   */
+  playTitle() {
+    const playTypeToTitle = {
+      [NBAPlayRecapVO.FREETHROW]: 'Freethrow',
+      [NBAPlayRecapVO.DUNK]: 'Dunk',
+      [NBAPlayRecapVO.BLOCKED_DUNK]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_HOOKSHOT]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_JUMPSHOT]: 'Block',
+      [NBAPlayRecapVO.BLOCKED_LAYUP]: 'Block',
+      [NBAPlayRecapVO.JUMPSHOT]: 'Jumpshot',
+      [NBAPlayRecapVO.HOOKSHOT]: 'Hookshot',
+      [NBAPlayRecapVO.LAYUP]: 'Layup',
+      [NBAPlayRecapVO.STEAL]: 'Steal',
+      [NBAPlayRecapVO.REBOUND]: 'Rebound',
+    };
+
+    const type = this.playType();
+
+    if (!playTypeToTitle.hasOwnProperty(type)) {
+      return '';
+    }
+
+    return playTypeToTitle[this.playType()];
   }
 }

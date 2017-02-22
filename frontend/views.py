@@ -1,8 +1,8 @@
+from braces.views import (LoginRequiredMixin, StaffuserRequiredMixin)
 from django.core.cache import cache
-from braces.views import LoginRequiredMixin
-from django.views.generic.base import TemplateView
-from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.views.generic.base import TemplateView
 
 from contest.models import (
     Entry,
@@ -58,10 +58,13 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
                 }))
 
         # if opponent is not in the contest, then redirect back to contest mode
-        opponent_lineup_id = kwargs['opponent_lineup_id'] if 'opponent_lineup_id' in kwargs else None
+        opponent_lineup_id = kwargs[
+            'opponent_lineup_id'] if 'opponent_lineup_id' in kwargs else None
         if opponent_lineup_id:
             # if 1 then we know it's the villian watch
-            if opponent_lineup_id is '1' or Entry.objects.filter(contest__id=contest_id, lineup__pk=opponent_lineup_id).count() == 0:
+
+            if opponent_lineup_id is '1' or Entry.objects.filter(
+                    contest__id=contest_id, lineup__pk=opponent_lineup_id).count() == 0:
                 return HttpResponseRedirect(reverse('frontend:live-contest-mode', kwargs={
                     'lineup_id': lineup_id,
                     'contest_id': contest_id,
@@ -109,6 +112,13 @@ class FrontendSettingsWithdrawTemplateView(LoginRequiredMixin, TemplateView):
     Account Withdrawals page.
     """
     template_name = 'frontend/account/partials/withdraw.html'
+
+
+class FrontendSettingsUserLimitsTemplateView(LoginRequiredMixin, TemplateView):
+    """
+    User Limits page
+    """
+    template_name = 'frontend/account/partials/user_limits.html'
 
 
 class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
@@ -160,9 +170,18 @@ class FrontendPaneTemplateView(TemplateView):
 class FrontendTermsConditionsTemplateView(TemplateView):
     template_name = 'frontend/terms-conditions.html'
 
+
 class FrontendPrivacyPolicyTemplateView(TemplateView):
     template_name = 'frontend/privacy-policy.html'
 
 
+class FrontendResponsiblePlayTemplateView(TemplateView):
+    template_name = 'frontend/responsible-play.html'
+
+
 class FrontendRestrictedLocationTemplateView(TemplateView):
     template_name = 'frontend/restricted-location.html'
+
+
+class FrontendDebugLiveAnimationsTemplateView(StaffuserRequiredMixin, TemplateView):
+    template_name = 'frontend/debug-live-animations.html'

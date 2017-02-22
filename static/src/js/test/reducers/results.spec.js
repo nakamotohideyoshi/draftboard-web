@@ -28,7 +28,7 @@ describe('reducers.results', () => {
 
     const newState = reducer(defaultState, response);
 
-    assert.equal(
+    assert.deepEqual(
       newState['2015-6-15'],
       response.response.response  // yuck
     );

@@ -65,7 +65,7 @@ const MessageDisplayMessage = React.createClass({
   render() {
     return (
       <div className={`message ${this.props.message.level}`}>
-        <div className="message-content">
+        <div className={`message-content msg-${this.props.messageId}`}>
           <h3 className="header">
             <span
               className="text"

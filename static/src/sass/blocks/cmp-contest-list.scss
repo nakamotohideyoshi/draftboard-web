@@ -45,8 +45,8 @@ $table-row-hover-bg: #f9fafb;
         opacity: 1;
     }
 
-    .name .details {
-      padding-left: 10px;
+    .details-row {
+      white-space: nowrap;
 
       .icon-users {
         margin-right: 2px;
@@ -88,6 +88,7 @@ $table-row-hover-bg: #f9fafb;
   .user-entries {
     color: #9698ab;
     max-width: 7em;
+    white-space: nowrap;
   }
 
   td.sport {

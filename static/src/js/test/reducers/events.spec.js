@@ -9,13 +9,12 @@ describe('reducers.events', () => {
 
   it('should return the initial state', () => {
     assert.deepEqual(defaultState, {
-      animationEvent: null,
+      currentEvent: null,
       bigEvents: [],
       queue: [],
       playerEventDescriptions: {},
       playerHistories: {},
       playersPlaying: [],
-      showEventResult: false,
     });
   });
 
@@ -36,20 +35,20 @@ describe('reducers.events', () => {
       value: { foo: 'bar' },
     });
     assert.deepEqual(
-      newState.animationEvent,
+      newState.currentEvent,
       { foo: 'bar' }
     );
 
     // should replace existing animation event
     newState = merge({}, defaultState, {
-      animationEvent: { oldKey: 'oldValue' },
+      currentEvent: { oldKey: 'oldValue' },
     });
     newState = reducer(newState, {
       type: types.EVENT__SET_CURRENT,
       value: { foo: 'bar' },
     });
     assert.deepEqual(
-      newState.animationEvent,
+      newState.currentEvent,
       { foo: 'bar' }
     );
   });
@@ -58,25 +57,23 @@ describe('reducers.events', () => {
     // should work normally
     assert.deepEqual(
       reducer({
-        animationEvent: null,
+        currentEvent: null,
         bigEvents: [{ foo: 'bar' }],
         queue: [],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
-        showEventResult: false,
       }, {
         type: types.EVENT_ADD_TO_BIG_QUEUE,
         value: { bar: 'baz' },
       }),
       {
-        animationEvent: null,
+        currentEvent: null,
         bigEvents: [{ foo: 'bar' }, { bar: 'baz' }],
         queue: [],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
-        showEventResult: false,
       }
     );
 
@@ -86,13 +83,12 @@ describe('reducers.events', () => {
     }
 
     const initialState = reducer({
-      animationEvent: null,
+      currentEvent: null,
       bigEvents,
       queue: [],
       playerEventDescriptions: {},
       playerHistories: {},
       playersPlaying: [],
-      showEventResult: false,
     }, {
       type: types.EVENT_ADD_TO_BIG_QUEUE,
       value: 51,
@@ -105,24 +101,22 @@ describe('reducers.events', () => {
     // should work normally
     assert.deepEqual(
       reducer({
-        animationEvent: null,
+        currentEvent: null,
         queue: [{ foo: 'bar' }],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
-        showEventResult: false,
       }, {
         type: types.EVENT_GAME_QUEUE_PUSH,
         gameId: '123',
         event: { bar: 'baz' },
       }),
       {
-        animationEvent: null,
+        currentEvent: null,
         queue: [{ foo: 'bar' }, { bar: 'baz' }],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
-        showEventResult: false,
       }
     );
   });

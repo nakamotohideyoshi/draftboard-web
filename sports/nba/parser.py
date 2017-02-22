@@ -1,8 +1,12 @@
-from raven.contrib.django.raven_compat.models import client
 from logging import getLogger
-from django.db.utils import IntegrityError
+
 from django.db.transaction import atomic
+from django.db.utils import IntegrityError
+from raven.contrib.django.raven_compat.models import client
+
+import push.classes
 import sports.nba.models
+from dataden.classes import DataDen
 from sports.game_status import GameStatus
 from sports.nba.models import (
     Team,
@@ -27,8 +31,6 @@ from sports.sport.base_parser import (
     DataDenInjury,
     SridFinder,
 )
-from dataden.classes import DataDen
-import push.classes
 from sports.sport.base_parser import (
     TsxContentParser,
 )
@@ -81,9 +83,10 @@ class TeamBoxscores(DataDenTeamBoxscores):
         # super() does all the work !
 
     def send(self, *args, **kwargs):
+        super().send()
+
         # build the data (with Manager class instance if its set)
         data = self.get_send_data()
-
         # pusher it
         push.classes.DataDenPush(self.channel, self.event).send(data)
 
@@ -142,7 +145,6 @@ class GameBoxscoreParser(DataDenGameBoxscores):
         # and set the self.o (to the unwrapped object)
         self.parse_triggered_object(obj)
         o = self.o  # everything uses 'o already
-        logger.info(self.o)
         # summary_list = o.get('summary__list', {})
 
         srid_game = o.get(self.field_srid_game, None)
@@ -465,6 +467,8 @@ class EventPbp(DataDenPbpDescription):
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
         self.o = obj.get_o()  # we didnt call super so we should do this
+        # Log object for debugging.
+        logger.info("Parsing NBA PBP Object: %s" % self.o)
         srid_pbp_desc = self.o.get('id', None)
         pbp_desc = self.get_pbp_description_by_srid(srid_pbp_desc)
         if pbp_desc:
@@ -572,7 +576,12 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.team', 'hierarchy'):
             TeamHierarchy().parse(obj)
         elif self.target == ('nba.team', 'boxscores'):
-            TeamBoxscores().parse(obj)
+            team_boxscore_parser = TeamBoxscores()
+            team_boxscore_parser.parse(obj, self.target)
+            team_boxscore_parser.send()
+
+            # push.classes.DataDenPush(push.classes.PUSHER_BOXSCORES, 'team').send(
+            #     obj, async=settings.DATADEN_ASYNC_UPDATES)
 
         # nba.period
         elif self.target == ('nba.quarter', 'pbp'):

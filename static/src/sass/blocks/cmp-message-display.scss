@@ -136,3 +136,12 @@ html.section-logged-out-account .cmp-message-display {
   opacity: 0.01;
   transition: opacity 100ms ease-in;
 }
+
+
+// Custom image override for site welcome message.
+.cmp-message-display .msg-create-lineup-message {
+  .header .text {
+    background: url('../img/blocks/message-display/icon-db.png') 0px 2px no-repeat;
+    background-size: 30px auto;
+  }
+}

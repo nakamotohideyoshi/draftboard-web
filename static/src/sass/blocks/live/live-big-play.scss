@@ -6,180 +6,109 @@
 
 $block: '.live-big-play';
 
-
 #{$block} {
-  opacity: 0.4;
-  padding: 0 0.5vw;
   position: relative;
-  transition: opacity 250ms cubic-bezier(0.8, 0.16, 0.18, 0.85);
+  margin: 0 5px;
+  width: 32%;
+  height: 86px;
+  background: rgba(0, 0, 0, .2);
 
-  &:last-child {
-    opacity: 1;
-  }
-
-  &:hover {
-    opacity: 1;
-  }
-
-  &__inner {
-    background: transparent url(../../../img/blocks/live-big-plays/bg.jpg) no-repeat left top;
+  &--nba {
+    background: transparent url(../../../img/blocks/live-big-plays/bg-nba.jpg) no-repeat left top;
     background-size: 100% 100%;
-    height: 100%;
-    width: 100%;
   }
 
-  &--1-players {
-    #{$block} {
-      &__player-photo,
-      &__description,
-      &__player-points {
-        display: inline-block;
-        vertical-align: middle;
-      }
-
-      &__description {
-        width: 55%;
-      }
-
-      &__description-content {
-        display: inline;
-      }
-
-      &__player-photo {
-        margin-top: 20px;
-        position: relative;
-        width: 22%;
-      }
-
-      &__player-points {
-        font-size: 25px;
-        text-align: center;
-        width: 23%;
-      }
-    }
+  &--nfl {
+    background: transparent url(../../../img/blocks/live-big-plays/bg-nfl.jpg) no-repeat left top;
+    background-size: 100% 100%;
   }
-
-  &--2-players {
-    #{$block} {
-      &__inner {
-        text-align: right;
-      }
-
-      &__description {
-        display: table;
-        height: 68px;
-        left: 0;
-        position: absolute;
-        top: 0;
-        width: 60%;
-      }
-
-      &__description-content {
-        display: table-cell;
-        vertical-align: middle;
-      }
-
-      &__players {
-        position: relative;
-        display: inline-block;
-        width: 40%;
-        padding: 0;
-      }
-
-      &__player {
-        display: inline-block;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-        width: 60px;
-      }
-
-      &__fixed-player-photo {
-        height: 48px;
-        display: block;
-        margin-top: -4px;
-        left: 54%;
-        position: relative;
-        transform: translateX(-50%);
-      }
-
-      &__player-photo {
-        display: block;
-        width: 40px;
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-
-        &--default {
-          opacity: 0.25;
-          width: 32px;
-        }
-      }
-
-      &__player-points {
-        font-size: 15px;
-        padding-top: 12px;
-      }
-    }
+  
+  &--mlb {
+    background: transparent url(../../../img/blocks/live-big-plays/bg-mlb.jpg) no-repeat left top;
+    background-size: 100% 100%;
   }
+}
 
-  &__description {
+//------------------------------------------------------------------------------
+// ITEM BODY
+//------------------------------------------------------------------------------
+
+.live-big-play__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 66px;
+  
+  .live-big-play__description {
+    margin: 0;
+    padding: 0 15px;
+    max-width: 60%;
     color: #a7acbc;
     font-family: $font-open-sans;
     font-size: 11px;
     line-height: 1.8;
-    padding-left: 20px;
     text-align: left;
   }
-
-  &__description-content {
-    display: table-cell;
-    vertical-align: middle;
-  }
-
-  &__player-points {
-    color: #1da4d0;
-    font-family: $font-oswald;
-  }
-
-  &__game {
-    background-image: linear-gradient( 0deg, rgba(0,0,0, 0.15) 0%, rgba(255,255,255, 0.15) 100%);
-    bottom: 0;
-    color: #fff;
-    font-family: $font-open-sans;
-    font-size: 9px;
-    left: 0;
-    line-height: 2.4;
-    position: relative;
-    text-align: left;
-    width: 100%;
-
-    &:before {
-      background-image: linear-gradient( 0deg, rgb(33,78,157) 0%, rgb(52,180,204) 100%);
-      content: '';
-      height: 2px;
-      left: 0;
-      top: 0;
-      position: absolute;
+  
+  ul.live-big-play__players {
+    display: flex;
+    flex-direction: row-reverse;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    
+    li.live-big-play__player {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      list-style: none;
+      width: 65px;
+    }
+    
+    .live-big-play__player-points {
+      flex-grow: 1;
       width: 100%;
+      padding-top: 8px;
+      color: #1da4d0;
+      font-size: 15px;
+      font-family: $font-oswald;
+      text-align: center;
+    }
+
+    img.live-big-play__player-photo {
+      width: 50px;
+      height: auto;
     }
   }
+}
 
-  &__score {
-    padding-left: 8px;
-  }
+//------------------------------------------------------------------------------
+// ITEM FOOTER
+//------------------------------------------------------------------------------
 
-  &__winning-team,
-  &__home-team,
-  &__away-team {
-    display: inline-block;
-  }
+#{$block}__footer {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 20px;
+  padding: 0 15px;
+  background-image: linear-gradient( 0deg, rgba(0,0,0, 0.15) 0%, rgba(255,255,255, 0.15) 100%);
+  color: #fff;
+  font-family: $font-open-sans;
+  font-size: 9px;
+  line-height: 2.4;
+  text-align: left;
 
-  &__when {
+  &:before {
+    content: '';
     position: absolute;
-    right: 8px;
     top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-image: linear-gradient( 0deg, rgb(33,78,157) 0%, rgb(52,180,204) 100%);
   }
 }

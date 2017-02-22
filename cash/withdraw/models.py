@@ -191,3 +191,6 @@ class PayoutTransaction(models.Model):
     withdraw_type = models.ForeignKey(ContentType)
     withdraw_id = models.PositiveIntegerField()
     withdraw = GenericForeignKey('withdraw_type', 'withdraw_id')
+
+    class Meta:
+        get_latest_by = 'created'
