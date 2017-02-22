@@ -78,7 +78,13 @@ module.exports = {
     }),
     // Don't let Moment (and presumably other libs) load in their full locale info - it's a lot.
     // https://github.com/webpack/webpack/issues/198#issuecomment-124924974
-    new webpack.ContextReplacementPlugin(/.*$/, /NEVER_MATCH^/),
+    // new webpack.ContextReplacementPlugin(/.*$/, /NEVER_MATCH^/),
+    // Let moment load just selected languages
+    new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en-gb)$/),
+
+    // new webpack.ProvidePlugin({
+    //   moment: "moment"
+    // })
   ],
 
   // Tell webpack where to look for require()'d files. If it can't locate a file, make sure you're

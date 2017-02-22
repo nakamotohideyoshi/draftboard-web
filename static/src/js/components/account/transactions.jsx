@@ -80,7 +80,7 @@ const Transactions = React.createClass({
       window.history.pushState('change the', 'url', newUrl);
     }
     // this.props.filterTransactions(isPeriod, days, startDate.getTime(), endDate.getTime());
-    this.props.fetchTransactions(startDate.getTime(), endDate.getTime());
+    this.props.fetchTransactions(startDate.format('x'), endDate.format('x'));
   },
 
   render() {
