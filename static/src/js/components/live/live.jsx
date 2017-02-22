@@ -1,3 +1,4 @@
+import DebugLiveAnimationsPage from '../live-debugger/live-debugger';
 import LiveAnimationArea from './live-animation-area';
 import LiveChooseLineup from './live-choose-lineup';
 import LiveBigPlays from './live-big-plays';
@@ -66,6 +67,8 @@ const mapStateToProps = (state) => ({
   opponentLineup: watchingOpponentLineupSelector(state),
   uniqueLineups: uniqueLineupsSelector(state),
   watching: state.watching,
+  currentEvent: state.events.currentEvent,
+  eventsMultipart: state.eventsMultipart,
 });
 
 /*
@@ -84,6 +87,8 @@ export const Live = React.createClass({
     params: React.PropTypes.object,
     uniqueLineups: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
+    currentEvent: React.PropTypes.object,
+    eventsMultipart: React.PropTypes.object,
   },
 
   getInitialState() {
@@ -155,7 +160,12 @@ export const Live = React.createClass({
       }
 
       // if there's only one contest, default to it
-      if (watching.contestId === null && myLineup.hasStarted && myLineupNext.contests.length === 1) {
+      if (
+        watching.contestId === null &&
+        myLineup.hasStarted &&
+        myLineupNext.contests &&
+        myLineupNext.contests.length === 1
+      ) {
         const contestId = myLineupNext.contests[0];
         const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${contestId}/`;
         const changedFields = {
@@ -334,9 +344,15 @@ export const Live = React.createClass({
               opponentLineup={opponentLineup}
               selectLineup={this.selectLineup}
               watching={watching}
+              currentEvent={this.props.currentEvent}
+              eventsMultipart={this.props.eventsMultipart}
             />
 
-            <LiveAnimationArea />
+            <LiveAnimationArea
+              watching={ this.props.watching }
+              currentEvent={ this.props.currentEvent }
+              eventsMultipart={ this.props.eventsMultipart }
+            />
           </div>
         </section>
 
@@ -375,6 +391,7 @@ renderComponent(
         path="/live/:sport/lineups/:myLineupId/contests/:contestId/opponents/:opponentLineupId"
         component={LiveConnected}
       />
+      <Route path="debug/live-animations" component={DebugLiveAnimationsPage} />
     </Router>
   </Provider>,
   '#cmp-live'

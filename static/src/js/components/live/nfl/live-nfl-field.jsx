@@ -11,20 +11,20 @@ require('../../../../sass/blocks/live/nfl/live-nfl-field.scss');
 export default React.createClass({
 
   propTypes: {
-    animationEvent: React.PropTypes.object,
+    currentEvent: React.PropTypes.object,
   },
 
   render() {
-    const { animationEvent } = this.props;
-    const currentEvent = (animationEvent === null) ? null : (
+    const { currentEvent } = this.props;
+    const nflPlay = (currentEvent === null) ? null : (
       <LiveNFLPlay
-        event={ animationEvent }
+        event={ currentEvent }
       />
     );
 
     return (
       <section className="live-nfl-field" ref="liveNflField">
-        {currentEvent}
+        {nflPlay}
       </section>
     );
   },

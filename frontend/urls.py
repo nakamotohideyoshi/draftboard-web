@@ -101,11 +101,23 @@ urlpatterns = [
         name='account-withdraw'
     ),
 
+    url(
+        r'^account/limits/$',
+        views.FrontendSettingsUserLimitsTemplateView.as_view(),
+        name='user-limits'
+    ),
+
     # body copy pages
     url(
         r'^terms-conditions/$',
         views.FrontendTermsConditionsTemplateView.as_view(),
         name='terms-conditions'
+    ),
+
+    url(
+        r'^responsible-play/$',
+        views.FrontendResponsiblePlayTemplateView.as_view(),
+        name='responsible-play'
     ),
 
     url(
@@ -118,5 +130,11 @@ urlpatterns = [
         r'^restricted-location/$',
         views.FrontendRestrictedLocationTemplateView.as_view(),
         name='restricted-location'
+    ),
+
+    url(
+        r'^debug/live-animations/$',
+        views.FrontendDebugLiveAnimationsTemplateView.as_view(),
+        name='debug-live-animations'
     ),
 ]

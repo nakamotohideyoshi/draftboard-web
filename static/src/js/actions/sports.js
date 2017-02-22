@@ -637,31 +637,36 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
   logAction.debug('actions.updateGameTeam');
 
   const sports = getState().sports;
-  const gameId = message.game__id;
+  const gameId = message.srid_game;
 
   // if game does not exist yet, we don't know what sport
   // so just cancel the update and wait for polling call
   const game = sports.games[gameId];
-  if (!game) return false;
+  if (!game) {
+    log.warn('Game from "updateGameTeam" does not exist yet.');
+    return false;
+  }
 
   const boxscore = game.boxscore;
 
   if (!boxscore || !hasGameStarted(game.sport, game)) {
+    log.warn('We have no boxscore for this game, attempating to fetch games...');
     return dispatch(fetchGames(game.sport));
   }
 
-  const updatedGameFields = {};
-  const { points } = message;
-  if (boxscore.srid_home === message.id) {
-    updatedGameFields.home_score = points;
+  const updatedFields = {};
+  if (boxscore.home_team === message.srid_team) {
+    updatedFields.home_score = message.points;
+  } else if (boxscore.away_team === message.srid_team) {
+    updatedFields.away_score = message.points;
   } else {
-    updatedGameFields.away_score = points;
+    log.warn('No matching team was found for updateGameTeam.', message, boxscore);
   }
 
   return dispatch({
     type: ActionTypes.UPDATE_GAME,
     gameId,
-    updatedGameFields,
+    updatedFields,
   });
 };
 
@@ -673,7 +678,6 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
  */
 export const updateGameTime = (event) => (dispatch, getState) => {
   logAction.debug('actions.updateGameTime');
-
   const { gameId } = event;
   const state = getState();
 

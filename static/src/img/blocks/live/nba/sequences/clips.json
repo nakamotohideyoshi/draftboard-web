@@ -1,5 +1,10 @@
 {
     "plays": {
+        "basket_zone_1": "basket-zone-1.png",
+        "basket_zone_2": "basket-zone-3.png",
+        "basket_zone_3": "basket-zone-3.png",
+        "basket_zone_4": "basket-zone-3.png",
+        "basket_zone_5": "basket-zone-1.png",
         "dunk": "dunk.png",
         "freethrow": "free-throw.png",
         "jumpshot_zone_1": "jump-shot-zone-1.png",
@@ -23,6 +28,38 @@
         "block_jumpshot_zone_5": "block-jump-shot-zone-5.png"
     },
     "clips": [
+        {
+            "file": "basket-zone-1.png",
+            "width": 70,
+            "height": 80,
+            "length" : 14,
+            "offset_x": 35,
+            "offset_y": 40,
+            "avatar_x": 0,
+            "avatar_y": 0,
+            "avatar_in": 1,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 15,
+                "both": 28
+            }
+        },
+        {
+            "file": "basket-zone-3.png",
+            "width": 70,
+            "height": 80,
+            "length" : 14,
+            "offset_x": 35,
+            "offset_y": 40,
+            "avatar_x": 0,
+            "avatar_y": 0,
+            "avatar_in": 1,
+            "cuepoints": {
+                "mine" : 1,
+                "opponent": 15,
+                "both": 28
+            }
+        },
         {
             "file": "dunk.png",
             "width": 160,

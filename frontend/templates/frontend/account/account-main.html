@@ -41,6 +41,10 @@
       <li {% if '/transactions' in request.path %}class="active"{% endif %}>
         <a href="{% url 'frontend:account-transactions' %}">Transaction History</a>
       </li>
+      <li {% if '/limits' in request.path %}class="active"{% endif %}>
+        <a href="{% url 'frontend:user-limits' %}">Play Limits</a>
+      </li>
+
     </ul>
   </nav>
 

@@ -25,10 +25,6 @@ const addEventToBigPlays = (value) => ({
   value,
 });
 
-const showCurrentResults = () => ({
-  type: ActionTypes.EVENT__SHOW_CURRENT_RESULT,
-});
-
 const setCurrentAnimation = (value) => ({
   type: ActionTypes.EVENT__SET_CURRENT,
   value,
@@ -59,7 +55,7 @@ const shiftEvent = () => ({
  * @param  {string} key SportsRadar UUID for event
  * @return {object}     Object that, when combined with `dispatch()`, updates reducer
  */
-export const removeCurrentEvent = (key) => ({
+export const clearCurrentEvent = (key) => ({
   type: ActionTypes.EVENT__REMOVE_CURRENT,
   key,
 });
@@ -141,14 +137,11 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       break;
     }
     case 'nba': {
-      eventDescription.when = when;
-
       // show event beside player and in their history
       forEach(relevantPlayersInEvent, (playerId) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them
@@ -164,7 +157,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them
@@ -195,13 +187,12 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const watching = state.watching;
   const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
-  const sports = sportsSelector(state);
 
   const { eventPlayers, playersStats, sport } = message;
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
   // if there are no more relevant players, just update stats
-  if (relevantPlayersInEvent.length === 0) {
+  if (relevantPlayersInEvent.length === 0 && !window.is_debugging_live_animation) {
     const calls = [];
     calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
     return Promise.all(calls);
@@ -217,16 +208,21 @@ export const showGameEvent = (message) => (dispatch, getState) => {
     whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
   });
 
-  // add in game information for big plays
-  const game = sports.games[message.gameId];
-  const homeScore = game.home_score;
-  const awayScore = game.away_score;
-  animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
-  animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
-  animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
-
   switch (sport) {
     case 'mlb': {
+      // The following block of property assignments for `homeSCoreStr`, `awayScoreStr`
+      // and `winning` is here because I'm not sure if MLB works the same way as
+      // NFL or NBA, which get's it's game info as soon as the event is queued via
+      // `addEventAndStartQueue`. Without this block, the tests fail at...
+      // "should create promise of multievent and updating stats if valid mlb pbp with relevant player"
+      const sports = sportsSelector(state);
+      const game = sports.games[message.gameId];
+      const homeScore = game.home_score;
+      const awayScore = game.away_score;
+      animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
+      animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
+      animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
+
       // add in which side runners are on, for the mlb diamond
       animationEvent.runners = animationEvent.runners.map(
         (runner) => merge({}, runner, {
@@ -270,6 +266,11 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
   const state = getState();
   const queue = [...state.events.queue];
 
+  // If an event is currently being processed do not shift a new in its place.
+  if (state.events.currentEvent !== null) {
+    return false;
+  }
+
   // if there are no more events, then stop running
   if (queue.length === 0) {
     logAction.debug('actions.shiftOldestEvent - queue empty');
@@ -311,15 +312,27 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
  * @param {string} type The type of call, options are 'stats', 'php', 'boxscore'
  * @param {string} sport [OPTIONAL] For PBP, pass through sport to know how to parse
  */
-export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch) => {
+export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch, getState) => {
   logAction.debug('actions.events.addEventAndStartQueue', gameId, message, type, sport);
 
+  const gameEvent = message;
+  const state = getState();
+  const sports = sportsSelector(state);
+  const game = sports.games[message.gameId];
+
+  if (type === 'pbp' && game) {
+    // add in game information for big plays
+    const homeScore = game.home_score;
+    const awayScore = game.away_score;
+    gameEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
+    gameEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
+    gameEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
+    gameEvent.when = message.pbp.clock;
+    gameEvent.quarter = game.boxscore.quarter;
+  }
+
   return Promise.all([
-    dispatch(pushEvent({
-      message,
-      sport,
-      type,
-    })),
+    dispatch(pushEvent({ message: gameEvent, sport, type })),
   ]).then(
     () => dispatch(shiftOldestEvent(gameId))
   );

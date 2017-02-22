@@ -1,7 +1,6 @@
 import log from '../../lib/logging';
 import { addEventAndStartQueue } from '../events';
 import { isGameReady } from '../sports';
-import { trackUnexpected } from '../track-exceptions';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -52,7 +51,7 @@ const isMessageUsed = (message, sport) => {
   }
 
   // returns false
-  if (reasons.length > 0) return trackUnexpected('boxscores.isMessageUsed returned false', { message, reasons });
+  if (reasons.length > 0) return false;
 
   return true;
 };
@@ -133,14 +132,19 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
  */
 export const onBoxscoreTeamReceived = (message) => (dispatch, getState) => {
   logAction.debug('actions.onBoxscoreTeamReceived', message);
-
   const gameId = message.srid_game;
   const state = getState();
-
   const sport = calcSportByGame(state.sports.games, gameId);
-  if (!sport) return false;
 
-  if (!isGameReady(state, dispatch, sport, gameId)) return false;
+  if (!sport) {
+    log.warn(`no sport exists for this gameId: ${gameId}`);
+    return false;
+  }
+
+  if (!isGameReady(state, dispatch, sport, gameId)) {
+    log.warn('game not ready');
+    return false;
+  }
 
   return dispatch(addEventAndStartQueue(gameId, message, 'boxscore-team', sport));
 };

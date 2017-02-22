@@ -1,7 +1,8 @@
-#
-# lineup/views.py
+from datetime import timedelta
+from logging import getLogger
 
-from rest_framework.response import Response
+from django.utils import timezone
+from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.exceptions import (
@@ -9,7 +10,33 @@ from rest_framework.exceptions import (
     APIException,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from account import const as _account_const
+from account.permissions import (
+    HasIpAccess,
+    HasVerifiedIdentity,
+    EmailConfirmed,
+)
+from account.utils import create_user_log
+from draftgroup.models import DraftGroup
+from lineup.classes import LineupManager
+from lineup.exceptions import (
+    LineupDoesNotMatchUser,
+    NotEnoughTeamsException,
+    LineupDoesNotMatchExistingEntryLineup,
+    InvalidLineupSizeException,
+    InvalidLineupSalaryException,
+    LineupInvalidRosterSpotException,
+    PlayerDoesNotExistInDraftGroupException,
+    DuplicatePlayerException,
+    PlayerSwapGameStartedException,
+    EditLineupInProgressException,
+    LineupUnchangedException,
+    CreateLineupExpiredDraftgroupException,
+)
+from lineup.models import Lineup, Player
 from lineup.serializers import (
     LineupSerializer,
     PlayerSerializer,
@@ -19,29 +46,12 @@ from lineup.serializers import (
     LineupUsernamesSerializer,
     EditLineupStatusSerializer,
     LineupCurrentSerializer,
+    LineupLiveSerializer,
 )
-from lineup.models import Lineup, Player
-from lineup.classes import LineupManager
 from lineup.tasks import edit_lineup
-from lineup.exceptions import (
-    CreateLineupExpiredDraftgroupException,
-    InvalidLineupSizeException,
-    LineupInvalidRosterSpotException,
-    PlayerDoesNotExistInDraftGroupException,
-    InvalidLineupSalaryException,
-    NotEnoughTeamsException,
-)
-from draftgroup.models import DraftGroup
-from django.utils import timezone
-from datetime import timedelta
 from mysite.celery_app import TaskHelper
-from account.permissions import (
-    HasIpAccess,
-    HasVerifiedIdentity,
-    EmailConfirmed,
-)
-from account import const as _account_const
-from account.utils import create_user_log
+
+logger = getLogger('lineup/views')
 
 
 class CreateLineupAPIView(generics.CreateAPIView):
@@ -56,7 +66,9 @@ class CreateLineupAPIView(generics.CreateAPIView):
         players = request.data.get('players', [])
         name = request.data.get('name', '')
 
-        user_lineups = Lineup.objects.filter(user=request.user, draft_group_id=draft_group_id).values_list('name', flat=True)
+        user_lineups = Lineup.objects.filter(user=request.user,
+                                             draft_group_id=draft_group_id).values_list('name',
+                                                                                        flat=True)
         if name and name in user_lineups:
             raise ValidationError(
                 {'detail': 'You already have lineup with this name.'})
@@ -67,41 +79,39 @@ class CreateLineupAPIView(generics.CreateAPIView):
         except DraftGroup.DoesNotExist:
             raise ValidationError({'detail': 'Draft group does not exist.'})
 
-        #
         # use the lineup manager to create the lineup
         try:
             lm = LineupManager(request.user)
         except:
             raise APIException('Invalid user')
 
+        # Attempt to create the lineup.
         try:
             lineup = lm.create_lineup(players, draft_group, name)
-
-        except NotEnoughTeamsException:
-            raise ValidationError(
-                {'detail': 'Lineup must include players from at least three different teams'})
-
-        except InvalidLineupSalaryException:
-            raise ValidationError({'detail': 'Lineup exceeds max salary'})
-
-        except CreateLineupExpiredDraftgroupException:
-            raise ValidationError(
-                {'detail': 'You can no longer create lineups for this draft group'})
-
-        except InvalidLineupSizeException:
-            raise ValidationError({'detail': 'You have not drafted enough players'})
-
-        except LineupInvalidRosterSpotException:
-            raise ValidationError(
-                {'detail': 'One or more of the players are invalid for the roster'})
-
-        except PlayerDoesNotExistInDraftGroupException:
-            raise ValidationError(
-                {'detail': 'Player is not contained in the list of draftable players'})
-
+        # Catch all of the lineupManager exceptions and return validation errors.
+        except (
+                LineupDoesNotMatchUser,
+                NotEnoughTeamsException,
+                LineupDoesNotMatchExistingEntryLineup,
+                InvalidLineupSizeException,
+                InvalidLineupSalaryException,
+                LineupInvalidRosterSpotException,
+                PlayerDoesNotExistInDraftGroupException,
+                DuplicatePlayerException,
+                PlayerSwapGameStartedException,
+                EditLineupInProgressException,
+                LineupUnchangedException,
+                CreateLineupExpiredDraftgroupException,
+        ) as e:
+            logger.error("%s | user: %s" % (e, self.request.user))
+            raise ValidationError({'detail': e})
+        # Catch everything else and log.
         except Exception as e:
-            raise APIException(e)
+            logger.error(e)
+            client.captureException()
+            raise APIException({'detail': 'Unable to save lineup.'})
 
+        # Log event to user log
         create_user_log(
             request=request,
             type=_account_const.CONTEST,
@@ -113,11 +123,13 @@ class CreateLineupAPIView(generics.CreateAPIView):
             }
         )
 
+        # Serialize the lineup and send it back to the client.
+        saved_lineup = LineupSerializer(lineup)
         # On successful lineup creation:
         return Response({
             'detail': 'Lineup created.',
-            'lineup_id': lineup.id
-
+            'lineup_id': lineup.id,
+            'lineup': saved_lineup.data,
         }, status=status.HTTP_201_CREATED)
 
 
@@ -171,7 +183,9 @@ class LineupUserAPIView(APIView):
         # return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
         if contest_id is None:
-            msg = 'The POST param "contest_id" is required along with either: "lineup_ids", "search_str"'
+            msg = (
+                'The POST param "contest_id" is required along with either: "lineup_ids",'
+                '"search_str"')
             raise ValidationError(msg)
 
         lm = LineupManager(self.request.user)
@@ -217,29 +231,51 @@ class EditLineupAPIView(generics.CreateAPIView):
         if lineup_id is None:
             raise ValidationError(
                 {'detail': 'You must supply the "lineup_id" parameter -- the Lineup id.'})
+
+        # Make sure the lineup exists.
         try:
             lineup = Lineup.objects.get(pk=lineup_id, user=request.user)
         except Lineup.DoesNotExist:
             raise ValidationError({'detail': 'Lineup id does not exist.'})
-        #
+
         # change the lineups name if it differs from the existing name
         if lineup.name != name:
-            user_lineups = Lineup.objects.filter(user=request.user, draft_group_id=lineup.draft_group_id).values_list('name', flat=True)
+            user_lineups = Lineup.objects.filter(user=request.user,
+                                                 draft_group_id=lineup.draft_group_id).values_list(
+                'name', flat=True)
             if name in user_lineups:
                 raise ValidationError(
                     {'detail': 'You already have lineup with this name.'})
             lineup.name = name
             lineup.save()
 
-        #
-        # call task
-        # we could call the same task like this, fwiw:
-        # >>> task_result = edit_lineup.apply_async(args=(request.user, players, lineup))
-        task_result = edit_lineup.delay(request.user, players, lineup)
-        # get() blocks the view from returning until the task finishes
-        task_result.get()
-        task_helper = TaskHelper(edit_lineup, task_result.id)
+        # Attempt to edit the lineup.
+        try:
+            edit_lineup(request.user, players, lineup)
+        # Various lineup editing/saving exceptions will be thrown above. (due to salary restrictions
+        # or contests being full or stuff like that)
+        except (
+                LineupDoesNotMatchUser,
+                NotEnoughTeamsException,
+                LineupDoesNotMatchExistingEntryLineup,
+                InvalidLineupSizeException,
+                InvalidLineupSalaryException,
+                LineupInvalidRosterSpotException,
+                PlayerDoesNotExistInDraftGroupException,
+                DuplicatePlayerException,
+                PlayerSwapGameStartedException,
+                EditLineupInProgressException,
+                LineupUnchangedException,
+                CreateLineupExpiredDraftgroupException,
+        ) as e:
+            logger.error("%s | user: %s" % (e, self.request.user))
+            raise ValidationError({'detail': e})
+        except Exception as e:
+            logger.error("%s | user: %s" % (e, self.request.user))
+            client.captureException()
+            raise APIException({'detail': 'Unable to save lineup.'})
 
+        # Log this edit action to the user's log.
         create_user_log(
             request=request,
             type=_account_const.CONTEST,
@@ -250,11 +286,16 @@ class EditLineupAPIView(generics.CreateAPIView):
                 'players': players
             }
         )
-        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
+
+        saved_lineup = LineupSerializer(lineup)
+        # If successful, return the lineup to the client.
+        return Response({
+            'detail': 'Lineup Saved.',
+            'lineup': saved_lineup.data
+        }, status=status.HTTP_200_OK)
 
 
 class EditLineupStatusAPIView(generics.GenericAPIView):
-
     permission_classes = (IsAuthenticated,)
     serializer_class = EditLineupStatusSerializer
 
@@ -352,10 +393,16 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
 class UserLiveAPIView(AbstractLineupAPIView):
     """
     Get the User's lineups that are after the draft group start time, and within 12 hours of the
-    end time
+    end time.
+
+    This is similar to the UserCurrentAPIView, except it keeps lineups around for longer. And it
+    has players embeded in each lineup.
+    It's used by the mobile app so that they are viewable the next day after contests are over.
     """
 
     lineup_model = Lineup
+
+    serializer_class = LineupLiveSerializer
 
     def get_queryset(self):
         """
@@ -364,9 +411,19 @@ class UserLiveAPIView(AbstractLineupAPIView):
         offset_hours = 12
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
-        return Lineup.objects.filter(user=self.request.user,
-                                     draft_group__start__lte=now,
-                                     draft_group__end__gt=dt)
+        return Lineup.objects.filter(
+            user=self.request.user,
+            draft_group__start__lte=now,
+            draft_group__end__gt=dt
+        ).exclude(
+            entries__contest_pool=None
+        ).order_by(
+            'draft_group__start'
+        ).select_related(
+            'draft_group', 'user'
+        ).prefetch_related(
+            'entries', 'players'
+        ).distinct()
 
 
 class UserHistoryAPIView(AbstractLineupAPIView):

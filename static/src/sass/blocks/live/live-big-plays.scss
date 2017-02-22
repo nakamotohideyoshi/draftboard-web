@@ -6,40 +6,52 @@
 
 $block: '.live-big-plays';
 
-
 #{$block} {
-  bottom: 0;
-  height: 130px;
-  left: 0;
-  padding: 22px 80px 22px 60px;
   position: absolute;
-  width: 100%;
+  left: 0;
+  bottom: 20px;
   z-index: $zindex-live-big-plays;
+  width: 100%;
+  padding: 0 80px;
 
-  .slick-prev, .slick-next {
+  .btn-prev,
+  .btn-next {
+    display: inline-block;
+    position: absolute;
+    top: -6px;
+    width: 40px;
+    border: none;
+    background-color: transparent;
     color: #878a9f;
     cursor: pointer;
-    display: inline-block;
     font-size: 60px;
     font-weight: 100;
-    position: absolute;
     text-align: center;
-    top: -6px;
     transform: scaleX(0.5) translateY(9px);
     opacity: 0.7;
-    width: 40px;
+
+    &:focus {
+      outline: none;
+    }
   }
 
-  .slick-prev {
-    left: -50px;
-  }
-
-  .slick-next {
-    right: -50px;
-  }
-
-  .slick-disabled {
+  .btn-prev[disabled],
+  .btn-next[disabled],
+  .btn-disabled {
     cursor: auto;
     opacity: 0.1;
+  }
+
+  .btn-prev {
+    left: 0px;
+  }
+
+  .btn-next {
+    right: 0px;
+  }
+
+  &__items {
+    display: flex;
+    width: 100%;
   }
 }

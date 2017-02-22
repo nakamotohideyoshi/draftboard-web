@@ -1,0 +1,36 @@
+{% load tz %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Draftboard Contest Schedule</title>
+</head>
+{% timezone "US/Pacific" %}
+<body>
+
+<h2>Draftboard Contest Schedule</h2>
+<em>All times are US/Pacific</em>
+
+{% for sport, blocks in data.items %}
+    <hr />
+
+    <h3>Today &amp; Tomorrow’s {{ sport|upper }}:</h3>
+    {% for block in blocks %}
+      <p>
+        <strong>{{ block.cutoff|date:"l, M jS" }}:</strong> <em>cutoff time: {{ block.cutoff|date:"g:iA" }}</em> - {{ block.get_block_games.0|length }} games</p>
+        <ul>
+        {% for game in block.get_block_games.0 %}
+            <li>{{ game.game.start }} - {{ game.name }}</li>
+        {% endfor %}
+        </ul>
+            <p>Excluded games: {{ block.get_block_games.1|length }}</p>
+        <ul>
+        {% for game in block.get_block_games.1 %}
+            <li><strong>{{ game.game.start }} - {{ game.name }}<strong></li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+{% endfor %}
+</body>
+{% endtimezone %}
+</html>

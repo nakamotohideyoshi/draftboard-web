@@ -2,6 +2,7 @@ import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
 import merge from 'lodash/merge';
 import { dateNow } from '../lib/utils';
+import log from '../lib/logging';
 
 
 // TODO remove this hardcode of nba
@@ -87,7 +88,10 @@ module.exports = (state = {
       });
     }
     case ActionTypes.UPDATE_GAME: {
-      if (!(action.gameId in state.games)) return state;
+      if (!(action.gameId in state.games)) {
+        log.warn(`Game id ${action.gameId} does not exist in the state`);
+        return state;
+      }
 
       const newState = merge({}, state);
 

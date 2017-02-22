@@ -6,7 +6,7 @@ import Raven from 'raven-js';
 import React from 'react';
 import log from '../../../lib/logging';
 import {
-  removeCurrentEvent,
+  clearCurrentEvent,
   shiftOldestEvent,
   showAnimationEventResults,
 } from '../../../actions/events';
@@ -21,7 +21,7 @@ const logComponent = log.getLogger('component');
 
 /**
  * LiveNFLPlay component
- * - loops through animationEvent and maps them to LiveNFLFieldAnimations
+ * - loops through currentEvent and maps them to LiveNFLFieldAnimations
  * - when an animation is done, calls onAnimationComplete to show event results and remove from queue
  */
 export default React.createClass({
@@ -83,7 +83,7 @@ export default React.createClass({
 
     // remove the event
     setTimeout(() => {
-      store.dispatch(removeCurrentEvent());
+      store.dispatch(clearCurrentEvent());
     }, 4000);
 
     // // enter the next item in the queue once everything is done

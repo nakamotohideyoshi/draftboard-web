@@ -6,7 +6,6 @@ billiard==3.5.0.2
 boto==2.38.0
 braintree==3.29.0
 celery==4.0.2
-coreapi==1.32.0
 coreschema==0.0.4
 Django==1.9.7
 dj-database-url==0.3.0
