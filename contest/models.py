@@ -96,7 +96,8 @@ class AbstractContest(models.Model):
     # today_only  = models.BooleanField(default=True, null=False)
 
     end = models.DateTimeField(
-        null=False, blank=True,
+        null=False,
+        blank=True,
         verbose_name='Cutoff Time',
         help_text='forces the end time of the contest (will override "Ends tonight" checkbox!!')
 

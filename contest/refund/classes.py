@@ -2,29 +2,32 @@
 # contest/refund/classes.py
 
 from django.db.models import F
+from django.db.transaction import atomic
+
+from cash.classes import CashTransaction
+from contest.buyin.classes import BuyinManager
+from contest.serializers import (
+    ContestPoolSerializer,
+)
+from dfslog.classes import Logger, ErrorCodes
 from mysite.classes import AbstractManagerClass
+from push.classes import (
+    ContestPoolPush,
+)
+from ticket.classes import TicketManager
+from .exceptions import (
+    EntryCanNotBeUnregisteredException,
+    UnmatchedEntryIsInContest
+)
+from .models import Refund
+from ..exceptions import ContestCanNotBeRefunded
 from ..models import (
     Entry,
     Contest,
     LiveContest,
     HistoryContest,
 )
-from dfslog.classes import Logger, ErrorCodes
-from contest.buyin.classes import BuyinManager
-from ticket.classes import TicketManager
-from cash.classes import CashTransaction
-from .models import Refund
-from django.db.transaction import atomic
-from ..exceptions import ContestCanNotBeRefunded
-from .exceptions import (
-    EntryCanNotBeUnregisteredException,
-)
-from contest.serializers import (
-    ContestPoolSerializer,
-)
-from push.classes import (
-    ContestPoolPush,
-)
+
 
 class RefundManager(AbstractManagerClass):
     """
@@ -46,7 +49,8 @@ class RefundManager(AbstractManagerClass):
         # validation if the contest argument
         self.validate_variable(Contest, contest)
 
-    def __validate_entry_can_be_unregistered(self, entry):
+    @staticmethod
+    def __validate_entry_can_be_unregistered(entry):
         """
         :param entry:
         :raises EntryCanNotBeUnregisteredException: raised if the Contest is full, or inprogress/closed
@@ -55,7 +59,8 @@ class RefundManager(AbstractManagerClass):
         if entry.contest is not None:
             # if the contest is non-null, then the ContestPool has created
             # the contest and set it -- this means its in progress
-            raise EntryCanNotBeUnregisteredException('The contest is running and you may no longer unregister.')
+            raise EntryCanNotBeUnregisteredException(
+                'The contest is running and you may no longer unregister.')
 
     @atomic
     def remove_and_refund_entry(self, entry):
@@ -74,20 +79,36 @@ class RefundManager(AbstractManagerClass):
 
         # remove the entry from the contest, and cleanup contest properties
         contest_pool = entry.contest_pool
-        contest_pool.current_entries = F('current_entries') - 1   # true atomic decrement
+        contest_pool.current_entries = F('current_entries') - 1  # true atomic decrement
         contest_pool.save()
         contest_pool.refresh_from_db()
 
-        msg = "User["+entry.user.username+"] unregistered from the contest_pool #"\
-                      +str(contest_pool.pk)+" with entry #"+str(entry.pk)
-        Logger.log(ErrorCodes.INFO, "ContestPool Unregister", msg )
+        msg = "User[" + entry.user.username + "] unregistered from the contest_pool #" \
+              + str(contest_pool.pk) + " with entry #" + str(entry.pk)
+        Logger.log(ErrorCodes.INFO, "ContestPool Unregister", msg)
 
-        #
         # pusher contest updates because entries were changed
         ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
 
         # entirely delete the entry, since the users lineup is no longer in the contest
         entry.delete()
+
+    @atomic
+    def refund_unmatched_entry(self, entry):
+        """
+        Refund unmatched entry. After a contest pool spawns into contests, any unmatched entries
+        need to be refunded. These entries were never in contests, so they obviously will not
+        be removed from anything.
+
+        :param entry: The unmatched entry to refund.
+        """
+
+        # This entry should be one that was not matched, make sure it is not in a contest.
+        if entry.contest is not None:
+            raise UnmatchedEntryIsInContest(entry)
+
+        # Refund the entry.
+        return self.__refund_entry(entry)
 
     @atomic
     def __refund_entry(self, entry):
@@ -100,11 +121,10 @@ class RefundManager(AbstractManagerClass):
         :return:
         """
 
-        buyin           = entry.contest_pool.prize_structure.buyin
-        bm              = BuyinManager(entry.user)
-        transaction     = None
+        buyin = entry.contest_pool.prize_structure.buyin
+        bm = BuyinManager(entry.user)
+        transaction = None
 
-        #
         # Create a cash or ticket deposit as a refund,
         # based on what the user used to get into the contest
         if bm.entry_did_use_ticket(entry):
@@ -118,10 +138,10 @@ class RefundManager(AbstractManagerClass):
             transaction = ct.transaction
             self.__create_refund(transaction, entry)
 
-        #
         # Create refund transaction from escrow
         escrow_ct = CashTransaction(self.get_escrow_user())
         escrow_ct.withdraw(buyin, trans=transaction)
+        return escrow_ct
 
     @atomic
     def refund(self, contest, force=False, admin_force=False):
@@ -161,7 +181,7 @@ class RefundManager(AbstractManagerClass):
         # For all entries create a refund transaction and deposit the
         # cash or ticket back into the user's account
         for entry in entries:
-            self.__refund_entry( entry )
+            self.__refund_entry(entry)
 
         #
         # after all set the contest to cancelled

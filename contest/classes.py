@@ -1,3 +1,4 @@
+from raven.contrib.django.raven_compat.models import client
 import os
 import struct
 from collections import (
@@ -24,6 +25,8 @@ from contest.models import (
     Entry,
     ClosedContest,
 )
+from contest.refund.classes import RefundManager
+from contest.refund.tasks import refund_unmatched_entry
 from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.classes import DraftGroupManager
 from lineup.classes import LineupManager
@@ -607,6 +610,12 @@ class FairMatch(object):
 
     # size / prize_structure will come from ContestPool instance
     def __init__(self, entries=[], contest_size=2, contest_pool_id=None):
+        """
+        :param entries: A list of user.ids - one for each entry in the contest pool.
+        :param contest_size: The size of each contest.
+        :param contest_pool_id: The ID of the contest pool - this is only for logging purposes.
+        """
+
         # instance of random number generator
         self.r = Random()
 
@@ -627,13 +636,20 @@ class FairMatch(object):
         """
         :return: a list of lists-of-entries to fill contests
         """
-        return self.contests['contests'] + self.contests['contests_forced']
+        return self.contests['contests']
 
     def get_contests_forced(self):
         """
         :return: a list of lists-of-unfilled-entries, ie the superlay contest entries
         """
         return self.contests['contests_forced']
+
+    def get_all_created_contests(self):
+        """
+        Get both forced and unforced contests
+        :return: list of contest that were created
+        """
+        return self.contests['contests_forced'] + self.contests['contests']
 
     def fill_contest(self, entries, size, force=False):
         """
@@ -657,6 +673,11 @@ class FairMatch(object):
         self.__add_contest_debug(entries, size, force=force)
 
     def __add_contest_debug(self, entries, size, force=False):
+        """
+        :param entries:
+        :param size:
+        :param force:
+        """
         if force:
             # entries we need to enter into a contest no matter what (first entries)
             self.contests['contests_forced'].append(entries)
@@ -857,7 +878,7 @@ class FairMatch(object):
         for k, v in self.contests.items():
             logger.info('\t%s: %s' % (k, v))
             logger.info('\t%s contests created' % len(
-                self.contests['contests'] + self.contests['forced_contests']))
+                self.contests['contests'] + self.contests['contests_forced']))
             # This removes unused entries, but has been commented out. I have no idea why it is. (zach)
             # unused_entries = self.contests['entry_pool']
             # for c in self.contests['contests']:
@@ -935,11 +956,11 @@ class ContestPoolFiller(object):
 
         # how many entries the contest should consist of. - this is based on the prize structure.
         contest_size = self.contest_pool.prize_structure.get_entries()
-        # All entries that have registered for this contest pool.
-        entry_pool = [e.user.pk for e in self.entries]
+        # a list of user.ids for each entry that have registered for this contest pool.
+        entry_pool_user_ids = [e.user.pk for e in self.entries]
         # log + send a message to slack.
         count_msg = '> 💁 %s unique users and %s total entries' % (
-            len(entry_pool), len(self.entries))
+            len(entry_pool_user_ids), len(self.entries))
         logger.info(count_msg)
         slack.send(count_msg)
 
@@ -953,7 +974,7 @@ class ContestPoolFiller(object):
 
         # run the FairMatch algorithm to get the
         # information on how to fill the contests
-        fm = FairMatch(entry_pool, contest_size, self.contest_pool.id)
+        fm = FairMatch(entry_pool_user_ids, contest_size, self.contest_pool.id)
         fm.run()
 
         # debug - can be removed
@@ -970,7 +991,6 @@ class ContestPoolFiller(object):
             c = self.create_contest_from_entry_list(contest_entries)
             self.new_contests.append(c)
 
-        #
         # create any of the superlay contests if there are unfilled first-entries
         superlay_contest_entry_lists = fm.get_contests_forced()
         for contest_entries in superlay_contest_entry_lists:
@@ -983,8 +1003,34 @@ class ContestPoolFiller(object):
         # change the status of the contest pool to created now
         self.contest_pool.status = ContestPool.CREATED
         self.contest_pool.save()
+
+        # Now loop through all of the unmatched entries and issue refunds.
+        # (this is done via Celery tasks)
+        unmatched_entries = fm.contests['unused_entries']
+        msg = 'Refunding %s unmatched entries. %s' % (
+            len(unmatched_entries), unmatched_entries)
+        logger.info(msg)
+        slack.send(">    %s" % msg)
+        # Wrap this in a try because we don't want anything going wrong with refunds to prevent
+        # contests from being spawned.
+        try:
+            self.refund_unmatched_entries(unmatched_entries)
+        except Exception as e:
+            logger.error(e)
+            client.captureException()
+
         # self.contest_pool.refresh_from_db()
         return self.new_contests
+
+    def refund_unmatched_entries(self, user_id_list):
+        """
+        Create refund tasks for any unmatched entries.
+        :param user_id_list: These must be a user ID list of UNMATCHED entries.
+        """
+        for user_id in user_id_list:
+            entry = self.user_entries[user_id].pop()
+            # Create a celery task to refund this entry.
+            refund_unmatched_entry.delay(entry)
 
     def create_contest_from_entry_list(self, entry_list):
         # 1. create a contest for the entries

@@ -1,24 +1,32 @@
 from __future__ import absolute_import
 
-#
-# refund/tasks.py
+from django.core.cache import cache
 
+import contest.buyin.tasks
 from mysite.celery_app import app
 from .classes import RefundManager
-from django.core.cache import cache
-from contest.models import LiveContest
-from .exceptions import ContestRefundInProgressException
-import contest.buyin.tasks
+from .exceptions import (ContestRefundInProgressException, UnmatchedEntryRefundInProgressException)
 
 LOCK_EXPIRE = 60  # seconds
 SHARED_LOCK_NAME = "refund_task"
 
+
 @app.task(bind=True)
 def refund_task(self, contest, force=False, admin_force=False):
-    lock_id = '%s-LOCK-contest[%s]'%(SHARED_LOCK_NAME, contest.pk)
+    """
+    :param self:
+    :param contest:
+    :param force:
+    :param admin_force:
+    :return:
+    """
+    lock_id = '%s-LOCK-contest[%s]' % (SHARED_LOCK_NAME, contest.pk)
 
-    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
-    release_lock = lambda: cache.delete(lock_id)
+    def acquire_lock():
+        return cache.add(lock_id, 'true', LOCK_EXPIRE)
+
+    def release_lock():
+        return cache.delete(lock_id)
 
     if acquire_lock():
         try:
@@ -28,6 +36,7 @@ def refund_task(self, contest, force=False, admin_force=False):
             release_lock()
     else:
         raise ContestRefundInProgressException()
+
 
 @app.task(bind=True, time_limit=20, soft_time_limit=10)
 def unregister_entry_task(self, entry):
@@ -40,10 +49,13 @@ def unregister_entry_task(self, entry):
     """
 
     lock_expire = contest.buyin.tasks.LOCK_EXPIRE
-    lock_id     = contest.buyin.tasks.SHARED_LOCK_FORMAT % (entry.contest_pool.pk)
+    lock_id = contest.buyin.tasks.SHARED_LOCK_FORMAT % entry.contest_pool.pk
 
-    acquire_lock = lambda: cache.add(lock_id, 'true', lock_expire)
-    release_lock = lambda: cache.delete(lock_id)
+    def acquire_lock():
+        return cache.add(lock_id, 'true', LOCK_EXPIRE)
+
+    def release_lock():
+        return cache.delete(lock_id)
 
     if acquire_lock():
         try:
@@ -53,3 +65,29 @@ def unregister_entry_task(self, entry):
             release_lock()
     else:
         self.retry(countdown=1, max_retries=20)
+
+
+@app.task(bind=True)
+def refund_unmatched_entry(self, entry):
+    """
+    This is just a celery task wrapper for RefundManager.refund_unmatched_entry.
+
+    :param self: Task instance.
+    :param entry: The entry to refund.
+    """
+    lock_id = '%s-LOCK-contest[%s]' % (SHARED_LOCK_NAME, entry.pk)
+
+    def acquire_lock():
+        return cache.add(lock_id, 'true', LOCK_EXPIRE)
+
+    def release_lock():
+        return cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            rm = RefundManager()
+            rm.refund_unmatched_entry(entry)
+        finally:
+            release_lock()
+    else:
+        raise UnmatchedEntryRefundInProgressException(entry)

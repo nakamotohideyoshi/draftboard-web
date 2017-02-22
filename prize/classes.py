@@ -1,7 +1,14 @@
-#
-# prize/classes.py
-
 import math
+from collections import OrderedDict
+
+from django.db.transaction import atomic
+
+from cash.models import CashAmount
+from mysite.exceptions import InvalidArgumentException
+from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException
+from prize.models import PrizeStructure, Rank, GeneratorSettings
+from ticket.models import TicketAmount
+from transaction.models import AbstractAmount
 from .exceptions import (
     PrizeGenerationException,
     InvalidBuyinAndPrizePoolException,
@@ -10,15 +17,6 @@ from .exceptions import (
     NumberPrizesNotDivisibleBy9Exception,
     BuyinNotLessThanEachTicketException,
 )
-from collections import OrderedDict
-from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException
-from ticket.exceptions import InvalidTicketAmountException
-from mysite.exceptions import InvalidArgumentException
-from prize.models import PrizeStructure, Rank, GeneratorSettings
-from transaction.models import AbstractAmount
-from cash.models import CashAmount
-from ticket.models import TicketAmount
-from django.db.transaction import atomic
 
 
 class Generator(object):
@@ -27,7 +25,8 @@ class Generator(object):
 
     """
 
-    def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True, verbose=False):
+    def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True,
+                 verbose=False):
         self.buyin = buyin
         self.first_place = first_place
         if prize_pool % self.buyin != 0:
@@ -238,7 +237,8 @@ class AbstractPrizeStructureCreator(object):
             raise IncorrectVariableTypeException(type(self).__name__, 'amount_model')
         self.amount_model = amount_model
 
-        self.name = self.get_unique_name(name)  # return a name based on the one specified that is unique
+        self.name = self.get_unique_name(
+            name)  # return a name based on the one specified that is unique
 
     def get_unique_name(self, name):
         """
@@ -252,7 +252,8 @@ class AbstractPrizeStructureCreator(object):
 
         else:
             # generate a random name
-            n_similar_names = len(self.prize_structure_model.objects.filter(name__istartswith=self.DEFAULT_NAME))
+            n_similar_names = len(
+                self.prize_structure_model.objects.filter(name__istartswith=self.DEFAULT_NAME))
             if n_similar_names:
                 return '%s %s' % (self.DEFAULT_NAME, str(n_similar_names))
             return self.DEFAULT_NAME
@@ -274,7 +275,8 @@ class AbstractPrizeStructureCreator(object):
         the whole prize structure.
         """
         if self.ranks:
-            raise Exception('You can not add rank/values to this object, because it has already been created.')
+            raise Exception(
+                'You can not add rank/values to this object, because it has already been created.')
         self.added_ranks.append((rank, value))
 
     def __str__(self):
@@ -393,7 +395,8 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
         from calling add() if the cash structure was created with a Generator
         """
         if self.generator and len(self.added_ranks) >= len(self.generator.get_prize_list()):
-            raise Exception('You may not call add(rank,value) if the prize structure was created with a generator')
+            raise Exception(
+                'You may not call add(rank,value) if the prize structure was created with a generator')
 
         super().add(rank, value)
 
@@ -623,6 +626,8 @@ class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
                     fraction = tickets % 1
                     if fraction < 0.0001:
                         # this could be a good structure! print the values
-                        print('        %s payouts, %s entries' % (str(int(tickets)), str(int(entries))))
+                        print('        %s payouts, %s entries' % (
+                        str(int(tickets)), str(int(entries))))
                     entries += 1
-        print('... showing all the possible FlatTicketPrizeStructures (entries <= %s)' % str(max_entries))
+        print('... showing all the possible FlatTicketPrizeStructures (entries <= %s)' % str(
+            max_entries))
