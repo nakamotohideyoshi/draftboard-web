@@ -365,7 +365,7 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.save()
         for player in removed_players:
             if (player.lineup_nickname != '' and player.lineup_nickname in lineup.name) or lineup.name == '':
-                lineup.name = self.set_lineup_nickname(lineup, players)
+                lineup.name = self.set_lineup_nickname(lineup, players, lineup.draft_group)
                 lineup.save()
 
         logger.info('action: lineup edited | lineup: %s' % lineup)
