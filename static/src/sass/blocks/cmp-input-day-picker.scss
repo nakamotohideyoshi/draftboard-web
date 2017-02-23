@@ -31,14 +31,14 @@ input.date-picker-input {
     cursor: pointer;
   }
 
-  &:focus {
-    // hacky way to hide the placeholder when the input is selected
-    // hide the input value as of now too...
-    @include placeholder {
-      color: #fff;
-    }
-    color: #fff;
-  }
+  //&:focus {
+  //  // hacky way to hide the placeholder when the input is selected
+  //  // hide the input value as of now too...
+  //  @include placeholder {
+  //    color: #fff;
+  //  }
+  //  color: #fff;
+  //}
 }
 
 label.calendar-input-label {
