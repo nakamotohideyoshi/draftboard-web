@@ -15,19 +15,24 @@ export default class Sprite {
   }
 
   /**
-   * Returns the x, y coordinates of the frame
+   * Returns the data representing a specified frame.
    */
   getFrameRect(frame, sheetWidth, sheetHeight, frameWidth, frameHeight) {
     const numCols = sheetWidth / frameWidth;
-    const frameIndex = frame;
-    const col = frameIndex % numCols;
-    const row = Math.ceil(frameIndex / numCols);
-    return {
-      x: col * frameWidth,
-      y: (row * frameHeight) - frameHeight,
-      width: frameWidth,
-      height: frameHeight,
-    };
+    let col = frame % numCols;
+
+    // When frame % numCols returns zero, this means that the frame evenly
+    // divides into the number of columns and should actually be the last frame
+    // of the sequence.
+    if (col === 0) {
+      col = numCols;
+    }
+
+    const row = Math.ceil(frame / numCols);
+    const x = (col - 1) * frameWidth;
+    const y = (row - 1) * frameHeight;
+
+    return { frame, x, y, width: frameWidth, height: frameHeight, numCols, col, row };
   }
 
   /**
@@ -43,13 +48,13 @@ export default class Sprite {
   /**
    * Render all the frames.
    */
-  renderFrames(image, canvas, frameWidth, frameHeight, start = 1, numFrames = -1) {
-    const frameRate = 29;
+  renderFrames(image, canvas, frameWidth, frameHeight, start = 1, finish = -1) {
+    let curFrame = start;
+    const frameRate = 30;
     const context = canvas.getContext('2d');
-    let curFrameIndex = start - 1;
-    const targetFrame = numFrames !== -1
-      ? curFrameIndex + numFrames
-      : this.getNumFrames(image.width, image.height, frameWidth, frameHeight);
+    const targetFrame = finish === -1
+      ? this.getNumFrames(image.width, image.height, frameWidth, frameHeight)
+      : finish;
 
     if (!this._isScaled) {
       context.translate(this.isFlipped ? this.canvas.width : 0, 0);
@@ -57,14 +62,14 @@ export default class Sprite {
       this._isScaled = true;
     }
 
-
     return new Promise((resolve) => {
       this.animate(frameRate, () => {
-        this.drawFrame(curFrameIndex, image, context, frameWidth, frameHeight);
-        const hasNextFrame = ++curFrameIndex < targetFrame;
+        this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
+        const hasNextFrame = curFrame + 1 <= targetFrame;
         if (!hasNextFrame) {
           resolve();
         }
+        curFrame++;
 
         return hasNextFrame;
       });
@@ -98,7 +103,7 @@ export default class Sprite {
       }
     };
 
-    tick();
+    window.requestAnimationFrame(tick);
   }
 
   /**
@@ -149,11 +154,11 @@ export default class Sprite {
   /**
    * Plays through the animation once.
    */
-  playOnce(start = 1, numFrames = -1) {
+  playOnce(start = 1, finish = -1) {
     if (!this.isLoaded()) {
       return Promise.reject('No image data loaded.');
     }
 
-    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, start, numFrames);
+    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, start, finish);
   }
 }
