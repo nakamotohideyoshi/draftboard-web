@@ -56,7 +56,7 @@ const Transactions = React.createClass({
       if (!isNaN(startDate) && !isNaN(endDate)) {
         this.props.fetchTransactions(startDate.getTime(), endDate.getTime());
       } else {
-        log.warn('Invalid date provided!')
+        log.warn('Invalid date provided!');
       }
     }
   },
