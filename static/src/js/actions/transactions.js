@@ -62,7 +62,7 @@ export function fetchTransactions(startDate = null, endDate = null) {
         if (err) {
           dispatch(addMessage({
             type: types.ADD_MESSAGE,
-            header: 'Wrong dates',
+            header: 'Could not fetch transactions',
             content: 'Start date is a later time that end date',
             level: 'warning',
             ttl: 3000,

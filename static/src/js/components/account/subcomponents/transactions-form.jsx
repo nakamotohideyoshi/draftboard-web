@@ -23,8 +23,10 @@ const TransactionsForm = React.createClass({
    * and trigger getTransaction action with that dates
    */
   handlePastWeekFetch() {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     this.hideCalendarInputs();
-    this.props.onPeriodSelected({ isPeriod: false, days: 7 });
+    this.props.onPeriodSelected({ isPeriod: false, days: 7, startDate: oneWeekAgo });
   },
 
   handlePastMonthFetch() {
