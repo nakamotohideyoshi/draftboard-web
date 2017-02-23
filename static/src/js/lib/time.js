@@ -123,12 +123,16 @@ export function daysToWeekView(days) {
  */
 export function stringifyDate(date, delimiter) {
   if (date && delimiter) {
-    // const day = date.getDate();
-    // const month = date.getMonth() + 1;
-    // const year = date.getFullYear();
-    // return month + delimiter + day + delimiter + year;
-    console.log(date)
-    return date.format('MM'+ delimiter +'DD'+ delimiter + 'YYYY')
+    //  Is this a Moment.js date? if so, we can use it's format method.
+    if (typeof date.format === 'function') {
+      return date.format('MM'+ delimiter +'DD'+ delimiter + 'YYYY')
+    }
+
+    // otherwise, it's a native JS date.
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return month + delimiter + day + delimiter + year;
   }
 
   log.warn('Missing date or delimiter parameter');
