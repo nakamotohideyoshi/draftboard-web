@@ -16,7 +16,9 @@ export default class NBAClip {
   }
 
   get avatarX() {
-    return this.data.avatar_x;
+    return this.sprite.isFlipped
+      ? this.width - this.data.avatar_x
+      : this.data.avatar_x;
   }
 
   get avatarY() {
@@ -65,8 +67,8 @@ export default class NBAClip {
     return this.sprite.load(this.file, this.width, this.height).then(() => this);
   }
 
-  playOnce(start = 1, numFrames = -1) {
-    const playLength = numFrames === -1 ? this.length : numFrames;
-    return this.sprite.playOnce(start, playLength).then(() => this);
+  play(start = 1, stop = -1) {
+    const lastFrame = stop === -1 ? this.length : stop;
+    return this.sprite.playOnce(start, lastFrame).then(() => this);
   }
 }
