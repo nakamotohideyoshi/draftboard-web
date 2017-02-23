@@ -91,49 +91,45 @@ export default class NBAPlayRecapVO {
     // API documentation for a full description of the objects within the
     // stats object.
 
-    const hasFreeThrow = stats.hasOwnProperty('freethrow__list');
-    const hasBlock = stats.hasOwnProperty('block__list');
-    const hasRebound = stats.hasOwnProperty('rebound__list');
-    const hasFieldGoal = stats.hasOwnProperty('fieldgoal__list');
-    const hasSteal = stats.hasOwnProperty('steal__list');
-
-    if (hasFreeThrow) {
+    if (stats.hasOwnProperty('freethrow__list')) {
       return NBAPlayRecapVO.FREETHROW;
     }
 
-    if (hasRebound) {
+    if (stats.hasOwnProperty('rebound__list')) {
       return NBAPlayRecapVO.REBOUND;
     }
 
-    if (hasSteal) {
+    if (stats.hasOwnProperty('steal__list')) {
       return NBAPlayRecapVO.STEAL;
     }
 
-    if (hasFieldGoal) {
-      const shotType = stats.fieldgoal__list.shot_type;
-
-      switch (shotType) {
-        case 'dunk' :
-          return hasBlock
-            ? NBAPlayRecapVO.BLOCKED_DUNK
-            : NBAPlayRecapVO.DUNK;
-        case 'layup' :
-          return hasBlock
-            ? NBAPlayRecapVO.BLOCKED_LAYUP
-            : NBAPlayRecapVO.LAYUP;
-        case 'hook shot' :
-          return hasBlock
-            ? NBAPlayRecapVO.BLOCKED_HOOKSHOT
-            : NBAPlayRecapVO.HOOKSHOT;
-        case 'jump shot' :
-          return hasBlock
-            ? NBAPlayRecapVO.BLOCKED_JUMPSHOT
-            : NBAPlayRecapVO.JUMPSHOT;
-        default:
-      }
+    if (!stats.hasOwnProperty('fieldgoal__list')) {
+      return NBAPlayRecapVO.UNKNOWN_PLAY;
     }
 
-    return NBAPlayRecapVO.UNKNOWN_PLAY;
+    const shotType = stats.fieldgoal__list.shot_type;
+    const hasBlock = stats.hasOwnProperty('block__list');
+
+    switch (shotType) {
+      case 'dunk' :
+        return hasBlock
+          ? NBAPlayRecapVO.BLOCKED_DUNK
+          : NBAPlayRecapVO.DUNK;
+      case 'layup' :
+        return hasBlock
+          ? NBAPlayRecapVO.BLOCKED_LAYUP
+          : NBAPlayRecapVO.LAYUP;
+      case 'hook shot' :
+        return hasBlock
+          ? NBAPlayRecapVO.BLOCKED_HOOKSHOT
+          : NBAPlayRecapVO.HOOKSHOT;
+      case 'jump shot' :
+        return hasBlock
+          ? NBAPlayRecapVO.BLOCKED_JUMPSHOT
+          : NBAPlayRecapVO.JUMPSHOT;
+      default:
+        return NBAPlayRecapVO.UNKNOWN_PLAY;
+    }
   }
 
   playDescription() {
@@ -239,5 +235,24 @@ export default class NBAPlayRecapVO {
     }
 
     return playTypeToTitle[this.playType()];
+  }
+
+  /**
+   * Returns the player ID for the shot or block.
+   */
+  player() {
+    const stats = this._obj.pbp.statistics__list;
+
+    if (!stats) {
+      return false;
+    } else if (stats.hasOwnProperty('block__list')) {
+      return stats.block__list.player;
+    } else if (stats.hasOwnProperty('fieldgoal__list')) {
+      return stats.fieldgoal__list.player;
+    } else if (stats.hasOwnProperty('freethrow__list')) {
+      return stats.freethrow__list.player;
+    }
+
+    return null;
   }
 }

@@ -1,3 +1,5 @@
+@import '../../../variables.scss';
+
 //
 // BEM block for React LiveNFLField
 // - this is the court background, then there are LiveNBAPlays within it
@@ -5,6 +7,36 @@
 
 $block: '.live-nba-court';
 $imgDir: '../../../../img/blocks/live-nba-court/';
+
+@keyframes avatarIntro {
+  0% {
+    filter: blur(5px);
+    transform: scale(.75);
+    transform-origin: bottom center;
+    opacity: 0;
+  }
+
+  100% {
+    filter: blur(0);
+    transform: scale(1);
+    transform-origin: bottom center;
+    opacity: 1;
+  }
+}
+
+@keyframes avatarOutro {
+  from {
+    filter: blur(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    filter: blur(5px);
+    transform: translateY(-5px);
+    opacity: 0;
+  }
+}
 
 #{$block} {
   background: transparent url('#{$imgDir}bg.png') no-repeat center top;
@@ -17,4 +49,70 @@ $imgDir: '../../../../img/blocks/live-nba-court/';
   transition: transform 600ms cubic-bezier(.65, .47, .35, 1);
   transform-origin: 0 0;
   transform: translate(-50%, -50%);
+}
+
+.avatar--nba {
+  $width: 95px;
+  $height: 129px;
+  width: $width;
+  height: $height;
+  
+  &.trans-in {
+    animation: avatarIntro .25s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+  }
+
+  &.trans-out {
+    animation: avatarOutro .35s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+  }
+
+  .avatar-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    &__shape {
+      fill: rgba(255, 255, 255, .45);
+    }
+  }
+
+  .player-name {
+    position: absolute;
+    top: -35px;
+    width: 100%;
+    color: #fff;
+    font-size: 16px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
+    font-weight: 400;
+    text-align: center;
+  }
+
+  .player-headshot {
+    display: block;
+    position: absolute;
+    left: 3px;
+    top: 2px;
+    width: $width - 6px;
+    height: $width - 6px;
+    overflow: hidden;
+    background-color: #0e2539;
+    border-radius: 50%;
+
+    &__container {
+      margin: 5%;
+      width: 90%;
+      height: 90%;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    &__img {
+      display: block;
+      position: relative;
+      left: -12%;
+      top: 11%;
+      width: 124%;
+      height: auto;
+    }
+  }
 }
