@@ -13,6 +13,8 @@ export default class BasketAnimation extends LiveAnimation {
     const stagePos = court.getPosition(courtPos.x, courtPos.y);
     const zone = court.getZoneAtPosition(recap.courtPosition(), recap.teamBasket()) + 1;
     const clip = getBasketClip(zone);
+    const basketFirstFrame = clip.getCuePoint(recap.whichSide());
+    const basketLastFrame = basketFirstFrame + (clip.length - 1);
 
     if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
       clip.flip();
@@ -23,7 +25,7 @@ export default class BasketAnimation extends LiveAnimation {
 
     return clip.load().then(() => {
       court.addChild(clip.getElement(), stagePos.x, stagePos.y);
-      return clip.playOnce(clip.getCuePoint(recap.whichSide()));
+      return clip.play(basketFirstFrame, basketLastFrame);
     });
   }
 }
