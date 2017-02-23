@@ -1,7 +1,8 @@
 import React from 'react';
+// const InputDayPicker = require('../../form-field/input-day-picker.jsx');
+require('../../../../sass/lib/react-date-picker.scss');
 
-const InputDayPicker = require('../../form-field/input-day-picker.jsx');
-
+const DatePicker = require('react-datepicker');
 
 const TransactionsForm = React.createClass({
 
@@ -72,6 +73,28 @@ const TransactionsForm = React.createClass({
     });
   },
 
+  handleChange(date) {
+    this.setState({
+      startDate: date,
+    });
+  },
+
+  sendExcel() {
+    const fromTo = window.location.search;
+    let endDate = new Date();
+    let startDate = new Date().setMonth(endDate.getMonth() - 1);
+    if (fromTo === '') {
+      startDate = Math.floor(startDate / 1000);
+      endDate = Math.floor(endDate.getTime() / 1000);
+      window.location.href = `/api/cash/transactions/?start_ts=${startDate}&end_ts=${endDate}&export=1`;
+    } else {
+      startDate = new Date(fromTo.match(new RegExp('[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}', 'g'))[0]);
+      endDate = new Date(fromTo.match(new RegExp('[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}', 'g'))[1]);
+      startDate = Math.floor(startDate / 1000);
+      endDate = Math.floor(endDate.getTime() / 1000);
+      window.location.href = `/api/cash/transactions/?start_ts=${startDate}&end_ts=${endDate}&export=1`;
+    }
+  },
   render() {
     return (
       <form
@@ -87,16 +110,26 @@ const TransactionsForm = React.createClass({
 
             { this.state.showCalendarInputs &&
               <div className="transactions-date-pickers">
-                <InputDayPicker
-                  onDaySelected={this.handleStartDateSelected}
-                  placeholder="Start Day"
-                  ref="start-day-input"
+                <DatePicker
+                  dateFormat="MM/DD/YYYY"
+                  selected={this.state.startDate}
+                  onChange={this.handleStartDateSelected}
+                  className="date-picker-input"
+                  calendarClassName="date-picker"
+                  placeholderText="Start Day"
+                  dateFormatCalendar="MMMM YYYY"
+                  locale="en-gb"
                 />
                 <span>-</span>
-                <InputDayPicker
-                  onDaySelected={this.handleEndDateSelected}
-                  placeholder="End Day"
-                  ref="end-day-input"
+                <DatePicker
+                  dateFormat="MM/DD/YYYY"
+                  selected={this.state.endDate}
+                  onChange={this.handleEndDateSelected}
+                  className="date-picker-input"
+                  calendarClassName="date-picker"
+                  placeholderText="End Day"
+                  dateFormatCalendar="MMMM YYYY"
+                  locale="en-gb"
                 />
               </div>
             }
@@ -121,9 +154,10 @@ const TransactionsForm = React.createClass({
           </div>
 
           <input
-            type="submit"
+            type="button"
             className="button button--flat-alt1 button--sm pull-right"
             value="Export"
+            onClick={this.sendExcel}
           />
         </fieldset>
       </form>

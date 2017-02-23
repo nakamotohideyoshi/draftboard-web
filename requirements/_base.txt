@@ -97,3 +97,6 @@ newrelic==2.74.0.54
 
 # django-ipware
 django-ipware
+
+# xlwt
+xlwt

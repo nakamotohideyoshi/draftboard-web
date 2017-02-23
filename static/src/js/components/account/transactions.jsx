@@ -40,7 +40,18 @@ const Transactions = React.createClass({
 
 
   componentWillMount() {
-    this.props.fetchTransactions();
+    const fromTo = window.location.search;
+    let endDate = new Date();
+    let startDate = new Date().setMonth(endDate.getMonth() - 1);
+    if (fromTo === '') {
+      this.props.fetchTransactions(startDate, endDate.getTime());
+    } else {
+      // regexp for searching timestamp from url
+      const regexp = new RegExp('[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}', 'g');
+      endDate = new Date(fromTo.match(regexp)[1]);
+      startDate = new Date(fromTo.match(regexp)[0]);
+      this.props.fetchTransactions(startDate.getTime(), endDate.getTime());
+    }
   },
 
 
@@ -69,7 +80,7 @@ const Transactions = React.createClass({
       window.history.pushState('change the', 'url', newUrl);
     }
     // this.props.filterTransactions(isPeriod, days, startDate.getTime(), endDate.getTime());
-    this.props.fetchTransactions(startDate.getTime(), endDate.getTime());
+    this.props.fetchTransactions(startDate.format('x'), endDate.format('x'));
   },
 
   render() {

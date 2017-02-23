@@ -2,6 +2,7 @@
 # cash/views.py
 
 from time import time
+import xlwt
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.views import APIView
@@ -20,9 +21,10 @@ from django.conf import settings
 from braces.views import LoginRequiredMixin
 from cash.forms import DepositAmountForm
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from cash.classes import CashTransaction
 from transaction.models import Transaction
+
 
 class TransactionHistoryAPIView(generics.GenericAPIView):
     """
@@ -66,6 +68,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         start_ts = self.request.query_params.get('start_ts', int(time()) - 60 * 60 * 24 * 30)
         # If no end was provided, use the current time.
         end_ts = self.request.query_params.get('end_ts', int(time()))
+        export = self.request.query_params.get('export', None)
         user = self.request.user
 
         admin_specified_user_id = user_id
@@ -86,12 +89,46 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
                     }
                 })
 
+        if export:
+            return self.export_exel(user, int(start_ts), int(end_ts))
+
         return self.filter_on_range(user, int(start_ts), int(end_ts))
 
+    def export_exel(self, user, start_ts, end_ts):
+        start = datetime.utcfromtimestamp( start_ts )
+        end = datetime.utcfromtimestamp( end_ts )
+        transactions = Transaction.objects.filter( user=user,
+                       created__range=(start, end) ).order_by('-created')
+
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="transactions-history.xls"'
+        wb = xlwt.Workbook(encoding='utf-8')
+        ws = wb.add_sheet('History')
+        row_num = 0
+
+        font_style = xlwt.XFStyle()
+        font_style.font.bold = True
+
+        columns = ['Created', 'Amount', 'Type']
+
+        for col_num in range(len(columns)):
+            ws.write(row_num, col_num, columns[col_num], font_style)
+
+        rows = [
+            [transaction.to_json().get('created'),
+             transaction.to_json().get('details')[0].get('amount'),
+             transaction.to_json().get('details')[0].get('type')] for transaction in transactions]
+        for row in rows:
+            row_num += 1
+            for col_num in range(len(row)):
+                ws.write(row_num, col_num, row[col_num], font_style)
+
+        wb.save(response)
+        return response
 
     def filter_on_range(self, user, start_ts, end_ts):
-        start   = datetime.utcfromtimestamp( start_ts )
-        end     = datetime.utcfromtimestamp( end_ts )
+        start = datetime.utcfromtimestamp( start_ts )
+        end = datetime.utcfromtimestamp( end_ts )
 
         transactions = Transaction.objects.filter( user=user,
                        created__range=(start, end) ).order_by('-created')
