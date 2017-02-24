@@ -88,7 +88,7 @@ export default class PlayerAnimation extends LiveAnimation {
 
     const playerFirstFrame = player.getCuePoint('both'); // recap.whichSide());
     const playerLastFrame = playerFirstFrame + (player.length - 1);
-    const playerAvatarIn = playerFirstFrame + player.avatarIn;
+    const playerAvatarIn = playerFirstFrame + player.avatar('player').in;
     const playPos = this.getPlayCourtPos(recap, court);
 
     // Offset the player's clip by it's offset to make sure it accurately lines
@@ -101,8 +101,8 @@ export default class PlayerAnimation extends LiveAnimation {
     // Offset the avatar by its width and height so that the point of the marker
     // is bottom centered to the specified x and y position.
     let { x: avatarX, y: avatarY } = playPos;
-    avatarX -= player.avatarX * 0.5 + avatar.getWidth() * 0.5;
-    avatarY -= player.avatarY * 0.5 + avatar.getHeight();
+    avatarX -= player.avatar('player').offset_x * 0.5 + avatar.getWidth() * 0.5;
+    avatarY -= player.avatar('player').offset_y * 0.5 + avatar.getHeight();
     avatarY -= 50; // Force the avatar above the player's head.
 
     return Promise.all([
