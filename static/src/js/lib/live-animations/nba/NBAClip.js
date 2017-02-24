@@ -11,20 +11,6 @@ export default class NBAClip {
     this.sprite = new Sprite();
   }
 
-  get avatarIn() {
-    return this.data.avatar_in;
-  }
-
-  get avatarX() {
-    return this.sprite.isFlipped
-      ? this.width - this.data.avatar_x
-      : this.data.avatar_x;
-  }
-
-  get avatarY() {
-    return this.data.avatar_y;
-  }
-
   get file() {
     return `${window.dfs.playerImagesBaseUrl}${NBAClip.FILE_PATH}/${this.data.file}`;
   }
@@ -49,6 +35,14 @@ export default class NBAClip {
 
   get length() {
     return this.data.length;
+  }
+
+  avatar(name) {
+    if (!this.data.avatars.hasOwnProperty(name)) {
+      throw new Error(`The requested avatar ${name} is not specified`);
+    }
+
+    return this.data.avatars[name];
   }
 
   getCuePoint(name) {
