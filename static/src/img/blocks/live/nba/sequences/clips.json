@@ -35,7 +35,6 @@
             "length" : 14,
             "offset_x": 35,
             "offset_y": 40,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -57,7 +56,6 @@
             "length" : 14,
             "offset_x": 35,
             "offset_y": 40,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -79,7 +77,6 @@
             "length" : 55,
             "offset_x": 35,
             "offset_y": 40,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -101,7 +98,6 @@
             "length" : 133,
             "offset_x": 75,
             "offset_y": 150,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -123,7 +119,6 @@
             "length" : 58,
             "offset_x": 45,
             "offset_y": 165,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -145,7 +140,6 @@
             "length" : 93,
             "offset_x": 55,
             "offset_y": 165,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -167,7 +161,6 @@
             "length": 59,
             "offset_x": 55,
             "offset_y": 165,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -189,7 +182,6 @@
             "length" : 87,
             "offset_x": 45,
             "offset_y": 165,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -211,7 +203,6 @@
             "length" : 81,
             "offset_x": 55,
             "offset_y": 160,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -233,7 +224,6 @@
             "length" : 68,
             "offset_x": 45,
             "offset_y": 180,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "rebound",
@@ -255,7 +245,6 @@
             "length" : 59,
             "offset_x": 75,
             "offset_y": 25,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -277,7 +266,6 @@
             "length" : 57,
             "offset_x": 85,
             "offset_y": 100,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -305,7 +293,6 @@
             "length" : 64,
             "offset_x": 75,
             "offset_y": 70,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -333,7 +320,6 @@
             "length" : 54,
             "offset_x": 75,
             "offset_y": 70,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -361,7 +347,6 @@
             "length" : 59,
             "offset_x": 95,
             "offset_y": 150,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -389,7 +374,6 @@
             "length" : 59,
             "offset_x": 95,
             "offset_y": 150,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -417,7 +401,6 @@
             "length" : 70,
             "offset_x": 60,
             "offset_y": 150,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -445,7 +428,6 @@
             "length" : 62,
             "offset_x": 65,
             "offset_y": 130,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -473,7 +455,6 @@
             "length" : 55,
             "offset_x": 90,
             "offset_y": 140,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -501,7 +482,6 @@
             "length" : 58,
             "offset_x": 100,
             "offset_y": 145,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
@@ -523,7 +503,6 @@
             "length" : 59,
             "offset_x": 70,
             "offset_y": 115,
-            "avatar_in": 28,
             "avatars": [
               {
                 "name": "offense",
