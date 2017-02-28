@@ -6,6 +6,7 @@ $block: '.live-contests-pane';
   right: 20px;
   text-align: right;
   top: 100px;
+  overflow: auto;
 
   // move off screen
   &--opponent-mode {
