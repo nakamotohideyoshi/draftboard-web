@@ -25,7 +25,7 @@ export default class BasketAnimation extends LiveAnimation {
 
     return clip.load().then(() => {
       court.addChild(clip.getElement(), stagePos.x, stagePos.y);
-      return clip.play(basketFirstFrame, basketLastFrame);
+      return clip.play(basketLastFrame, basketFirstFrame);
     });
   }
 }

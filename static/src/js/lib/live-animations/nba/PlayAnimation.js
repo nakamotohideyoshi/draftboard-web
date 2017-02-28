@@ -26,6 +26,7 @@ export default class PlayAnimation extends LiveAnimation {
     return clips.reduce((p, fn) => p.then(fn), Promise.resolve())
       .catch(error => {
         court.removeAll();
+        console.log(error);
         throw new Error(error);
       });
   }

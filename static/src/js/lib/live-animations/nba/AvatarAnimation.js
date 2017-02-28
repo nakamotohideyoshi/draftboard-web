@@ -22,7 +22,10 @@ export default class AvatarAnimation {
     return 2000;
   }
 
-  constructor(playerName) {
+  constructor(playerName, playerId) {
+    this.playerName = playerName;
+    this.playerId = playerId;
+
     this.el = document.createElement('DIV');
     this.el.className = 'avatar--nba';
 
@@ -42,14 +45,14 @@ export default class AvatarAnimation {
     this.el.innerHTML = html;
   }
 
-  load(playerId) {
+  load() {
     return new Promise(resolve => {
       const img = this.el.querySelector('.player-headshot__img');
       img.addEventListener('load', () => resolve());
       img.addEventListener('error', () => {
         img.src = defaultPlayerSrc;
       });
-      img.src = `${window.dfs.playerImagesBaseUrl}/nba/120/${playerId}.png`;
+      img.src = `${window.dfs.playerImagesBaseUrl}/nba/120/${this.playerId}.png`;
     });
   }
 
