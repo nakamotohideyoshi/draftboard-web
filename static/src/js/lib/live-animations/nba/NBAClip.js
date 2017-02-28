@@ -33,13 +33,12 @@ export default class NBAClip {
   }
 
   get offsetX() {
-    return this.sprite.isFlipped
-      ? this.width - this.data.offset_x
-      : this.data.offset_x;
+    const value = this.data.offset_x * 0.5; // Cut it in half for high density displays
+    return this.sprite.isFlipped ? this.width - value : value;
   }
 
   get offsetY() {
-    return this.data.offset_y;
+    return this.data.offset_y * 0.5; // Cut it in half for high density displays
   }
 
   get length() {
@@ -63,6 +62,7 @@ export default class NBAClip {
   }
 
   getElement() {
+    this.sprite.getElement().style.border = '1px solid green';
     return this.sprite.getElement();
   }
 
@@ -77,7 +77,6 @@ export default class NBAClip {
   play(stop = -1, start = -1) {
     const startFrame = start === -1 ? this._curFrame : start;
     this._curFrame = stop === -1 ? this.length : stop;
-    console.log('NBAClip.play()', startFrame, this._curFrame);
     return this.sprite.playOnce(startFrame, this.curFrame).then(() => this);
   }
 }

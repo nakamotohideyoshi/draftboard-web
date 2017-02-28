@@ -38,8 +38,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -59,8 +59,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -80,8 +80,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 78,
+                "y": 85,
                 "in": 28
               }
             ],
@@ -101,8 +101,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 70,
+                "y": 100,
                 "in": 28
               }
             ],
@@ -122,8 +122,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -143,8 +143,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -164,8 +164,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -185,8 +185,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -206,8 +206,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -227,8 +227,8 @@
             "avatars": [
               {
                 "name": "rebound",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 58,
+                "y": 96,
                 "in": 28
               }
             ],
@@ -248,8 +248,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 136,
+                "y": 78,
                 "in": 28
               }
             ],
@@ -269,14 +269,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -296,14 +296,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -323,14 +323,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -350,14 +350,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -377,14 +377,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 150,
+                "y": 80,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 76,
+                "y": 42,
                 "in": 42
               }
             ],
@@ -404,14 +404,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -431,14 +431,14 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -458,15 +458,15 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 136,
+                "y": 80,
                 "in": 28
               },
               {
                 "name": "defense",
-                "offset_x": 0,
-                "offset_y": 0,
-                "in": 28
+                "x": 94,
+                "y": 48,
+                "in": 48
               }
             ],
             "cuepoints": {
@@ -485,8 +485,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
@@ -506,8 +506,8 @@
             "avatars": [
               {
                 "name": "offense",
-                "offset_x": 0,
-                "offset_y": 0,
+                "x": 0,
+                "y": 0,
                 "in": 28
               }
             ],
