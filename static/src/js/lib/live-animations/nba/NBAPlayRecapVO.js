@@ -238,6 +238,15 @@ export default class NBAPlayRecapVO {
   }
 
   /**
+   * Returns the relevant player based on the provided player ID.
+   */
+  relevantPlayerById(playerId) {
+    return this._obj.relevantPlayersInEvent.find(playerObj =>
+      playerObj.id === playerId
+    );
+  }
+
+  /**
    * Returns an array of info for all players featured in the recap.
    */
   players() {
