@@ -116,7 +116,7 @@ export default class PlayerAnimation extends LiveAnimation {
    * Returns a promise that resolves once all provided avatars have loaded.
    */
   loadAvatars(avatars = []) {
-    return avatars.length < 1
+    return avatars.length >= 1
       ? Promise.all(avatars.map(avatar => avatar.load()))
       : Promise.resolve();
   }
