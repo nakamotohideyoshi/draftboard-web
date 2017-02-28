@@ -238,21 +238,34 @@ export default class NBAPlayRecapVO {
   }
 
   /**
-   * Returns the player ID for the shot or block.
+   * Returns an array of info for all players featured in the recap.
    */
-  player() {
+  players() {
     const stats = this._obj.pbp.statistics__list;
+    const players = [];
 
     if (!stats) {
-      return false;
-    } else if (stats.hasOwnProperty('block__list')) {
-      return stats.block__list.player;
-    } else if (stats.hasOwnProperty('fieldgoal__list')) {
-      return stats.fieldgoal__list.player;
-    } else if (stats.hasOwnProperty('freethrow__list')) {
-      return stats.freethrow__list.player;
+      return players;
     }
 
-    return null;
+    if (stats.hasOwnProperty('block__list')) {
+      players.push({ type: 'defense', name: 'FPO Blocker', id: stats.block__list.player });
+    } else if (stats.hasOwnProperty('steal__list')) {
+      players.push({ type: 'defense', name: 'FPO Stealer', id: stats.steal__list.player });
+    }
+
+    if (stats.hasOwnProperty('rebound__list')) {
+      players.push({ type: 'rebound', name: 'FPO Rebound', id: stats.rebound__list.player });
+    }
+
+    if (stats.hasOwnProperty('fieldgoal__list')) {
+      players.push({ type: 'offense', name: 'FPO Shooter', id: stats.fieldgoal__list.player });
+    } else if (stats.hasOwnProperty('freethrow__list')) {
+      players.push({ type: 'offense', name: 'FPO Shooter', id: stats.freethrow__list.player });
+    } else if (stats.hasOwnProperty('turnover__list')) {
+      players.push({ type: 'offense', name: 'FPO Offense', id: stats.turnover__list.player });
+    }
+
+    return players;
   }
 }

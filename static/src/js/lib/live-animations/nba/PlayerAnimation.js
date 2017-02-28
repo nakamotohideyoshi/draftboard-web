@@ -78,41 +78,104 @@ export default class PlayerAnimation extends LiveAnimation {
     return court.getPosition(pos.x, pos.y);
   }
 
+  /**
+   * Returns a collection of AvatarAnimations based on the provided recap
+   * and clip. Only positions defined in both the clip and recap result in the
+   * creation of an AvatarAnimation.
+   */
+  getAvatarsForClip(clip, recap, playPos, court) {
+    const avatars = recap.players()
+    .filter(player => clip.avatar(player.type) !== null)
+    .map(player => {
+      const avatarData = clip.avatar(player.type);
+
+      const avatarView = new AvatarAnimation(player.name, player.id);
+      avatarView.name = avatarData.name;
+      avatarView.in = avatarData.in
+
+      const avatarEl = avatarView.getElement();
+
+      // Offset the avatar by its width and height so that the point of the marker
+      // is bottom centered to the specified x and y position.
+      let { x: courtX, y: courtY } = playPos;
+      courtX -= avatarData.offset_x * 0.5 + avatarView.getWidth() * 0.5;
+      courtY -= avatarData.offset_y * 0.5 + avatarView.getHeight();
+      courtY -= 50; // Force the avatar above the player's head.
+
+      // Temporarily hide the avatar, until it's told to play within 'playAvatars'
+      avatarEl.style.display = 'none';
+      court.addChild(avatarEl, courtX, courtY);
+
+      return avatarView;
+    });
+
+    return avatars || [];
+  }
+
+  /**
+   * Returns a promise that resolves once all provided avatars have loaded.
+   */
+  loadAvatars(avatars = []) {
+    return avatars.length < 1
+      ? Promise.all(avatars.map(avatar => avatar.load()))
+      : Promise.resolve();
+  }
+
+  /**
+   * Returns a promise that resolves once all avatars have played.
+   */
+  playClipAndAvatars(clip, avatars) {
+    const firstFrame = clip.curFrame;
+    const lastFrame = firstFrame + (clip.length - 1);
+    console.log('playClipAndAvatars:', firstFrame, lastFrame);
+    const chain = avatars
+    .sort((a, b) => a.in - b.in)
+    .map(avatar => () => {
+      const nextFrame = firstFrame + avatar.in;
+      console.log(avatar.name, clip.curFrame, nextFrame);
+      const el = avatar.getElement();
+      el.style.display = 'none';
+
+      return clip.play(nextFrame)
+        .then(() => {
+          console.log('avatar.play()', clip.curFrame, nextFrame);
+          el.style.display = 'block';
+          return avatar.play();
+        }).then(() => {
+          console.log('avatar.done', clip.curFrame, nextFrame);
+          el.style.display = 'none';
+        });
+    });
+
+    // Finish the sequence.
+    chain.push(() => clip.play(lastFrame));
+
+    return chain.reduce((promise, fn) =>
+      promise.then(fn), Promise.resolve()
+    );
+  }
+
   play(recap, court) {
-    const player = this.getPlayerClip(recap, court);
-    const avatar = new AvatarAnimation('J. Holter');
+    const playPos = this.getPlayCourtPos(recap, court);
+    const clip = this.getPlayerClip(recap, court);
+    clip.curFrame = clip.getCuePoint(recap.whichSide());
+    const avatars = this.getAvatarsForClip(clip, recap, playPos, court);
 
     if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
-      player.flip();
+      clip.flip();
     }
-
-    const playerFirstFrame = player.getCuePoint('both'); // recap.whichSide());
-    const playerLastFrame = playerFirstFrame + (player.length - 1);
-    const playerAvatarIn = playerFirstFrame + player.avatar('player').in;
-    const playPos = this.getPlayCourtPos(recap, court);
 
     // Offset the player's clip by it's offset to make sure it accurately lines
     // up with the play position. The offsetX and offsetY act as a
     // registration point.
-    let { x: playerX, y: playerY } = playPos;
-    playerX -= player.offsetX * 0.5;
-    playerY -= player.offsetY * 0.5;
-
-    // Offset the avatar by its width and height so that the point of the marker
-    // is bottom centered to the specified x and y position.
-    let { x: avatarX, y: avatarY } = playPos;
-    avatarX -= player.avatar('player').offset_x * 0.5 + avatar.getWidth() * 0.5;
-    avatarY -= player.avatar('player').offset_y * 0.5 + avatar.getHeight();
-    avatarY -= 50; // Force the avatar above the player's head.
+    let { x: clipX, y: clipY } = playPos;
+    clipX -= clip.offsetX * 0.5;
+    clipY -= clip.offsetY * 0.5;
 
     return Promise.all([
-      player.load(), avatar.load(recap.player()),
+      clip.load(), this.loadAvatars(avatars),
     ])
-    .then(() => court.addChild(player.getElement(), playerX, playerY))
-    .then(() => player.play(playerFirstFrame, playerAvatarIn))
-    .then(() => court.addChild(avatar.getElement(), avatarX, avatarY))
-    .then(() => avatar.play())
-    .then(() => court.removeChild(avatar.getElement()))
-    .then(() => player.play(playerAvatarIn, playerLastFrame));
+    .then(() => court.addChild(clip.getElement(), clipX, clipY))
+    .then(() => this.playClipAndAvatars(clip, avatars));
   }
 }

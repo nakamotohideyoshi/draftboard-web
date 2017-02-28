@@ -8,6 +8,7 @@ export default class NBAClip {
 
   constructor(data) {
     this.data = data;
+    this._curFrame = 1;
     this.sprite = new Sprite();
   }
 
@@ -21,6 +22,14 @@ export default class NBAClip {
 
   get height() {
     return this.data.height;
+  }
+
+  get curFrame() {
+    return this._curFrame;
+  }
+
+  set curFrame(value) {
+    this._curFrame = value;
   }
 
   get offsetX() {
@@ -37,12 +46,16 @@ export default class NBAClip {
     return this.data.length;
   }
 
-  avatar(name) {
-    if (!this.data.avatars.hasOwnProperty(name)) {
-      throw new Error(`The requested avatar ${name} is not specified`);
-    }
+  get avatars() {
+    return this.data.avatars;
+  }
 
-    return this.data.avatars[name];
+  get avatarIn() {
+    return this.data.avatar_in;
+  }
+
+  avatar(name) {
+    return this.data.avatars.find(avatar => avatar.name === name) || null;
   }
 
   getCuePoint(name) {
@@ -61,8 +74,10 @@ export default class NBAClip {
     return this.sprite.load(this.file, this.width, this.height).then(() => this);
   }
 
-  play(start = 1, stop = -1) {
-    const lastFrame = stop === -1 ? this.length : stop;
-    return this.sprite.playOnce(start, lastFrame).then(() => this);
+  play(stop = -1, start = -1) {
+    const startFrame = start === -1 ? this._curFrame : start;
+    this._curFrame = stop === -1 ? this.length : stop;
+    console.log('NBAClip.play()', startFrame, this._curFrame);
+    return this.sprite.playOnce(startFrame, this.curFrame).then(() => this);
   }
 }
