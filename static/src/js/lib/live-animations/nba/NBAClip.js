@@ -17,11 +17,11 @@ export default class NBAClip {
   }
 
   get width() {
-    return this.data.width;
+    return this.data.frame_width;
   }
 
   get height() {
-    return this.data.height;
+    return this.data.frame_height;
   }
 
   get curFrame() {
