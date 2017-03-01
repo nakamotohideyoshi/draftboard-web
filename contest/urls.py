@@ -8,7 +8,7 @@ from contest.views import (
     AllLineupsView,
     UserUpcomingContestPoolAPIView,
     UserLiveAPIView,
-    UserHistoryAPIView,
+    # UserHistoryAPIView,
     SingleContestLineupView,
     SingleLineupView,
     CurrentEntryAPIView,
@@ -76,7 +76,7 @@ urlpatterns = [
 
     #
     # get a logged in user's historical contests
-    url(r'^history/$', UserHistoryAPIView.as_view()),
+    # url(r'^history/$', UserHistoryAPIView.as_view()),
 
     #
     # get a single lineup with stats - the lineup can

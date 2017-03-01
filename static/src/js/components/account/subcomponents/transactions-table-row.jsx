@@ -26,8 +26,8 @@ const TransactionsTableRow = React.createClass({
         </td>
         <td>{this.props.transaction.details[0].amount}</td>
         <td>{this.props.transaction.details[0].balance}</td>
-        <td>{this.props.transaction.details[0].type}</td>
-        <td>{this.props.transaction.details[0].description}</td>
+        <td>{this.props.transaction.type}</td>
+        <td>{this.props.transaction.details[0].category.description}</td>
         <td>
           <a
             className="transaction-info"

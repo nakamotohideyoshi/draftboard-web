@@ -1,28 +1,22 @@
-#
-# cash/views.py
-
+from datetime import datetime
 from time import time
-import xlwt
-from django.contrib.auth.models import User
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import generics
-from rest_framework.pagination import LimitOffsetPagination
-from cash.models import CashTransactionDetail
-from cash.serializers import TransactionHistorySerializer, BalanceSerializer
-from datetime import datetime, timedelta
-from cash.classes import CashTransaction
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.response import Response
-from django.views.generic.edit import FormView
+
 import braintree
-from django.conf import settings
+import xlwt
 from braces.views import LoginRequiredMixin
-from cash.forms import DepositAmountForm
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
+from django.views.generic.edit import FormView
+from rest_framework import generics
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from cash.classes import CashTransaction
+from cash.forms import DepositAmountForm
+from cash.serializers import TransactionHistorySerializer, BalanceSerializer, \
+    TransactionDetailSerializer
 from transaction.models import Transaction
 
 
@@ -40,22 +34,11 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
             If anything greater than 30 is set, it will return the 30 days.
     """
 
-    #authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     serializer_class = TransactionHistorySerializer
 
     def get_queryset(self, *args, **kwargs):
         return Transaction
-
-    def get_user_for_id(self, user_id=None):
-        """
-        if a user can be found via the 'user_id' return it,
-        else return None.
-        """
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return None
 
     def get(self, request, user_id=None, format=None):
         """
@@ -71,34 +54,23 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         export = self.request.query_params.get('export', None)
         user = self.request.user
 
-        admin_specified_user_id = user_id
-        admin_specified_user = self.get_user_for_id(admin_specified_user_id)
-        if user.is_superuser and admin_specified_user is not None:
-            # override the user whos transactions we will look at
-            user = admin_specified_user
-
-        #
         if start_ts > end_ts:
             return Response(
                 status=409,
-                data={
-                    'errors': {
-                        'name': {
-                            'title': 'start_ts is a later time that end_ts'
-                        }
-                    }
-                })
+                data={'detail': 'start_ts is a later time that end_ts'},
+            )
 
         if export:
             return self.export_exel(user, int(start_ts), int(end_ts))
 
         return self.filter_on_range(user, int(start_ts), int(end_ts))
 
-    def export_exel(self, user, start_ts, end_ts):
-        start = datetime.utcfromtimestamp( start_ts )
-        end = datetime.utcfromtimestamp( end_ts )
-        transactions = Transaction.objects.filter( user=user,
-                       created__range=(start, end) ).order_by('-created')
+    @staticmethod
+    def export_exel(user, start_ts, end_ts):
+        start = datetime.utcfromtimestamp(start_ts)
+        end = datetime.utcfromtimestamp(end_ts)
+        transactions = Transaction.objects.filter(
+            user=user, created__range=(start, end)).order_by('-created')
 
         response = HttpResponse(content_type='application/vnd.ms-excel')
         response['Content-Disposition'] = 'attachment; filename="transactions-history.xls"'
@@ -115,9 +87,10 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
             ws.write(row_num, col_num, columns[col_num], font_style)
 
         rows = [
-            [transaction.to_json().get('created'),
-             transaction.to_json().get('details')[0].get('amount'),
-             transaction.to_json().get('details')[0].get('type')] for transaction in transactions]
+            [transaction.created,
+             transaction.to_json().get('details', [{}])[0].get('amount'),
+             transaction.to_json().get('details', [{}])[0].get('type')] for transaction in
+            transactions]
         for row in rows:
             row_num += 1
             for col_num in range(len(row)):
@@ -126,18 +99,29 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         wb.save(response)
         return response
 
-    def filter_on_range(self, user, start_ts, end_ts):
-        start = datetime.utcfromtimestamp( start_ts )
-        end = datetime.utcfromtimestamp( end_ts )
+    @staticmethod
+    def filter_on_range(user, start_ts, end_ts):
+        start = datetime.utcfromtimestamp(start_ts)
+        end = datetime.utcfromtimestamp(end_ts)
 
-        transactions = Transaction.objects.filter( user=user,
-                       created__range=(start, end) ).order_by('-created')
+        transactions = Transaction.objects.filter(
+            user=user, created__range=(start, end)).order_by('-created')
 
         return_json = []
         for transaction in transactions:
             return_json.append(transaction.to_json())
 
         return Response(return_json)
+
+
+class TransactionDetailAPIView(generics.RetrieveAPIView):
+    # TODO: Finish up this transaction detail view - it will populate the detail pane
+    # on the transaction page.
+    permission_classes = (IsAuthenticated,)
+    queryset = Transaction.objects.all()
+    lookup_field = 'pk'
+    lookup_url_kwarg = 'transaction_id'
+    serializer_class = TransactionDetailSerializer
 
 
 class BalanceAPIView(generics.GenericAPIView):
@@ -149,7 +133,7 @@ class BalanceAPIView(generics.GenericAPIView):
 
     """
     authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = BalanceSerializer
 
     def get(self, request, format=None):
@@ -160,7 +144,7 @@ class BalanceAPIView(generics.GenericAPIView):
         return Response(serializer.data)
 
 
-class DepositView( LoginRequiredMixin, FormView ):
+class DepositView(LoginRequiredMixin, FormView):
     """
     The form for submitting the deposit via Braintree.
 
@@ -168,8 +152,8 @@ class DepositView( LoginRequiredMixin, FormView ):
     """
     template_name = 'deposit.html'
     form_class = DepositAmountForm
-    failure_redirect_url  = '/cash/deposit/'
-    success_redirect_url  = '/cash/balance/'
+    failure_redirect_url = '/cash/deposit/'
+    success_redirect_url = '/cash/balance/'
 
     def form_valid(self, form):
 
@@ -184,25 +168,25 @@ class DepositView( LoginRequiredMixin, FormView ):
                 self.request,
                 'Did not receive response from payment gateway'
             )
-            return HttpResponseRedirect( self.failure_redirect_url )
+            return HttpResponseRedirect(self.failure_redirect_url)
         #
         # Attempts the transaction via braintree setting
         # customers pk and email in the braintree database
         amount = cleaned_data['amount']
         result = braintree.Transaction.sale({
-                    "amount":amount,
-                    "payment_method_nonce": payment_method_nonce,
-                    "customer": {
-                        "id": user.pk,
-                        "email": user.email,
-                    },
-                })
+            "amount": amount,
+            "payment_method_nonce": payment_method_nonce,
+            "customer": {
+                "id": user.pk,
+                "email": user.email,
+            },
+        })
         #
         # If the transaction is a success we return a success
         # message, create the database transaction, and
         # link the braintree transaction id with the dfs
         # transaction.
-        if(result.is_success):
+        if result.is_success:
             messages.success(
                 self.request,
                 'The deposit was a success!',

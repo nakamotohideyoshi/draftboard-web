@@ -229,7 +229,6 @@ class PayoutManager(AbstractManagerClass):
             escrow_deposit_trans.deposit(rake_post_overlay, trans=draftboard_withdraw_trans.transaction)
             rake_transaction = draftboard_withdraw_trans.transaction
 
-        #
         # links the contest with the rake payout
         rake = Rake()
         rake.contest = contest
@@ -279,7 +278,17 @@ class PayoutManager(AbstractManagerClass):
 
     def __update_accounts(self, place, contest, entry, amount):
         """
-        Updates the accounts for Payout,  FPP, Bonus, and Rake
+        Updates the accounts for Payout, FPP, Bonus, and Rake
+
+
+        This gets run on each contest entry once the contest is finished.
+         It:
+            1. Withdraws the payout amount from escrow's account.
+            2. Deposits that amount into the entry owner's account.
+            3. Pays out any Frequent Player Points earned.
+            4.
+
+
         :param place:
         :param contest:
         :param entry:
@@ -308,7 +317,10 @@ class PayoutManager(AbstractManagerClass):
         lsm = LoyaltyStatusManager(user)
         fppt = FppTransaction(user)
         # rake * base loyalty multiplier * the multiplier
-        fppt.deposit((rake_paid * lsm.BASE_LOYALTY_MULTIPLIER) * lsm.get_fpp_multiplier(), trans=ct.transaction)
+        fppt.deposit(
+            (rake_paid * lsm.BASE_LOYALTY_MULTIPLIER) * lsm.get_fpp_multiplier(),
+            trans=ct.transaction
+        )
         fpp = FPP()
         fpp.contest = contest
         fpp.transaction = ct.transaction

@@ -1,14 +1,31 @@
-#
-# contest/buyin/classes.py
-
 from collections import Counter
-from mysite.classes import AbstractSiteUserClass
+
+from django.db.models import F
+from django.db.transaction import atomic
+
+import ticket.models
+from cash.classes import CashTransaction
+from contest.serializers import (
+    ContestPoolSerializer,
+)
+from dfslog.classes import Logger, ErrorCodes
 from lineup.classes import (
     LineupManager,
+)
+from lineup.exceptions import (
+    LineupDoesNotMatchUser,
+    LineupDoesNotMatchExistingEntryLineup,
 )
 from lineup.models import (
     Lineup,
 )
+from mysite.classes import AbstractSiteUserClass
+from push.classes import (
+    ContestPoolPush,
+)
+from ticket.classes import TicketManager
+from ticket.exceptions import UserDoesNotHaveTicketException
+from .models import Buyin
 from ..exceptions import (
     ContestLineupMismatchedDraftGroupsException,
     ContestIsInProgressOrClosedException,
@@ -16,29 +33,12 @@ from ..exceptions import (
     ContestMaxEntriesReachedException,
     ContestIsNotAcceptingLineupsException,
 )
-from django.db.transaction import atomic
-from cash.classes import CashTransaction
-from ticket.classes import TicketManager
 from ..models import (
     # Contest,
     Entry,
     ContestPool,
 )
-from .models import Buyin
-from lineup.exceptions import (
-    LineupDoesNotMatchUser,
-    LineupDoesNotMatchExistingEntryLineup,
-)
-from dfslog.classes import Logger, ErrorCodes
-from ticket.exceptions import  UserDoesNotHaveTicketException
-import ticket.models
-from django.db.models import F
-from contest.serializers import (
-    ContestPoolSerializer,
-)
-from push.classes import (
-    ContestPoolPush,
-)
+
 
 class BuyinManager(AbstractSiteUserClass):
     """
@@ -53,7 +53,7 @@ class BuyinManager(AbstractSiteUserClass):
         """
         Verifies that contest and lineup are instances
         of :class:`contest.models.ContestPool` and :class:`lineup.models.Lineup`
-        :param contest:
+        :param contest_pool:
         :param lineup:
         :return:
         """
@@ -90,20 +90,27 @@ class BuyinManager(AbstractSiteUserClass):
             max entries is reached by the lineup.
         """
 
-        #
         # validate the contest and the lineup are allowed to be created
         self.lineup_contest(contest_pool, lineup)
 
-        #
         # Create either the ticket or cash transaction
+        # Try to pay with a ticket first, if that doesn't work because the user doesn't have any
+        # tickets, then try to pay with their cash balance.
         tm = TicketManager(self.user)
+        # Get the transaction type - `ContestBuyin`
+        # category = TransactionType.objects.get(pk=TransactionTypeConstants.ContestBuyin)
+
         try:
             tm.consume(amount=contest_pool.prize_structure.buyin)
+            # keep a reference of the transaction.
             transaction = tm.transaction
 
         except (UserDoesNotHaveTicketException, ticket.models.TicketAmount.DoesNotExist):
-            ct = CashTransaction(self.user)
-            ct.withdraw(contest_pool.prize_structure.buyin)
+            # Paying via Ticket failed, Create a cash transaciton with the type of 'ContestBuyin'.
+            ct = CashTransaction(user=self.user)
+            # Make the transaction a withdrawal.
+            ct.withdraw(amount=contest_pool.prize_structure.buyin)
+            # keep a reference of the transaction for user later.
             transaction = ct.transaction
 
         #
@@ -115,7 +122,7 @@ class BuyinManager(AbstractSiteUserClass):
         # Create the Entry
         entry = Entry()
         entry.contest_pool = contest_pool
-        #entry.contest = contest # the contest will be set later when the ContestPool starts
+        # entry.contest = contest # the contest will be set later when the ContestPool starts
         entry.contest = None
         entry.lineup = lineup
         entry.user = self.user
@@ -125,7 +132,7 @@ class BuyinManager(AbstractSiteUserClass):
         # Create the Buyin model
         buyin = Buyin()
         buyin.transaction = transaction
-        #buyin.contest = contest # the contest will be set later when the ContestPool starts (?)
+        # buyin.contest = contest # the contest will be set later when the ContestPool starts (?)
         buyin.contest = None
         buyin.entry = entry
         buyin.save()
@@ -136,9 +143,9 @@ class BuyinManager(AbstractSiteUserClass):
         contest_pool.save()
         contest_pool.refresh_from_db()
 
-        msg = "User["+self.user.username+"] bought into the contest_pool #"\
-                      +str(contest_pool.pk)+" with entry #"+str(entry.pk)
-        Logger.log(ErrorCodes.INFO, "ContestPool Buyin", msg )
+        msg = "User[" + self.user.username + "] bought into the contest_pool #" \
+              + str(contest_pool.pk) + " with entry #" + str(entry.pk)
+        Logger.log(ErrorCodes.INFO, "ContestPool Buyin", msg)
 
         #
         # pusher contest updates because entries were changed
@@ -199,13 +206,13 @@ class BuyinManager(AbstractSiteUserClass):
         if len(entries) >= contest_pool.max_entries:
             raise ContestMaxEntriesReachedException()
 
-        # ensure the lineup attempting to be submitted
-        # is the same as any existing lineups.
-        # raises LineupDoesNotMatchExisting
+            # ensure the lineup attempting to be submitted
+            # is the same as any existing lineups.
+            # raises LineupDoesNotMatchExisting
 
-        # This is disabled because we are now allowing multiple lineups from one user to be entered
-        # into the same contest.
-        # self.validate_lineup_players_match_existing_entries(lineup, entries)
+            # This is disabled because we are now allowing multiple lineups from one user to be entered
+            # into the same contest.
+            # self.validate_lineup_players_match_existing_entries(lineup, entries)
 
     def validate_lineup_players_match_existing_entries(self, lineup, entries):
         """
@@ -215,8 +222,8 @@ class BuyinManager(AbstractSiteUserClass):
         :param entries: entry objects which 'lineup' must be equivalent to (ie: have the same players)
         :return:
         """
-        #print('+---------------------------------------------+')
-        #print('lineup name:', str(lineup.name))
+        # print('+---------------------------------------------+')
+        # print('lineup name:', str(lineup.name))
         if len(entries) == 0:
             return
 
@@ -229,13 +236,13 @@ class BuyinManager(AbstractSiteUserClass):
             entry_lineup_player_srids = lm.get_player_srids(entry.lineup)
             if Counter(player_srids) != Counter(entry_lineup_player_srids):
                 # debug
-                #print('Counter(player_srids) != Counter(entry_lineup_player_srids)')
-                #print('lineup       :', str(dict(Counter(player_srids))))
-                #print('entry lineup :', str(dict(Counter(entry_lineup_player_srids))))
+                # print('Counter(player_srids) != Counter(entry_lineup_player_srids)')
+                # print('lineup       :', str(dict(Counter(player_srids))))
+                # print('entry lineup :', str(dict(Counter(entry_lineup_player_srids))))
                 err_msg = "Lineup must match the existing lineup '%s' for this Contest." % lineup.name
                 raise LineupDoesNotMatchExistingEntryLineup(err_msg)
 
-        #print('+---------------------------------------------+')
+                # print('+---------------------------------------------+')
 
     def get_user_entries(self, contest_pool):
         """
@@ -245,7 +252,8 @@ class BuyinManager(AbstractSiteUserClass):
         """
         return Entry.objects.filter(user=self.user, contest_pool=contest_pool)
 
-    def check_contest_full(self, contest_pool):
+    @staticmethod
+    def check_contest_full(contest_pool):
         """
         Method takes in a contest and throws an
         :class:`contest.exceptions.ContestIsFullException` exception

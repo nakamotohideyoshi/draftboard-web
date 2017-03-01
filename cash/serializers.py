@@ -1,7 +1,5 @@
-#
-# cash/serializers.py
-
 from rest_framework import serializers
+
 from cash.models import CashTransactionDetail
 from transaction.serializers import TransactionSerializer
 
@@ -11,12 +9,27 @@ class CashTransactionDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CashTransactionDetail
-        fields = ("amount", "created","transaction")
+        fields = ("amount", "created", "transaction")
 
 
 class TransactionHistorySerializer(serializers.Serializer):
     created = serializers.DateField()
     id = serializers.IntegerField()
+
+
+class TransactionDetailSerializer(serializers.Serializer):
+    created = serializers.DateTimeField()
+    id = serializers.IntegerField()
+    # category= serializers.IntegerField()
+    detail=serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_detail(obj):
+        return obj.action
+
+    class Meta:
+        pass
+        # fields = ('created', 'id')
 
 
 class BalanceSerializer(serializers.Serializer):
@@ -32,5 +45,3 @@ class BalanceSerializer(serializers.Serializer):
 
     def get_deposit_limit(self, obj):
         return obj.user.information.deposits_limit
-
-
