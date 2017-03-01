@@ -1,5 +1,4 @@
-#
-# contest/refund/classes.py
+from logging import getLogger
 
 from django.db.models import F
 from django.db.transaction import atomic
@@ -27,6 +26,8 @@ from ..models import (
     LiveContest,
     HistoryContest,
 )
+
+logger = getLogger('contest.refund.classes')
 
 
 class RefundManager(AbstractManagerClass):
@@ -67,6 +68,8 @@ class RefundManager(AbstractManagerClass):
         """
         refunds the buyin for the entry, and completely removes it from the ContestPool.
 
+        This runs when a user deregisters from a contest.
+
         :param entry:
         :return:
         """
@@ -75,7 +78,7 @@ class RefundManager(AbstractManagerClass):
         self.__validate_entry_can_be_unregistered(entry)
 
         # refund the buyin
-        self.__refund_entry(entry)
+        refund = self.__refund_entry(entry)
 
         # remove the entry from the contest, and cleanup contest properties
         contest_pool = entry.contest_pool
@@ -90,8 +93,9 @@ class RefundManager(AbstractManagerClass):
         # pusher contest updates because entries were changed
         ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
 
-        # entirely delete the entry, since the users lineup is no longer in the contest
+        # entirely delete the entry, since the user's lineup is no longer in the contest
         entry.delete()
+        return refund
 
     @atomic
     def refund_unmatched_entry(self, entry):
@@ -131,17 +135,17 @@ class RefundManager(AbstractManagerClass):
             tm = TicketManager(entry.user)
             tm.deposit(buyin)
             transaction = tm.transaction
-            self.__create_refund(transaction, entry)
+            refund = self.__create_refund(transaction, entry)
         else:
             ct = CashTransaction(entry.user)
             ct.deposit(buyin)
             transaction = ct.transaction
-            self.__create_refund(transaction, entry)
+            refund = self.__create_refund(transaction, entry)
 
         # Create refund transaction from escrow
         escrow_ct = CashTransaction(self.get_escrow_user())
         escrow_ct.withdraw(buyin, trans=transaction)
-        return escrow_ct
+        return refund
 
     @atomic
     def refund(self, contest, force=False, admin_force=False):
@@ -188,7 +192,8 @@ class RefundManager(AbstractManagerClass):
         contest.status = Contest.CANCELLED
         contest.save()
 
-    def __create_refund(self, transaction, entry):
+    @staticmethod
+    def __create_refund(transaction, entry):
         """
         Creates the :class:`contest.refund.models.Refund` object based on
         the transaction and entry that was refunded.
@@ -197,11 +202,14 @@ class RefundManager(AbstractManagerClass):
         """
         try:
             r = Refund.objects.get(entry=entry)
+            logger.warning('Refund already exists, not issuing another: %s' % r)
         except Refund.DoesNotExist:
             # only create a refund if one doesnt exist
-            refund = Refund()
-            # refund.contest = entry.contest
-            refund.contest_pool = entry.contest_pool
-            refund.entry = entry
-            refund.transaction = transaction
+            refund = Refund(
+                contest_pool=entry.contest_pool,
+                entry=entry,
+                transaction=transaction
+            )
             refund.save()
+            logger.info('Refund created: %s' % refund)
+            return refund

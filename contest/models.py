@@ -642,7 +642,7 @@ class ClosedEntry(Entry):
 class Action(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     transaction = models.OneToOneField("transaction.Transaction", null=False)
-    contest = models.ForeignKey(Contest, null=True)
+    contest = models.ForeignKey(Contest, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         abstract = True

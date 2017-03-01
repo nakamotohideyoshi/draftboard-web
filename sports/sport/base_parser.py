@@ -900,11 +900,12 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
         srid_team = o.get('id', None)
 
         try:
-            self.boxscore = self.gameboxscore_model.objects.get(
-                srid_game=srid_game)
+            self.boxscore = self.gameboxscore_model.objects.get(srid_game=srid_game)
         except self.gameboxscore_model.DoesNotExist:
-            logger.error('gameboxscore_model.DoesNotExist')
-            # it hasnt been created yet, but only create it in GameBoxscores.
+            logger.warning(
+                "gameboxscore_model.DoesNotExist, This is expected to happen on the 1st "
+                "boxscore parse of the night, or for games we don't care about."
+            )
             return
 
         if self.boxscore.srid_home == srid_team:
