@@ -131,7 +131,7 @@ export default class PlayerAnimation extends LiveAnimation {
       courtY += avatar.y * 0.5;
 
       // Force the avatar above it's defined origin.
-      courtY -= 50;
+      courtY -= 20;
 
       court.addChild(avatar.getElement(), courtX, courtY);
 
