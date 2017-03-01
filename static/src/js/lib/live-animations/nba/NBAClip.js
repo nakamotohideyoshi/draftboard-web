@@ -62,7 +62,6 @@ export default class NBAClip {
   }
 
   getElement() {
-    this.sprite.getElement().style.border = '1px solid green';
     return this.sprite.getElement();
   }
 
