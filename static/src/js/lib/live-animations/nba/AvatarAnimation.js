@@ -26,9 +26,6 @@ export default class AvatarAnimation {
     this.playerName = playerName;
     this.playerId = playerId;
 
-    this.el = document.createElement('DIV');
-    this.el.className = 'avatar--nba';
-
     /* eslint-disable max-len */
     let html = '';
     html += '<svg class="avatar-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 129">';
@@ -42,6 +39,8 @@ export default class AvatarAnimation {
     html += `<p class="player-name">${playerName}</p>`;
     /* eslint-enable max-len */
 
+    this.el = document.createElement('DIV');
+    this.el.className = 'avatar--nba';
     this.el.innerHTML = html;
   }
 

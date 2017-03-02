@@ -83,14 +83,7 @@ export default class PlayerAnimation extends LiveAnimation {
    * and clip. Only player types defined in both the clip and recap result in the
    * creation of an AvatarAnimation.
    */
-  createAvatars(clip, recap, court) {
-    // Filter function for determining if the player is represented in the
-    // clips available avatars.
-    const shouldShowPlayerAvatar = playerObj => {
-      const hasAvatar = clip.avatar(playerObj.type) !== null;
-      return hasAvatar;
-    };
-
+  createAvatarsForClip(clip, recap, court) {
     // Returns an AvatarAnimation based on the provided Player obj.
     const createAvatarFromPlayerObj = playerObj => {
       const data = clip.avatar(playerObj.type);
@@ -106,27 +99,20 @@ export default class PlayerAnimation extends LiveAnimation {
       return avatar;
     };
 
-    // Sorting function for sorting avatars chronologically
-    const sortAvatarsChronologically = (avatarA, avatarB) => {
-      const order = avatarA.in - avatarB.in;
-      return order;
-    };
-
     // Adds the provided avatar to the court based on the clip's position.
     const addAvatarToCourt = avatar => {
-      // Offset the avatar by its width and height so that the point of the marker
-      // is bottom centered to the specified x and y position.
       let { x: courtX, y: courtY } = this.getPlayCourtPos(recap, court);
-
-      // Align the avatar center/bottom
-      courtX -= avatar.getWidth() * 0.5;
-      courtY -= avatar.getHeight();
 
       // Move the avatar to the same position as the clip.
       courtX -= clip.offsetX;
       courtY -= clip.offsetY;
 
-      // Offset the avatar to correctly position it against the clip.
+      // Align the avatar center/bottom so the point of the marker points to
+      // the correct x/y position.
+      courtX -= avatar.getWidth() * 0.5;
+      courtY -= avatar.getHeight();
+
+      // Offset the avatar to correctly position it based on the clip.
       courtX += avatar.x * 0.5;
       courtY += avatar.y * 0.5;
 
@@ -138,7 +124,7 @@ export default class PlayerAnimation extends LiveAnimation {
       return avatar;
     };
 
-    // Hides the avatar until its ready to be displayed.
+    // Hides the avatar until it's ready to be displayed.
     const hideAvatar = avatar => {
       const avatarEl = avatar.getElement();
       avatarEl.style.display = 'none';
@@ -146,9 +132,9 @@ export default class PlayerAnimation extends LiveAnimation {
     };
 
     return recap.players()
-    .filter(shouldShowPlayerAvatar)
+    .filter(player => clip.avatar(player.type) !== null)
     .map(createAvatarFromPlayerObj)
-    .sort(sortAvatarsChronologically)
+    .sort((a, b) => a.in - b.in)
     .map(addAvatarToCourt)
     .map(hideAvatar);
   }
@@ -163,39 +149,37 @@ export default class PlayerAnimation extends LiveAnimation {
   }
 
   /**
-   * Returns a promise that resolves once all avatars have played.
+   * Returns a promise that resolves once all avatars and the clip have played
+   * through completey.
    */
   playClipAndAvatars(clip, avatars) {
-    const firstFrame = clip.curFrame;
-    const lastFrame = firstFrame + (clip.length - 1);
+    const clipIn = clip.curFrame;
+    const clipOut = clipIn + (clip.length - 1);
 
-    const chain = avatars.map(avatar => () => {
-      const nextFrame = firstFrame + avatar.in;
-      const el = avatar.getElement();
-      el.style.display = 'none';
+    const sequences = avatars.map(avatar => () => {
+      const avatarIn = clipIn + avatar.in;
+      const avatarEl = avatar.getElement();
 
-      return clip.play(nextFrame)
+      // Play the clip to the avatar's "in" frame, then trigger the avatar's
+      // animation sequence.
+      return clip.play(avatarIn)
         .then(() => {
-          el.style.display = 'block';
+          avatarEl.style.display = 'block';
           return avatar.play();
         }).then(() => {
-          el.style.display = 'none';
+          avatarEl.style.display = 'none';
+          return avatar;
         });
     });
 
-    // Finish the sequence.
-    chain.push(() => clip.play(lastFrame));
-
-    return chain.reduce((promise, fn) =>
+    return sequences.reduce((promise, fn) =>
       promise.then(fn), Promise.resolve()
-    );
+    ).then(() => clip.play(clipOut));
   }
 
   play(recap, court) {
-    const playPos = this.getPlayCourtPos(recap, court);
     const clip = this.getPlayerClip(recap, court);
-    clip.curFrame = clip.getCuePoint(recap.whichSide());
-    const avatars = this.createAvatars(clip, recap, court);
+    const avatars = this.createAvatarsForClip(clip, recap, court);
 
     if (recap.teamBasket() === NBAPlayRecapVO.BASKET_RIGHT) {
       clip.flip();
@@ -204,14 +188,15 @@ export default class PlayerAnimation extends LiveAnimation {
     // Offset the player's clip by it's offset to make sure it accurately lines
     // up with the play position. The offsetX and offsetY act as a
     // registration point.
-    let { x: clipX, y: clipY } = playPos;
+    let { x: clipX, y: clipY } = this.getPlayCourtPos(recap, court);
     clipX -= clip.offsetX;
     clipY -= clip.offsetY;
 
     return Promise.all([
-      clip.load(), this.loadAvatars(avatars),
-    ])
-    .then(() => court.addChild(clip.getElement(), clipX, clipY))
-    .then(() => this.playClipAndAvatars(clip, avatars));
+      clip.load(recap.whichSide()), this.loadAvatars(avatars),
+    ]).then(() => {
+      court.addChild(clip.getElement(), clipX, clipY);
+      return this.playClipAndAvatars(clip, avatars);
+    });
   }
 }
