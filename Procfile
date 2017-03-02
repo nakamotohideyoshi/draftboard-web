@@ -6,7 +6,7 @@ celerybeat: celery -A mysite beat
 
 
 # Standard celery worker.
-celery: celery -A mysite worker -l info --max-memory-per-child=250000 --autoscale=2,4 -n Standard@%n
+celery: celery -A mysite worker -l info --autoscale=2,4 -n Standard@%n
 
 
 # Long-running celery task queue for things like <sport>.cleanup_roster that take a while.
