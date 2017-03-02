@@ -88,8 +88,8 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
 
         rows = [
             [transaction.created,
-             transaction.to_json().get('details', [{}])[0].get('amount'),
-             transaction.to_json().get('details', [{}])[0].get('type')] for transaction in
+             transaction.to_json(user_only=True).get('details', [{}])[0].get('amount'),
+             transaction.to_json(user_only=True).get('details', [{}])[0].get('type')] for transaction in
             transactions]
         for row in rows:
             row_num += 1
@@ -109,7 +109,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
 
         return_json = []
         for transaction in transactions:
-            return_json.append(transaction.to_json())
+            return_json.append(transaction.to_json(user_only=True))
 
         return Response(return_json)
 

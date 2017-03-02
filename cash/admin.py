@@ -1,5 +1,3 @@
-# cash/admin.py
-
 from django.contrib import admin
 
 from cash.forms import AdminCashDepositForm, AdminCashWithdrawalForm
@@ -17,7 +15,7 @@ from contest.refund.models import Refund
 
 @admin.register(CashTransactionDetail)
 class CashTransactionDetailAdmin(admin.ModelAdmin):
-    list_display = ['user', 'amount', 'transaction_pk', 'transaction_info', 'created',
+    list_display = ['user', 'amount', 'get_action', 'transaction_pk', 'created',
                     'transaction_category']
     search_fields = ('user__username',)
     readonly_fields = ['user', 'amount', 'transaction', 'created']
@@ -31,16 +29,16 @@ class CashTransactionDetailAdmin(admin.ModelAdmin):
     def transaction_category(obj):
         return obj.transaction.category
 
-    def transaction_info(self, obj):
+    def get_action(self, obj):
         return obj.transaction.action
+
+    get_action.short_description = "Action that caused this Transaction"
 
     def has_delete_permission(self, request, obj=None):
         return False
 
     def has_add_permission(self, request):
         return False
-
-    transaction_info.short_description = "Transaction Info"
 
 
 class CashTransactionDetailAdminInline(admin.TabularInline):
@@ -50,14 +48,14 @@ class CashTransactionDetailAdminInline(admin.TabularInline):
 
     # exclude = ('transaction',)
 
-
     def has_delete_permission(self, request, obj=None):
         return False
 
     def has_add_permission(self, request):
         return False
 
-    def transaction_info(self, obj):
+    @staticmethod
+    def transaction_info(obj):
         arr_classes = [Buyin, Payout, Rake, FPP, Refund]
 
         for class_action in arr_classes:
@@ -80,6 +78,11 @@ class CashBalanceAdminInline(admin.StackedInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(CashBalance)
+class BalanceAdmin(admin.ModelAdmin):
+    list_display = ['user', 'amount', 'updated']
 
 
 @admin.register(AdminCashDeposit)
