@@ -58,7 +58,7 @@ export default class NBAClip {
   }
 
   getCuePoint(name) {
-    return this.data.cuepoints[name] || 0;
+    return this.data.cuepoints[name] || 1;
   }
 
   getElement() {
@@ -69,7 +69,8 @@ export default class NBAClip {
     this.sprite.isFlipped = flop ? false : !this.sprite.isFlipped;
   }
 
-  load() {
+  load(cuePoint = '') {
+    this._curFrame = this.getCuePoint(cuePoint);
     return this.sprite.load(this.file, this.width, this.height).then(() => this);
   }
 
