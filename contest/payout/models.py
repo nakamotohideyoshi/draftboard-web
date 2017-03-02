@@ -24,7 +24,7 @@ class Payout(Action):
 
 class Rake(Action):
     def __str__(self):
-        return "<Rake user: %s| amount: %s | contest: %s>" % (
+        return "<Rake user: %s | amount: %s | contest: %s>" % (
             self.transaction.user, self.amount, self.contest)
 
     @property
@@ -36,8 +36,8 @@ class Rake(Action):
 
 class FPP(Action):
     def __str__(self):
-        return "Contest_Name:" + self.contest.name + " username:" + self.transaction.user.username + " ffp: " + str(
-            self.amount)
+        return "<FPP user: %s | amount: %s | contest: %s>" % (
+            self.transaction.user.username, self.amount, self.contest)
 
     @property
     def amount(self):
