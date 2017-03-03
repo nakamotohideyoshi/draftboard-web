@@ -44,17 +44,6 @@ export default class AvatarAnimation {
     this.el.innerHTML = html;
   }
 
-  load() {
-    return new Promise(resolve => {
-      const img = this.el.querySelector('.player-headshot__img');
-      img.addEventListener('load', () => resolve());
-      img.addEventListener('error', () => {
-        img.src = defaultPlayerSrc;
-      });
-      img.src = `${window.dfs.playerImagesBaseUrl}/nba/120/${this.playerId}.png`;
-    });
-  }
-
   getElement() {
     return this.el;
   }
@@ -65,6 +54,17 @@ export default class AvatarAnimation {
 
   getHeight() {
     return AvatarAnimation.HEIGHT;
+  }
+
+  load() {
+    return new Promise(resolve => {
+      const img = this.el.querySelector('.player-headshot__img');
+      img.addEventListener('load', () => resolve());
+      img.addEventListener('error', () => {
+        img.src = defaultPlayerSrc;
+      });
+      img.src = `${window.dfs.playerImagesBaseUrl}/nba/120/${this.playerId}.png`;
+    });
   }
 
   play() {
