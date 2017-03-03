@@ -68,10 +68,72 @@ export const LiveStandingsPane = React.createClass({
     actions.updateWatchingAndPath(path, changedFields);
   },
 
-  renderStandings() {
-    const { lineupsUsernames } = this.props;
-    const data = this.getListData();
+  /**
+   * Renders the div for a single lineup.
+   */
+  renderMoneyLinePoints(lineup, placement) {
+    const leftPercent = `${placement}%`;
     const watching = this.props.watching;
+    const { lineupsUsernames } = this.props;
+    const decimalRemaining = lineup.timeRemaining.decimal;
+    const className = 'live-standings-pane__point';
+    const username = lineupsUsernames[lineup.id] || '';
+    const potentialWinnings = lineup.potentialWinnings;
+    const liveStandingName = 'live-standing';
+
+    let classNames = className;
+    let cta = (<div className={`${liveStandingName}__cta`}>CLICK TO COMPARE LINEUPS</div>);
+    let pmrColors = ['46495e', 'aab0be', 'aab0be'];
+
+    // if my lineup
+    if (watching.myLineupId === lineup.id) {
+      pmrColors = ['46495e', '34B4CC', '2871AC'];
+      classNames = `${classNames} ${className}--mine`;
+      cta = null;
+    } else if (potentialWinnings !== 0) {
+      classNames = `${classNames} ${className}--winning`;
+    } else {
+      classNames = `${classNames} ${className}--losing`;
+    }
+
+    return (
+      <div
+        key={lineup.id}
+        className={classNames}
+        onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
+        style={{ left: leftPercent }}
+      >
+        <div className="live-standings-pane__inner-point" />
+
+        <div className={`${liveStandingName} live-standings-pane__live-standing`}>
+          <div className={`${liveStandingName}__info`}>
+            <div className={`${liveStandingName}__place-and-earning`}>
+              <div className={`${liveStandingName}__place`}>{lineup.rank}</div>
+              <div className={`${liveStandingName}__earning`}>
+                <div className={`${liveStandingName}__earning-above`}>
+                  {humanizeCurrency(+(potentialWinnings))}
+                </div>
+              </div>
+            </div>
+            <div className={`${liveStandingName}__pmr`}>
+              <LivePMRProgressBar
+                colors={pmrColors}
+                decimalRemaining={decimalRemaining}
+                svgWidth={50}
+                id={`${lineup.id}Lineup`}
+              />
+            </div>
+            <div className={`${liveStandingName}__username`}>{username}</div>
+            <div className={`${liveStandingName}__fp`}>{humanizeFP(lineup.fp)} Pts</div>
+          </div>
+          {cta}
+        </div>
+      </div>
+    );
+  },
+
+  renderStandings() {
+    const data = this.getListData();
 
     const points = data.map((lineup) => lineup.fp);
     const lastPlacePoints = Math.max.apply(null, points);
@@ -81,80 +143,11 @@ export const LiveStandingsPane = React.createClass({
     if (range === 0) range = 1;
 
     const placements = iterativeRelaxation(data.map((lineup) => (lineup.fp - lastPlacePoints) / range * 100));
-
     let index = 0;
-    const standings = data.filter((lineup) => lineup.id !== 1).map((lineup) => {
-      const decimalRemaining = lineup.timeRemaining.decimal;
-      const className = 'live-standings-pane__point';
-      let classNames = className;
-      const username = lineupsUsernames[lineup.id] || '';
-      const potentialWinnings = lineup.potentialWinnings;
-      const liveStandingName = 'live-standing';
 
-      let cta = (<div className={`${liveStandingName}__cta`}>CLICK TO COMPARE LINEUPS</div>);
-
-      let pmr = (
-        <LivePMRProgressBar
-          colors={['46495e', 'aab0be', 'aab0be']}
-          decimalRemaining={decimalRemaining}
-          svgWidth={50}
-          id={`${lineup.id}Lineup`}
-        />
-      );
-
-      // if my lineup
-      if (watching.myLineupId === lineup.id) {
-        classNames = `${classNames} ${className}--mine`;
-        cta = null;
-
-        pmr = (
-          <LivePMRProgressBar
-            colors={['46495e', '34B4CC', '2871AC']}
-            decimalRemaining={decimalRemaining}
-            svgWidth={50}
-            id={`${lineup.id}Lineup`}
-          />
-        );
-      } else if (potentialWinnings !== 0) {
-        classNames = `${classNames} ${className}--winning`;
-      } else {
-        classNames = `${classNames} ${className}--losing`;
-      }
-
-      const leftPercent = `${placements[index]}%`;
-
-      index++;
-
-      return (
-        <div
-          key={lineup.id}
-          className={classNames}
-          onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
-          style={{ left: leftPercent }}
-        >
-          <div className="live-standings-pane__inner-point" />
-
-          <div className={`${liveStandingName} live-standings-pane__live-standing`}>
-            <div className={`${liveStandingName}__info`}>
-              <div className={`${liveStandingName}__place-and-earning`}>
-                <div className={`${liveStandingName}__place`}>{lineup.rank}</div>
-                <div className={`${liveStandingName}__earning`}>
-                  <div className={`${liveStandingName}__earning-above`}>
-                    {humanizeCurrency(+(potentialWinnings))}
-                  </div>
-                </div>
-              </div>
-              <div className={`${liveStandingName}__pmr`}>{pmr}</div>
-              <div className={`${liveStandingName}__username`}>{username}</div>
-              <div className={`${liveStandingName}__fp`}>{humanizeFP(lineup.fp)} Pts</div>
-            </div>
-            {cta}
-          </div>
-        </div>
-      );
-    });
-
-    return standings;
+    return data.filter((lineup) => lineup.id !== 1).map((lineup) =>
+      this.renderMoneyLinePoints(lineup, placements[index++])
+    );
   },
 
   render() {
