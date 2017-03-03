@@ -134,7 +134,6 @@ export default class PlayerAnimation extends LiveAnimation {
     return recap.players()
     .filter(player => clip.avatar(player.type) !== null)
     .map(createAvatarFromPlayerObj)
-    .sort((a, b) => a.in - b.in)
     .map(addAvatarToCourt)
     .map(hideAvatar);
   }
@@ -156,7 +155,9 @@ export default class PlayerAnimation extends LiveAnimation {
     const clipIn = clip.curFrame;
     const clipOut = clipIn + (clip.length - 1);
 
-    const sequences = avatars.map(avatar => () => {
+    // Play through the clip and the corresponding avatars chronologically
+    const sequences = avatars.sort((a, b) => a.in - b.in)
+    .map(avatar => () => {
       const avatarIn = clipIn + avatar.in;
       const avatarEl = avatar.getElement();
 
