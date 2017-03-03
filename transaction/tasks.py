@@ -1,28 +1,27 @@
 from __future__ import absolute_import
 
-from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 from mysite import celery_app as app
+from mysite.utils import send_email
 
 
 @app.task
-def send_deposit_receipt(transaction, amount, transaction_date):
+def send_deposit_receipt(user, amount, balance, transaction_date):
     subject = 'Deposit receipt'
+
     ctx = {
-        'username': transaction.user.username,
+        'username': user.username,
         'amount': amount,
-        'balance': transaction.balance.amount,
+        'balance': balance,
         'date': transaction_date,
     }
 
     message = render_to_string('account/emails/deposit_receipt.html', ctx)
 
-    send_mail(
+    send_email(
         subject=subject,
+        recipients=[user.email],
+        title=subject,
         message=message,
-        html_message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[transaction.user.email],
     )
