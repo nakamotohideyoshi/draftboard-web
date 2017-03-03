@@ -46,7 +46,7 @@ export const LiveStandingsPane = React.createClass({
   getRankedLineups() {
     return this.props.rankedLineups.map(
       lineupId => this.props.lineups[lineupId]
-    ).sort((a, b) => a.fp - b.fp);
+    ).sort((a, b) => b.fp - a.fp);
   },
 
   /**
