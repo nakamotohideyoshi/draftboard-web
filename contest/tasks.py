@@ -1,22 +1,24 @@
 from __future__ import absolute_import
 
-from django.core.cache import cache
-from mysite.celery_app import app
-from mysite.kissmetrics import track_contest_end
 from datetime import timedelta
+from logging import getLogger
+
+from django.core.cache import cache
+from django.core.mail import send_mail
 from django.utils import timezone
+
+from contest.classes import ContestPoolFiller
 from contest.models import (
     Contest,
     CompletedContest,  # can pay these out
     LiveContestPool,  # in this state, all of its Contests should be created
 )
-from contest.classes import ContestPoolFiller
-from contest.payout.tasks import payout_task
 from contest.payout.models import Payout
+from contest.payout.tasks import payout_task
 from draftgroup.models import DraftGroup
-from django.core.mail import send_mail
+from mysite.celery_app import app
+from mysite.kissmetrics import track_contest_end
 from rakepaid.classes import LoyaltyStatusManager
-from logging import getLogger
 from util.slack import WebhookContestInfo
 
 logger = getLogger('contests.tasks')
@@ -136,9 +138,9 @@ def notify_admin_draft_groups_not_completed(self, hours=5, *args, **kwargs):
     contests = Contest.objects.filter(draft_group__in=draft_groups)
 
     msg_str = (
-        '%s contests are live >>> %s <<< hours after the last game(s) started. It\'s been %s hours '
-        'since the last game started, but the DraftGroup is still not closed, because most games '
-        'never take that long.') % (contests.count(), hours, hours)
+                  '%s contests are live >>> %s <<< hours after the last game(s) started. It\'s been %s hours '
+                  'since the last game started, but the DraftGroup is still not closed, because most games '
+                  'never take that long.') % (contests.count(), hours, hours)
     for contest in contests:
         msg_str += '\n  %s' % contest
 
@@ -198,16 +200,17 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     task = payout_task.delay(contests=list(contests_to_pay))
 
     if contests_to_pay.count() > 0:
-        msg_str = '💰 %s completed contests have automatically paid out:' % num_contests
+        msg_str = '💰 %s completed contests have automatically paid out:\n\n' % num_contests
         for contest in contests_to_pay:
-            msg_str += '> ```%s```' % contest
+            msg_str += '```%s``` \n' % contest
         logger.info(msg_str)
         slack.send(msg_str)
         send_mail(
-            "Contest Auto Payout Time!",
-            msg_str,
-            HIGH_PRIORITY_FROM_EMAIL,
-            HIGH_PRIORITY_EMAILS
+            subject="Contest Auto Payout Time!",
+            message=msg_str,
+            html_message="Contest Auto Payout Time!",
+            from_email=HIGH_PRIORITY_FROM_EMAIL,
+            recipient_list=HIGH_PRIORITY_EMAILS,
         )
 
 
