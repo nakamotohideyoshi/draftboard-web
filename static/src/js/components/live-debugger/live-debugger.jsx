@@ -3,7 +3,49 @@ import React from 'react';
 import LiveAnimationArea from '../live/live-animation-area';
 import LiveHeader from '../live/live-header';
 import LiveBigPlays from '../live/live-big-plays';
+import LiveStandingsPane from '../live/live-standings-pane';
 import DebugMenu from './debug-menu';
+
+const stubMyLineup = {
+  id: 2,
+  name: 'My Lineup',
+  fp: 5,
+  isLoading: false,
+  potentialWinnings: 10,
+  rank: 1,
+  timeRemaining: {
+    decimal: 1,
+    duration: 50,
+  },
+};
+
+const stubOppLineup = {
+  id: 3,
+  name: 'Opponent Lineup',
+  fp: 10,
+  rank: 2,
+  potentialWinnings: 10,
+  timeRemaining: {
+    decimal: 1,
+    duration: 50,
+  },
+  isLoading: false,
+};
+
+const stubOtherLineup = {
+  id: 4,
+  name: 'Other Lineup',
+  fp: 15,
+  rank: 3,
+  potentialWinnings: 10,
+  timeRemaining: {
+    decimal: 1,
+    duration: 50,
+  },
+  isLoading: false,
+};
+
+const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup];
 
 const stubData = {
   watching: {
@@ -18,33 +60,20 @@ const stubData = {
     potentialWinnings: 10,
     rank: 2,
     isLoading: false,
+    hasLineupsUsernames: true,
+    lineupsUsernames: {
+      [stubMyLineup.id]: stubMyLineup.name,
+      [stubOppLineup.id]: stubOppLineup.name,
+      [stubOtherLineup.id]: stubOtherLineup.name,
+    },
+//    rankedLineups: stubAvailableLineups.sort((a, b) => a.fp - b.fp).map(lineup => lineup.id),
+    rankedLineups: [2, 3, 4],
   },
   uniqueLineups: {
-    lineups: [],
+    lineups: stubAvailableLineups,
   },
-  myLineupInfo: {
-    name: 'MyLineup',
-    fp: 0,
-    id: 2,
-    isLoading: false,
-    potentialWinnings: 10,
-    rank: 1,
-    timeRemaining: {
-      decimal: 1,
-      duration: 50,
-    },
-  },
-  opponentLineup: {
-    name: 'OpponentLineup',
-    fp: 0,
-    id: 3,
-    rank: 2,
-    timeRemaining: {
-      decimal: 1,
-      duration: 50,
-    },
-    isLoading: false,
-  },
+  myLineupInfo: stubMyLineup,
+  opponentLineup: stubOppLineup,
   selectLineup: () => { },
 };
 
@@ -95,6 +124,15 @@ export default connect(mapStateToProps)(React.createClass({
               <LiveAnimationArea {...{ watching, currentEvent, eventsMultipart }} />
             </div>
           </section>
+
+          <LiveStandingsPane
+            hasLineupsUsernames={stubData.contest.hasLineupsUsernames}
+            lineups={{ 2: stubMyLineup, 3: stubOppLineup, 4: stubOtherLineup }}
+            lineupsUsernames={stubData.contest.lineupsUsernames}
+            rankedLineups={stubData.contest.rankedLineups}
+            watching={watching}
+          />
+
           <LiveBigPlays queue={bigEvents || []} />
         </div>
       </section>
