@@ -1,12 +1,25 @@
 from django.db import models
 
-from ..models import Action, Entry
+from ..models import Action, Entry, ContestPool
 
 
 class Buyin(Action):
+    """
+    A buyin is an Action used to keep track of when a user buys into a ContestPool.
+    If the entry is not deregistered, and the entry fairmatches into a Contest,
+    all fields will stay intact.
+
+    Other possible states are:
+        If the user deregisteres (deletes the entry) = null entry field, null contest field
+        Entry doesn not get matched into a Contest = null contest field
+    """
     # When an entry is removed (due to deregistration or unmatched entry), we still need to know
     # about the buyin, so let this be null.
     entry = models.OneToOneField(Entry, null=True, on_delete=models.SET_NULL)
+    # Keep a reference to the contest pool this buyin action was for. We need
+    # this because without it, if the entry is not matched into a Contest there
+    # would be no way to figure out what the buyin for.
+    contest_pool = models.ForeignKey(ContestPool, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         entry_pk = None

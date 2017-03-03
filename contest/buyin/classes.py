@@ -131,6 +131,7 @@ class BuyinManager(AbstractSiteUserClass):
         #
         # Create the Buyin model
         buyin = Buyin()
+        buyin.contest_pool = contest_pool
         buyin.transaction = transaction
         # buyin.contest = contest # the contest will be set later when the ContestPool starts (?)
         buyin.contest = None

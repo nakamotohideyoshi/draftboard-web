@@ -4,6 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.functional import cached_property
 
+from mysite.utils import format_currency
+
 
 class AbstractAmount(models.Model):
     def get_category(self):
@@ -183,7 +185,7 @@ class TransactionDetail(models.Model):
         return {
             "user": self.user.username,
             "created": str(self.created),
-            "amount": self.amount,
+            "amount": format_currency(self.amount),
             "type": self.__class__.__name__,
             "id": self.pk,
             # 'category': self.transaction.category.to_json()
