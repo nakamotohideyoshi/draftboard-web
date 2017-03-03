@@ -44,9 +44,15 @@ export const LiveStandingsPane = React.createClass({
    * and in `props.rankedLineups`.
    */
   getRankedLineups() {
-    return this.props.rankedLineups.map(
-      lineupId => this.props.lineups[lineupId]
-    ).sort((a, b) => b.fp - a.fp);
+    return this.props.rankedLineups
+    .filter(lineupId =>
+      // Ignore lineups that have an ID of "1". This is a hold over from previous
+      // code that Justen didn't know why existed, but did exist, so he did not
+      // want to remove it during his refactor. Maybe Craig knows?
+      lineupId !== 1
+    )
+    .map(lineupId => this.props.lineups[lineupId])
+    .sort((a, b) => b.fp - a.fp);
   },
 
   /**
