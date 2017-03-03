@@ -1,22 +1,23 @@
 import datetime
-from transaction.models import Transaction, TransactionDetail, Balance, TransactionType
-from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException, AmountZeroException
-from django.contrib.auth.models import User
-import decimal
-from dfslog.classes import Logger, ErrorCodes
-from mysite.classes import  AbstractSiteUserClass
+
 from django.db.models import F
 from django.db.transaction import atomic
-from .tasks import send_deposit_receipt
+
+from dfslog.classes import Logger, ErrorCodes
+from mysite.classes import AbstractSiteUserClass
+from mysite.exceptions import (VariableNotSetException, IncorrectVariableTypeException,
+                               AmountNegativeException)
+from transaction.models import Transaction, TransactionDetail, Balance, TransactionType
 
 
-class AbstractTransaction (AbstractSiteUserClass):
+class AbstractTransaction(AbstractSiteUserClass):
     """
     This class is to be implemented by any of the financial
     systems that require a transaction system. The class deals
     with modifying transaction histories and balances for a
     given currency type (points, dollars, bonus,etc).
     """
+
     def __init__(self, user):
         """
         :ivar transaction_detail: the variable must be set by the
@@ -44,18 +45,18 @@ class AbstractTransaction (AbstractSiteUserClass):
         self.transaction = None
 
     def validate_local_variables(self):
-        if(self.transaction_detail_class == None):
+        if (self.transaction_detail_class == None):
             raise VariableNotSetException(type(self).__name__,
                                           "transaction_detail_class")
-        if(self.balance_class == None):
+        if (self.balance_class == None):
             raise VariableNotSetException(type(self).__name__,
                                           "balance_class")
-        if(not issubclass(self.transaction_detail_class, TransactionDetail)):
+        if (not issubclass(self.transaction_detail_class, TransactionDetail)):
             raise IncorrectVariableTypeException(type(self).__name__,
-                                          "transaction_detail_class")
-        if(not issubclass(self.balance_class, Balance)):
+                                                 "transaction_detail_class")
+        if (not issubclass(self.balance_class, Balance)):
             raise IncorrectVariableTypeException(type(self).__name__,
-                                          "balance_class")
+                                                 "balance_class")
 
         return
 
@@ -80,9 +81,9 @@ class AbstractTransaction (AbstractSiteUserClass):
         except Exception as e:
             raise e
 
-        if(not isinstance(category, TransactionType)):
+        if (not isinstance(category, TransactionType)):
             raise IncorrectVariableTypeException(type(self).__name__,
-                                          "category")
+                                                 "category")
         if trans is None:
             self.transaction = Transaction(user=self.user, category=category)
             self.transaction.save()
@@ -115,10 +116,8 @@ class AbstractTransaction (AbstractSiteUserClass):
                                                            self.accountName,
                                                            self.balance.amount)
 
-        Logger.log(ErrorCodes.INFO, "Balance Update", msg )
+        Logger.log(ErrorCodes.INFO, "Balance Update", msg)
         transaction_date = datetime.datetime.now().strftime("%b %d %Y %H:%M%p")
-        if self.user.email and transaction_type.name == 'deposit':
-            send_deposit_receipt.delay(self, amount, transaction_date)
 
     def __get_balance(self):
         """
@@ -165,8 +164,9 @@ class AbstractTransaction (AbstractSiteUserClass):
         :raises :class:`transaction.exceptions.AmountNegativeException`:
             When the amount is a negative number.
         """
-        if(amount < 0.00):
+        if (amount < 0.00):
             raise AmountNegativeException(type(self).__name__, amount)
+
 
 class CanDeposit(object):
     pass

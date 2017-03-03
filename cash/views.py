@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import getLogger
 from time import time
 
 import braintree
@@ -7,7 +8,9 @@ from braces.views import LoginRequiredMixin
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
+from django.utils import timezone
 from django.views.generic.edit import FormView
+from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -15,9 +18,12 @@ from rest_framework.response import Response
 
 from cash.classes import CashTransaction
 from cash.forms import DepositAmountForm
-from cash.serializers import TransactionHistorySerializer, BalanceSerializer, \
-    TransactionDetailSerializer
+from cash.serializers import (
+    TransactionHistorySerializer, BalanceSerializer, TransactionDetailSerializer)
 from transaction.models import Transaction
+from transaction.tasks import send_deposit_receipt
+
+logger = getLogger('cash.views')
 
 
 class TransactionHistoryAPIView(generics.GenericAPIView):
@@ -89,8 +95,8 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         rows = [
             [transaction.created,
              transaction.to_json(user_only=True).get('details', [{}])[0].get('amount'),
-             transaction.to_json(user_only=True).get('details', [{}])[0].get('type')] for transaction in
-            transactions]
+             transaction.to_json(user_only=True).get('details', [{}])[0].get('type')] for
+            transaction in transactions]
         for row in rows:
             row_num += 1
             for col_num in range(len(row)):
@@ -136,7 +142,7 @@ class BalanceAPIView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BalanceSerializer
 
-    def get(self, request, format=None):
+    def get(self, request):
         user = self.request.user
         cash_transaction = CashTransaction(user)
 
@@ -193,6 +199,13 @@ class DepositView(LoginRequiredMixin, FormView):
             )
             trans = CashTransaction(user)
             trans.deposit_braintree(amount, result.transaction.id)
+            # Create a task that will send the user an email confirming the transaction
+            try:
+                send_deposit_receipt.delay(user, amount, trans.get_balance_string_formatted(),
+                                           timezone.now())
+            except Exception as e:
+                logger.error(e)
+                client.captureException(e)
             return HttpResponseRedirect(self.success_redirect_url)
         #
         # On failure we redirect them and report the transaction
