@@ -652,6 +652,11 @@ class Action(models.Model):
         return self.transaction.user
 
     def to_json(self):
-        return {"created": str(self.created), "contest": self.contest.pk,
+        contest_pk = None
+        if self.contest:
+            contest_pk = self.contest.pk
+
+        return {"created": str(self.created),
+                "contest": contest_pk,
                 "type": self.__class__.__name__,
                 "id": self.pk}

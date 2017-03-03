@@ -1,32 +1,26 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models.deletion import Collector
-
-TRANSACTION_CATEGORY = (
-    ('contest-buyin', 'Contest Buyin'),
-    ('contest-payout', 'Contest Payout'),
-    ('funds-deposit', 'Funds Deposit'),
-    ('funds-withdrawal', 'Funds Withdrawal'),
-    # ('xxx', 'Xxx'),
-    # ('xxx', 'Xxx'),
-    # ('xxx', 'Xxx'),
-)
+from django.utils.functional import cached_property
 
 
 class AbstractAmount(models.Model):
     def get_category(self):
         # should return "CashAmount", or "TicketAmount", etc...
         raise Exception(
-            'inheriting class must implement this method: transaction.models.AbstractAmount.get_amount_type()')
+            'inheriting class must implement this method: '
+            'transaction.models.AbstractAmount.get_amount_type()')
 
     def get_transaction_class(self):
         raise Exception(
-            'inheriting class must implement this method: transaction.models.AbstractAmount.get_transaction_class()')
+            'inheriting class must implement this method: '
+            'transaction.models.AbstractAmount.get_transaction_class()')
 
     def get_cash_value(self):
         raise Exception(
-            'inheriting class must implement this method: transaction.models.AbstractAmount.get_cash_value()')
+            'inheriting class must implement this method: '
+            'transaction.models.AbstractAmount.get_cash_value()')
 
     class Meta:
         abstract = True
@@ -52,7 +46,7 @@ class TransactionType(models.Model):
         }
 
     def __str__(self):
-        return '%s  %s' % (self.category, self.name)
+        return '%s - %s' % (self.category, self.name)
 
 
 class Transaction(models.Model):
@@ -60,65 +54,125 @@ class Transaction(models.Model):
     This class keeps track of all
     """
 
-    JSON_CONTEST_FIELD = 'contest'
-
     category = models.ForeignKey(TransactionType)
     user = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return '%s  %s  %s' % (self.created.date(), self.user, self.category)
+        return '<Transaction id: %s | created: %s | user: %s | category: %s>' % (
+            self.id, self.created.date(), self.user, self.category)
 
-    def to_json(self):
-        collector = Collector(using='default')  # or specific database
-        collector.collect([self])
-        array = []
+    @cached_property
+    def action(self):
+        try:
+            return self.buyin
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.payout
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.refund
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.rake
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.fpp
+        except ObjectDoesNotExist:
+            pass
+        return None
 
-        buyin_ctype = ContentType.objects.get(app_label='buyin', model='buyin')
-        buyin_model_class = buyin_ctype.model_class()
-        payout_ctype = ContentType.objects.get(app_label='payout', model='payout')
-        payout_model_class = payout_ctype.model_class()
-        # buyins = buyin_model_class.objects.all()
+    @cached_property
+    def user_transaction_details(self):
+        """
+        This is used to get the transacion details thet are pertinent to the user.
+        These get displayed on the account transactions page.
+        """
+        details = []
+        transaction_detail_types = [
+            'bonuscashtransactiondetail_set',
+            'cashtransactiondetail_set',
+            # Ignore any FPP transactions since we don't really use it right now.
+            # 'fpptransactiondetail_set',
+            # We don't want to show any rakepaid transaction details here.
+            # 'rakepaidtransactiondetail_set',
+        ]
 
-        for model_tmp, instance_tmp in collector.instances_with_model():
-            if hasattr(instance_tmp,
-                       "to_json") and instance_tmp != self and instance_tmp.user == self.user:
-                array.append(instance_tmp.to_json())
+        for detail_type in transaction_detail_types:
+            details += getattr(self, detail_type).filter(user=self.user)
 
+        return details
+
+    @cached_property
+    def all_transaction_details(self):
+        """
+        This will get ALL of the TransactionDetails for this transaciton.
+        For instance: if this transaction is a contest buyin, there will be a withdraw
+        from the user's account, and a deposit into the escrow account.
+        """
+        details = []
+        transaction_detail_types = [
+            'bonuscashtransactiondetail_set',
+            'cashtransactiondetail_set',
+            'fpptransactiondetail_set',
+            'rakepaidtransactiondetail_set',
+        ]
+
+        for detail_type in transaction_detail_types:
+            details += getattr(self, detail_type).all()
+
+        return details
+
+    def to_json(self, user_only=False):
         data = {
             "created": str(self.created),
-            "details": array,
+            "details": [],
+            "action": {},
             "id": self.pk,
-            self.JSON_CONTEST_FIELD: None,
+            "description": "",
+            "contest": None,
+            "contest_pool": None,
         }
 
-        buyin = None
-        try:
-            buyin = buyin_model_class.objects.get(transaction_id=self.pk)
-            data[self.JSON_CONTEST_FIELD] = buyin.contest.pk
-        except:
-            pass
+        if user_only:
+            # Add all of the TransactionDetails that include the transaction's user.
+            for detail in self.user_transaction_details:
+                data['details'].append(detail.to_json())
+        else:
+            # Add ALL of the TransactionDetails .
+            for detail in self.all_transaction_details:
+                data['details'].append(detail.to_json())
 
-        if buyin is None:
-            # it must be a payout
-            try:
-                payout = payout_model_class.objects.get(transaction_id=self.pk)
-                data[self.JSON_CONTEST_FIELD] = payout.contest.pk
-            except:
-                pass
+        # Add Action info and build a description.
+        if self.action:
+            if hasattr(self.action, "to_json"):
+                data['action'] = self.action.to_json()
 
-        # return the json
+                # If we have contest info, add that.
+                if hasattr(self.action, 'contest') and self.action.contest:
+                    data['contest'] = self.action.contest.name
+                    data['description'] = "%s for %s entry" % (
+                        data['action']['type'], self.action.contest.name)
+                # Try to add contest_pool info also.
+                if hasattr(self.action, 'contest_pool') and self.action.contest_pool:
+                    data['contest_pool'] = self.action.contest_pool.name
+                    data['description'] = "%s for %s entry" % (
+                        data['action']['type'], self.action.contest_pool.name)
+
         return data
 
 
 class TransactionDetail(models.Model):
     """
-    The base model for the classes to keep track of
-    the transactions.
+    The base model for the classes to keep track of the transactions.
     """
     amount = models.DecimalField(decimal_places=2, max_digits=11)
     user = models.ForeignKey(User)
-    transaction = models.ForeignKey(Transaction, null=False, related_name='+')
+    transaction = models.ForeignKey(Transaction, null=False)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
@@ -127,12 +181,12 @@ class TransactionDetail(models.Model):
 
     def to_json(self):
         return {
+            "user": self.user.username,
             "created": str(self.created),
             "amount": self.amount,
             "type": self.__class__.__name__,
             "id": self.pk,
-            'category': self.transaction.category.to_json()
-
+            # 'category': self.transaction.category.to_json()
         }
 
 
