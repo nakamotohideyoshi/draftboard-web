@@ -208,7 +208,7 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
         send_mail(
             subject="Contest Auto Payout Time!",
             message=msg_str,
-            html_message="Contest Auto Payout Time!",
+            html_message=msg_str,
             from_email=HIGH_PRIORITY_FROM_EMAIL,
             recipient_list=HIGH_PRIORITY_EMAILS,
         )
