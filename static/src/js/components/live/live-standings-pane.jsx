@@ -1,5 +1,4 @@
 import * as ReactRedux from 'react-redux';
-import map from 'lodash/map';
 import React from 'react';
 import { addOrdinal, iterativeRelaxation } from '../../lib/utils/numbers';
 import LivePMRProgressBar from './live-pmr-progress-bar';
@@ -41,13 +40,13 @@ export const LiveStandingsPane = React.createClass({
   },
 
   /**
-   * Get list data that should be rendered in the current tab.
-   * @return {Array}
+   * Returns the cross section of lineups that exist in both the `props.lineups`
+   * and in `props.rankedLineups`.
    */
-  getListData() {
-    const { lineups, rankedLineups } = this.props;
-
-    return map(rankedLineups, (lineupId) => lineups[lineupId]);
+  getRankedLineups() {
+    return this.props.rankedLineups.map(
+      lineupId => this.props.lineups[lineupId]
+    ).sort((a, b) => a.fp - b.fp);
   },
 
   /**
@@ -133,8 +132,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   renderStandings() {
-    const data = this.getListData();
-
+    const data = this.getRankedLineups();
     const points = data.map((lineup) => lineup.fp);
     const lastPlacePoints = Math.max.apply(null, points);
     const firstPlacePoints = Math.min.apply(null, points);
