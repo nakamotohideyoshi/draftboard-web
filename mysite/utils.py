@@ -101,3 +101,19 @@ class QuickCache(object):
         k = self.get_key(ts, gid)
         ret_val = self.add_to_cache_method(k, data)
         return ret_val
+
+
+def format_currency(amount):
+    """
+    Add a leading '$' to an amount, and a '-' before that if it is negative.
+    :param amount: int or string
+    :return:
+    """
+    pretty_amount = str(amount)
+
+    if amount < 0:
+        pretty_amount = pretty_amount[:1] + "$" + pretty_amount[1:]
+    else:
+        pretty_amount = "$%s" % pretty_amount
+
+    return pretty_amount
