@@ -87,14 +87,12 @@ export const LiveStandingsPane = React.createClass({
     const liveStandingName = 'live-standing';
 
     let classNames = className;
-    let cta = (<div className={`${liveStandingName}__cta`}>CLICK TO COMPARE LINEUPS</div>);
     let pmrColors = ['46495e', 'aab0be', 'aab0be'];
 
     // if my lineup
     if (watching.myLineupId === lineup.id) {
       pmrColors = ['46495e', '34B4CC', '2871AC'];
       classNames = `${classNames} ${className}--mine`;
-      cta = null;
     } else if (watching.opponentLineupId === lineup.id) {
       pmrColors = ['e33c3c', 'b52c4b', '871c5a'];
       classNames = `${classNames} ${className}--opponent`;
@@ -134,7 +132,9 @@ export const LiveStandingsPane = React.createClass({
             <div className={`${liveStandingName}__username`}>{username}</div>
             <div className={`${liveStandingName}__fp`}>{humanizeFP(lineup.fp)} Pts</div>
           </div>
-          {cta}
+          {watching.myLineupId !== lineup.id &&
+            <div className="live-standing__cta">CLICK TO COMPARE LINEUPS</div>
+          }
         </div>
       </div>
     );
