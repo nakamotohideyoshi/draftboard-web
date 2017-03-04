@@ -1,6 +1,7 @@
 import * as ReactRedux from 'react-redux';
 import React from 'react';
-import { addOrdinal, iterativeRelaxation } from '../../lib/utils/numbers';
+// import { addOrdinal, iterativeRelaxation } from '../../lib/utils/numbers';
+import { addOrdinal } from '../../lib/utils/numbers';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import { bindActionCreators } from 'redux';
 import { humanizeCurrency } from '../../lib/utils/currency';
@@ -40,6 +41,13 @@ export const LiveStandingsPane = React.createClass({
   },
 
   /**
+   * Returns the username for the lineup if it exists.
+   */
+  getUsernameForLineup(lineupId) {
+    return this.props.lineupsUsernames[lineupId] || '';
+  },
+
+  /**
    * Returns the cross section of lineups that exist in both the `props.lineups`
    * and in `props.rankedLineups`.
    */
@@ -61,7 +69,7 @@ export const LiveStandingsPane = React.createClass({
   handleViewOpponentLineup(opponentLineupId) {
     const { actions, watching } = this.props;
 
-    // can't watch youself!
+    // can't watch yousrelf!
     if (opponentLineupId === watching.myLineupId) return false;
 
     const lineupUrl = `/live/${watching.sport}/lineups/${watching.myLineupId}`;
@@ -76,15 +84,11 @@ export const LiveStandingsPane = React.createClass({
   /**
    * Renders the div for a single lineup.
    */
-  renderMoneyLinePoints(lineup, placement) {
-    const leftPercent = `${placement}%`;
+  renderMoneyLinePoint(lineup, placement) {
     const watching = this.props.watching;
-    const { lineupsUsernames } = this.props;
     const decimalRemaining = lineup.timeRemaining.decimal;
     const className = 'live-standings-pane__point';
-    const username = lineupsUsernames[lineup.id] || '';
     const potentialWinnings = lineup.potentialWinnings;
-    const liveStandingName = 'live-standing';
 
     let classNames = className;
     let pmrColors = ['46495e', 'aab0be', 'aab0be'];
@@ -107,21 +111,21 @@ export const LiveStandingsPane = React.createClass({
         key={lineup.id}
         className={classNames}
         onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
-        style={{ left: leftPercent }}
+        style={{ left: `${placement}%` }}
       >
         <div className="live-standings-pane__inner-point" />
 
-        <div className={`${liveStandingName} live-standings-pane__live-standing`}>
-          <div className={`${liveStandingName}__info`}>
-            <div className={`${liveStandingName}__place-and-earning`}>
-              <div className={`${liveStandingName}__place`}>{lineup.rank}</div>
-              <div className={`${liveStandingName}__earning`}>
-                <div className={`${liveStandingName}__earning-above`}>
+        <div className="live-standing live-standings-pane__live-standing">
+          <div className="live-standing__info">
+            <div className="live-standing__place-and-earning">
+              <div className="live-standing__place">{lineup.rank}</div>
+              <div className="live-standing__earning">
+                <div className="live-standing__earning-above">
                   {humanizeCurrency(+(potentialWinnings))}
                 </div>
               </div>
             </div>
-            <div className={`${liveStandingName}__pmr`}>
+            <div className="live-standing__pmr">
               <LivePMRProgressBar
                 colors={pmrColors}
                 decimalRemaining={decimalRemaining}
@@ -129,8 +133,8 @@ export const LiveStandingsPane = React.createClass({
                 id={`${lineup.id}Lineup`}
               />
             </div>
-            <div className={`${liveStandingName}__username`}>{username}</div>
-            <div className={`${liveStandingName}__fp`}>{humanizeFP(lineup.fp)} Pts</div>
+            <div className="live-standing__username">{this.getUsernameForLineup(lineup.id)}</div>
+            <div className="live-standing__fp">{humanizeFP(lineup.fp)} Pts</div>
           </div>
           {watching.myLineupId !== lineup.id &&
             <div className="live-standing__cta">CLICK TO COMPARE LINEUPS</div>
@@ -141,19 +145,18 @@ export const LiveStandingsPane = React.createClass({
   },
 
   renderStandings() {
-    const data = this.getRankedLineups();
-    const points = data.map((lineup) => lineup.fp);
-    const lastPlacePoints = Math.max.apply(null, points);
-    const firstPlacePoints = Math.min.apply(null, points);
-    let range = firstPlacePoints - lastPlacePoints;
+    const lineups = this.getRankedLineups();
+    const points = lineups.map((lineup) => lineup.fp);
+    const minFP = Math.min.apply(null, points);
+    const maxFP = Math.max.apply(null, points);
+    const range = maxFP - minFP;
 
-    if (range === 0) range = 1;
+    const positions = lineups.map(lineup =>
+      ((lineup.fp - minFP) / range) * 100
+    );
 
-    const placements = iterativeRelaxation(data.map((lineup) => (lineup.fp - lastPlacePoints) / range * 100));
-    let index = 0;
-
-    return data.filter((lineup) => lineup.id !== 1).map((lineup) =>
-      this.renderMoneyLinePoints(lineup, placements[index++])
+    return lineups.map((lineup, index) =>
+      this.renderMoneyLinePoint(lineup, positions[index])
     );
   },
 
