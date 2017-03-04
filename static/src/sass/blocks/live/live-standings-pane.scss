@@ -36,12 +36,17 @@ $block: '.live-standings-pane';
 
     &--losing,
     &--winning,
-    &--mine {
+    &--mine,
+    &--opponent {
       #{$block}__inner-point {
         border-radius: 50%;
         height: 6px;
         width: 6px;
       }
+    }
+
+    &--opponent #{$block}__inner-point {
+      background: #e33c3c;
     }
 
     &--losing #{$block}__inner-point {
