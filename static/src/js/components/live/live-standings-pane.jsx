@@ -95,6 +95,9 @@ export const LiveStandingsPane = React.createClass({
       pmrColors = ['46495e', '34B4CC', '2871AC'];
       classNames = `${classNames} ${className}--mine`;
       cta = null;
+    } else if (watching.opponentLineupId === lineup.id) {
+      pmrColors = ['e33c3c', 'b52c4b', '871c5a'];
+      classNames = `${classNames} ${className}--opponent`;
     } else if (potentialWinnings !== 0) {
       classNames = `${classNames} ${className}--winning`;
     } else {
