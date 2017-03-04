@@ -82,7 +82,7 @@ class QuickCache(object):
         return self.cache.set(k, data, self.timeout_seconds)
 
     def bytes_2_dict(self, bytes_to_convert):
-        if bytes is None:
+        if bytes_to_convert is None:
             err_msg = 'bytes_2_dict(): bytes is None!'
             raise self.BytesIsNoneException(err_msg)
         return literal_eval(bytes_to_convert.decode())
