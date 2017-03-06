@@ -2,12 +2,12 @@
 # urls.py
 
 from django.conf.urls import url
-from cash.views import TransactionHistoryAPIView, BalanceAPIView
+from cash.views import TransactionHistoryAPIView, BalanceAPIView, TransactionDetailAPIView
 from cash.withdraw.views import PayPalWithdrawAPIView
 
 urlpatterns = [
 
-    url(r'^transactions/(?P<user_id>[0-9]+)/$', TransactionHistoryAPIView.as_view()),
+    url(r'^transactions/(?P<transaction_id>[0-9]+)/$', TransactionDetailAPIView.as_view()),
 
     url(r'^transactions/$', TransactionHistoryAPIView.as_view()),
 

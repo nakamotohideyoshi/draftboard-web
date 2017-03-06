@@ -32,7 +32,7 @@ const LiveContestsPaneItem = React.createClass({
     const block = 'live-contests-pane-item';
     const classNames = generateBlockNameWithModifiers(block, modifiers);
     const winnings = contest.potentialWinnings;
-    let earnings = '';
+    let earnings = (<div className={`${block}__has-earnings`}></div>);
 
     let { index } = this.props;
     if (index.toString().length === 1) index = `0${index}`;

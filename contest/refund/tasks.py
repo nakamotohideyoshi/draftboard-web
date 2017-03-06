@@ -59,8 +59,8 @@ def unregister_entry_task(self, entry):
 
     if acquire_lock():
         try:
-            bm = RefundManager()
-            bm.remove_and_refund_entry(entry)
+            rm = RefundManager()
+            rm.remove_and_refund_entry(entry)
         finally:
             release_lock()
     else:

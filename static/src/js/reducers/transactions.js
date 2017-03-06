@@ -15,11 +15,14 @@ const initialState = {
 
 module.exports = (state = initialState, action) => {
   switch (action.type) {
-    case ActionTypes.FETCH_TRANSACTIONS_SUCCESS:
-      return merge({}, state, {
-        allTransactions: action.body,
-        filteredTransactions: action.body,
-      });
+
+    case ActionTypes.FETCH_TRANSACTIONS_SUCCESS: {
+      const newState = merge({}, state, {});
+      newState.allTransactions = action.body;
+      newState.filteredTransactions = action.body;
+      return newState;
+    }
+
 
     case ActionTypes.FILTER_TRANSACTIONS: {
       // TODO: filter out transactions if startDate / endDate provided.
