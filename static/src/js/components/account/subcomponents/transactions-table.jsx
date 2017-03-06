@@ -42,10 +42,8 @@ const TransactionsTable = (props) => {
           <tr>
             <th>Date</th>
             <th>Amount</th>
-            <th>Balance</th>
-            <th>Type</th>
             <th>Description</th>
-            <th>Details</th>
+            <th>Transaction ID</th>
           </tr>
         </thead>
 

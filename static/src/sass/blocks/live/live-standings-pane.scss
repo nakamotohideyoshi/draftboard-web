@@ -5,8 +5,8 @@ $block: '.live-standings-pane';
 
 #{$block} {
   bottom: 120px;
-  background: #2b2e3d;
-  height: 1px;
+  background: #4a4e5f;
+  height: 2px;
   left: 50%;
   position: fixed;
   transform: translateX(-50%);
@@ -17,7 +17,7 @@ $block: '.live-standings-pane';
     cursor: pointer;
     height: 20px;
     position: absolute;
-    top: -10px;
+    top: -9px;
     transform: translateX(-50%);
     width: 20px;
     z-index: 20;
@@ -84,9 +84,9 @@ $block: '.live-standings-pane';
 
     color: #7a7d8b;
     font-family: $font-oswald;
-    font-size: 9px;
+    font-size: 11px;
     position: absolute;
-    top: -6px;
+    top: -8px;
     text-transform: uppercase;
     width: 60px;
 
@@ -109,7 +109,7 @@ $block: '.live-standings-pane';
   }
 
   &__in-the-money {
-    background: #264c44;
+    background: #2cb371;
     height: 100%;
     position: absolute;
     width: 30%;
