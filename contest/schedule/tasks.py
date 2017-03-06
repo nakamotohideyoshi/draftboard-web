@@ -1,16 +1,15 @@
 from __future__ import absolute_import
 
-#
-# contest/schedule/tasks.py
+from logging import getLogger
 
-from mysite.celery_app import app
-from django.core.cache import cache
-from django.core.mail import send_mail
 from django.conf import settings
+from django.core.cache import cache
 from django.template.loader import render_to_string
+
 from contest.schedule.classes import ContestPoolScheduleManager
 from contest.schedule.models import UpcomingBlock
-from logging import getLogger
+from mysite.celery_app import app
+from mysite.utils import send_email
 
 logger = getLogger('contest.schedule.tasks')
 LOCK_EXPIRE = 60  # lock expires in X seconds
@@ -78,10 +77,9 @@ def create_scheduled_contest_pools(self, sport):
 
 
 @app.task(bind=True)
-def send_upcoming_issues(self):
+def send_upcoming_contest_schedule_email(self):
     """
-    sending email with upcoming issues
-
+    send email with upcoming contest schedules to site admins.
     """
     sports = ['nba', 'nfl', 'mlb', 'nhl']
     data = {}
@@ -90,16 +88,14 @@ def send_upcoming_issues(self):
 
         if blocks.exists():
             data[sport] = blocks
-    subject = "Today's Draftboard Games"
     ctx = {
         'data': data
     }
 
     message = render_to_string('emails/upcoming_games.html', ctx)
-    send_mail(
-        subject=subject,
+    send_email(
+        title="Draftboard Contest Schedule",
+        subject="Today's Draftboard Games",
         message=message,
-        html_message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=settings.SITE_ADMIN_EMAIL
+        recipients=settings.SITE_ADMIN_EMAIL
     )

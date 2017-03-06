@@ -642,7 +642,7 @@ class ClosedEntry(Entry):
 class Action(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     transaction = models.OneToOneField("transaction.Transaction", null=False)
-    contest = models.ForeignKey(Contest, null=True)
+    contest = models.ForeignKey(Contest, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         abstract = True
@@ -652,6 +652,11 @@ class Action(models.Model):
         return self.transaction.user
 
     def to_json(self):
-        return {"created": str(self.created), "contest": self.contest.pk,
+        contest_pk = None
+        if self.contest:
+            contest_pk = self.contest.pk
+
+        return {"created": str(self.created),
+                "contest": contest_pk,
                 "type": self.__class__.__name__,
                 "id": self.pk}

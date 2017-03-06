@@ -2,6 +2,7 @@ import Raven from 'raven-js';
 import 'babel-polyfill';
 import Cookies from 'js-cookie';
 import log from 'lib/logging';
+require('../../../node_modules/moment/locale/en-gb.js');
 
 // get custom logger for actions
 const logApp = log.getLogger('app');

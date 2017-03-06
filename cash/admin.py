@@ -1,95 +1,88 @@
-# cash/admin.py
-
 from django.contrib import admin
+
+from cash.forms import AdminCashDepositForm, AdminCashWithdrawalForm
 from cash.models import (
     CashTransactionDetail,
     CashBalance,
     AdminCashDeposit,
-    BraintreeTransaction,
     AdminCashWithdrawal,
     VZeroTransaction,
 )
-from cash.forms import AdminCashDepositForm, AdminCashWithdrawalForm
-from contest.payout.models import Payout,FPP,Rake
 from contest.buyin.models import Buyin
+from contest.payout.models import Payout, FPP, Rake
+from contest.refund.models import Refund
+
 
 @admin.register(CashTransactionDetail)
 class CashTransactionDetailAdmin(admin.ModelAdmin):
-
-    list_display = ['user','amount','transaction_identifier','transaction_info', 'created']
+    list_display = ['user', 'amount', 'get_action', 'transaction_pk', 'created',
+                    'transaction_category']
     search_fields = ('user__username',)
-    readonly_fields = ['user', 'amount', 'transaction','created']
+    readonly_fields = ['user', 'amount', 'transaction', 'created']
+    ordering = ('-transaction',)
 
-    def transaction_info(self, obj):
-        arr_classes = [Buyin, Payout, Rake, FPP]
+    @staticmethod
+    def transaction_pk(obj):
+        return obj.transaction.id
 
-        for class_action in arr_classes:
-            try:
-                val = class_action.objects.get(transaction=obj.transaction)
-                if val.contest is None:
-                    return type(val).__name__
-                else:
-                    return type(val).__name__ + ": "+ val.contest.name
-            except class_action.DoesNotExist:
-                pass
-        if obj.amount > 0:
-            return "Deposit"
-        else:
-            return "Withdrawal"
+    @staticmethod
+    def transaction_category(obj):
+        return obj.transaction.category
 
-    def transaction_identifier(self, obj):
-        return obj.transaction.pk
+    def get_action(self, obj):
+        return obj.transaction.action
+
+    get_action.short_description = "Action that caused this Transaction"
 
     def has_delete_permission(self, request, obj=None):
-       return False
+        return False
 
     def has_add_permission(self, request):
         return False
-
-
-
-    transaction_info.short_description = "Transaction Info"
-    transaction_identifier.short_description = "Transaction Id"
 
 
 class CashTransactionDetailAdminInline(admin.TabularInline):
     model = CashTransactionDetail
-    list_display = [ 'amount','transaction_info', 'created']
-    readonly_fields = [ 'amount','transaction_info', 'created']
-    exclude = ('transaction',)
+    list_display = ['amount', 'transaction', 'transaction_info', 'created']
+    readonly_fields = ['amount', 'transaction', 'transaction_info', 'created']
 
+    # exclude = ('transaction',)
 
     def has_delete_permission(self, request, obj=None):
-       return False
+        return False
 
     def has_add_permission(self, request):
         return False
 
-    def transaction_info(self, obj):
-        arr_classes = [Buyin, Payout, Rake, FPP]
+    @staticmethod
+    def transaction_info(obj):
+        arr_classes = [Buyin, Payout, Rake, FPP, Refund]
 
         for class_action in arr_classes:
             try:
                 val = class_action.objects.get(transaction=obj.transaction)
-                return type(val).__name__ + ": "+val.contest.name
+                return type(val).__name__ + ": " + val.contest.name
             except class_action.DoesNotExist:
                 pass
         if obj.amount > 0:
             return "Deposit"
         else:
             return "Withdrawal"
-
-
 
 
 class CashBalanceAdminInline(admin.StackedInline):
     verbose_name = "Cash Balance"
     model = CashBalance
-    readonly_fields = ['user','amount']
-    list_display = ['user','amount']
+    readonly_fields = ['user', 'amount']
+    list_display = ['user', 'amount']
 
     def has_delete_permission(self, request, obj=None):
-       return False
+        return False
+
+
+@admin.register(CashBalance)
+class BalanceAdmin(admin.ModelAdmin):
+    list_display = ['user', 'amount', 'updated']
 
 
 @admin.register(AdminCashDeposit)
@@ -99,8 +92,8 @@ class AdminCashDepositFormAdmin(admin.ModelAdmin):
     """
     form = AdminCashDepositForm
 
-    #list_display = ['created','user','amount','reason']
-    list_display = ['user','amount','reason']
+    # list_display = ['created','user','amount','reason']
+    list_display = ['user', 'amount', 'reason']
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -113,8 +106,8 @@ class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
     """
     form = AdminCashWithdrawalForm
 
-    #list_display = ['created','user','amount','reason']
-    list_display = ['user','amount','reason']
+    # list_display = ['created','user','amount','reason']
+    list_display = ['user', 'amount', 'reason']
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -127,5 +120,4 @@ class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
 
 @admin.register(VZeroTransaction)
 class VZeroTransaction(admin.ModelAdmin):
-
-    list_display = ['created','transaction','transaction_identifier']
+    list_display = ['created', 'transaction', 'transaction_identifier']
