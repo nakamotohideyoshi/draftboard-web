@@ -1,6 +1,5 @@
 import * as ReactRedux from 'react-redux';
 import React from 'react';
-// import { addOrdinal, iterativeRelaxation } from '../../lib/utils/numbers';
 import { addOrdinal } from '../../lib/utils/numbers';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import { bindActionCreators } from 'redux';
@@ -11,7 +10,6 @@ import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js
 // assets
 require('../../../sass/blocks/live/live-standings-pane.scss');
 require('../../../sass/blocks/live/live-standing.scss');
-
 
 /*
  * Map Redux actions to React component properties
@@ -61,6 +59,20 @@ export const LiveStandingsPane = React.createClass({
     )
     .map(lineupId => this.props.lineups[lineupId])
     .sort((a, b) => b.fp - a.fp);
+  },
+
+  /**
+   * Returns an array of positions based on the provided array of lineups.
+   */
+  getRankedLineupPositions(lineups) {
+    const points = lineups.map((lineup) => lineup.fp);
+    const minFP = Math.min.apply(null, points);
+    const maxFP = Math.max.apply(null, points);
+    const range = maxFP - minFP;
+
+    return lineups.map(lineup =>
+      ((lineup.fp - minFP) / range) * 100
+    );
   },
 
   /**
@@ -144,35 +156,27 @@ export const LiveStandingsPane = React.createClass({
     );
   },
 
-  renderStandings() {
+  render() {
+    if (this.props.hasLineupsUsernames === false) {
+      return null;
+    }
+
+    const numWinners = 3;
+    const block = 'live-standings-pane';
     const lineups = this.getRankedLineups();
-    const points = lineups.map((lineup) => lineup.fp);
-    const minFP = Math.min.apply(null, points);
-    const maxFP = Math.max.apply(null, points);
-    const range = maxFP - minFP;
-
-    const positions = lineups.map(lineup =>
-      ((lineup.fp - minFP) / range) * 100
-    );
-
-    return lineups.map((lineup, index) =>
+    const positions = this.getRankedLineupPositions(lineups);
+    const lastPosInTheMoney = positions[Math.min(numWinners, positions.length) - 1];
+    const moneyLineWidth = 100 - lastPosInTheMoney;
+    const moneyLinePoints = lineups.map((lineup, index) =>
       this.renderMoneyLinePoint(lineup, positions[index])
     );
-  },
-
-  render() {
-    // wait for usernames
-    if (this.props.hasLineupsUsernames === false) return null;
-
-    const block = 'live-standings-pane';
-    const lastPlace = addOrdinal(this.props.rankedLineups.length);
 
     return (
-      <div className={block}>
-        <div className={`${block}__legend ${block}__legend--first`}>1ST</div>
-        <div className={`${block}__legend ${block}__legend--last`}>{lastPlace}</div>
-        <div className="live-standings-pane__in-the-money" />
-        {this.renderStandings()}
+      <div className={`${block}`}>
+        <div className={`${block}__legend live-standings-pane__legend--first`}>1ST</div>
+        <div className={`${block}__legend live-standings-pane__legend--last`}>{addOrdinal(lineups.length)}</div>
+        <div className={`${block}__in-the-money`} style={{ width: `${moneyLineWidth}%` }} />
+        {moneyLinePoints}
       </div>
     );
   },
