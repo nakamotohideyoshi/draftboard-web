@@ -53,7 +53,7 @@ class MyUserAdmin(UserAdmin):
         InformationAdminInline,
         IdentityAdminInline,
         CashBalanceAdminInline,
-        CashTransactionDetailAdminInline,
+        # CashTransactionDetailAdminInline,
     ]
     actions = [sent_reset_password]
 

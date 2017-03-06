@@ -160,7 +160,7 @@ $block: '.live-lineup-player';
     overflow: hidden;
     position: absolute;
     top: 0;
-    transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
+    transition: all 150ms cubic-bezier(.8,.16,.18,.85);
     width: 330px;
 
     opacity: 0;
