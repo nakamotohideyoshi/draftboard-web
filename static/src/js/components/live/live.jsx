@@ -313,6 +313,7 @@ export const Live = React.createClass({
           lineups={contest.lineups}
           lineupsUsernames={contest.lineupsUsernames}
           rankedLineups={contest.rankedLineups}
+          prizeStructure={contest.prizeStructure}
           watching={watching}
         />
       );
