@@ -74,6 +74,17 @@ const stubContest = {
     stubOppLineup.id,
     stubOtherLineup.id,
   ],
+  prizeStructure: {
+    buyin: 1,
+    payout_spots: 3,
+    pk: 0,
+    prize_pool: 0,
+    ranks: [{
+      category: 'cash',
+      rank: 1,
+      value: 1.8,
+    }],
+  },
 };
 
 const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup];
@@ -150,6 +161,7 @@ export default connect(mapStateToProps)(React.createClass({
             lineupsUsernames={stubData.contest.lineupsUsernames}
             rankedLineups={stubData.contest.rankedLineups}
             watching={watching}
+            prizeStructure={stubData.contest.prizeStructure}
           />
 
           <LiveBigPlays queue={bigEvents || []} />

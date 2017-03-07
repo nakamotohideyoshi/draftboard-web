@@ -36,6 +36,7 @@ export const LiveStandingsPane = React.createClass({
     lineupsUsernames: React.PropTypes.object.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
     watching: React.PropTypes.object.isRequired,
+    prizeStructure: React.PropTypes.object.isRequired,
   },
 
   /**
@@ -161,7 +162,7 @@ export const LiveStandingsPane = React.createClass({
       return null;
     }
 
-    const numWinners = 3;
+    const numWinners = this.props.prizeStructure.payout_spots;
     const block = 'live-standings-pane';
     const lineups = this.getRankedLineups();
     const positions = this.getRankedLineupPositions(lineups);

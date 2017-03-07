@@ -78,6 +78,17 @@ describe('<LiveStandingsPane /> Component', () => {
       sport: 'nba',
       draftGroupId: 17,
     },
+    prizeStructure: {
+      buyin: 1,
+      payout_spots: 3,
+      pk: 0,
+      prize_pool: 0,
+      ranks: [{
+        category: 'cash',
+        rank: 1,
+        value: 1.8,
+      }],
+    },
   };
 
   afterEach(() => {
