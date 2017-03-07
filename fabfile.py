@@ -253,18 +253,18 @@ def generate_replayer():
         bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
 
         # download start
-        startS3Filename = '%s-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        startS3Filename = '%s' % env.start
         print("Downloading: %s" % startS3Filename)
-        keyStart = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
-        keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
-        operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
+        keyStart = bucket.get_key('pgbackups/%s' % startS3Filename)
+        keyStart.get_contents_to_filename('%s/%s' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
+        # operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
 
         # download end
-        endS3Filename = '%s-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        endS3Filename = '%s' % env.end
         print("Downloading: %s" % startS3Filename)
-        keyEnd = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
-        keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
-        operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
+        keyEnd = bucket.get_key('pgbackups/%s' % endS3Filename)
+        keyEnd.get_contents_to_filename('%s/%s' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
+        # operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
 
     temp_db = 'generate_replayer'
 
@@ -297,7 +297,7 @@ def generate_replayer():
         '%s psql -d %s -c "DELETE FROM replayer_update WHERE ts < \'%s\';"' % (
             psql_user,
             temp_db,
-            env.start
+            env.start[:10]
         )
     )
 
@@ -330,7 +330,7 @@ def generate_replayer():
     # loop through applicable draft_group rows and create time_machine rows, based on start and end dates
     operations.local(
         'DJANGO_SETTINGS_MODULE="mysite.settings.local_replayer_generation" %s manage.py generate_timemachines %s %s' %
-        (_python(), env.start, env.end)
+        (_python(), env.start[:10], env.end[:10])
     )
 
     # export finished db
