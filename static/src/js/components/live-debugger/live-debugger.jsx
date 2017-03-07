@@ -82,16 +82,18 @@ const stubContest = {
     stubOtherLineup.id,
     stubDebugLineup.id,
   ],
-  prizeStructure: {
-    buyin: 1,
-    payout_spots: 2,
-    pk: 0,
-    prize_pool: 0,
-    ranks: [{
-      category: 'cash',
-      rank: 1,
-      value: 1.8,
-    }],
+  prize: {
+    info: {
+      buyin: 1,
+      payout_spots: 3,
+      pk: 0,
+      prize_pool: 0,
+      ranks: [{
+        category: 'cash',
+        rank: 1,
+        value: 1.8,
+      }],
+    },
   },
 };
 

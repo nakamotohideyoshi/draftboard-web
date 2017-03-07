@@ -37,7 +37,11 @@ export const LiveStandingsPane = React.createClass({
       hasLineupsUsernames: React.PropTypes.bool.isRequired,
       lineupsUsernames: React.PropTypes.object.isRequired,
       rankedLineups: React.PropTypes.array.isRequired,
-      prizeStructure: React.PropTypes.object.isRequired,
+      prize: React.PropTypes.shape({
+        info: React.PropTypes.shape({
+          payout_spots: React.PropTypes.number.isRequired,
+        }),
+      }),
     }),
   },
 
@@ -164,7 +168,7 @@ export const LiveStandingsPane = React.createClass({
       return null;
     }
 
-    const numWinners = this.props.contest.prizeStructure.payout_spots;
+    const numWinners = this.props.contest.prize.info.payout_spots;
     const block = 'live-standings-pane';
     const lineups = this.getRankedLineups();
     const positions = this.getRankedLineupPositions(lineups);

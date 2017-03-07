@@ -70,16 +70,18 @@ describe('<LiveStandingsPane /> Component', () => {
         20: 'anson',
       },
       rankedLineups: [18, 20],
-      prizeStructure: {
-        buyin: 1,
-        payout_spots: 3,
-        pk: 0,
-        prize_pool: 0,
-        ranks: [{
-          category: 'cash',
-          rank: 1,
-          value: 1.8,
-        }],
+      prize: {
+        info: {
+          buyin: 1,
+          payout_spots: 3,
+          pk: 0,
+          prize_pool: 0,
+          ranks: [{
+            category: 'cash',
+            rank: 1,
+            value: 1.8,
+          }],
+        },
       },
     },
     watching: {
