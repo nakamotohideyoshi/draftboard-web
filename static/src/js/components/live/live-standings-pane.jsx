@@ -31,19 +31,21 @@ export const LiveStandingsPane = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
-    hasLineupsUsernames: React.PropTypes.bool.isRequired,
-    lineups: React.PropTypes.object.isRequired,
-    lineupsUsernames: React.PropTypes.object.isRequired,
-    rankedLineups: React.PropTypes.array.isRequired,
     watching: React.PropTypes.object.isRequired,
-    prizeStructure: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.shape({
+      lineups: React.PropTypes.object.isRequired,
+      hasLineupsUsernames: React.PropTypes.bool.isRequired,
+      lineupsUsernames: React.PropTypes.object.isRequired,
+      rankedLineups: React.PropTypes.array.isRequired,
+      prizeStructure: React.PropTypes.object.isRequired,
+    }),
   },
 
   /**
    * Returns the username for the lineup if it exists.
    */
   getUsernameForLineup(lineupId) {
-    return this.props.lineupsUsernames[lineupId] || '';
+    return this.props.contest.lineupsUsernames[lineupId] || '';
   },
 
   /**
@@ -51,14 +53,14 @@ export const LiveStandingsPane = React.createClass({
    * and in `props.rankedLineups`.
    */
   getRankedLineups() {
-    return this.props.rankedLineups
+    return this.props.contest.rankedLineups
     .filter(lineupId =>
       // Ignore lineups that have an ID of "1". This is a hold over from previous
       // code that Justen didn't know why existed, but did exist, so he did not
       // want to remove it during his refactor. Maybe Craig knows?
       lineupId !== 1
     )
-    .map(lineupId => this.props.lineups[lineupId])
+    .map(lineupId => this.props.contest.lineups[lineupId])
     .sort((a, b) => b.fp - a.fp);
   },
 
@@ -158,11 +160,11 @@ export const LiveStandingsPane = React.createClass({
   },
 
   render() {
-    if (this.props.hasLineupsUsernames === false) {
+    if (this.props.contest.hasLineupsUsernames === false) {
       return null;
     }
 
-    const numWinners = this.props.prizeStructure.payout_spots;
+    const numWinners = this.props.contest.prizeStructure.payout_spots;
     const block = 'live-standings-pane';
     const lineups = this.getRankedLineups();
     const positions = this.getRankedLineupPositions(lineups);

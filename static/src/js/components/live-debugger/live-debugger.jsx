@@ -64,19 +64,27 @@ const stubContest = {
   rank: 2,
   isLoading: false,
   hasLineupsUsernames: true,
+  lineups: {
+    [stubMyLineup.id]: stubMyLineup,
+    [stubOppLineup.id]: stubOppLineup,
+    [stubOtherLineup.id]: stubOtherLineup,
+    [stubDebugLineup.id]: stubDebugLineup,
+  },
   lineupsUsernames: {
     [stubMyLineup.id]: stubMyLineup.name,
     [stubOppLineup.id]: stubOppLineup.name,
     [stubOtherLineup.id]: stubOtherLineup.name,
+    [stubDebugLineup.id]: stubDebugLineup.name,
   },
   rankedLineups: [
     stubMyLineup.id,
     stubOppLineup.id,
     stubOtherLineup.id,
+    stubDebugLineup.id,
   ],
   prizeStructure: {
     buyin: 1,
-    payout_spots: 3,
+    payout_spots: 2,
     pk: 0,
     prize_pool: 0,
     ranks: [{
@@ -87,7 +95,7 @@ const stubContest = {
   },
 };
 
-const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup];
+const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup, stubDebugLineup];
 
 const stubData = {
   watching: {
@@ -154,16 +162,7 @@ export default connect(mapStateToProps)(React.createClass({
               <LiveAnimationArea {...{ watching, currentEvent, eventsMultipart }} />
             </div>
           </section>
-
-          <LiveStandingsPane
-            hasLineupsUsernames={stubData.contest.hasLineupsUsernames}
-            lineups={{ 2: stubMyLineup, 3: stubOppLineup, 4: stubOtherLineup }}
-            lineupsUsernames={stubData.contest.lineupsUsernames}
-            rankedLineups={stubData.contest.rankedLineups}
-            watching={watching}
-            prizeStructure={stubData.contest.prizeStructure}
-          />
-
+          <LiveStandingsPane contest={stubData.contest} watching={watching} />
           <LiveBigPlays queue={bigEvents || []} />
         </div>
       </section>

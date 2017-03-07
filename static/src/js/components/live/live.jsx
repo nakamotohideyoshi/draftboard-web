@@ -307,16 +307,7 @@ export const Live = React.createClass({
         );
       }
 
-      liveStandingsPane = (
-        <LiveStandingsPane
-          hasLineupsUsernames={contest.hasLineupsUsernames}
-          lineups={contest.lineups}
-          lineupsUsernames={contest.lineupsUsernames}
-          rankedLineups={contest.rankedLineups}
-          prizeStructure={contest.prizeStructure}
-          watching={watching}
-        />
-      );
+      liveStandingsPane = <LiveStandingsPane contest={contest} watching={watching} />;
     }
 
     modifiers.push(venuesPosition);

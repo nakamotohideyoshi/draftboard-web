@@ -15,60 +15,73 @@ describe('<LiveStandingsPane /> Component', () => {
 
   const defaultTestProps = {
     actions: {},
-    lineups: {
-      18: {
-        draftGroupId: 17,
-        id: 18,
-        name: 'Example Lineup Name',
-        roster: [
-          331,
-          101,
-          381,
-          205,
-          9,
-          92,
-          103,
-          25,
-        ],
-        sport: 'nba',
-        fp: 51.75,
-        timeRemaining: {
-          duration: 384,
-          decimal: 0.9999,
+    contest: {
+      lineups: {
+        18: {
+          draftGroupId: 17,
+          id: 18,
+          name: 'Example Lineup Name',
+          roster: [
+            331,
+            101,
+            381,
+            205,
+            9,
+            92,
+            103,
+            25,
+          ],
+          sport: 'nba',
+          fp: 51.75,
+          timeRemaining: {
+            duration: 384,
+            decimal: 0.9999,
+          },
+          potentialWinnings: 18,
+          rank: 1,
         },
-        potentialWinnings: 18,
-        rank: 1,
+        20: {
+          draftGroupId: 17,
+          id: 20,
+          name: 'Example Lineup Name',
+          roster: [
+            406,
+            25,
+            269,
+            389,
+            261,
+            103,
+            381,
+            357,
+          ],
+          sport: 'nba',
+          fp: 21.75,
+          timeRemaining: {
+            duration: 384,
+            decimal: 0.9999,
+          },
+          potentialWinnings: 0,
+          rank: 2,
+        },
       },
-      20: {
-        draftGroupId: 17,
-        id: 20,
-        name: 'Example Lineup Name',
-        roster: [
-          406,
-          25,
-          269,
-          389,
-          261,
-          103,
-          381,
-          357,
-        ],
-        sport: 'nba',
-        fp: 21.75,
-        timeRemaining: {
-          duration: 384,
-          decimal: 0.9999,
-        },
-        potentialWinnings: 0,
-        rank: 2,
+      hasLineupsUsernames: true,
+      lineupsUsernames: {
+        18: 'ppgogo',
+        20: 'anson',
+      },
+      rankedLineups: [18, 20],
+      prizeStructure: {
+        buyin: 1,
+        payout_spots: 3,
+        pk: 0,
+        prize_pool: 0,
+        ranks: [{
+          category: 'cash',
+          rank: 1,
+          value: 1.8,
+        }],
       },
     },
-    hasLineupsUsernames: true,
-    lineupsUsernames: {
-      18: 'ppgogo',
-      20: 'anson',
-    },
-    rankedLineups: [18, 20],
     watching: {
       contestId: 11,
       myLineupId: 18,
@@ -77,17 +90,6 @@ describe('<LiveStandingsPane /> Component', () => {
       opponentPlayerSRID: null,
       sport: 'nba',
       draftGroupId: 17,
-    },
-    prizeStructure: {
-      buyin: 1,
-      payout_spots: 3,
-      pk: 0,
-      prize_pool: 0,
-      ranks: [{
-        category: 'cash',
-        rank: 1,
-        value: 1.8,
-      }],
     },
   };
 
@@ -102,7 +104,8 @@ describe('<LiveStandingsPane /> Component', () => {
   });
 
   it('should not render pitches if they do not exist', () => {
-    const props = merge({}, defaultTestProps, {
+    const props = merge({}, defaultTestProps);
+    props.contest = merge({}, props.contest, {
       hasLineupsUsernames: false,
     });
 
