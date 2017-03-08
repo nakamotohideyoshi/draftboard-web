@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from datetime import timedelta
+from html import escape
 from logging import getLogger
 
 from django.core.cache import cache
@@ -202,7 +203,7 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     if contests_to_pay.count() > 0:
         msg_str = '💰 %s completed contests have automatically paid out:\n\n' % num_contests
         for contest in contests_to_pay:
-            msg_str += '```%s``` \n' % contest
+            msg_str += '```%s``` \n' % escape(contest)
         logger.info(msg_str)
         slack.send(msg_str)
         send_mail(
