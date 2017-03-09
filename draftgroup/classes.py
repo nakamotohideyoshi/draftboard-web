@@ -562,7 +562,7 @@ class AbstractUpdateManager(object):
     def __init__(self):
         self.players_not_found = None
 
-    def add(self, update_id, category, type, value,
+    def add(self, update_id, category, type,
             status, source_origin, url_origin, **kwargs):
         """
         create or update a PlayerUpdate
@@ -579,7 +579,7 @@ class AbstractUpdateManager(object):
         self.validate_update_id(update_id)
         self.validate_category(category)
         self.validate_type(type)
-        self.validate_value(value)
+        # self.validate_value(value)
 
         # parse and return a datetime object representing the publish time
         updated_at = kwargs.get('published_at')
@@ -597,7 +597,7 @@ class AbstractUpdateManager(object):
         update.category = category
         update.type = type
 
-        fields = ['updated_at', 'value', 'status', 'source_origin', 'url_origin']
+        fields = ['updated_at',  'status', 'source_origin', 'url_origin']
         for f in fields:
             old_value = getattr(update, f)
             if old_value is None or old_value != eval(f):
@@ -806,9 +806,7 @@ class PlayerUpdateManager(AbstractUpdateManager):
         """
         # create the model instance
         update_obj = super().add(*args, **kwargs)
-        fields = ['roster_status', 'roster_status_description', 'depth_chart_status',
-                  'player_status_probability', 'player_status_confidence',
-                  'last_text', 'game_id', 'sport']
+        fields = ['sport']
         for f in fields:
             old_value = getattr(update_obj, f)
             new_value = kwargs.get(f)
