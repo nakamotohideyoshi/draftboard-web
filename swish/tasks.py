@@ -5,6 +5,7 @@ from draftgroup.models import PlayerUpdate
 from swish.classes import (
     PlayerUpdateManager,
     SwishAnalytics,
+    RotoWire,
 )
 from logging import getLogger
 from draftgroup.serializers import PlayerUpdateSerializer
@@ -25,7 +26,7 @@ def update_injury_feed(self, sport):
     if acquire_lock():
         try:
             player_update_manager = PlayerUpdateManager(sport)
-            swish = SwishAnalytics(sport)
+            swish = RotoWire(sport)
             updates = swish.get_updates()
             for u in updates:
                 try:
