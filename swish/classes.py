@@ -45,7 +45,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         # hard code this to use the category: 'injury' for testing
         category = 'injury'
         type = 'rotowire'
-        # value = swish_update.get_field(UpdateData.field_text) # not used due to no data from rotowire
+        value = swish_update.get_field(UpdateData.field_text) # not used due to no data from rotowire
 
         # get status
         status = swish_update.get_field(UpdateData.field_swish_status, 'unknown')
@@ -335,6 +335,7 @@ class RotoWire(object):
 
     api_base_url = 'http://api.rotowire.com'
     api_injuries = 'Injuries.php'
+    api_news = 'News.php'
     # api_projections_game = '/players/fantasy'
     # api_projections_season = '/players/fantasy/remaining'  # exists also: '/players/fantasy/season'
     # api_player_status = '/players/status'
@@ -396,16 +397,15 @@ class RotoWire(object):
         now = datetime.now()
         return str(now.date())
 
-    def get_player_extra_data(self, player_id, team):
-        url = '%s/%s%s?playerId=%s&team=%s&apikey=%s' % (self.api_base_url, self.sport,
-                                                         self.api_player_status, player_id, team, self.api_key)
-
-
+    def get_player_extra_data(self):
+        url = '{}/Basketball/{}/{}?key={}&format=json'.format(self.api_base_url, self.sport, self.api_news,
+                                                              self.api_key)
         response_data = self.call_api(url)
-        results = response_data.get('data', {}).get('results', [])
+        results = response_data.get('Updates', {})
         if results:
-            data = results[0]
-            return {x: data.get(x) for x in self.extra_player_fields}
+
+            data = results
+            return {str(update.get('Player').get('Id')): '{} {}'.format(update.get('Notes'), update.get('Analysis')) for update in data}
         else:
             return {}
 
@@ -413,11 +413,12 @@ class RotoWire(object):
         formatted_date = self.get_formatted_date()
         url = '{}/Basketball/{}/{}?key={}&format=json'.format(self.api_base_url, self.sport, self.api_injuries,  self.api_key)
         response_data = self.call_api(url)
-
+        text_data = self.get_player_extra_data()
         # results will be a list of the updates from swish
         results = response_data.get('Players', {})
         self.updates = []
         for update_data in results:
+            update_data['text'] = text_data.get(str(update_data.get('id')))
             self.updates.append(UpdateData(update_data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
