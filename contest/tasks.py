@@ -203,7 +203,7 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     if contests_to_pay.count() > 0:
         msg_str = '💰 %s completed contests are currently being paid out:\n\n' % num_contests
         for contest in contests_to_pay:
-            msg_str += '```%s``` \n' % escape(contest)
+            msg_str += '```%s``` \n' % escape(str(contest))
         logger.info(msg_str)
         slack.send(msg_str)
         send_mail(
