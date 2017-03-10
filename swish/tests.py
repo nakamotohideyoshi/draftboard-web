@@ -17,7 +17,7 @@ class UpdateDataTest(AbstractTest):
         super().setUp()
 
     def test_1(self):
-        data_str = """{"id": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
+        data_str = """{"SportsDataId": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
                 "datetimeUtc": "2016-08-16 22:11:55", "sportId": 2, "sport": "NFL", "teamId": 348, "teamAbbr": "NE",
                 "playerId": 381091, "playerName": "Rob Gronkowski", "position": "TE",
                 "text": "Rob Gronkowski: The unspecified injury that caused Gronkowski to miss practice Tuesday is being described as a bruise, the  Boston Herald reports.",
@@ -28,10 +28,10 @@ class UpdateDataTest(AbstractTest):
         ud = UpdateData(data)
         updated_at = ud.get_updated_at()
         self.assertEquals(updated_at.tzinfo, UtcTime.TZ_UTC)
-        self.assertEquals(ud.get_update_id(), str(data.get('id')))
+        self.assertEquals(ud.get_update_id(), str(data.get('SportsDataId')))
 
         # get a random field and make sure get_field() works
-        self.assertIsNotNone(ud.get_field(UpdateData.field_player_name))
+        self.assertIsNotNone(ud.get_player_name())
 
 
 class SwishTest(AbstractTest):
