@@ -169,7 +169,6 @@ export const LiveStandingsPane = React.createClass({
     }
 
     const numWinners = this.props.contest.prize.info.payout_spots;
-    const block = 'live-standings-pane';
     const lineups = this.getRankedLineups();
     const positions = this.getRankedLineupPositions(lineups);
     const lastPosInTheMoney = positions[Math.min(numWinners, positions.length) - 1];
@@ -179,11 +178,13 @@ export const LiveStandingsPane = React.createClass({
     );
 
     return (
-      <div className={`${block}`}>
-        <div className={`${block}__legend live-standings-pane__legend--first`}>1ST</div>
-        <div className={`${block}__legend live-standings-pane__legend--last`}>{addOrdinal(lineups.length)}</div>
-        <div className={`${block}__in-the-money`} style={{ width: `${moneyLineWidth}%` }} />
-        {moneyLinePoints}
+      <div className="live-standings-pane">
+        <div className="live-standings-pane__legend">1ST</div>
+        <div className="live-standings-pane__lineups">
+          <div className="live-standings-pane__moneyline" style={{ width: `${moneyLineWidth}%` }} />
+          {moneyLinePoints}
+        </div>
+        <div className="live-standings-pane__legend">{addOrdinal(lineups.length)}</div>
       </div>
     );
   },
