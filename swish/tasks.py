@@ -26,8 +26,8 @@ def update_injury_feed(self, sport):
     if acquire_lock():
         try:
             player_update_manager = PlayerUpdateManager(sport)
-            swish = RotoWire(sport)
-            updates = swish.get_updates()
+            rotowire = RotoWire(sport)
+            updates = rotowire.get_updates()
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
@@ -35,10 +35,10 @@ def update_injury_feed(self, sport):
                     pass
             if player_update_manager.players_not_found:
                 num_players_not_found = len(player_update_manager.players_not_found)
-                logger.warning('%s | [%s] swish players not found:' % (sport, num_players_not_found))
+                logger.warning('%s | [%s] rotowire players not found:' % (sport, num_players_not_found))
 
                 for player in player_update_manager.players_not_found:
-                    logger.warning('%s | swish player not found: %s' % (sport, player))
+                    logger.warning('%s | rotowire player not found: %s' % (sport, player))
             else:
                 updates = PlayerUpdate.objects.filter(sport=sport).order_by('-updated_at')
                 serializer_data = PlayerUpdateSerializer(updates, many=True).data

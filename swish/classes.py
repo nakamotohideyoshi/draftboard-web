@@ -185,6 +185,10 @@ class RotoWire(object):
     STARTING, ACTIVE, PROBABLE, GAMETIME_DECISION, QUESTIONABLE, DOUBTFUL, OUT, DAY_TO_DAY, WEEK_TO_WEEK, \
     MONTH_TO_MONTH, OUT_FOR_SEASON, WAIVED, TRADED = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14
     # range(1, 15) but for some reason here no 12 didn't find any description in docs
+    NBA = 'nba'
+    MLB = 'mlb'
+    SPORTS = { NBA: 'Basketball', MLB: 'Baseball'}
+
     statuses = [
         (STARTING, 'starting'),
         (ACTIVE, 'active'),
@@ -282,7 +286,7 @@ class RotoWire(object):
 
     def get_updates(self):
         formatted_date = self.get_formatted_date()
-        url = '{}/Basketball/{}/{}?key={}&format=json&hours=24'.format(self.api_base_url, self.sport, self.api_news,  self.api_key)
+        url = '{}/{}/{}/{}?key={}&format=json&hours=24'.format(self.api_base_url, self.SPORTS.get(self.sport) , self.sport, self.api_news,  self.api_key)
         response_data = self.call_api(url)
         # text_data = self.get_player_extra_data()
         # results will be a list of the updates from swish
