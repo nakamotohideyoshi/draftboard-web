@@ -1,9 +1,11 @@
 import datetime
 from logging import getLogger
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.transaction import atomic
 from django.dispatch import receiver
 from django.utils import timezone
+
 import mysite.exceptions
 from draftgroup.tasks import on_game_closed
 from roster.models import RosterSpotPosition
@@ -109,7 +111,8 @@ class AbstractDraftGroupManager(object):
                                        team_srid=team,
                                        alias=alias)
 
-    def create_player(self, draft_group, salary_player, salary, start, game_team):
+    @staticmethod
+    def create_player(draft_group, salary_player, salary, start, game_team):
         """
         create and return a new draftgroup.models.Player object
         """
@@ -215,6 +218,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
                 sport_player)
 
             try:
+                # Find the player's stats for this draft group.
                 player_stats = player_stats_class.objects.get(srid_game__in=game_srids,
                                                               srid_player=sport_player.srid)
             # except player_stats_class.MultipleObjectsReturned as e1:
@@ -232,6 +236,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
             #     raise self.StartEndRangeException(err_msg)
 
             except player_stats_class.DoesNotExist:
+                logger.warning("PlayerStats can't be found for: %s" % sport_player)
                 logger.info('game_srids: %s' % game_srids)
                 logger.info('sport_player.srid: %s' % sport_player.srid)
                 player_stats = None
@@ -239,6 +244,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
             # move the current fantasy_points from the player_stats into
             # the draft_group_player and save it!
+            logger.info('Setting %s to %s' % (draft_group_player, player_stats))
             draft_group_player.final_fantasy_points = player_stats.fantasy_points
             draft_group_player.save()
 
@@ -246,6 +252,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
         # set the datetime for when we finalized the draft_group players fantasy points
         draft_group.fantasy_points_finalized = timezone.now()
         draft_group.save()
+        logger.info("Done updating final fantasy points for %s" % draft_group)
 
     def get_for_site_sport(self, site_sport, start, end):
         """
