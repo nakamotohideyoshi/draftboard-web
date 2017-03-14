@@ -301,8 +301,8 @@ STATSCOM_KEYS = {
         'secret': 'kywJJpqs6a',
     },
     'nba': {
-        'api_key': 'vz2jhrxzm9pxnnf8ek6d4p5j',
-        'secret': 'fMZCuGgUNy',
+        'api_key': '9ahek43b9cfxp2acrhyh55fz',
+        'secret': 'xz6dnnpkZx',
     },
     'nhl': {
         'api_key': 'yubvm7f4gzxve5h3mh2qzgsb',
