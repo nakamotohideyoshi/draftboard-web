@@ -604,7 +604,7 @@ class AbstractUpdateManager(object):
         update.category = category
         update.type = type
 
-        fields = ['updated_at', 'value', 'status', 'source_origin', 'url_origin']
+        fields = ['updated_at',  'status', 'source_origin', 'url_origin', 'value']
         for f in fields:
             old_value = getattr(update, f)
             if old_value is None or old_value != eval(f):
@@ -813,9 +813,7 @@ class PlayerUpdateManager(AbstractUpdateManager):
         """
         # create the model instance
         update_obj = super().add(*args, **kwargs)
-        fields = ['roster_status', 'roster_status_description', 'depth_chart_status',
-                  'player_status_probability', 'player_status_confidence',
-                  'last_text', 'game_id', 'sport']
+        fields = ['sport']
         for f in fields:
             old_value = getattr(update_obj, f)
             new_value = kwargs.get(f)
