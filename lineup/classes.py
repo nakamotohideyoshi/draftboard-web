@@ -1,7 +1,7 @@
 import random
 from collections import Counter
 from logging import getLogger
-
+from draftgroup.utils import get_draftgroup_player_from_sport_player
 from django.contrib.contenttypes.models import ContentType
 from django.db.transaction import atomic
 from django.utils import timezone
@@ -26,6 +26,7 @@ from .models import (
     Lineup,
     Player as LineupPlayer,
 )
+from draftgroup.models import Player as DraftgroupPlayer
 
 logger = getLogger('lineup.classes')
 
@@ -168,17 +169,20 @@ class LineupManager(AbstractSiteUserClass):
 
     def get_players_with_nicknames(self, players, draftgroup):
         players_with_nicknames = list(filter(lambda p: p.lineup_nickname, players))
-        user_lineup_nicknames = Lineup.objects.filter(user=self.user, draft_group=draftgroup).values_list(
+        user_lineup_nicknames = Lineup.objects.filter(user=self.user,
+                                                      draft_group=draftgroup).values_list(
             'name', flat=True)
         if user_lineup_nicknames:
             # removes players which nickname was already used
-            cleaned_players = [player for player in players_with_nicknames if player.lineup_nickname not in user_lineup_nicknames]
+            cleaned_players = [player for player in players_with_nicknames if
+                               player.lineup_nickname not in user_lineup_nicknames]
             if cleaned_players:
                 players_with_nicknames = cleaned_players
         return players_with_nicknames, user_lineup_nicknames
 
     def set_lineup_nickname(self, lineup, players, draftgroup):
-        players_with_nicknames, user_lineup_nicknames = self.get_players_with_nicknames(players, draftgroup)
+        players_with_nicknames, user_lineup_nicknames = self.get_players_with_nicknames(players,
+                                                                                        draftgroup)
         lineup_name = ''
         if players_with_nicknames:
             random_player_nickname = random.choice(players_with_nicknames).lineup_nickname
@@ -339,33 +343,45 @@ class LineupManager(AbstractSiteUserClass):
 
         """
 
-        #
-        # get the players and put them into an ordered array
+        # player_ids is a list of <sport>.player.id's for our new lineup.
+        # get the <sport>.player objects for and put them into an ordered array
         site_sport = lineup.draft_group.salary_pool.site_sport
-        players = self.get_player_array_from_player_ids_array(player_ids, site_sport)
+        new_lineup_players = self.get_player_array_from_player_ids_array(player_ids, site_sport)
 
         #
         # validates the lineup based on the players and draftgroup
         roster_manager = RosterManager(site_sport)
-        self.__validate_lineup(players, lineup.draft_group, roster_manager)
+        self.__validate_lineup(new_lineup_players, lineup.draft_group, roster_manager)
 
         #
         # adds the player ids to the corresponding spots in the lineup
-        lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
+
+        # Get the current Lineup.Player objects in the lineup we are editing.
+        current_lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
         i = 0
         removed_players = []
-        for lineup_player in lineup_players:
-            player = players[i]
-            #
+
+        # For each player in the existing lineup, check to see if the the new lineup is
+        # different for that roster slot. if it is, replace the player with the new one.
+        for lineup_player in current_lineup_players:
+            player = new_lineup_players[i]
+
             # replace the player if they are not equal
             if lineup_player.player != player:
                 removed_players.append(lineup_player.player)
+                # Replace the player reference.
                 lineup_player.player = player
+                new_dgp = get_draftgroup_player_from_sport_player(player, lineup.draft_group)
+                # AND replace the draft_group_player reference..
+                lineup_player.draft_group_player = new_dgp
+
             i += 1
             lineup_player.save()
+
         for player in removed_players:
-            if (player.lineup_nickname != '' and player.lineup_nickname in lineup.name) or lineup.name == '':
-                lineup.name = self.set_lineup_nickname(lineup, players, lineup.draft_group)
+            if (
+                    player.lineup_nickname != '' and player.lineup_nickname in lineup.name) or lineup.name == '':
+                lineup.name = self.set_lineup_nickname(lineup, new_lineup_players, lineup.draft_group)
                 lineup.save()
 
         logger.info('action: lineup edited | lineup: %s' % lineup)
