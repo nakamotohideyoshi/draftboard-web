@@ -12,6 +12,7 @@ $color-moneyline-bg: #4a4e5f;
   z-index: $zindex-live-standings-pane;
   width: 70%;
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
   transform: translateX(-50%);
   
