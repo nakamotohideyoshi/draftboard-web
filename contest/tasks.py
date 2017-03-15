@@ -232,16 +232,17 @@ def track_contests(contests):
             'Total Entries': contest.current_entries,
             'Contest Type': contest.prize_structure.get_format_str(),
         }
-        users = [x.user for x in contest.contests.distinct('user')]
+        users = [x.user for x in contest.contest_entries.distinct('user')]
         for user in users:
             payment = Payout.objects.filter(entry__contest=contest,
                                             entry__user=user).first()
             data = base_data.copy()
             data.update({
-                'Total Lineups': contest.contests.filter(user=user).count(),
+                'Total Lineups': contest.contest_entries.filter(user=user).count(),
                 'In Money': True if payment else False,
             })
             if payment:
                 data['Money Won'] = payment.amount
                 data['Place'] = payment.rank
             track_contest_end(user.username, data)
+
