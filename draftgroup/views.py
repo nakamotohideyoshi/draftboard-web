@@ -140,7 +140,8 @@ class UpcomingDraftGroupAPIView(generics.ListAPIView):
         """
         Return a QuerySet from the UpcomingDraftGroup model (DraftGroup objects).
         """
-        return UpcomingDraftGroup.objects.all()
+        return UpcomingDraftGroup.objects.all().order_by(
+            'salary_pool__site_sport', 'start').distinct('salary_pool__site_sport')
 
 class CurrentDraftGroupAPIView(generics.ListAPIView):
     """
