@@ -203,10 +203,13 @@ class PayoutManager(AbstractManagerClass):
 
         #
         # get the total number of dollars leftover for rake
-        buyin = contest.buyin
-        rake_pre_buyin = (contest.entries * buyin) * .10
-        overlay = (contest.entries - len(entries)) * buyin
-        rake_post_overlay = rake_pre_buyin - overlay
+        buyin = contest.buyin                                  # 50
+        # This is the amount of rake we would collect on a full contest.
+        rake_pre_buyin = (contest.entries * buyin) * .10       # (10 * 50) * .10 = 50
+        # This is the amount of buyin money that was not collected (due to an unfilled contest)
+        overlay = (contest.entries - len(entries)) * buyin     # (10 - 1) * 50 = 450
+        # The difference between full-contest rake and how much buyin money was not collected.
+        rake_post_overlay = rake_pre_buyin - overlay           # 50 - 450 = 400
         rake_transaction = None
 
         #

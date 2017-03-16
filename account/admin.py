@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from account.models import Information, EmailNotification, UserLog, Identity, Confirmation
+from account.models import Information, EmailNotification, UserLog, Identity
 from cash.admin import CashBalanceAdminInline, CashTransactionDetailAdminInline
 from .utils import reset_user_password_email
 
@@ -69,4 +69,3 @@ class UserLogAdmin(admin.ModelAdmin):
     list_filter = ['timestamp', 'type']
 
 
-admin.site.register(Confirmation)

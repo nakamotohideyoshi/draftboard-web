@@ -113,9 +113,12 @@ export const fetchCurrentLineups = () => ({
       Object.keys(entries.lineups).map((lineupId) => {
         const lineup = entries.lineups[lineupId];
         let contests = [];
-        Object.keys(lineup.contestsByPool).map((contestPoolId) => {
-          contests = contests.concat(lineup.contestsByPool[contestPoolId]);
-        });
+
+        if ('contestsByPool' in lineup) {
+          Object.keys(lineup.contestsByPool).map((contestPoolId) => {
+            contests = contests.concat(lineup.contestsByPool[contestPoolId]);
+          });
+        }
 
         lineup.contests = [...new Set(contests)];
       });

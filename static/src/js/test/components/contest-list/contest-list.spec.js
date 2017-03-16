@@ -17,6 +17,7 @@ const defaultTestProps = {
   lineupsInfo: {},
   setFocusedContest: () => true,
   entrySkillLevels: {},
+  isFetchingContestPools: false,
 };
 
 

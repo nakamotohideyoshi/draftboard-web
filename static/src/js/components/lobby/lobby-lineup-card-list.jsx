@@ -202,7 +202,7 @@ const LineupCardList = React.createClass({
           draftGroupInfo={this.props.draftGroupInfo}
           focusedSport={this.props.focusedSport}
           onClick={this.props.openDraftGroupSelectionModal}
-          title="Start Drafting"
+          title="CREATE A LINEUP"
         />
       </div>
     );

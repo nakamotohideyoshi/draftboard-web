@@ -1,15 +1,13 @@
-#
-# view.py
-
-from rest_framework.views import APIView
-from rest_framework.exceptions import APIException
 from rest_framework.response import Response
-from replayer.tasks import (
-    reset_replay_test,
-)
+from rest_framework.views import APIView
+
 from replayer.classes import (
     ReplayManager,
 )
+from replayer.tasks import (
+    reset_replay_test,
+)
+
 
 class PauseActiveReplayAPIView(APIView):
     """
@@ -21,20 +19,20 @@ class PauseActiveReplayAPIView(APIView):
         replay_manager.flag_paused(True)
         return Response(status=200)
 
-class ResumeActiveReplayAPIView(APIView):
 
+class ResumeActiveReplayAPIView(APIView):
     def post(self, request, *args, **kwargs):
         replay_manager = ReplayManager()
         replay_manager.flag_paused(False)
         return Response(status=200)
 
+
 class ResetReplayAPIView(APIView):
-
     def post(self, request, *args, **kwargs):
-
         reset_replay_test.delay('s3file_TODO')
 
         return Response(status=200)
+
 
 class FastForwardAPIView(APIView):
     """
@@ -52,7 +50,7 @@ class FastForwardAPIView(APIView):
 
     def post(self, request, speed, *args, **kwargs):
         # note the speed value passed in may be adjusted later on if its out of range.
-        #print('speed:', str(speed))
+        # print('speed:', str(speed))
         if isinstance(speed, str):
             speed = int(speed)
 

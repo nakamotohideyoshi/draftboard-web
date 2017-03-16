@@ -75,6 +75,16 @@ const DraftNewLineupCard = React.createClass({
 
 
   renderErrors(errors) {
+    if (errors === 'NEED_AUTH') {
+      return (
+        <span>
+          Nice Lineup! Before we save it, you'll need to
+          &nbsp;<a href={`/register/?next=${window.location.pathname}`}>register</a>
+          &nbsp;or <a href={`/login/?next=${window.location.pathname}`}>log in</a>.
+        </span>
+      );
+    }
+
     return forEach(errors, (error) => <span>{error}</span>);
   },
 
