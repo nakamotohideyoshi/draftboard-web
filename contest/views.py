@@ -26,7 +26,6 @@ from account.models import Limit
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
-    EmailConfirmed
 )
 from account.tasks import send_entry_alert_email
 from account.utils import create_user_log
@@ -460,7 +459,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
     enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
     """
     log_action = _account_const.CONTEST_ENTERED
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = EnterLineupSerializer
 
     def post(self, request, format=None):

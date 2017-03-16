@@ -15,6 +15,7 @@ import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import { verifyLocation } from '../../actions/user';
 import { addMessage } from '../../actions/message-actions.js';
+import { getLineupDraft } from '../../lib/lineup-drafts';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter } from
   '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId } from
@@ -103,7 +104,7 @@ const DraftContainer = React.createClass({
     filteredPlayers: React.PropTypes.array,
     filters: React.PropTypes.object.isRequired,
     focusPlayer: React.PropTypes.func,
-    importLineup: React.PropTypes.func,
+    importLineup: React.PropTypes.func.isRequired,
     lineups: React.PropTypes.object,
     newLineup: React.PropTypes.array,
     newLineupExtra: React.PropTypes.object,
@@ -143,7 +144,16 @@ const DraftContainer = React.createClass({
     // it isn't.
     this.props.verifyLocation();
     // load in draft group players and injuries and boxscores and stuff.
-    this.loadData();
+    // After that, look for an unsaved local lineup to import.
+    this.loadData().then(() => {
+      const lineup = this.lineupInProgress(this.props.params.draftgroupId);
+      if (lineup) {
+        log.info('in-progress lineup found, attempting to import.');
+        this.props.importLineup({ players: lineup });
+      }
+      return true;
+    });
+
     // Initialize the lazy image loader for all player images.
     this.lazyLoader = lazyLoadImage('.photo img');
   },
@@ -243,6 +253,11 @@ const DraftContainer = React.createClass({
         log.error(`lineup #${this.props.params.lineupId} not found.`);
       }
     }
+  },
+
+
+  lineupInProgress(draftGroupId) {
+    return getLineupDraft(draftGroupId);
   },
 
 

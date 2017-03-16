@@ -43,7 +43,7 @@ const config = Object.assign(
     },
     debug: true,
     cache: true,
-    devtool: 'eval-cheap-module-source-map',
+    devtool: 'cheap-module-source-map',
   }
 );
 

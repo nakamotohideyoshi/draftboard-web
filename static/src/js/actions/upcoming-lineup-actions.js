@@ -10,7 +10,7 @@ import uniqWith from 'lodash/uniqWith';
 import { validateLineup } from '../lib/lineup.js';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
-
+import { deleteLineupDraft } from '../lib/lineup-drafts';
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -130,20 +130,26 @@ export function createLineupInit(sport) {
 
 
 export function createLineupAddPlayer(player) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState();
+
     dispatch({
       type: actionTypes.CREATE_LINEUP_ADD_PLAYER,
       player,
+      draftGroupId: state.draftGroupPlayers.id,
     });
   };
 }
 
 
 export function removePlayer(playerId) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState();
+
     dispatch({
       type: actionTypes.CREATE_LINEUP_REMOVE_PLAYER,
       playerId,
+      draftGroupId: state.draftGroupPlayers.id,
     });
   };
 }
@@ -186,9 +192,17 @@ export function saveLineup(lineup, title, draftGroupId) {
       })
       .send(postData)
       .end((err, res) => {
+        if (res.status === 403) {
+          return dispatch(saveLineupFail({
+            detail: 'NEED_AUTH',
+          }));
+        }
+
         if (err) {
           dispatch(saveLineupFail(res.body));
         } else {
+          // Delete the lineup draft that is saved in localstorage.
+          deleteLineupDraft(draftGroupId);
           // Upon save success, send user to the lobby.
           window.location.href = `/contests/?action=lineup-saved&lineup=${res.body.lineup_id}`;
         }
@@ -296,19 +310,24 @@ export function importLineup(lineup, importTitle = false) {
     if (importTitle) {
       title = lineup.name;
     }
-
     // Since the lineup API endpoint 'player' doesn't have the same info as the DraftGruoup
     // 'player', we need to grab the corresponding DraftGroup player object and use that.
     forEach(lineup.players, (player) => {
+      let playerId = player.player_id;
+      if (!playerId && player.player) {
+        playerId = player.player.player_id;
+      }
+
       // Get the DraftGroup player
-      let DraftGroupPlayer = state.draftGroupPlayers.allPlayers[player.player_id];
+      let DraftGroupPlayer = state.draftGroupPlayers.allPlayers[playerId] || {};
       //  Copy and append the idx to the player.
       DraftGroupPlayer = merge({}, DraftGroupPlayer, { idx: player.idx });
       // push them into a list of players.
       players.push(DraftGroupPlayer);
     });
 
-    dispatch({
+
+    return dispatch({
       type: actionTypes.CREATE_LINEUP_IMPORT,
       players,
       title,

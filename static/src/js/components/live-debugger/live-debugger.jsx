@@ -45,18 +45,18 @@ const stubOtherLineup = {
   isLoading: false,
 };
 
-const stubDebugLineup = {
-  id: 5,
-  name: 'Debug Lineup',
-  fp: 50,
-  rank: 4,
-  potentialWinnings: 10,
-  timeRemaining: {
-    decimal: 0.91,
-    duration: 50,
-  },
-  isLoading: false,
-};
+// const stubDebugLineup = {
+//   id: 5,
+//   name: 'Debug Lineup',
+//   fp: 50,
+//   rank: 4,
+//   potentialWinnings: 10,
+//   timeRemaining: {
+//     decimal: 0.91,
+//     duration: 50,
+//   },
+//   isLoading: false,
+// };
 
 const stubContest = {
   name: 'Debug Contest',

@@ -40,15 +40,12 @@ from account.models import (
     EmailNotification,
     UserEmailNotification,
     SavedCardDetails,
-    Identity,
-    Confirmation,
     Limit
 )
 from account.permissions import (
     IsNotAuthenticated,
     HasIpAccess,
     HasVerifiedIdentity,
-    EmailConfirmed
 )
 from account.serializers import (
     LoginSerializer,
@@ -84,11 +81,7 @@ from pp.classes import (
 from pp.serializers import (
     VZeroDepositSerializer,
 )
-from trulioo.classes import (
-    Trulioo,
-    VerifyDataValidationError,
-    TruliooException
-)
+from trulioo.utils import (verify_user_identity, create_user_identity, )
 
 logger = logging.getLogger('account.views')
 
@@ -111,7 +104,8 @@ class AuthAPIView(APIView):
     authentication_classes = (BasicAuthentication,)
     serializer_class = LoginSerializer
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         args = request.data
         user = authenticate(username=args.get('username'),
                             password=args.get('password'))
@@ -125,7 +119,8 @@ class AuthAPIView(APIView):
         # the case they dont login properly
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
-    def delete(self, request, *args, **kwargs):
+    @staticmethod
+    def delete(request, *args, **kwargs):
         logout(request)
         return Response({}, status=status.HTTP_200_OK)
 
@@ -141,7 +136,8 @@ class ForgotPasswordAPIView(APIView):
     authentication_classes = (BasicAuthentication,)
     serializer_class = ForgotPasswordSerializer
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         #
         # validate this email is associated with a user in the db,
         # and if it is, send a password reset email to that account.
@@ -171,7 +167,8 @@ class PasswordResetAPIView(APIView):
     authentication_classes = (BasicAuthentication,)
     serializer_class = PasswordResetSerializer
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         args = request.data
         uid = args.get('uid')
         token = args.get('token')
@@ -179,41 +176,6 @@ class PasswordResetAPIView(APIView):
         if uid and token:
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-class RegisterAccountAPIView(generics.CreateAPIView):
-    """
-    Registers new users.
-
-        * |api-text| :dfs:`account/register/`
-    """
-    permission_classes = (IsNotAuthenticated,)
-
-    queryset = User.objects.all()
-    serializer_class = RegisterUserSerializer
-
-    def post(self, request, format=None):
-        data = request.data
-        serializer = RegisterUserSerializer(data=data)
-
-        if serializer.is_valid():
-            username = data.get('username')
-            email = data.get('email')
-            password = data.get('password')
-
-            user = User.objects.create(username=username, email=email)
-            user.set_password(password)
-            user.save()
-            # Make sure each user gets an information model.
-            Information.objects.create(user=user)
-            Confirmation.objects.create(user=user)
-            newUser = authenticate(username=user.username, password=password)
-            if newUser is not None:
-                account.tasks.send_confirmation_email.delay(user)
-                authLogin(request, newUser)
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserAPIView(generics.RetrieveAPIView):
@@ -248,7 +210,7 @@ class UserCredentialsAPIView(generics.GenericAPIView):
         user = self.request.user
         return user
 
-    def post(self, request, format=None):
+    def post(self, request):
         user = self.get_object()
         data = request.data
         serializer = self.serializer_class(user, data=data, partial=True)
@@ -301,14 +263,14 @@ class UserEmailNotificationAPIView(generics.GenericAPIView):
 
         return email_notif
 
-    def get(self, request, format=None):
+    def get(self, request):
         user_email_notifications = self.get_objects()
         serializer = UserEmailNotificationSerializer(user_email_notifications, many=True)
 
         return Response(serializer.data)
 
     # Update a list of UserEmailNotifications.
-    def post(self, request, format=None):
+    def post(self, request):
         errors = []
 
         # Run through each supplied UserEmailNotification, updating the 'enabled' field and saving.
@@ -838,7 +800,7 @@ class VZeroDepositView(APIView):
             "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = VZeroDepositSerializer
 
     def post(self, request, *args, **kwargs):
@@ -923,10 +885,28 @@ class VerifyLocationAPIView(APIView):
         return Response(data={"detail": "location and age verification passed"}, status=200, )
 
 
-class TruliooVerifyUserAPIView(APIView):
+class RegisterAccountAPIView(APIView):
     """
     verify the user is real based on the information specified.
     this will create a log of the trulioo transaction in the django admin
+
+    - Attempt to verify user identity with Trulioo.
+
+    if success:
+        - Attempt to create User account.
+
+        if success:
+            - Create user Identity.
+
+            if failure:
+                - return validation errors.
+
+        if failure:
+            - return validation errors
+
+    if failure:
+        - return Identity validation errors
+
 
     example POST param (JSON):
 
@@ -934,129 +914,56 @@ class TruliooVerifyUserAPIView(APIView):
         "postal_code": "11111", "ssn": '111-11-1111'}
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess,)
-    serializer_class = TruliooVerifyUserSerializer
+    permission_classes = ()
+    trulioo_serializer_class = TruliooVerifyUserSerializer
+    register_user_serializer_class = RegisterUserSerializer
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         # use the serializer to validate the arguments
-        serializer = self.serializer_class(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        # get the django user
-        user = self.request.user
-        logger.debug(serializer.validated_data)
+        trulioo_serializer = self.trulioo_serializer_class(data=self.request.data)
+        trulioo_serializer.is_valid(raise_exception=True)
+        logger.debug(trulioo_serializer.validated_data)
         # Grab the data out of the serializer. it will be validated and whitespace-trimmed.
-        first = serializer.validated_data.get('first')
-        last = serializer.validated_data.get('last')
-        birth_day = serializer.validated_data.get('birth_day')
-        birth_month = serializer.validated_data.get('birth_month')
-        birth_year = serializer.validated_data.get('birth_year')
-        postal_code = serializer.validated_data.get('postal_code')
+        first = trulioo_serializer.validated_data.get('first')
+        last = trulioo_serializer.validated_data.get('last')
+        birth_day = trulioo_serializer.validated_data.get('birth_day')
+        birth_month = trulioo_serializer.validated_data.get('birth_month')
+        birth_year = trulioo_serializer.validated_data.get('birth_year')
+        postal_code = trulioo_serializer.validated_data.get('postal_code')
 
-        # First check if we have an existing user match in our DB.
-        # It is hiiighly unlikely that we'll have 2 users with the same
-        # last name, DOB, & postal code. If we do, they can be manually added.
-        existing_identities = Identity.objects.filter(
-            first_name__iexact=first,
-            last_name__iexact=last,
-            birth_day=birth_day,
-            birth_month=birth_month,
-            birth_year=birth_year,
-            postal_code=postal_code,
-        )
+        # - Attempt to verify user identity with Trulioo.
+        #       This will raise exceptions + validation errors if the verification failed.
+        verify_user_identity(first, last, birth_day, birth_month, birth_year, postal_code)
 
-        # If the identity is already claimed, log and return errror message.
-        if existing_identities.exists():
-            logger.warning("IDENTITY_VERIFICATION_EXISTS - user: %s" % self.request.user)
-            create_user_log(
-                request=request,
-                type=_account_const.AUTHENTICATION,
-                action=_account_const.IDENTITY_VERIFICATION_EXISTS,
-                metadata={'detail': """User attampted to claim an identity that already exists in
-                            our database.""", }
-            )
-            raise ValidationError({
-                "detail": "Unable to verify your identity. Please contact support@draftboard.com"})
+        # - Attempt to create User account.
+        user_serializer = self.register_user_serializer_class(data=request.data)
+        if user_serializer.is_valid(raise_exception=True):
+            username = user_serializer.validated_data.get('username')
+            email = user_serializer.validated_data.get('email')
+            password = user_serializer.validated_data.get('password')
 
-        # Search for similar identities
-        # Trulioo has some leeway when verifying identites. For instance it will match "dan" as
-        # "daniel". Or a user could enter an old postal code and it will verify. What we want to do
-        # is flag the users that have slightly different info from any identities we have already
-        # verified. When a flagged identity is created, a notification is sent to the site admin
-        # for manual investigation.
-        # Truliio doesn't let you fudge birthdate or last name, so if we encounter someone with the
-        # same ones, flag em.
-        similar_identity_exists = Identity.objects.filter(
-            birth_day=birth_day,
-            birth_month=birth_month,
-            birth_year=birth_year,
-            last_name__iexact=last,
-        ).exists()
+            user = User.objects.create(username=username, email=email)
+            user.set_password(password)
+            user.save()
+            # Make sure each user gets an information model.
+            Information.objects.create(user=user)
+            new_user = authenticate(username=user.username, password=password)
 
-        # use Trulioo class to verify the user
-        verified = False
+            # Log user in.
+            if new_user is not None:
+                authLogin(request, new_user)
 
-        try:
-            t = Trulioo()
-            verified = t.verify_minimal(
-                first=first, last=last, birth_day=birth_day, birth_month=birth_month,
-                birth_year=birth_year, postal_code=postal_code, user=user)
-        # Send data validation exceptions back through the API.
-        except VerifyDataValidationError as e:
-            logger.warning("%s - user: %s" % (e, self.request.user))
-            raise ValidationError({"detail": str(e)})
-
-        # There was a data validation error sent back from Trulioo.
-        except TruliooException as e:
-            logger.warning("%s - user: %s" % (e, self.request.user))
-            raise ValidationError({"detail": str(e)})
-
-        # Log all others before sending the user a generic response.
-        except Exception as e:
-            logger.warning("%s - user: %s" % (e, self.request.user))
-            client.captureException()
-            raise APIException(
-                'User verification was unsuccessful. Please contact support@draftboard.com')
-
-        if verified is False:
-            logger.warning('IDENTITY_VERIFICATION_FAILED - no match found. user: %s' % (
-                self.request.user))
-            # Create a user log for the failed attempt.
-            create_user_log(
-                request=request,
-                type=_account_const.AUTHENTICATION,
-                action=_account_const.IDENTITY_VERIFICATION_FAILED,
-                metadata={
-                    'detail': 'No identity match was found for provided info.',
-                }
-            )
-
-            raise ValidationError(
-                'User verification was unsuccessful. Please contact support@draftboard.com')
+            # DO NOT respond yet. we still need to save the user's Identity below.
+        else:
+            # If there were user user_serializer, send em back to the user.
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # If the verification request was successful...
         #
         # Save the information so we can do multi-account checking.
-        identity = Identity(
-            user=request.user, first_name=first, last_name=last, birth_day=birth_day,
-            birth_month=birth_month, birth_year=birth_year, postal_code=postal_code,
-            flagged=similar_identity_exists)
-        identity.save()
-        if similar_identity_exists:
-            logger.warning("SIMILAR_IDENTITY_EXISTS - user: %s" % self.request.user)
-        logger.info("IDENTITY_VERIFICATION_SUCCESS - user: %s" % self.request.user)
-        # Create a user log for the verification.
-        create_user_log(
-            request=request,
-            type=_account_const.AUTHENTICATION,
-            action=_account_const.IDENTITY_VERIFICATION_SUCCESS,
-            metadata={
-                'detail': 'An identity match was found.',
-                'UserIdentity.pk:': identity.pk,
-            }
-        )
-
+        create_user_identity(new_user, first, last, birth_day, birth_month, birth_year, postal_code)
         # return success response if everything went ok
-        return Response(data={"detail": "Identity Verified"}, status=200)
+        return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
 
 
 class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
@@ -1120,21 +1027,6 @@ class ExclusionFormView(FormView):
         return super().form_valid(form)
 
 
-class ConfirmUserEmailView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/confirmation.html'
-
-    def get(self, request, *args, **kwargs):
-        uid = force_text(urlsafe_base64_decode(kwargs.get('uid'))).replace(settings.SECRET_KEY, "")
-        try:
-            confirmation = Confirmation.objects.get(pk=uid)
-        except Confirmation.DoesNotExist:
-            return self.render_to_response({'message': 'Confirmation key not found'}, )
-        if confirmation:
-            confirmation.confirmed = True
-            confirmation.save()
-            return self.render_to_response({'message': 'Successful confirmation'}, )
-
-
 class UserLimitsAPIView(APIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     serializer_class = UserLimitsSerializer
@@ -1178,7 +1070,7 @@ class UserLimitsAPIView(APIView):
                         return JsonResponse(data={
                             "detail": "Not allowed to change limits until {}".format(
                                 change_allowed_on.strftime('%Y-%m-%d %I:%M %p'))}, status=400,
-                                            safe=False)
+                            safe=False)
 
         else:
             serializer = self.serializer_class(data=self.request.data, many=True)
