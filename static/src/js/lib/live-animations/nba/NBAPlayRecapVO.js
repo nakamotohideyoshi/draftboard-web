@@ -258,23 +258,28 @@ export default class NBAPlayRecapVO {
     }
 
     if (stats.hasOwnProperty('block__list')) {
-      players.push({ type: 'defense', name: 'FPO Blocker', id: stats.block__list.player });
+      players.push({ type: 'defense', id: stats.block__list.player });
     } else if (stats.hasOwnProperty('steal__list')) {
-      players.push({ type: 'defense', name: 'FPO Stealer', id: stats.steal__list.player });
+      players.push({ type: 'defense', id: stats.steal__list.player });
     }
 
     if (stats.hasOwnProperty('rebound__list')) {
-      players.push({ type: 'rebound', name: 'FPO Rebound', id: stats.rebound__list.player });
+      players.push({ type: 'rebound', id: stats.rebound__list.player });
     }
 
     if (stats.hasOwnProperty('fieldgoal__list')) {
-      players.push({ type: 'offense', name: 'FPO Shooter', id: stats.fieldgoal__list.player });
+      players.push({ type: 'offense', id: stats.fieldgoal__list.player });
     } else if (stats.hasOwnProperty('freethrow__list')) {
-      players.push({ type: 'offense', name: 'FPO Shooter', id: stats.freethrow__list.player });
+      players.push({ type: 'offense', id: stats.freethrow__list.player });
     } else if (stats.hasOwnProperty('turnover__list')) {
-      players.push({ type: 'offense', name: 'FPO Offense', id: stats.turnover__list.player });
+      players.push({ type: 'offense', id: stats.turnover__list.player });
     }
 
-    return players;
+    return players.map(playerInfo => {
+      const obj = playerInfo;
+      obj.name = this._obj.playerNames[obj.id] || '';
+
+      return obj;
+    });
   }
 }
