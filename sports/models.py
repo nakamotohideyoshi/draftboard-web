@@ -1,20 +1,18 @@
 #
 # sports/models.py
 
-from django.db import models
-from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-import re
-from django.core.cache import cache
-from django.dispatch import Signal, receiver
-from django.db.models.signals import pre_save
-from dirtyfields import DirtyFieldsMixin
-import django.core.exceptions
-
 import json
-from django.core import serializers  # we will serialize select models, mainly for api use
+import re
+
+import django.core.exceptions
 from dateutil.parser import parse
+from dirtyfields import DirtyFieldsMixin
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.core import serializers  # we will serialize select models, mainly for api use
+from django.core.cache import cache
+from django.db import models
+from django.dispatch import Signal
 
 
 class SignalNotSetupProperlyException(Exception):
@@ -326,7 +324,7 @@ class Player(models.Model):
 
     lineup_nickname = models.CharField(
         max_length=64, default='', editable=True, blank=True,
-       help_text='sets the the automatically generated name for lineups using this player')
+        help_text='sets the the automatically generated name for lineups using this player')
 
     # True indicates this player is on a teams roster currently,
     # False indicates the player is NOT associated with a professional team!
@@ -345,10 +343,8 @@ class Player(models.Model):
         return False
 
     def __str__(self):
-        return '<Player: %s %s | position: %s | on_active_roster: %s>' % (self.first_name,
-                                                                         self.last_name,
-                                                                         str(self.position),
-                                                                         str(self.on_active_roster))
+        return '<Player: %s %s | position: %s>' % (
+            self.first_name, self.last_name, self.position)
 
     class Meta:
         abstract = True
@@ -467,11 +463,11 @@ class PlayerStats(models.Model):
 
     def __str__(self):
         return '<PlayerStats> game %s | player %s | fantasy_points %s | %s | last change (%s)' % (
-        self.srid_game,
-        self.srid_player,
-        self.fantasy_points,
-        str(self.player),
-        str(self.fp_change))
+            self.srid_game,
+            self.srid_player,
+            self.fantasy_points,
+            str(self.player),
+            str(self.fp_change))
 
     def save(self, *args, **kwargs):
         if self.FANTASY_POINTS_OVERRIDE in kwargs:
@@ -590,7 +586,7 @@ class TsxContent(models.Model):
 
     def __str__(self):
         return '<Pbp> sport: %s | srid: %s | created:%s' % (
-        self.sport, self.srid, str(self.created))
+            self.sport, self.srid, str(self.created))
 
     class Meta:
         unique_together = ('srid', 'sport')

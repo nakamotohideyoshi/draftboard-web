@@ -17,21 +17,46 @@ class UpdateDataTest(AbstractTest):
         super().setUp()
 
     def test_1(self):
-        data_str = """{"id": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
-                "datetimeUtc": "2016-08-16 22:11:55", "sportId": 2, "sport": "NFL", "teamId": 348, "teamAbbr": "NE",
-                "playerId": 381091, "playerName": "Rob Gronkowski", "position": "TE",
-                "text": "Rob Gronkowski: The unspecified injury that caused Gronkowski to miss practice Tuesday is being described as a bruise, the  Boston Herald reports.",
-                "type": null, "sourceId": 5, "source": "rotowire", "sourceOrigin": "rotowire",
-                "urlOrigin": "https://rotowire.com", "swishStatusId": 9, "swishStatus": "week-to-week",
-                "swishStatusConfidence": 0.344101}"""
+        data_str = """{
+      "Id": 260283,
+      "DateTime": "2017-03-12T06:40:47-07:00",
+      "Priority": 3,
+      "Headline": "Double-doubles in Saturday loss",
+      "Notes": "Pachulia offered 11 points (4-9 FG, 3-5 FT), 12 rebounds, two assists, one steal and one block over 20 minutes in Saturday's 107-85 loss to the Spurs.",
+      "Analysis": "The veteran big man was one of only two current Warriors starters to take the floor Saturday, and he responded with his best scoring and rebound totals in six March contests. The final line also represented Pachulia's first double-double since Dec. 22 and just his third of the season overall. Despite the one-night boost in fantasy production, Pachulia's owners should expect his numbers to see a slight downturn any time the entire first unit is active.",
+      "Injury": {
+        "Status": null,
+        "Type": null,
+        "Location": null,
+        "Detail": null,
+        "Side": null,
+        "ReturnDate": null
+      },
+      "Player": {
+        "Id": 2391,
+        "SportsDataId": "48a2b27a-87a2-4051-ad03-c95a026ca772",
+        "FirstName": "Zaza",
+        "LastName": "Pachulia",
+        "Position": "C         ",
+        "InjuryStatus": null,
+        "Link": "http://www.rotowire.com/basketball/player.htm?id=2391"
+      },
+      "Team": {
+        "Id": 22,
+        "Code": "GS",
+        "SportsDataId": "583ec825-fb46-11e1-82cb-f4ce4684ea4c",
+        "Name": "Golden State Warriors",
+        "Nickname": "Warriors"
+      }
+    }"""
         data = json.loads(data_str)
         ud = UpdateData(data)
         updated_at = ud.get_updated_at()
         self.assertEquals(updated_at.tzinfo, UtcTime.TZ_UTC)
-        self.assertEquals(ud.get_update_id(), str(data.get('id')))
+        self.assertEquals(ud.get_update_id(), str(data.get('Id')))
 
         # get a random field and make sure get_field() works
-        self.assertIsNotNone(ud.get_field(UpdateData.field_player_name))
+        self.assertIsNotNone(ud.get_player_name())
 
 
 class SwishTest(AbstractTest):

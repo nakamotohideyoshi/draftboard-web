@@ -214,14 +214,24 @@ class PayoutManager(AbstractManagerClass):
         if rake_post_overlay > 0:
             #
             # Take cash out of escrow and deposit it into draftboard
+            logger.info(
+                ('We made money on this contest, creating a Rake '
+                 'transaction for $%s. contest: %s') % (rake_post_overlay, contest))
+
             escrow_withdraw_trans = CashTransaction(self.get_escrow_user())
             escrow_withdraw_trans.withdraw(rake_post_overlay)
             draftboard_deposit_trans = CashTransaction(self.get_draftboard_user())
             draftboard_deposit_trans.deposit(rake_post_overlay, trans=escrow_withdraw_trans.transaction)
             rake_transaction = escrow_withdraw_trans.transaction
+
+        # We lost money on rake. :(
         elif rake_post_overlay < 0:
             #
             # Take cash out of draftboard and deposit it into escrow
+            logger.info(
+                ('We lost money on this contest, creating a Rake '
+                 'transaction for $%s. contest: %s') % (rake_post_overlay, contest))
+
             rake_post_overlay = abs(rake_post_overlay)
             draftboard_withdraw_trans = CashTransaction(self.get_draftboard_user())
             draftboard_withdraw_trans.withdraw(rake_post_overlay)
@@ -229,11 +239,17 @@ class PayoutManager(AbstractManagerClass):
             escrow_deposit_trans.deposit(rake_post_overlay, trans=draftboard_withdraw_trans.transaction)
             rake_transaction = draftboard_withdraw_trans.transaction
 
-        # links the contest with the rake payout
-        rake = Rake()
-        rake.contest = contest
-        rake.transaction = rake_transaction
-        rake.save()
+        # We broke even on this contest, don't create a rake transaction below.
+        elif rake_post_overlay == 0:
+            logger.info(
+                'No rake was collected, not creating a Rake transaction. contest: %s' % contest)
+
+        if rake_transaction:
+            # links the contest with the rake payout
+            rake = Rake()
+            rake.contest = contest
+            rake.transaction = rake_transaction
+            rake.save()
 
         contest.status = Contest.CLOSED
         contest.save()
