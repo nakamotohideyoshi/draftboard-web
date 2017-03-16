@@ -86,7 +86,7 @@ const ContestListDetail = React.createClass({
 
   getInitialState() {
     return {
-      activeTab: 'entries',
+      activeTab: 'my_entries',
     };
   },
 
@@ -146,7 +146,7 @@ const ContestListDetail = React.createClass({
         return 'No boxscore info';
       }
 
-      case 'entries': {
+      case 'my_entries': {
         return (
           <EntryList
             entries={this.props.focusedContestInfo.contest.entryInfo}
@@ -173,8 +173,9 @@ const ContestListDetail = React.createClass({
   // the hassle right now.
   getTabNav() {
     const tabs = [
-      { title: 'My Entries', tab: 'entries' },
-      { title: 'Payout', tab: 'prizes' },
+      { title: 'My Entries', tab: 'my_entries' },
+      { title: 'Entries', tab: 'entries' },
+      { title: 'Prizes', tab: 'prizes' },
       { title: 'Games', tab: 'games' },
       { title: 'Scoring', tab: 'scoring' },
     ];

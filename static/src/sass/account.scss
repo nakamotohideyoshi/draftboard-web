@@ -5,9 +5,8 @@ $red: #d83036;
 $green: #34cc68;
 $grey-dark: #5d6072;
 
-$width-left: 490px;  // minimum width from comp
+$width-left: 490px; // minimum width from comp
 $account-height: 600px;
-
 
 .account {
   // this section is in the __content but above the v-middle on the screen
@@ -45,11 +44,11 @@ $account-height: 600px;
     min-height: 100%;
     position: relative;
     text-align: center;
-    width: 34%;  // ratio from comp, 982px/2880px
+    width: 34%; // ratio from comp, 982px/2880px
     z-index: 1;
 
     &__content {
-      padding-bottom: 150px;  // max height of footer
+      padding-bottom: 150px; // max height of footer
 
       &__checkmark-success {
         width: 250px;
@@ -75,11 +74,46 @@ $account-height: 600px;
         // this sizes makes sure the biggest form (registration) is kept intact
         min-height: 350px;
 
+        .split_field_group {
+          text-align: left;
+          .account__left__content__form__input-layout {
+            width: 48%;
+            display: inline-block;
+
+            &:first-child {
+              margin-right: 4%;
+            }
+          }
+        }
+
+        .birth-date {
+          label {
+            display: block;
+            padding-bottom: 5px;
+          }
+
+          .birth-day {
+            margin: 0 10px;
+            width: 80px;
+          }
+
+          .birth-month {
+            margin: 0 10px 0 0;
+            width: 80px;
+          }
+
+          .birth-year {
+            margin: 0 10px;
+            width: 110px;
+          }
+        }
+
         &__non-field-errors {
           font-size: 12px;
           color: #fff;
           background: #e33c3c;
-          padding: 10px 0;
+          padding: 10px;
+          margin-top: 10px;
         }
 
         &__input-layout {
@@ -88,10 +122,10 @@ $account-height: 600px;
           margin-top: 15px;
 
           p {
-            display: inline-block;
             font-size: 12px;
             font-family: $font-open-sans;
-            text-align: left;
+            text-align: center;
+            margin: 10px auto;
             width: 70%;
             vertical-align: top;
           }
@@ -136,37 +170,7 @@ $account-height: 600px;
           }
 
           input[type=submit] {
-            display: inline-block;
             width: 100%;
-            padding: 12px 0;
-            vertical-align: middle;
-
-            color: $white;
-            font-size: 11px;
-            font-family: $font-open-sans;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-align: center;
-            text-decoration: none;
-            white-space: nowrap;
-
-            border: none;
-            border-radius: 2px;
-            background-image: linear-gradient(0deg, rgb(33,157,135) 0%, rgb(52,204,104) 100%);
-            box-shadow: 0px 24px 57px 0px rgba(21, 89, 65, 0.38);
-            margin: 20px 0 58px;
-
-            cursor: pointer;
-            transition: all 0.2s;
-            touch-action: manipulation;
-
-            &:hover,
-            &:focus {
-              transition: none;
-              outline-width: 0;
-              opacity: .9;
-            }
           }
 
           input[type=checkbox] {
@@ -246,7 +250,7 @@ $account-height: 600px;
 
   &__right {
     background: url(../img/blocks/account/register/bg.jpg) no-repeat top right;
-    background-size: auto 100%;  // default to height 100%, media query covers aspect >= 1:1
+    background-size: auto 100%; // default to height 100%, media query covers aspect >= 1:1
     height: 100%;
     overflow: hidden;
     position: fixed;
@@ -258,7 +262,7 @@ $account-height: 600px;
       background: url(../img/blocks/live-countdown/glow.png) no-repeat center center;
       background-size: 100% auto;
       margin: 0 auto;
-      padding-bottom: 70%;  // important! same height as width via padding-bottom
+      padding-bottom: 70%; // important! same height as width via padding-bottom
       position: relative;
       top: 50%;
       transform: translateY(-50%);
@@ -310,7 +314,6 @@ $account-height: 600px;
   }
 }
 
-
 // ratio of width/height that requires change of background to be width 100%
 @media (min-aspect-ratio: 21/12) {
   .account__right {
@@ -335,7 +338,6 @@ $account-height: 600px;
   }
 }
 
-
 @media (max-width: 1024px) {
   .account {
     &__left {
@@ -350,7 +352,7 @@ $account-height: 600px;
       width: 56%;
 
       &__inner {
-        width: 80%;  // since width of __right goes up 10%, so does this
+        width: 80%; // since width of __right goes up 10%, so does this
       }
     }
   }
@@ -361,11 +363,9 @@ $account-height: 600px;
   .account__left__content__form__input-layout input[type=text],
   .account__left__content__form__input-layout input[type=email],
   .account__left__content__form__input-layout input[type=password] {
-    padding: 10px 0 14px;
+    padding: 0 0 5px;
   }
 }
-
-
 
 @media (max-width: 768px) {
   .account {

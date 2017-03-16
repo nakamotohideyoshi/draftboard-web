@@ -1,7 +1,8 @@
+from django import forms
 from django.contrib import admin
+
 import sports.admin
 import sports.nba.models
-from django import forms
 
 
 @admin.register(sports.nba.models.Team)
@@ -15,6 +16,7 @@ class GameAdmin(admin.ModelAdmin):
     list_filter = sports.admin.GameAdmin.list_filter
     search_fields = sports.admin.GameAdmin.search_fields
     ordering = ['-start']
+
 
 @admin.register(sports.nba.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
@@ -48,11 +50,12 @@ class PlayerLineupNameAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nba.models.PlayerStats)
 class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
-    list_display = ['game', 'player', 'fantasy_points', 'points', 'three_points_made', 'rebounds', 'assists', 'steals',
+    list_display = ['game', 'player', 'fantasy_points', 'points', 'three_points_made', 'rebounds',
+                    'assists', 'steals',
                     'blocks', 'turnovers']
 
     # list_filter     = sports.admin.PlayerStatsAdmin.list_filter   # + ('',)
-    search_fields = sports.admin.PlayerStatsAdmin.search_fields  # + ('more','specific','fields...',)
+    search_fields = sports.admin.PlayerStatsAdmin.search_fields
     ordering = sports.admin.PlayerStatsAdmin.ordering  # + ['more']
 
 

@@ -35,17 +35,6 @@ def send_password_reset_email(self, user, https=True):
               settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
-@app.task(bind=True)
-def send_confirmation_email(self, user, https=True):
-    uid = encode_uid(str(user.confirmation.pk) + settings.SECRET_KEY)
-    site = settings.SITE
-    protocol = 'https' if https else 'http'
-    url = '%s://%s/%s' % (protocol, site, reverse('join-confirmation', kwargs={'uid': uid}))
-    send_mail('user confirmation',
-              'hey, you have joined the site, go to following link to confirm your registration: ' + url,
-              settings.DEFAULT_FROM_EMAIL, [user.email])
-
-
 @app.task
 def inactive_users_email(users):
     if settings.INACTIVE_USERS_EMAILS:

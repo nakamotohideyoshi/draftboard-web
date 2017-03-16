@@ -30,15 +30,22 @@ def create_user_log(request=None, type=None, action=None, metadata={}, user=None
     """
     Create a UserLog entry
     """
+    if user is None:
+        logger.info('Not creating UserLog, no user was supplied.')
+        return
+
     # Make sure whatever we are doing doesn't die because of a UserLog failure.
     try:
         log_data = {}
+        if request:
+            log_data['ip'] = get_client_ip(request)
         log_data['type'] = type
         log_data['action'] = action
         log_data['metadata'] = metadata
-        log_data['ip'] = get_client_ip(request)
         log_data['user'] = user or request.user
-        UserLog.objects.create(**log_data)
+        # Don't create a user log for anonymous users.
+        if log_data['user'].is_authenticated():
+            UserLog.objects.create(**log_data)
 
     # If the log creation failed, capture the exception and log it to both
     # Sentry and the django logger.

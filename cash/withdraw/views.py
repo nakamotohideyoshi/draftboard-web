@@ -12,7 +12,7 @@ from mysite.exceptions import (
     MaxCurrentWithdrawsException,
     CashoutWithdrawOutOfRangeException,
 )
-from account.permissions import (HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+from account.permissions import (HasIpAccess, HasVerifiedIdentity)
 from account import const as _account_const
 from account.utils import create_user_log
 
@@ -58,7 +58,7 @@ class PayPalWithdrawAPIView(APIView):
 
     """
 
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = PayPalWithdrawSerializer
 
     def post(self, request, *args, **kwargs):

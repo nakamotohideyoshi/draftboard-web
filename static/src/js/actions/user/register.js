@@ -10,13 +10,19 @@ const { API_DOMAIN = '' } = process.env;
 
 /**
  * Fetch wrapper to register a user at /api/account/register/
- * @param  {string} email           Email address
- * @param  {string} username        Wanted username
- * @param  {string} password        Pass
- * @param  {string} passwordConfirm Pass that matches password field
- * @return {mixed}                  True if successful, error json if not
+
+ * @param first
+ * @param last
+ * @param birthDay
+ * @param birthMonth
+ * @param birthYear
+ * @param postalCode
+ * @param email
+ * @param username
+ * @param password
  */
-export const registerUser = (email, username, password, passwordConfirm) =>
+export const registerUser = (first, last, birthDay, birthMonth, birthYear, postalCode, email,
+      username, password) =>
   fetch(`${API_DOMAIN}/api/account/register/`, {
     credentials: 'same-origin',
     method: 'POST',
@@ -26,10 +32,15 @@ export const registerUser = (email, username, password, passwordConfirm) =>
       'X-CSRFToken': Cookies.get('csrftoken'),
     },
     body: JSON.stringify({
+      first,
+      last,
       email,
-      password,
-      password_confirm: passwordConfirm,
       username,
+      password,
+      birth_day: birthDay,
+      birth_month: birthMonth,
+      birth_year: birthYear,
+      postal_code: postalCode,
     }),
   }).then(response => {
     // First, reject a response that isn't in the 200 range.

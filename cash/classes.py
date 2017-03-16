@@ -1,15 +1,13 @@
-#
-# cash/classes.py
-
-import cash.models
-from transaction.classes import AbstractTransaction, CanDeposit
-from transaction.models import TransactionType
-from transaction.constants import TransactionTypeConstants
-from cash.exceptions import OverdraftException
-from dfslog.classes import Logger, ErrorCodes
+import datetime
 
 from django.db import models
-import datetime
+
+import cash.models
+from cash.exceptions import OverdraftException
+from dfslog.classes import Logger, ErrorCodes
+from transaction.classes import AbstractTransaction, CanDeposit
+from transaction.constants import TransactionTypeConstants
+from transaction.models import TransactionType
 
 
 class CashTransaction(CanDeposit, AbstractTransaction):
@@ -18,6 +16,7 @@ class CashTransaction(CanDeposit, AbstractTransaction):
     This class handles all dealings with accounting for managing the cash
     finances.
     """
+
     def __init__(self, user):
         super().__init__(user)
         self.transaction_detail_class = cash.models.CashTransactionDetail
@@ -34,10 +33,10 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         #
         # allow the site to overdraft itself to allow it to keep running.
         if self.user == self.get_escrow_user() or self.user == self.get_draftboard_user():
-            #TODO send email to notify of overdraft
+            # TODO send email to notify of overdraft
             return True
 
-        if(cash_balance < amount):
+        if (cash_balance < amount):
             return False
         return True
 
@@ -61,18 +60,19 @@ class CashTransaction(CanDeposit, AbstractTransaction):
 
         #
         # Validate the user has the funds for the withdrawal
-        if(not self.check_sufficient_funds( amount)):
+        if (not self.check_sufficient_funds(amount)):
             raise OverdraftException(self.user.username)
 
         #
-        #creates the transaction
+        # creates the transaction
         category = TransactionType.objects.get(
             pk=TransactionTypeConstants.CashWithdraw.value)
         #
         # makes the amount negative because it is a withdrawal
-        self.create(category,-amount, trans)
+        self.create(category, -amount, trans)
 
-        msg = "User["+self.user.username+"] withdrew $"+str(amount)+" from their cash account."
+        msg = "User[" + self.user.username + "] withdrew $" + str(
+            amount) + " from their cash account."
         Logger.log(ErrorCodes.INFO, "Cash Withdraw", msg)
 
     def deposit(self, amount, category=None, trans=None):
@@ -92,12 +92,13 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         self.validate_amount(amount)
 
         #
-        #creates the transaction
-        if(category == None):
+        # creates the transaction
+        if category == None:
             category = TransactionType.objects.get(pk=TransactionTypeConstants.CashDeposit.value)
         self.create(category, amount, trans)
 
-        msg = "User["+self.user.username+"] deposited $"+str(amount)+" into their cash account."
+        msg = "User[" + self.user.username + "] deposited $" + str(
+            amount) + " into their cash account."
         Logger.log(ErrorCodes.INFO, "Cash Deposit", msg)
 
     def deposit_braintree(self, amount, braintree_transaction):
@@ -131,14 +132,14 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         bal = self.get_balance_amount()
         return '${:,.2f}'.format(bal)
 
-    def get_withdrawal_count(self, past_days ):
+    def get_withdrawal_count(self, past_days):
         """
         Gets the count of withdrawals for the user in the past X days.
 
         :param past_days: The number of days since today to get the count.
         :return: the number of withdrawals in the past X days
         """
-        if(past_days <=0):
+        if past_days <= 0:
             return 0
         category = TransactionType.objects.get(
             pk=TransactionTypeConstants.CashWithdraw.value
@@ -151,7 +152,7 @@ class CashTransaction(CanDeposit, AbstractTransaction):
             transaction__category=category
         ).count()
 
-    def get_withdrawal_amount_current_year(self ):
+    def get_withdrawal_amount_current_year(self):
         """
         Gets the currents years profit for a given user.
         :return: dollars withdrawn for the year - deposits

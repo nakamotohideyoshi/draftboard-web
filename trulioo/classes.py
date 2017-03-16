@@ -1,21 +1,23 @@
 #
 # classes.py
 
-from django.conf import settings
-from util.timesince import timeit
 import json
-import requests
-from trulioo.models import Verification
 import logging
 
+import requests
+from django.conf import settings
+
+from trulioo.models import Verification
+from util.timesince import timeit
+
 logger = logging.getLogger('trulioo.classes')
+
 
 # this allegedly lists some of the required/optional fields of the Normalized API:
 #   https://portal.globaldatacompany.com/NormalizedApiGuidelines/Report?configurationName=Identity%20Verification&Country=US
 
 
 class DataWithSetField(object):
-
     data = None  # child class will override this dict
 
     def set_field(self, field, obj):
@@ -61,9 +63,9 @@ class CommunicationData(DataWithSetField):
 
     def __init__(self):
         self.data = {
-            self.field_mobile_number: "",        # string
-            self.field_telephone: "",            # string
-            self.field_email_address: "",        # string
+            self.field_mobile_number: "",  # string
+            self.field_telephone: "",  # string
+            self.field_email_address: "",  # string
         }
 
 
@@ -76,8 +78,8 @@ class PersonInfoData(DataWithSetField):
     """
     field = 'PersonInfo'
 
-    field_first_given_name = 'FirstGivenName'               # first name OR initial
-    field_middle_name = 'MiddleName'                        # first name OR initial
+    field_first_given_name = 'FirstGivenName'  # first name OR initial
+    field_middle_name = 'MiddleName'  # first name OR initial
     field_first_surname = 'FirstSurName'
     field_second_surname = 'SecondSurname'
     field_iso_latin1_name = 'ISOLatin1Name'
@@ -85,7 +87,7 @@ class PersonInfoData(DataWithSetField):
     field_month_of_birth = 'MonthOfBirth'  # integer
     field_year_of_birth = 'YearOfBirth'  # integer
     field_minimum_age = 'MinimumAge'  # integer
-    field_gender = 'Gender'                                 # Single character M / F
+    field_gender = 'Gender'  # Single character M / F
     field_additional_fullname = 'FullName'
 
     def __init__(self):
@@ -145,7 +147,7 @@ class VerifyData(DataWithSetField):
                 # "sample string 1",
                 # "sample string 2"
             ],
-            self.field_country_code: None,       # "sample string 6",
+            self.field_country_code: None,  # "sample string 6",
             self.field_data_fields: {},
 
             #
@@ -178,13 +180,12 @@ class VerifyData(DataWithSetField):
         if data_fields is None or data_fields == {}:
             raise VerifyDataValidationError(self.field_data_fields + ' is None or empty {}')
 
-        # for f in self.required_data_fields_subfields:
-        #     if self.data[self.field_data_fields].get(f) is None:
-        #         raise self.VerifyDataValidationError(f + ' must be set! it was None.')
+            # for f in self.required_data_fields_subfields:
+            #     if self.data[self.field_data_fields].get(f) is None:
+            #         raise self.VerifyDataValidationError(f + ' must be set! it was None.')
 
 
 class TruliooResponse(object):
-
     field_record = 'Record'
     field_transaction_id = 'TransactionID'
     field_record_status = 'RecordStatus'
@@ -244,20 +245,23 @@ class Trulioo(object):
 
     api_base_url = settings.TRULIOO_API_BASE_URL
 
-    url_test_connection = '/connection/v1/sayhello/draftboard'      # GET
-    url_test_authentication = '/connection/v1/testauthentication'   # GET
-    url_verify = '/verifications/v1/verify'                         # POST
+    url_test_connection = '/connection/v1/sayhello/draftboard'  # GET
+    url_test_authentication = '/connection/v1/testauthentication'  # GET
+    url_verify = '/verifications/v1/verify'  # POST
+    user = None
 
-    def __init__(self):
+    def __init__(self, user=None):
         self.session = requests.Session()
         self.r = None  # save the last server response
         self.response_json = None
         self.verification_model = None
+        self.user = user
 
     def build_url(self, endpoint):
         return '%s%s' % (self.api_base_url, endpoint)
 
-    def r_to_json(self, r):
+    @staticmethod
+    def r_to_json(r):
         j = json.loads(r.text)
         return j
 
@@ -304,7 +308,7 @@ class Trulioo(object):
         # check the response for errors
         if isinstance(response, str):
             err_msg = 'Trulioo API error: %s' % response
-            logger.warn(err_msg)
+            logger.warning(err_msg)
             raise TruliooException(err_msg)
         errors1 = response.get('ModelState')
         if errors1 is not None:
@@ -375,18 +379,25 @@ class Trulioo(object):
         tr = TruliooResponse(self.response_json)
         record_status = tr.get_record_status()
 
-        # if the user was passed in, then save a Verification model instance of this verification
-        self.verification_model = self.save_verification(user, tr)
+        if user:
+            logger.debug('saving identity varification for user: %s', user)
+            # if the user was passed in, then save a Verification model instance of
+            # this verification
+            self.verification_model = self.save_verification(user, tr)
+        else:
+            logger.debug('no User was supplied, not saving identity varification at this time.')
 
         # return the success of failure of the verification
         # 'match' indicates success
         return record_status == self.verification_status_match
 
-    def save_verification(self, user, trulioo_response):
-        transaction = trulioo_response.get_transaction()                # its a string identifier
+    @staticmethod
+    def save_verification(user, trulioo_response):
+        transaction = trulioo_response.get_transaction()  # its a string identifier
         transaction_record = trulioo_response.get_transaction_record()  # its a string identifier
         record_status = trulioo_response.get_record_status()
 
+        logger.info('Saving identity verification for user: %s' % user)
         v = Verification.objects.create(
             user=user, transaction=transaction, transaction_record=transaction_record,
             record_status=record_status)
