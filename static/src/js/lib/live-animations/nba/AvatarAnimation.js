@@ -36,7 +36,7 @@ export default class AvatarAnimation {
     html += '    <img class="player-headshot__img" alt="Player Headshot" />';
     html += '  </div>';
     html += '</div>';
-    html += `<p class="player-name">${playerName}</p>`;
+    html += `<p class="player-name">${this.formatPlayerName(playerName)}</p>`;
     /* eslint-enable max-len */
 
     this.el = document.createElement('DIV');
@@ -54,6 +54,10 @@ export default class AvatarAnimation {
 
   getHeight() {
     return AvatarAnimation.HEIGHT;
+  }
+
+  formatPlayerName(name) {
+    return name;
   }
 
   load() {
