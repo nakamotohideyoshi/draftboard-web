@@ -100,7 +100,7 @@ if (window.dfs.wipeLocalStorage === '1') {
 } else if (Cookies.get('username') !== window.dfs.user.username) {
   logApp.info('app.jsx - Wiping localStorage due to new username existing');
   Cookies.set('username', window.dfs.user.username);
-  window.localStorage.clear();
+  window.localStorage.removeItem('redux');
 }
 
 // set new version

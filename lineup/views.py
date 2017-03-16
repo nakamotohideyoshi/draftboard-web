@@ -17,7 +17,6 @@ from account import const as _account_const
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
-    EmailConfirmed,
 )
 from account.utils import create_user_log
 from draftgroup.models import DraftGroup
@@ -58,7 +57,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = CreateLineupSerializer
 
     def post(self, request):
@@ -215,7 +214,7 @@ class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = EditLineupSerializer
 
     def post(self, request, format=None):

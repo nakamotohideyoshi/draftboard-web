@@ -1,12 +1,11 @@
-#
-# sports/admin.py
-
-from django.contrib import admin
-import sports.models
-import sports.classes
-import mysite.mixins.generic_search
-import django.db.utils
 import logging
+
+import django.db.utils
+from django.contrib import admin
+
+import mysite.mixins.generic_search
+import sports.classes
+import sports.models
 
 logger = logging.getLogger('sports.admin')
 
@@ -22,7 +21,7 @@ class PlayerAdmin(admin.ModelAdmin):
     """
     list_display = ['id', 'first_name', 'last_name',
                     'on_active_roster', 'position', 'team', 'status']
-    list_filter = ['on_active_roster', 'position', 'last_name', 'first_name']
+    list_filter = ['on_active_roster', 'position']
     search_fields = ['srid', 'first_name', 'last_name', 'position__name']
     readonly_fields = ('id', 'srid')
 

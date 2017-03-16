@@ -5,7 +5,6 @@ from django.utils import timezone
 
 from account.models import (
     Limit,
-    Confirmation,
     Identity
 )
 from contest.classes import (
@@ -262,8 +261,6 @@ class SetLimitsTest(AbstractTest, BuildWorldMixin, ForceAuthenticateAndRequestMi
             birth_year=1984,
             postal_code='80203',
         )
-        Confirmation.objects.create(user=self.user,
-                                    confirmed=True)
 
     def test_entry_fee(self):
         data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}

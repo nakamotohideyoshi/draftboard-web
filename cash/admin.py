@@ -79,7 +79,6 @@ class CashBalanceAdminInline(admin.StackedInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
-
 @admin.register(CashBalance)
 class BalanceAdmin(admin.ModelAdmin):
     list_display = ['user', 'amount', 'updated']
