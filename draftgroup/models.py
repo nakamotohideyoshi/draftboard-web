@@ -143,6 +143,7 @@ class Player(models.Model):
     """
     A player is associated with a DraftGroup and a salary.models.Salary
     """
+
     created = models.DateTimeField(
         auto_now_add=True,
         null=False
@@ -155,12 +156,13 @@ class Player(models.Model):
     salary_player = models.ForeignKey(
         salary.models.Salary,
         null=False,
-        verbose_name='points to the player salary object, which has fantasy salary information'
+        verbose_name='points to the player salary object, which has fantasy salary information',
+        related_name = "draft_group_player"
     )
     salary = models.FloatField(
         default=0,
         null=False,
-        help_text='the amount of salary for the player at the this draft group was created'
+        help_text='the amount of salary for the player at the this draft group was created',
     )
     start = models.DateTimeField(null=False)
     final_fantasy_points = models.FloatField(
@@ -178,7 +180,8 @@ class Player(models.Model):
     # os = models.CharField(max_length=2048, null=True)
 
     def __str__(self):
-        return '<DraftGroup.Player: player: %s | salary: $%.2f>' % (self.player, self.salary)
+        return '<DraftGroup.Player: player: %s | salary: $%.2f | final_fp: %s>' % (
+            self.player, self.salary, self.final_fantasy_points)
 
     # we need to create the draft group player associated with a certain team
     game_team = models.ForeignKey(GameTeam, null=False)
@@ -313,13 +316,13 @@ class PlayerUpdate(AbstractUpdate):
     player_srid = models.CharField(max_length=64, null=False)
     player_id = models.IntegerField(null=False, default=0)
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
-    roster_status = models.CharField(max_length=64, null=True)
-    roster_status_description = models.CharField(max_length=255, null=True)
-    depth_chart_status = models.CharField(max_length=64, null=True)
-    player_status_probability = models.FloatField(default=0, null=True)
-    player_status_confidence = models.FloatField(default=0, null=True)
-    last_text = models.CharField(max_length=1024 * 8, null=True, default='')
-    game_id = models.IntegerField(null=False, default=0)
+    # roster_status = models.CharField(max_length=64, null=True)
+    # roster_status_description = models.CharField(max_length=255, null=True)
+    # depth_chart_status = models.CharField(max_length=64, null=True)
+    # player_status_probability = models.FloatField(default=0, null=True)
+    # player_status_confidence = models.FloatField(default=0, null=True)
+    # last_text = models.CharField(max_length=1024 * 8, null=True, default='')
+    # game_id = models.IntegerField(null=False, default=0)
     sport = models.CharField(max_length=4, null=False)
 
     class Meta:

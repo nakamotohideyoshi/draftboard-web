@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from datetime import timedelta
+from html import escape
 from logging import getLogger
 
 from django.core.cache import cache
@@ -200,9 +201,9 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     task = payout_task.delay(contests=list(contests_to_pay))
 
     if contests_to_pay.count() > 0:
-        msg_str = '💰 %s completed contests have automatically paid out:\n\n' % num_contests
+        msg_str = '💰 %s completed contests are currently being paid out:\n\n' % num_contests
         for contest in contests_to_pay:
-            msg_str += '```%s``` \n' % contest
+            msg_str += '```%s``` \n' % escape(str(contest))
         logger.info(msg_str)
         slack.send(msg_str)
         send_mail(
@@ -231,16 +232,17 @@ def track_contests(contests):
             'Total Entries': contest.current_entries,
             'Contest Type': contest.prize_structure.get_format_str(),
         }
-        users = [x.user for x in contest.contests.distinct('user')]
+        users = [x.user for x in contest.contest_entries.distinct('user')]
         for user in users:
             payment = Payout.objects.filter(entry__contest=contest,
                                             entry__user=user).first()
             data = base_data.copy()
             data.update({
-                'Total Lineups': contest.contests.filter(user=user).count(),
+                'Total Lineups': contest.contest_entries.filter(user=user).count(),
                 'In Money': True if payment else False,
             })
             if payment:
                 data['Money Won'] = payment.amount
                 data['Place'] = payment.rank
             track_contest_end(user.username, data)
+

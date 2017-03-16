@@ -61,7 +61,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
     serializer_class = CreateLineupSerializer
 
-    def post(self, request, format=None):
+    def post(self, request):
         draft_group_id = request.data.get('draft_group')
         players = request.data.get('players', [])
         name = request.data.get('name', '')
@@ -401,14 +401,13 @@ class UserLiveAPIView(AbstractLineupAPIView):
     """
 
     lineup_model = Lineup
-
     serializer_class = LineupLiveSerializer
 
     def get_queryset(self):
         """
         retrieve the Lineup objects
         """
-        offset_hours = 12
+        offset_hours = 24
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
         return Lineup.objects.filter(
