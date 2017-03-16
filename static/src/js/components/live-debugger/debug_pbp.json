@@ -55,6 +55,9 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "7:17",
+      "playerNames": {
+        "a208e22a-6b63-45f9-b7c6-bf913a68f3df": "Victor Oladipo"
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -115,6 +118,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "4:59",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -173,6 +178,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "4:59",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -238,6 +245,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "3:48",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -295,6 +304,8 @@
       "sport": "nba",
       "type": "shootingfoul",
       "when": "2:22",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -361,6 +372,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "7:29",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -419,6 +432,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "6:19",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -481,6 +496,8 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "7:17",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -542,6 +559,8 @@
       "sport": "nba",
       "type": "freethrowmade",
       "when": "6:46",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -603,6 +622,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "5:45",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -662,6 +683,8 @@
       "sport": "nba",
       "type": "threepointmiss",
       "when": "4:54",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -727,6 +750,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "3:58",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -793,6 +818,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "4:07",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -859,6 +886,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "3:27",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -925,6 +954,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "3:25",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -990,6 +1021,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "1:42",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1058,6 +1091,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "1:11",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1116,6 +1151,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "00:45",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1174,6 +1211,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "00:32",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1239,6 +1278,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "11:43",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1305,6 +1346,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "11:04",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1373,6 +1416,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "11:01",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a35ee8ed-f1db-4f7e-bb17-f823e8ee0b38"
       ],
@@ -1431,6 +1476,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "10:37",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a35ee8ed-f1db-4f7e-bb17-f823e8ee0b38"
       ],
@@ -1489,6 +1536,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "10:26",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "9c8dc8ee-6207-48d5-81ee-f362f5e17f9b"
       ],
@@ -1554,6 +1603,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "9:10",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -1615,6 +1666,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "8:55",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -1673,6 +1726,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "8:23",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "9c8dc8ee-6207-48d5-81ee-f362f5e17f9b"
       ],
@@ -1738,6 +1793,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "7:53",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "9c8dc8ee-6207-48d5-81ee-f362f5e17f9b"
       ],
@@ -1801,6 +1858,8 @@
       "sport": "nba",
       "type": "turnover",
       "when": "6:43",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -1860,6 +1919,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "6:39",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a35ee8ed-f1db-4f7e-bb17-f823e8ee0b38"
       ],
@@ -1918,6 +1979,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "6:26",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a35ee8ed-f1db-4f7e-bb17-f823e8ee0b38"
       ],
@@ -1976,6 +2039,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "5:59",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "9c8dc8ee-6207-48d5-81ee-f362f5e17f9b"
       ],
@@ -2037,6 +2102,8 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "5:44",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a35ee8ed-f1db-4f7e-bb17-f823e8ee0b38"
       ],
@@ -2098,6 +2165,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "5:27",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -2161,6 +2230,8 @@
       "sport": "nba",
       "type": "turnover",
       "when": "6:07",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -2222,6 +2293,8 @@
       "sport": "nba",
       "type": "freethrowmade",
       "when": "6:04",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -2288,6 +2361,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "5:36",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -2346,6 +2421,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "5:06",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -2405,6 +2482,8 @@
       "sport": "nba",
       "type": "threepointmiss",
       "when": "4:26",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -2466,6 +2545,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "4:01",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -2526,6 +2607,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "10:20",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -2584,6 +2667,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "3:11",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a35ee8ed-f1db-4f7e-bb17-f823e8ee0b38"
       ],
@@ -2649,6 +2734,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "3:01",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -2717,6 +2804,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "9:26",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -2775,6 +2864,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "9:03",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -2841,6 +2932,8 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "5:23",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -2906,6 +2999,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "2:24",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -2967,6 +3062,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "2:21",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -3024,6 +3121,8 @@
       "sport": "nba",
       "type": "personalfoul",
       "when": "8:10",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -3083,6 +3182,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "1:35",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -3149,6 +3250,8 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "5:01",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -3208,6 +3311,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "1:54",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -3268,6 +3373,8 @@
       "sport": "nba",
       "type": "freethrowmiss",
       "when": "00:59",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -3326,6 +3433,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "1:29",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -3384,6 +3493,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "6:30",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -3447,6 +3558,8 @@
       "sport": "nba",
       "type": "turnover",
       "when": "6:12",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -3506,6 +3619,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "00:02",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -3574,6 +3689,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "6:12",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -3633,6 +3750,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "00:06",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f8d6c74c-e0bd-41ed-a814-f0b25259fe0a"
       ],
@@ -3694,6 +3813,8 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "11:46",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f8d6c74c-e0bd-41ed-a814-f0b25259fe0a"
       ],
@@ -3759,6 +3880,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "3:03",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -3819,6 +3942,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "2:18",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -3884,6 +4009,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "10:28",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f8d6c74c-e0bd-41ed-a814-f0b25259fe0a"
       ],
@@ -3942,6 +4069,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "2:01",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -4008,6 +4137,8 @@
       "sport": "nba",
       "type": "threepointmade",
       "when": "1:55",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -4066,6 +4197,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "00:58",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "5fe45e9e-7401-4896-8883-5f969361dbb7"
       ],
@@ -4125,6 +4258,8 @@
       "sport": "nba",
       "type": "threepointmiss",
       "when": "8:41",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f8d6c74c-e0bd-41ed-a814-f0b25259fe0a"
       ],
@@ -4188,6 +4323,8 @@
       "sport": "nba",
       "type": "turnover",
       "when": "7:37",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -4256,6 +4393,8 @@
       "sport": "nba",
       "type": "twopointmiss",
       "when": "7:26",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -4321,6 +4460,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "2:19",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a208e22a-6b63-45f9-b7c6-bf913a68f3df"
       ],
@@ -4382,6 +4523,8 @@
       "sport": "nba",
       "type": "freethrowmade",
       "when": "6:58",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "0e163d44-67a7-4107-9421-5333600166bb"
       ],
@@ -4442,6 +4585,8 @@
       "sport": "nba",
       "type": "freethrowmade",
       "when": "11:49",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "a1ddebee-950c-497d-9acd-b5061360b464"
       ],
@@ -4507,6 +4652,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "2:13",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f2625432-3903-4f90-9b0b-2e4f63856bb0"
       ],
@@ -4572,6 +4719,8 @@
       "sport": "nba",
       "type": "twopointmade",
       "when": "11:45",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f2625432-3903-4f90-9b0b-2e4f63856bb0"
       ],
@@ -4630,6 +4779,8 @@
       "sport": "nba",
       "type": "rebound",
       "when": "9:54",
+      "playerNames": {
+      },
       "relevantPlayersInEvent": [
         "f2625432-3903-4f90-9b0b-2e4f63856bb0"
       ],
