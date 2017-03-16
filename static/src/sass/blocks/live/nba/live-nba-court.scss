@@ -77,13 +77,15 @@ $imgDir: '../../../../img/blocks/live-nba-court/';
 
   .player-name {
     position: absolute;
-    top: -35px;
-    width: 100%;
+    top: -38px;
+    left: -50%;
+    width: 200px;
     color: #fff;
     font-size: 16px;
     font-family: $font-oswald;
     text-transform: uppercase;
     font-weight: 400;
+    line-height: 19px;
     text-align: center;
   }
 
