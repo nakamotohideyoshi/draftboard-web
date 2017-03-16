@@ -45,6 +45,9 @@ export const deleteLineupDraft = (draftGroupId) => {
  * @returns {{}}
  */
 export const getLineupDraft = (draftGroupId) => {
+  if (!draftGroupId) {
+    return {};
+  }
   const lineupDrafts = JSON.parse(window.localStorage.getItem(localStoreKey));
   return lineupDrafts[draftGroupId] || {};
 };
