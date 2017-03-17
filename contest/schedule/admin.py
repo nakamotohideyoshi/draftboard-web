@@ -194,10 +194,6 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
 
     # @staticmethod
     def spans_multiple_days(self, block):
-        print('==========')
-        print(self.opts.local_fields)
-        print(self.opts.local_many_to_many)
-        print(self.opts.local_fields)
         # In[9]: (b.dfsday_end - b.dfsday_start).days == 1
         # Out[9]: True
         if (block.dfsday_end - block.dfsday_start).days > 1:
