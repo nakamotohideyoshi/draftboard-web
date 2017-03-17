@@ -162,7 +162,7 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         'spans_multiple_days',
         'earliest_game_in_block',
         'number_of_prize_structures',
-        'cutoff',
+        'cutoff_time',
         'games_included',
     ]
     readonly_fields = (
@@ -170,9 +170,13 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         'created',
         'modified',
         'games_included',
+        'cutoff',
+        'dfsday_start',
+        'dfsday_end'
     )
     list_filter = ['site_sport', ]
-    list_editable = ['cutoff', ]
+    list_editable = ['cutoff_time', ]
+    exclude = ()
     ordering = ('dfsday_start', 'site_sport')
     actions = [
         'create_contest_pools',
