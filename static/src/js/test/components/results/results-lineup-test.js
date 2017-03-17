@@ -73,7 +73,7 @@ describe('ResultsLineup Component', () => {
     props = defaultProps;
     wrapper = renderComponent(props).find('.lineup');
     footerItems = wrapper.find('.footer').find('.item');
-    expect(footerItems).to.have.length(2);
+    expect(footerItems).to.have.length(3);
     expect(footerItems.at(0).text()).to.contain('Won');
     expect(footerItems.at(1).text()).to.contain('Entries');
     expect(wrapper.find('.icon-flip.action')).to.have.length(1);
