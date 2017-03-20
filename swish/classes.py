@@ -89,7 +89,6 @@ class UpdateData(object):
 
     field_player = 'Player'
     field_player_id = 'Id'
-     # "SportsDataId": "b1b2d578-44df-4e05-9884-31dd89e82cf0",
 
     field_player_first_name = 'FirstName'  # its the first name
     field_player_last_name = 'LastName'  # its the last name
@@ -97,10 +96,8 @@ class UpdateData(object):
     field_source = 'source'  # ???
     field_source_origin = 'sourceOrigin'  # ???  # ie: rotowire, twitter, etc...
 
-
     field_injury = 'Injury'
     field_injury_status = 'Status'
-
 
     field_url_origin = 'urlOrigin'  # ???  # for twitter, the url to the post
     field_roster_status = 'rosterStatus'   # ???
@@ -110,7 +107,6 @@ class UpdateData(object):
     field_player_status_confidence = 'playerStatusConfidence'  # ???
     field_last_text = 'lastText'  # ???
     field_game = 'game'  # ???
-
 
     def __init__(self, data):
         self.data = data
@@ -163,11 +159,11 @@ class UpdateData(object):
         """ returns the news text. """
         return '{} {}'.format(self.data.get(self.field_notes),
                               self.data.get(self.field_analysis))
+
     def get_injury_status(self):
         """ returns injury status. """
         status = self.data.get(self.field_injury).get(self.field_injury_status)
         return status if status else 'active'
-
 
 
 class RotoWire(object):
@@ -299,7 +295,6 @@ class RotoWire(object):
 
         logger.info('%s UpdateData(s)' % len(self.updates))
         return self.updates
-
 
 
 class SwishAnalytics(object):
