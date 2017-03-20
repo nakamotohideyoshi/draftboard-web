@@ -1,26 +1,26 @@
-from logging import getLogger
-import math
 import decimal
+import math
+from logging import getLogger
+from django.conf import settings
+from django.db.transaction import atomic
+
 import mysite.exceptions
+from cash.classes import CashTransaction
 from contest.models import Contest, Entry, ClosedContest
-from prize.models import Rank
-from transaction.models import AbstractAmount
-from transaction.classes import CanDeposit
-from .models import Payout, Rake, FPP
+from dfslog.classes import Logger, ErrorCodes
 from draftgroup.classes import DraftGroupManager
 from draftgroup.exceptions import FantasyPointsAlreadyFinalizedException
-from dfslog.classes import Logger, ErrorCodes
-from cash.classes import CashTransaction
-from django.db.transaction import atomic
-from promocode.bonuscash.classes import BonusCashTransaction
-from django.conf import settings
-from rakepaid.classes import RakepaidTransaction
-from mysite.classes import AbstractManagerClass
-from rakepaid.classes import LoyaltyStatusManager
 from fpp.classes import FppTransaction
 from lineup.classes import LineupManager
 from lineup.models import Lineup
-
+from mysite.classes import AbstractManagerClass
+from prize.models import Rank
+from promocode.bonuscash.classes import BonusCashTransaction
+from rakepaid.classes import LoyaltyStatusManager
+from rakepaid.classes import RakepaidTransaction
+from transaction.classes import CanDeposit
+from transaction.models import AbstractAmount
+from .models import Payout, Rake, FPP
 
 logger = getLogger('contest.payout.classes')
 
@@ -32,6 +32,7 @@ class PayoutManager(AbstractManagerClass):
     """
 
     def __init__(self):
+        super().__init__()
         pass
 
     def payout(self, contests=None, finalize_score=True):
@@ -40,7 +41,8 @@ class PayoutManager(AbstractManagerClass):
         then the payout mechanism will look for all contests who have not been
         paid out yet and pay them out.
         :param contests: an array of :class:`contest.models.Contest` models
-        :param finalize_score: always True in production. (may be set to False to skip the re-scoring during payouts).
+        :param finalize_score: always True in production.
+            (may be set to False to skip the re-scoring during payouts).
         """
 
         #
@@ -73,7 +75,8 @@ class PayoutManager(AbstractManagerClass):
             #
             # get the unique draft group ids within this queryset of contests.
             # update the final scoring for the players in the distinct draft groups.
-            draft_group_ids = list(set([c.draft_group.pk for c in contests if c.draft_group != None]))
+            draft_group_ids = list(
+                set([c.draft_group.pk for c in contests if c.draft_group != None]))
             for draft_group_id in draft_group_ids:
                 draft_group_manager = DraftGroupManager()
                 try:
@@ -193,7 +196,8 @@ class PayoutManager(AbstractManagerClass):
                 entry_fantasy_points_map[entry.lineup.fantasy_points] = [entry.pk]
         # sort the fantasy points map on the map key (ascending)
         sorted_list = sorted(entry_fantasy_points_map.items(), key=lambda x: x[0])
-        sorted_list.reverse()  # so its descending ie: [(75.5, [432, 213]), (50.25, [431234, 234534]), (25.0, [1, 123])]
+        #  so its descending ie: [(75.5, [432, 213]), (50.25, [431234, 234534]), (25.0, [1, 123])]
+        sorted_list.reverse()
 
         entry_rank = 1
         for fantasy_points, entry_id_list in sorted_list:
@@ -201,18 +205,10 @@ class PayoutManager(AbstractManagerClass):
             Entry.objects.filter(pk__in=entry_id_list).update(final_rank=entry_rank)
             entry_rank += count_at_rank
 
-        #
-        # get the total number of dollars leftover for rake
-        buyin = contest.buyin                                  # 50
-        # This is the amount of rake we would collect on a full contest.
-        rake_pre_buyin = (contest.entries * buyin) * .10       # (10 * 50) * .10 = 50
-        # This is the amount of buyin money that was not collected (due to an unfilled contest)
-        overlay = (contest.entries - len(entries)) * buyin     # (10 - 1) * 50 = 450
-        # The difference between full-contest rake and how much buyin money was not collected.
-        rake_post_overlay = rake_pre_buyin - overlay           # 50 - 450 = 400
+        # Determine what our net rake amount was.
         rake_transaction = None
+        rake_post_overlay = calculate_rake(contest)
 
-        #
         # We made money on rake! No overlay, yaaay
         if rake_post_overlay > 0:
             #
@@ -224,7 +220,8 @@ class PayoutManager(AbstractManagerClass):
             escrow_withdraw_trans = CashTransaction(self.get_escrow_user())
             escrow_withdraw_trans.withdraw(rake_post_overlay)
             draftboard_deposit_trans = CashTransaction(self.get_draftboard_user())
-            draftboard_deposit_trans.deposit(rake_post_overlay, trans=escrow_withdraw_trans.transaction)
+            draftboard_deposit_trans.deposit(rake_post_overlay,
+                                             trans=escrow_withdraw_trans.transaction)
             rake_transaction = escrow_withdraw_trans.transaction
 
         # We lost money on rake. :(
@@ -239,7 +236,8 @@ class PayoutManager(AbstractManagerClass):
             draftboard_withdraw_trans = CashTransaction(self.get_draftboard_user())
             draftboard_withdraw_trans.withdraw(rake_post_overlay)
             escrow_deposit_trans = CashTransaction(self.get_escrow_user())
-            escrow_deposit_trans.deposit(rake_post_overlay, trans=draftboard_withdraw_trans.transaction)
+            escrow_deposit_trans.deposit(rake_post_overlay,
+                                         trans=draftboard_withdraw_trans.transaction)
             rake_transaction = draftboard_withdraw_trans.transaction
 
         # We broke even on this contest, don't create a rake transaction below.
@@ -261,7 +259,8 @@ class PayoutManager(AbstractManagerClass):
         #
         # if there are the same number of ranks and entries to pay
         # and the ranks to pay are all equal, we can divide evenly
-        if (self.array_objects_are_equal(ranks_to_pay) and len(ranks_to_pay) == len(entries_to_pay)) or len(
+        if (self.array_objects_are_equal(ranks_to_pay) and len(ranks_to_pay) == len(
+                entries_to_pay)) or len(
                 entries_to_pay) == 1:
             place = ranks_to_pay[0].rank
             for i in range(0, len(ranks_to_pay)):
@@ -277,7 +276,8 @@ class PayoutManager(AbstractManagerClass):
             logger.info('ranks to pay: %s' % ranks_to_pay)
             for rank in ranks_to_pay:
                 cash_to_chop += decimal.Decimal(rank.amount.get_cash_value())
-            share_split_pre_rounded = ((cash_to_chop / decimal.Decimal(len(entries_to_pay))) - decimal.Decimal(.005))
+            share_split_pre_rounded = (
+                (cash_to_chop / decimal.Decimal(len(entries_to_pay))) - decimal.Decimal(.005))
             share_split_pre_rounded = round(share_split_pre_rounded, 3)
             share_split = round(share_split_pre_rounded, 2)
 
@@ -358,7 +358,8 @@ class PayoutManager(AbstractManagerClass):
             payout.rank) + " for contest #" + str(payout.contest.pk) + " and was paid out."
         Logger.log(ErrorCodes.INFO, "Contest Payout", msg)
 
-    def __convert_bonus_cash(self, user, rake_paid, transaction):
+    @staticmethod
+    def __convert_bonus_cash(user, rake_paid, transaction):
         """
         Creates the conversion from bonus cash to real cash
         based on the rake_paid for the given entry
@@ -395,7 +396,8 @@ class PayoutManager(AbstractManagerClass):
             ct = CashTransaction(user)
             ct.deposit(amount, trans=bct.transaction)
 
-    def array_objects_are_equal(self, arr):
+    @staticmethod
+    def array_objects_are_equal(arr):
         prev = None
         for obj in arr:
             if prev is None:
@@ -405,3 +407,35 @@ class PayoutManager(AbstractManagerClass):
                 return False
 
         return True
+
+
+def calculate_rake(contest):
+    """
+    The basic idea of calculating our final rake is to take:
+    (how much money we collected from buyins) - (how much money we paid out in prizes).
+
+    :param contest: A Contest model object.
+    :return: number
+    """
+    entry_count = contest.contest_entries.count()
+    total_buyin_amount = contest.buyin * entry_count
+    total_payout_amount = 0
+    payout_spots = contest.prize_structure.ranks.all().order_by('rank')
+
+    # For each entry we have, find the rank's payout amount and add it to our total_payout_amount.
+    for i in range(entry_count):
+        try:
+            total_payout_amount += payout_spots[i].amount.amount
+        # Skip if there is no payout rank for this entry.
+        except IndexError:
+            continue
+
+    # Our final rake amount is buyin - payouts.
+    net_rake = decimal.Decimal(total_buyin_amount) - decimal.Decimal(total_payout_amount)
+
+    logger.info(
+        'Rake Calculation for contest %s:\n'
+        'entries: %s | buyin collected: %s | total payout: %s | net_rake: %s' % (
+            contest, entry_count, total_buyin_amount, total_payout_amount, net_rake))
+
+    return net_rake
