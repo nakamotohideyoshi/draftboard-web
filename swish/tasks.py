@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from django.core.cache import cache
 from mysite.celery_app import app
-from draftgroup.models import PlayerUpdate
+from draftgroup.models import PlayerUpdate, PlayerStatus
 from swish.classes import (
     PlayerUpdateManager,
     SwishAnalytics,
@@ -9,6 +9,7 @@ from swish.classes import (
 )
 from logging import getLogger
 from draftgroup.serializers import PlayerUpdateSerializer
+from django.db import transaction
 
 logger = getLogger('swish.tasks')
 LOCK_EXPIRE = 59
@@ -41,7 +42,5 @@ def update_injury_feed(self, sport):
                     logger.warning('%s | rotowire player not found: %s' % (sport, player))
             else:
                 updates = PlayerUpdate.objects.filter(sport=sport).order_by('-updated_at')
-                serializer_data = PlayerUpdateSerializer(updates, many=True).data
-                cache.set('{}_player_updates'.format(sport), serializer_data, None)
         finally:
             release_lock()
