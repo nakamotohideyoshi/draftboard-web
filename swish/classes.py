@@ -403,9 +403,21 @@ class SwishAnalytics(object):
                                                          self.api_player_status, player_id, team, self.api_key)
         response_data = self.call_api(url)
         results = response_data.get('data', {}).get('results', [])
+
         if results:
             data = results[0]
             return {x: data.get(x) for x in self.extra_player_fields}
+        else:
+            return {}
+
+    def get_player_extra_data_multiple(self, player_id):
+        url = '%s/%s%s?playerId=%s&apikey=%s' % (self.api_base_url, self.sport,
+                                                             self.api_player_status, player_id, self.api_key)
+
+        response_data = self.call_api(url)
+        results = response_data.get('data', {}).get('results', [])
+        if results:
+            return results
         else:
             return {}
 
@@ -427,5 +439,4 @@ class SwishAnalytics(object):
             self.updates.append(UpdateData(update_data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
-
         return self.updates
