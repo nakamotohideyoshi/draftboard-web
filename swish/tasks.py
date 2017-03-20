@@ -29,6 +29,18 @@ def update_injury_feed(self, sport):
             player_update_manager = PlayerUpdateManager(sport)
             rotowire = RotoWire(sport)
             updates = rotowire.get_updates()
+            with transaction.atomic():
+                for player_update in updates:
+                    pid = player_update.get_pid()
+                    name = player_update.get_player_name()
+                    player_srid = player_update_manager.get_srid_for(pid=pid, name=name)
+                    status, created = PlayerStatus.objects.get_or_create(
+                        player_id=pid,
+                        sport=sport,
+                        player_srid=player_srid,
+                    )
+                    status.status = player_update.get_injury_status()
+                    status.save()
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
