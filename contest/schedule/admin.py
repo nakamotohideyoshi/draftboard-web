@@ -356,10 +356,3 @@ class DefaultPrizeStructureAdmin(admin.ModelAdmin):
 # @admin.register(contest.schedule.models.BlockPrizeStructure)
 # class BlockPrizeStructureAdmin(admin.ModelAdmin):
 #     list_display = ['block','prize_structure']
-
-@admin.register(contest.schedule.models.Notification)
-class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'enabled']
-
-    def has_delete_permission(self, request, obj=None):
-        return False
