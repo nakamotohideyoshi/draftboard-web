@@ -1,17 +1,36 @@
 @import "../../variables.scss";
 
 $block: '.live-standings-pane';
-
+$color-moneyline-green: #2cb371;
+$color-moneyline-red: #e33c3c;
+$color-moneyline-bg: #4a4e5f;
 
 #{$block} {
-  bottom: 120px;
-  background: #4a4e5f;
-  height: 2px;
-  left: 50%;
   position: fixed;
-  transform: translateX(-50%);
-  width: 70%;
+  left: 50%;
+  bottom: 120px;
   z-index: $zindex-live-standings-pane;
+  width: 70%;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  transform: translateX(-50%);
+  
+  &__legend {
+    flex-shrink: 1;
+    color: #7a7d8b;
+    font-family: $font-oswald;
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 0 10px;
+  }
+
+  &__lineups {
+    flex-grow: 1;
+    position: relative;
+    height: 2px;
+    background: $color-moneyline-bg;
+  }
 
   &__point {
     cursor: pointer;
@@ -36,7 +55,8 @@ $block: '.live-standings-pane';
 
     &--losing,
     &--winning,
-    &--mine {
+    &--mine,
+    &--opponent {
       #{$block}__inner-point {
         border-radius: 50%;
         height: 6px;
@@ -44,12 +64,16 @@ $block: '.live-standings-pane';
       }
     }
 
+    &--opponent #{$block}__inner-point {
+      background: #e33c3c;
+    }
+
     &--losing #{$block}__inner-point {
       background: #7a7d8a;
     }
 
     &--winning #{$block}__inner-point {
-      background: #2db773;
+      background: $color-moneyline-green;
     }
 
     &--mine {
@@ -79,27 +103,6 @@ $block: '.live-standings-pane';
     }
   }
 
-  &__legend {
-    $offset: -72px;
-
-    color: #7a7d8b;
-    font-family: $font-oswald;
-    font-size: 11px;
-    position: absolute;
-    top: -8px;
-    text-transform: uppercase;
-    width: 60px;
-
-    &--last {
-      left: $offset;
-      text-align: right;
-    }
-
-    &--first {
-      right: $offset;
-    }
-  }
-
   &__inner-point {
     left: 50%;
     position: relative;
@@ -108,11 +111,11 @@ $block: '.live-standings-pane';
     transition: all 100ms cubic-bezier(0.8, 0.16, 0.18, 0.85);
   }
 
-  &__in-the-money {
-    background: #2cb371;
+  &__moneyline {
+    background: $color-moneyline-green;
     height: 100%;
     position: absolute;
-    width: 30%;
+    width: 100%;
     right: 0;
     top: 0;
     z-index: 10;

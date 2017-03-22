@@ -1,6 +1,3 @@
-#
-# serializers.py
-
 from re import search
 
 from django.contrib.auth import get_user_model
@@ -147,18 +144,10 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         """
         Check length and password strength
         """
-        if 'password' in data and 'password_confirm' in data:
-            pw1 = data['password']
-            pw2 = data['password_confirm']
-            if pw1 != pw2:
-                raise serializers.ValidationError('The two password fields didn\'t match.')
-
-            if len(pw1) < 8:
+        if 'password' in data:
+            if len(data['password']) < 8:
                 raise serializers.ValidationError(
                     'The password must be a minimum 8 characters in length')
-
-        elif 'password' in data or 'password_confirm' in data:
-            raise serializers.ValidationError('You must submit matching passwords')
 
         return data
 
@@ -249,7 +238,7 @@ class TruliooVerifyUserSerializer(serializers.Serializer):
     last = serializers.CharField(max_length=100)
     birth_day = serializers.IntegerField(min_value=1, max_value=31)
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
-    birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
+    birth_year = serializers.IntegerField(min_value=1912, max_value=9999)
     postal_code = serializers.CharField(max_length=16)
 
 

@@ -20,12 +20,12 @@ export default class BasketAnimation extends LiveAnimation {
       clip.flip();
     }
 
-    stagePos.x -= clip.offsetX * 0.5;
-    stagePos.y -= clip.offsetY * 0.5;
+    stagePos.x -= clip.offsetX;
+    stagePos.y -= clip.offsetY;
 
     return clip.load().then(() => {
       court.addChild(clip.getElement(), stagePos.x, stagePos.y);
-      return clip.play(basketFirstFrame, basketLastFrame);
+      return clip.play(basketLastFrame, basketFirstFrame);
     });
   }
 }

@@ -26,7 +26,6 @@ from account.models import Limit
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
-    EmailConfirmed
 )
 from account.tasks import send_entry_alert_email
 from account.utils import create_user_log
@@ -280,96 +279,96 @@ class UserLiveAPIView(UserEntryAPIView):
     contest_model = LiveContest
 
 
-class UserHistoryAPIView(generics.GenericAPIView):
-    """
-    Allows the logged in user to get their historical entries/contests
-
-        * |api-text| :dfs:`contest/history/`
-
-        .. note::
-
-            .By default it will return the last 100 historical entries
-
-            Get parameters of **?start_ts=UNIX_TIMESTAMP&end_ts=UNIX_TIMESTAMP** can be used to
-            set a date range to get entries between.
-
-    """
-
-    permission_classes = (IsAuthenticated,)
-    serializer_class = CurrentEntrySerializer
-
-    def get_user_for_id(self, user_id=None):
-        """
-        if a user can be found via the 'user_id' return it,
-        else return None.
-        """
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return None
-
-    def get(self, request, format=None):
-        """
-        get the entries
-        """
-        user = self.request.user
-
-        admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
-        admin_specified_user = self.get_user_for_id(admin_specified_user_id)
-        if user.is_superuser and admin_specified_user is not None:
-            # override the user whos transactions we will look at
-            user = admin_specified_user
-
-        #
-        # if the start_ts & end_ts params exist:
-        start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
-        end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
-        if start_ts is None and end_ts is None:
-            #
-            # get the last 100 entries
-            entries = HistoryEntry.objects.filter().order_by('-created')[:100]
-            return self.get_entries_response(entries)
-
-        else:
-            if start_ts is None:
-                return Response(
-                    status=409,
-                    data={
-                        'errors': {
-                            'name': {
-                                'title': 'start_ts required',
-                                'description': """You must provide unix time stamp variable start_ts
-                                                    in your get parameters."""
-                            }
-                        }
-                    })
-            if end_ts is None:
-                return Response(
-                    status=409,
-                    data={
-                        'errors': {
-                            'name': {
-                                'title': 'end_ts required',
-                                'description': """You must provide unix time stamp variable end_ts in
-                                                    your get parameters."""
-                            }
-                        }
-                    })
-            entries = self.get_entries_in_range(user, int(start_ts), int(end_ts))
-            return self.get_entries_response(entries)
-
-    def get_entries_in_range(self, user, start_ts, end_ts):
-        start = datetime.utcfromtimestamp(start_ts)
-        end = datetime.utcfromtimestamp(end_ts)
-        entries = Entry.objects.filter(contest__start__range=(start, end))
-        return entries
-        # serialized_entries = self.serializer_class( entries, many=True )
-        # return Response(serialized_entries.data, status=status.HTTP_200_OK)
-
-    def get_entries_response(self, entries):
-        serialized_entries = self.serializer_class(entries, many=True)
-        return Response(serialized_entries.data, status=status.HTTP_200_OK)
-
+# class UserHistoryAPIView(generics.GenericAPIView):
+#     """
+#     Allows the logged in user to get their historical entries/contests
+#
+#         * |api-text| :dfs:`contest/history/`
+#
+#         .. note::
+#
+#             .By default it will return the last 100 historical entries
+#
+#             Get parameters of **?start_ts=UNIX_TIMESTAMP&end_ts=UNIX_TIMESTAMP** can be used to
+#             set a date range to get entries between.
+#
+#     """
+#
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = CurrentEntrySerializer
+#
+#     def get_user_for_id(self, user_id=None):
+#         """
+#         if a user can be found via the 'user_id' return it,
+#         else return None.
+#         """
+#         try:
+#             return User.objects.get(pk=user_id)
+#         except User.DoesNotExist:
+#             return None
+#
+#     def get(self, request, format=None):
+#         """
+#         get the entries
+#         """
+#         user = self.request.user
+#
+#         admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
+#         admin_specified_user = self.get_user_for_id(admin_specified_user_id)
+#         if user.is_superuser and admin_specified_user is not None:
+#             # override the user whos transactions we will look at
+#             user = admin_specified_user
+#
+#         #
+#         # if the start_ts & end_ts params exist:
+#         start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
+#         end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
+#         if start_ts is None and end_ts is None:
+#             #
+#             # get the last 100 entries
+#             entries = HistoryEntry.objects.filter().order_by('-created')[:100]
+#             return self.get_entries_response(entries)
+#
+#         else:
+#             if start_ts is None:
+#                 return Response(
+#                     status=409,
+#                     data={
+#                         'errors': {
+#                             'name': {
+#                                 'title': 'start_ts required',
+#                                 'description': """You must provide unix time stamp variable start_ts
+#                                                     in your get parameters."""
+#                             }
+#                         }
+#                     })
+#             if end_ts is None:
+#                 return Response(
+#                     status=409,
+#                     data={
+#                         'errors': {
+#                             'name': {
+#                                 'title': 'end_ts required',
+#                                 'description': """You must provide unix time stamp variable end_ts in
+#                                                     your get parameters."""
+#                             }
+#                         }
+#                     })
+#             entries = self.get_entries_in_range(user, int(start_ts), int(end_ts))
+#             return self.get_entries_response(entries)
+#
+#     def get_entries_in_range(self, user, start_ts, end_ts):
+#         start = datetime.utcfromtimestamp(start_ts)
+#         end = datetime.utcfromtimestamp(end_ts)
+#         entries = Entry.objects.filter(contest__start__range=(start, end))
+#         return entries
+#         # serialized_entries = self.serializer_class( entries, many=True )
+#         # return Response(serialized_entries.data, status=status.HTTP_200_OK)
+#
+#     def get_entries_response(self, entries):
+#         serialized_entries = self.serializer_class(entries, many=True)
+#         return Response(serialized_entries.data, status=status.HTTP_200_OK)
+#
 
 class AllLineupsView(View):
     """
@@ -460,7 +459,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
     enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
     """
     log_action = _account_const.CONTEST_ENTERED
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = EnterLineupSerializer
 
     def post(self, request, format=None):

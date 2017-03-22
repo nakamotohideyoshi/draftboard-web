@@ -84,7 +84,7 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-    command: dumb-init python3 manage.py runserver 0.0.0.0:8000
+    command: dumb-init python3 manage.py runserver 0.0.0.0:8000 --noreload
     links:
       - postgres
       - redis

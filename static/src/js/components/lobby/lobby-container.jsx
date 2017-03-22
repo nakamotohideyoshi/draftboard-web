@@ -140,8 +140,7 @@ const LobbyContainer = React.createClass({
       const strippedParams = removeParamFromURL(window.location.search, 'action');
       this.props.routerPush(`/contests/${strippedParams}`);
       this.props.addMessage({
-        header: 'Lineup Saved!',
-        content: 'Now enter it into some contests',
+        header: 'Lineup Saved! Now enter it into some contests',
         level: 'success',
         ttl: 5000,
       });

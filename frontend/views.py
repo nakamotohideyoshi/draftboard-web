@@ -140,11 +140,10 @@ class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
+class FrontendDraftTemplateView(TemplateView):
     """
     Draft a team page.
     """
-    # TODO: Check if the draft_group_id GET param is for a valid draft group. 404 otherwise.
     template_name = 'frontend/draft.html'
 
     def get(self, request, *args, **kwargs):

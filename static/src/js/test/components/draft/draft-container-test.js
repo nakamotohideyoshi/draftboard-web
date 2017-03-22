@@ -137,9 +137,10 @@ describe('<DraftContainer /> Component', () => {
     wrapper.node.loadData().then(() => {
       // it should have been called once already by the component, but we
       // manually called it so we can tell when loadData was done. Because
-      // of this it's callCount should be 2.
+      // of this it's callCount should be 2.  -- add one more because of saved
+      // draft imports.
       expect(wrapper.node.props.editLineupInit.callCount).to.equal(2);
-      expect(wrapper.node.props.importLineup.callCount).to.equal(2);
+      expect(wrapper.node.props.importLineup.callCount).to.equal(3);
       done();
     })
     .catch((err) => {

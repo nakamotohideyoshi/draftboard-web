@@ -1,7 +1,6 @@
 import * as ReactRedux from 'react-redux';
-import map from 'lodash/map';
 import React from 'react';
-import { addOrdinal, iterativeRelaxation } from '../../lib/utils/numbers';
+import { addOrdinal } from '../../lib/utils/numbers';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import { bindActionCreators } from 'redux';
 import { humanizeCurrency } from '../../lib/utils/currency';
@@ -11,7 +10,6 @@ import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js
 // assets
 require('../../../sass/blocks/live/live-standings-pane.scss');
 require('../../../sass/blocks/live/live-standing.scss');
-
 
 /*
  * Map Redux actions to React component properties
@@ -33,21 +31,55 @@ export const LiveStandingsPane = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
-    hasLineupsUsernames: React.PropTypes.bool.isRequired,
-    lineups: React.PropTypes.object.isRequired,
-    lineupsUsernames: React.PropTypes.object.isRequired,
-    rankedLineups: React.PropTypes.array.isRequired,
     watching: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.shape({
+      lineups: React.PropTypes.object.isRequired,
+      hasLineupsUsernames: React.PropTypes.bool.isRequired,
+      lineupsUsernames: React.PropTypes.object.isRequired,
+      rankedLineups: React.PropTypes.array.isRequired,
+      prize: React.PropTypes.shape({
+        info: React.PropTypes.shape({
+          payout_spots: React.PropTypes.number.isRequired,
+        }),
+      }),
+    }),
   },
 
   /**
-   * Get list data that should be rendered in the current tab.
-   * @return {Array}
+   * Returns the username for the lineup if it exists.
    */
-  getListData() {
-    const { lineups, rankedLineups } = this.props;
+  getUsernameForLineup(lineupId) {
+    return this.props.contest.lineupsUsernames[lineupId] || '';
+  },
 
-    return map(rankedLineups, (lineupId) => lineups[lineupId]);
+  /**
+   * Returns the cross section of lineups that exist in both the `props.lineups`
+   * and in `props.rankedLineups`.
+   */
+  getRankedLineups() {
+    return this.props.contest.rankedLineups
+    .filter(lineupId =>
+      // Ignore lineups that have an ID of "1". This is a hold over from previous
+      // code that Justen didn't know why existed, but did exist, so he did not
+      // want to remove it during his refactor. Maybe Craig knows?
+      lineupId !== 1
+    )
+    .map(lineupId => this.props.contest.lineups[lineupId])
+    .sort((a, b) => b.fp - a.fp);
+  },
+
+  /**
+   * Returns an array of positions based on the provided array of lineups.
+   */
+  getRankedLineupPositions(lineups) {
+    const points = lineups.map((lineup) => lineup.fp);
+    const minFP = Math.min.apply(null, points);
+    const maxFP = Math.max.apply(null, points);
+    const range = maxFP - minFP;
+
+    return lineups.map(lineup =>
+      ((lineup.fp - minFP) / range) * 100
+    );
   },
 
   /**
@@ -56,7 +88,7 @@ export const LiveStandingsPane = React.createClass({
   handleViewOpponentLineup(opponentLineupId) {
     const { actions, watching } = this.props;
 
-    // can't watch youself!
+    // can't watch yousrelf!
     if (opponentLineupId === watching.myLineupId) return false;
 
     const lineupUrl = `/live/${watching.sport}/lineups/${watching.myLineupId}`;
@@ -68,108 +100,91 @@ export const LiveStandingsPane = React.createClass({
     actions.updateWatchingAndPath(path, changedFields);
   },
 
-  renderStandings() {
-    const { lineupsUsernames } = this.props;
-    const data = this.getListData();
+  /**
+   * Renders the div for a single lineup.
+   */
+  renderMoneyLinePoint(lineup, placement) {
     const watching = this.props.watching;
+    const decimalRemaining = lineup.timeRemaining.decimal;
+    const className = 'live-standings-pane__point';
+    const potentialWinnings = lineup.potentialWinnings;
 
-    const points = data.map((lineup) => lineup.fp);
-    const lastPlacePoints = Math.max.apply(null, points);
-    const firstPlacePoints = Math.min.apply(null, points);
-    let range = firstPlacePoints - lastPlacePoints;
+    let classNames = className;
+    let pmrColors = ['46495e', 'aab0be', 'aab0be'];
 
-    if (range === 0) range = 1;
+    // if my lineup
+    if (watching.myLineupId === lineup.id) {
+      pmrColors = ['46495e', '34B4CC', '2871AC'];
+      classNames = `${classNames} ${className}--mine`;
+    } else if (watching.opponentLineupId === lineup.id) {
+      pmrColors = ['e33c3c', 'b52c4b', '871c5a'];
+      classNames = `${classNames} ${className}--opponent`;
+    } else if (potentialWinnings !== 0) {
+      classNames = `${classNames} ${className}--winning`;
+    } else {
+      classNames = `${classNames} ${className}--losing`;
+    }
 
-    const placements = iterativeRelaxation(data.map((lineup) => (lineup.fp - lastPlacePoints) / range * 100));
+    return (
+      <div
+        key={lineup.id}
+        className={classNames}
+        onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
+        style={{ left: `${placement}%` }}
+      >
+        <div className="live-standings-pane__inner-point" />
 
-    let index = 0;
-    const standings = data.filter((lineup) => lineup.id !== 1).map((lineup) => {
-      const decimalRemaining = lineup.timeRemaining.decimal;
-      const className = 'live-standings-pane__point';
-      let classNames = className;
-      const username = lineupsUsernames[lineup.id] || '';
-      const potentialWinnings = lineup.potentialWinnings;
-      const liveStandingName = 'live-standing';
-
-      let cta = (<div className={`${liveStandingName}__cta`}>CLICK TO COMPARE LINEUPS</div>);
-
-      let pmr = (
-        <LivePMRProgressBar
-          colors={['46495e', 'aab0be', 'aab0be']}
-          decimalRemaining={decimalRemaining}
-          svgWidth={50}
-          id={`${lineup.id}Lineup`}
-        />
-      );
-
-      // if my lineup
-      if (watching.myLineupId === lineup.id) {
-        classNames = `${classNames} ${className}--mine`;
-        cta = null;
-
-        pmr = (
-          <LivePMRProgressBar
-            colors={['46495e', '34B4CC', '2871AC']}
-            decimalRemaining={decimalRemaining}
-            svgWidth={50}
-            id={`${lineup.id}Lineup`}
-          />
-        );
-      } else if (potentialWinnings !== 0) {
-        classNames = `${classNames} ${className}--winning`;
-      } else {
-        classNames = `${classNames} ${className}--losing`;
-      }
-
-      const leftPercent = `${placements[index]}%`;
-
-      index++;
-
-      return (
-        <div
-          key={lineup.id}
-          className={classNames}
-          onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
-          style={{ left: leftPercent }}
-        >
-          <div className="live-standings-pane__inner-point" />
-
-          <div className={`${liveStandingName} live-standings-pane__live-standing`}>
-            <div className={`${liveStandingName}__info`}>
-              <div className={`${liveStandingName}__place-and-earning`}>
-                <div className={`${liveStandingName}__place`}>{lineup.rank}</div>
-                <div className={`${liveStandingName}__earning`}>
-                  <div className={`${liveStandingName}__earning-above`}>
-                    {humanizeCurrency(+(potentialWinnings))}
-                  </div>
+        <div className="live-standing live-standings-pane__live-standing">
+          <div className="live-standing__info">
+            <div className="live-standing__place-and-earning">
+              <div className="live-standing__place">{lineup.rank}</div>
+              <div className="live-standing__earning">
+                <div className="live-standing__earning-above">
+                  {humanizeCurrency(+(potentialWinnings))}
                 </div>
               </div>
-              <div className={`${liveStandingName}__pmr`}>{pmr}</div>
-              <div className={`${liveStandingName}__username`}>{username}</div>
-              <div className={`${liveStandingName}__fp`}>{humanizeFP(lineup.fp)} Pts</div>
             </div>
-            {cta}
+            <div className="live-standing__pmr">
+              <LivePMRProgressBar
+                colors={pmrColors}
+                decimalRemaining={decimalRemaining}
+                svgWidth={50}
+                id={`${lineup.id}Lineup`}
+              />
+            </div>
+            <div className="live-standing__username">{this.getUsernameForLineup(lineup.id)}</div>
+            <div className="live-standing__fp">{humanizeFP(lineup.fp)} Pts</div>
           </div>
+          {watching.myLineupId !== lineup.id &&
+            <div className="live-standing__cta">CLICK TO COMPARE LINEUPS</div>
+          }
         </div>
-      );
-    });
-
-    return standings;
+      </div>
+    );
   },
 
   render() {
-    // wait for usernames
-    if (this.props.hasLineupsUsernames === false) return null;
+    if (this.props.contest.hasLineupsUsernames === false) {
+      return null;
+    }
 
-    const block = 'live-standings-pane';
-    const lastPlace = addOrdinal(this.props.rankedLineups.length);
+    const numWinners = this.props.contest.prize.info.payout_spots;
+    const lineups = this.getRankedLineups();
+    const positions = this.getRankedLineupPositions(lineups);
+    const lastPosInTheMoney = positions[Math.min(numWinners, positions.length) - 1];
+    const moneyLineWidth = 100 - lastPosInTheMoney;
+    const moneyLinePoints = lineups.map((lineup, index) =>
+      this.renderMoneyLinePoint(lineup, positions[index])
+    );
 
     return (
-      <div className={block}>
-        <div className={`${block}__legend ${block}__legend--first`}>1ST</div>
-        <div className={`${block}__legend ${block}__legend--last`}>{lastPlace}</div>
-        <div className="live-standings-pane__in-the-money" />
-        {this.renderStandings()}
+      <div className="live-standings-pane">
+        <div className="live-standings-pane__legend">1ST</div>
+        <div className="live-standings-pane__lineups">
+          <div className="live-standings-pane__moneyline" style={{ width: `${moneyLineWidth}%` }} />
+          {moneyLinePoints}
+        </div>
+        <div className="live-standings-pane__legend">{addOrdinal(lineups.length)}</div>
       </div>
     );
   },

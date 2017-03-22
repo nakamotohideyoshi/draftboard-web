@@ -22,9 +22,9 @@ export default class AvatarAnimation {
     return 2000;
   }
 
-  constructor(playerName) {
-    this.el = document.createElement('DIV');
-    this.el.className = 'avatar--nba';
+  constructor(playerName, playerId) {
+    this.playerName = playerName;
+    this.playerId = playerId;
 
     /* eslint-disable max-len */
     let html = '';
@@ -36,21 +36,12 @@ export default class AvatarAnimation {
     html += '    <img class="player-headshot__img" alt="Player Headshot" />';
     html += '  </div>';
     html += '</div>';
-    html += `<p class="player-name">${playerName}</p>`;
+    html += `<p class="player-name">${this.formatPlayerName(playerName)}</p>`;
     /* eslint-enable max-len */
 
+    this.el = document.createElement('DIV');
+    this.el.className = 'avatar--nba';
     this.el.innerHTML = html;
-  }
-
-  load(playerId) {
-    return new Promise(resolve => {
-      const img = this.el.querySelector('.player-headshot__img');
-      img.addEventListener('load', () => resolve());
-      img.addEventListener('error', () => {
-        img.src = defaultPlayerSrc;
-      });
-      img.src = `${window.dfs.playerImagesBaseUrl}/nba/120/${playerId}.png`;
-    });
   }
 
   getElement() {
@@ -63,6 +54,21 @@ export default class AvatarAnimation {
 
   getHeight() {
     return AvatarAnimation.HEIGHT;
+  }
+
+  formatPlayerName(name) {
+    return name;
+  }
+
+  load() {
+    return new Promise(resolve => {
+      const img = this.el.querySelector('.player-headshot__img');
+      img.addEventListener('load', () => resolve());
+      img.addEventListener('error', () => {
+        img.src = defaultPlayerSrc;
+      });
+      img.src = `${window.dfs.playerImagesBaseUrl}/nba/120/${this.playerId}.png`;
+    });
   }
 
   play() {

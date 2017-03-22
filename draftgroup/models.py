@@ -143,6 +143,7 @@ class Player(models.Model):
     """
     A player is associated with a DraftGroup and a salary.models.Salary
     """
+
     created = models.DateTimeField(
         auto_now_add=True,
         null=False
@@ -155,12 +156,13 @@ class Player(models.Model):
     salary_player = models.ForeignKey(
         salary.models.Salary,
         null=False,
-        verbose_name='points to the player salary object, which has fantasy salary information'
+        verbose_name='points to the player salary object, which has fantasy salary information',
+        related_name = "draft_group_player"
     )
     salary = models.FloatField(
         default=0,
         null=False,
-        help_text='the amount of salary for the player at the this draft group was created'
+        help_text='the amount of salary for the player at the this draft group was created',
     )
     start = models.DateTimeField(null=False)
     final_fantasy_points = models.FloatField(
@@ -178,7 +180,8 @@ class Player(models.Model):
     # os = models.CharField(max_length=2048, null=True)
 
     def __str__(self):
-        return '<DraftGroup.Player: player: %s | salary: $%.2f>' % (self.player, self.salary)
+        return '<DraftGroup.Player: player: %s | salary: $%.2f | final_fp: %s>' % (
+            self.player, self.salary, self.final_fantasy_points)
 
     # we need to create the draft group player associated with a certain team
     game_team = models.ForeignKey(GameTeam, null=False)

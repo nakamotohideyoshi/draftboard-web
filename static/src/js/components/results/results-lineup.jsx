@@ -98,8 +98,11 @@ const ResultsLineup = React.createClass({
     const isUpcoming = isTimeInFuture(this.props.start);
     const isFinished = this.props.hasOwnProperty('stats');
 
+    let totalFP = 0;
+
     const players = this.props.players.map((player) => {
       let decimalRemaining = 0;
+      totalFP += player.fantasy_points;
 
       // if live, then show progress bar
       if (this.props.isWatchingLive === true && isUpcoming === false) {
@@ -167,6 +170,12 @@ const ResultsLineup = React.createClass({
             <span className="title">Entries</span>
             <span className="value">
               {this.props.stats.entries}
+            </span>
+          </div>
+          <div className="item">
+            <span className="title">PTS</span>
+            <span className="value">
+              {humanizeFP(totalFP)}
             </span>
           </div>
         </div>

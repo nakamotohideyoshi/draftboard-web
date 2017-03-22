@@ -3,48 +3,117 @@ import React from 'react';
 import LiveAnimationArea from '../live/live-animation-area';
 import LiveHeader from '../live/live-header';
 import LiveBigPlays from '../live/live-big-plays';
+import LiveStandingsPane from '../live/live-standings-pane';
 import DebugMenu from './debug-menu';
+
+const stubMyLineup = {
+  id: 2,
+  name: 'My Lineup',
+  fp: 5,
+  isLoading: false,
+  potentialWinnings: 10,
+  rank: 1,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+};
+
+const stubOppLineup = {
+  id: 3,
+  name: 'Opponent Lineup',
+  fp: 20,
+  rank: 2,
+  potentialWinnings: 10,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+  isLoading: false,
+};
+
+const stubOtherLineup = {
+  id: 4,
+  name: 'Other Lineup',
+  fp: 15,
+  rank: 3,
+  potentialWinnings: 10,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+  isLoading: false,
+};
+
+const stubDebugLineup = {
+  id: 5,
+  name: 'Debug Lineup',
+  fp: 50,
+  rank: 4,
+  potentialWinnings: 10,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+  isLoading: false,
+};
+
+const stubContest = {
+  name: 'Debug Contest',
+  potentialWinnings: 10,
+  rank: 2,
+  isLoading: false,
+  hasLineupsUsernames: true,
+  lineups: {
+    [stubMyLineup.id]: stubMyLineup,
+    [stubOppLineup.id]: stubOppLineup,
+    [stubOtherLineup.id]: stubOtherLineup,
+    [stubDebugLineup.id]: stubDebugLineup,
+  },
+  lineupsUsernames: {
+    [stubMyLineup.id]: stubMyLineup.name,
+    [stubOppLineup.id]: stubOppLineup.name,
+    [stubOtherLineup.id]: stubOtherLineup.name,
+    [stubDebugLineup.id]: stubDebugLineup.name,
+  },
+  rankedLineups: [
+    stubMyLineup.id,
+    stubOppLineup.id,
+    stubOtherLineup.id,
+    stubDebugLineup.id,
+  ],
+  prize: {
+    info: {
+      buyin: 1,
+      payout_spots: 3,
+      pk: 0,
+      prize_pool: 0,
+      ranks: [{
+        category: 'cash',
+        rank: 1,
+        value: 1.8,
+      }],
+    },
+  },
+};
+
+const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup, stubDebugLineup];
 
 const stubData = {
   watching: {
     sport: 'nba',
     contestId: 2,
-    opponentLineupId: null, // Null if you don't want to see the opponents overall-stats
+    myLineupId: stubMyLineup.id,
+    opponentLineupId: 3, // Null if you don't want to see the opponents overall-stats
   },
   currentEvent: null,
   eventsMultipart: {},
-  contest: {
-    name: 'Debug Contest',
-    potentialWinnings: 10,
-    rank: 2,
-    isLoading: false,
-  },
+  contest: stubContest,
   uniqueLineups: {
-    lineups: [],
+    lineups: stubAvailableLineups,
   },
-  myLineupInfo: {
-    name: 'MyLineup',
-    fp: 0,
-    id: 2,
-    isLoading: false,
-    potentialWinnings: 10,
-    rank: 1,
-    timeRemaining: {
-      decimal: 1,
-      duration: 50,
-    },
-  },
-  opponentLineup: {
-    name: 'OpponentLineup',
-    fp: 0,
-    id: 3,
-    rank: 2,
-    timeRemaining: {
-      decimal: 1,
-      duration: 50,
-    },
-    isLoading: false,
-  },
+  myLineupInfo: stubMyLineup,
+  opponentLineup: stubOppLineup,
   selectLineup: () => { },
 };
 
@@ -95,6 +164,7 @@ export default connect(mapStateToProps)(React.createClass({
               <LiveAnimationArea {...{ watching, currentEvent, eventsMultipart }} />
             </div>
           </section>
+          <LiveStandingsPane contest={stubData.contest} watching={watching} />
           <LiveBigPlays queue={bigEvents || []} />
         </div>
       </section>

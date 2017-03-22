@@ -169,6 +169,7 @@ export const liveContestsSelector = createSelector(
         name: contestPool.name,
         percentageCanWin,
         start: contestPool.start,
+        prize,
       };
 
       const rankedLineups = rankContestLineups(

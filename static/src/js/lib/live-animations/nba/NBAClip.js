@@ -8,21 +8,8 @@ export default class NBAClip {
 
   constructor(data) {
     this.data = data;
+    this._curFrame = 1;
     this.sprite = new Sprite();
-  }
-
-  get avatarIn() {
-    return this.data.avatar_in;
-  }
-
-  get avatarX() {
-    return this.sprite.isFlipped
-      ? this.width - this.data.avatar_x
-      : this.data.avatar_x;
-  }
-
-  get avatarY() {
-    return this.data.avatar_y;
   }
 
   get file() {
@@ -30,29 +17,48 @@ export default class NBAClip {
   }
 
   get width() {
-    return this.data.width;
+    return this.data.frame_width;
   }
 
   get height() {
-    return this.data.height;
+    return this.data.frame_height;
+  }
+
+  get curFrame() {
+    return this._curFrame;
+  }
+
+  set curFrame(value) {
+    this._curFrame = value;
   }
 
   get offsetX() {
-    return this.sprite.isFlipped
-      ? this.width - this.data.offset_x
-      : this.data.offset_x;
+    const value = this.data.offset_x * 0.5; // Cut it in half for high density displays
+    return this.sprite.isFlipped ? this.width - value : value;
   }
 
   get offsetY() {
-    return this.data.offset_y;
+    return this.data.offset_y * 0.5; // Cut it in half for high density displays
   }
 
   get length() {
     return this.data.length;
   }
 
+  get avatars() {
+    return this.data.avatars;
+  }
+
+  get avatarIn() {
+    return this.data.avatar_in;
+  }
+
+  avatar(name) {
+    return this.data.avatars.find(avatar => avatar.name === name) || null;
+  }
+
   getCuePoint(name) {
-    return this.data.cuepoints[name] || 0;
+    return this.data.cuepoints[name] || 1;
   }
 
   getElement() {
@@ -63,12 +69,14 @@ export default class NBAClip {
     this.sprite.isFlipped = flop ? false : !this.sprite.isFlipped;
   }
 
-  load() {
+  load(cuePoint = '') {
+    this._curFrame = this.getCuePoint(cuePoint);
     return this.sprite.load(this.file, this.width, this.height).then(() => this);
   }
 
-  play(start = 1, stop = -1) {
-    const lastFrame = stop === -1 ? this.length : stop;
-    return this.sprite.playOnce(start, lastFrame).then(() => this);
+  play(stop = -1, start = -1) {
+    const startFrame = start === -1 ? this._curFrame : start;
+    this._curFrame = stop === -1 ? this.length : stop;
+    return this.sprite.playOnce(startFrame, this.curFrame).then(() => this);
   }
 }

@@ -154,6 +154,7 @@ describe('actions.events.showGameEvent', () => {
             relevantPlayersInEvent: ['player1'],
             whichSide: 'mine',
             winning: 'home',
+            playerNames: {},
           }),
         },
         {

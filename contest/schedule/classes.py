@@ -1,10 +1,15 @@
-from raven.contrib.django.raven_compat.models import client
-from pytz import timezone as pytz_timezone
+import logging
 from datetime import timedelta, time
-from django.utils import timezone
+
 from django.db.transaction import atomic
+from django.utils import timezone
+from pytz import timezone as pytz_timezone
+from raven.contrib.django.raven_compat.models import client
 
 from contest.classes import ContestPoolCreator
+from prize.models import PrizeStructure
+from sports.classes import SiteSportManager
+from util.dfsdate import DfsDate
 from .models import (
     Block,
     UpcomingBlock,  # proxy model for upcoming Block (all sports)
@@ -12,10 +17,6 @@ from .models import (
     DefaultPrizeStructure,
     BlockPrizeStructure,
 )
-from sports.classes import SiteSportManager
-from prize.models import PrizeStructure
-from util.dfsdate import DfsDate
-import logging
 
 logger = logging.getLogger('contest.schedule.classes')
 
@@ -437,7 +438,8 @@ class ScheduleWeek(ScheduleDay):
 
 class ContestPoolScheduleManager(object):
     """
-    This class takes over all the duties of ensuring that ContestPools are created at the proper times.
+    This class takes over all the duties of ensuring that ContestPools are created at the proper
+    times.
     """
 
     class ActiveBlockNotFoundException(Exception):

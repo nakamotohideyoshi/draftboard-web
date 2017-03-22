@@ -17,7 +17,6 @@ from account import const as _account_const
 from account.permissions import (
     HasIpAccess,
     HasVerifiedIdentity,
-    EmailConfirmed,
 )
 from account.utils import create_user_log
 from draftgroup.models import DraftGroup
@@ -58,10 +57,10 @@ class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = CreateLineupSerializer
 
-    def post(self, request, format=None):
+    def post(self, request):
         draft_group_id = request.data.get('draft_group')
         players = request.data.get('players', [])
         name = request.data.get('name', '')
@@ -215,7 +214,7 @@ class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity, EmailConfirmed)
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
     serializer_class = EditLineupSerializer
 
     def post(self, request, format=None):
@@ -401,14 +400,13 @@ class UserLiveAPIView(AbstractLineupAPIView):
     """
 
     lineup_model = Lineup
-
     serializer_class = LineupLiveSerializer
 
     def get_queryset(self):
         """
         retrieve the Lineup objects
         """
-        offset_hours = 12
+        offset_hours = 24
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
         return Lineup.objects.filter(
