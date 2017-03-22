@@ -31,8 +31,10 @@ class HasIpAccess(permissions.BasePermission):
     message = "Unable to verify your location."
 
     def has_permission(self, request, view):
+
         # If the user has permission to bypass location checks, pass them.
-        if request.user.has_perm('account.can_bypass_location_check'):
+        if request.user.has_perm('account.can_bypass_location_check') and \
+           request.user.is_authenticated():
             logger.info(
                 'User: %s has bypassed the location check via permissions.' % request.user.username)
             return True
@@ -55,6 +57,12 @@ class HasVerifiedIdentity(permissions.BasePermission):
     message = "You must verify your identity to perform this action."
 
     def has_permission(self, request, view):
+        if not request.user.is_authenticated():
+            return False
+
+        if hasattr(request.user, 'information') is False:
+            return False
+
         # If the user has permission to bypass location checks, pass them.
         if request.user.has_perm('account.can_bypass_identity_verification'):
             logger.info(
@@ -63,21 +71,3 @@ class HasVerifiedIdentity(permissions.BasePermission):
 
         # Check if their identity is verified.
         return request.user.information.has_verified_identity
-
-
-class EmailConfirmed(permissions.BasePermission):
-    """
-    Has the user verified their identity with Trulioo? If they have there will be a
-    user.identity model.
-    """
-    message = "You must confirm your email address before performing this action"
-
-    def has_permission(self, request, view):
-        # If the user has permission to bypass location checks, pass them.
-        if request.user.has_perm('account.email_confirmation'):
-            logger.info(
-                'User: %s has bypassed the email confirmation via permissions.' % request.user.username)
-            return True
-
-        # Check if their identity is verified.
-        return request.user.information.is_confirmed

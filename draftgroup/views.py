@@ -1,36 +1,27 @@
-#
-# draftgroup/views.py
+import json
+
+from django.conf import settings
+from django.core.cache import caches
+from django.http import HttpResponse
+from django.views.generic import View
+from rest_framework import generics
+from rest_framework import status
+from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
 
 from dataden.classes import DataDen
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import ValidationError, NotFound, APIException
-from rest_framework.pagination import LimitOffsetPagination
+from draftgroup.classes import DraftGroupManager
 from draftgroup.models import (
     DraftGroup,
     UpcomingDraftGroup,
     CurrentDraftGroup,
-    GameUpdate,
-    PlayerUpdate,
-    Player,
 )
-from draftgroup.classes import DraftGroupManager
 from draftgroup.serializers import (
     DraftGroupSerializer,
     UpcomingDraftGroupSerializer,
-    GameUpdateSerializer,
-    PlayerUpdateSerializer,
 )
-from django.conf import settings
-from django.core.cache import caches
 from sports.classes import SiteSportManager
-from sports.models import PlayerStats
-import json
-from django.http import HttpResponse
-from django.views.generic import View
+
 
 # class GetSerializedDataMixin:
 #
@@ -99,7 +90,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
     however, it can definitely use the special api view cache if it exists.
     """
 
-    DEFAULT_CACHE_TIMEOUT = 12 * 60 * 60 # timeout in seconds
+    DEFAULT_CACHE_TIMEOUT = 12 * 60 * 60  # timeout in seconds
 
     serializer_class = DraftGroupSerializer
 
@@ -119,9 +110,10 @@ class DraftGroupAPIView(generics.GenericAPIView):
         draft_group = self.get_object(pk)
         c = caches[settings.API_CACHE_NAME]
         serialized_data = c.get(self.get_cache_key(pk), None)
-        if serialized_data is None or (draft_group.closed is not None and serialized_data.get('closed', None) is None):
-            serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
-            c.add( self.get_cache_key(pk), serialized_data, self.DEFAULT_CACHE_TIMEOUT )
+        if serialized_data is None or (
+                draft_group.closed is not None and serialized_data.get('closed', None) is None):
+            serialized_data = DraftGroupSerializer(self.get_object(pk), many=False).data
+            c.add(self.get_cache_key(pk), serialized_data, self.DEFAULT_CACHE_TIMEOUT)
 
         # # skip cache for testing
         # draft_group = self.get_object(pk)
@@ -134,13 +126,15 @@ class UpcomingDraftGroupAPIView(generics.ListAPIView):
     return the draft group players for the given draftgroup id
     """
 
-    serializer_class        = UpcomingDraftGroupSerializer
+    serializer_class = UpcomingDraftGroupSerializer
 
     def get_queryset(self):
         """
         Return a QuerySet from the UpcomingDraftGroup model (DraftGroup objects).
         """
-        return UpcomingDraftGroup.objects.all()
+        return UpcomingDraftGroup.objects.all().order_by(
+            'salary_pool__site_sport', 'start').distinct('salary_pool__site_sport')
+
 
 class CurrentDraftGroupAPIView(generics.ListAPIView):
     """
@@ -148,13 +142,14 @@ class CurrentDraftGroupAPIView(generics.ListAPIView):
     """
 
     # Current and Upcoming use the same serializer
-    serializer_class        = UpcomingDraftGroupSerializer
+    serializer_class = UpcomingDraftGroupSerializer
 
     def get_queryset(self):
         """
         Return a QuerySet from the UpcomingDraftGroup model (DraftGroup objects).
         """
         return CurrentDraftGroup.objects.all()
+
 
 class DraftGroupFantasyPointsView(View):
     """
@@ -163,13 +158,13 @@ class DraftGroupFantasyPointsView(View):
 
     def get(self, request, draft_group_id):
         dgm = DraftGroupManager()
-        draft_group = dgm.get_draft_group( draft_group_id )
+        draft_group = dgm.get_draft_group(draft_group_id)
         data = {
-            'draft_group'   : draft_group_id,
-            'players'       : dgm.get_player_stats( draft_group=draft_group ),
+            'draft_group': draft_group_id,
+            'players': dgm.get_player_stats(draft_group=draft_group),
         }
-        #return HttpResponse( dgm.get_player_stats( draft_group=draft_group ) )
-        return HttpResponse(json.dumps(data), content_type="application/json" )
+        # return HttpResponse( dgm.get_player_stats( draft_group=draft_group ) )
+        return HttpResponse(json.dumps(data), content_type="application/json")
 
 
 class DraftGroupGameBoxscoresView(View):
@@ -180,24 +175,25 @@ class DraftGroupGameBoxscoresView(View):
     """
 
     def __add_to_dict(self, target, extras):
-        for k,v in extras.items():
-            target[ k ] = v
+        for k, v in extras.items():
+            target[k] = v
         return target
 
     def get(self, request, draft_group_id):
 
         dgm = DraftGroupManager()
         try:
-            draft_group = dgm.get_draft_group( draft_group_id )
+            draft_group = dgm.get_draft_group(draft_group_id)
         except DraftGroup.DoesNotExist:
-            return HttpResponse( {}, content_type='application/json', status=status.HTTP_404_NOT_FOUND)
+            return HttpResponse({}, content_type='application/json',
+                                status=status.HTTP_404_NOT_FOUND)
 
-        site_sport  = draft_group.salary_pool.site_sport
-        ssm         = SiteSportManager()
-        games       = dgm.get_games( draft_group )
+        site_sport = draft_group.salary_pool.site_sport
+        ssm = SiteSportManager()
+        games = dgm.get_games(draft_group)
         game_serializer_class = ssm.get_game_serializer_class(site_sport)
 
-        boxscores   = dgm.get_game_boxscores( draft_group )
+        boxscores = dgm.get_game_boxscores(draft_group)
         boxscore_serializer_class = ssm.get_boxscore_serializer_class(site_sport)
 
         # data = []
@@ -209,26 +205,26 @@ class DraftGroupGameBoxscoresView(View):
             inner_data = {}
 
             # add the game data
-            g = game_serializer_class( game ).data
-            self.__add_to_dict( inner_data, g )
+            g = game_serializer_class(game).data
+            self.__add_to_dict(inner_data, g)
 
             # add the boxscore data
             boxscore = None
             try:
-                boxscore = boxscores.get(srid_game=game.srid) # may not exist
+                boxscore = boxscores.get(srid_game=game.srid)  # may not exist
             except:
                 pass
             b = {}
             if boxscore is not None:
                 b = {
-                    'boxscore' : boxscore_serializer_class( boxscore ).data
+                    'boxscore': boxscore_serializer_class(boxscore).data
                 }
-            self.__add_to_dict( inner_data, b )
+            self.__add_to_dict(inner_data, b)
 
             # finish it by adding the game data to the return data dict
-            data[ game.srid ] = inner_data
+            data[game.srid] = inner_data
 
-        return HttpResponse( json.dumps(data), content_type='application/json' )
+        return HttpResponse(json.dumps(data), content_type='application/json')
 
 
 class DraftGroupPbpDescriptionView(View):
@@ -239,17 +235,17 @@ class DraftGroupPbpDescriptionView(View):
     def get(self, request, draft_group_id):
 
         dgm = DraftGroupManager()
-        draft_group = dgm.get_draft_group( draft_group_id )
-        boxscores = dgm.get_game_boxscores( draft_group )
+        draft_group = dgm.get_draft_group(draft_group_id)
+        boxscores = dgm.get_game_boxscores(draft_group)
 
         dd = DataDen()
         game_srids = []
         for b in boxscores:
-            game_srids.append( b.srid_game )
+            game_srids.append(b.srid_game)
 
-        game_events = dd.find('nba','event','pbp', {'game__id':{'$in':game_srids}})
+        game_events = dd.find('nba', 'event', 'pbp', {'game__id': {'$in': game_srids}})
         events = []
         for e in game_events:
-            events.append( e )
+            events.append(e)
 
-        return HttpResponse( json.dumps(events), content_type='application/json' )
+        return HttpResponse(json.dumps(events), content_type='application/json')

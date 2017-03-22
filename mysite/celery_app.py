@@ -329,8 +329,8 @@ app.conf.update(
         },
 
         # tomorrow draftboard games
-        'send_upcoming_issues': {
-            'task': 'contest.schedule.tasks.send_upcoming_issues',
+        'send_upcoming_contest_schedule_email': {
+            'task': 'contest.schedule.tasks.send_upcoming_contest_schedule_email',
             'schedule': crontab(hour='10'),  # ~ 7 AM PST
         },
     },

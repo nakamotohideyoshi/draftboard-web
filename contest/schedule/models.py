@@ -1,16 +1,9 @@
-from django.db import models
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.utils import timezone
 from pytz import timezone as pytz_timezone
-
-
-class Notification(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    name = models.CharField(max_length=128, null=False, unique=True)
-    enabled = models.BooleanField(default=True, null=False)
 
 
 class Block(models.Model):
@@ -90,10 +83,10 @@ class UpcomingBlock(Block):
                 cutoff__gte=timezone.now()).order_by('dfsday_start', 'cutoff_time')
 
         def get_tomorrow_blocks(self):
-
             return super().get_queryset().filter(
-                cutoff__date__in=[timezone.now().date(), timezone.now().date()+timezone.timedelta(days=1)]).order_by('dfsday_start', 'cutoff_time')
-
+                cutoff__date__in=[timezone.now().date(),
+                                  timezone.now().date() + timezone.timedelta(days=1)]).order_by(
+                'dfsday_start', 'cutoff_time')
 
     objects = UpcomingBlockManager()
 
@@ -123,7 +116,8 @@ class BlockGame(models.Model):
     name = models.CharField(max_length=256, null=False, blank=False, default='')
     block = models.ForeignKey('schedule.Block', null=False)
     srid = models.CharField(max_length=128, null=False)
-    game_type = models.ForeignKey(ContentType)  # ,  related_name='%(app_label)s_%(class)s_block_game')
+    game_type = models.ForeignKey(
+        ContentType)  # ,  related_name='%(app_label)s_%(class)s_block_game')
     game_id = models.PositiveIntegerField()
     game = GenericForeignKey('game_type', 'game_id')
 

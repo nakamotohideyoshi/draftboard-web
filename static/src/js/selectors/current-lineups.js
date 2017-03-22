@@ -124,7 +124,7 @@ export const compileLineupStats = (lineup = {}, draftGroup = {}, gamesTimeRemain
   const stats = {
     draftGroupId: draftGroup.id,  // when we watch a lineup, this is used to pull in extra information
     id: lineup.id,
-    name: lineup.name || 'Example Lineup Name',
+    name: lineup.name || '',
     roster: lineup.roster || [],  // default to empty list while we wait for lineup to be received
     rosterDetails: compileRosterDetails(lineup.roster, draftGroup, gamesTimeRemaining),
     sport: draftGroup.sport,  // used in nav

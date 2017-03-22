@@ -45,12 +45,15 @@ export default React.createClass({
   renderOverallStats(whichSide, lineup, potentialWinnings, rank) {
     const modifiers = !this.props.currentEvent ? [] : ['event-ended'];
 
+    // If the lineups name is falsy just show the lineup owner's username.
+    const name = lineup.name || this.props.contest.lineupsUsernames[lineup.id];
+
     return (
       <LiveOverallStatsConnected
         id={lineup.id}
         fp={lineup.fp}
         lineups={this.props.lineups}
-        name={lineup.name}
+        name={name}
         modifiers={modifiers}
         potentialWinnings={potentialWinnings}
         selectLineup={this.props.selectLineup}

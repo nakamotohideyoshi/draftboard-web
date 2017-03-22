@@ -4,6 +4,7 @@ import find from 'lodash/find';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
 import { rosterTemplates, salaryCaps } from '../lib/lineup.js';
+import { saveLineupDraft } from '../lib/lineup-drafts';
 
 const initialState = {
   errorMessage: null,
@@ -257,6 +258,7 @@ module.exports = (state = initialState, action) => {
           newState.lineupCanBeSaved = false;
         }
 
+        saveLineupDraft(newState.lineup, action.draftGroupId);
         return newState;
       });
 
@@ -277,6 +279,7 @@ module.exports = (state = initialState, action) => {
         newState.lineupCanBeSaved = false;
       }
 
+      saveLineupDraft(newState.lineup, action.draftGroupId);
       return newState;
 
 
@@ -291,7 +294,10 @@ module.exports = (state = initialState, action) => {
       // We're passed a list of players. Make sure we're putting each one into the correct lineup
       // slot based on the idx property.
       forEach(newState.lineup, (slot, index) => {
-        newState.lineup[index].player = find(action.players, { idx: slot.idx });
+        const playerToAdd = find(action.players, { idx: slot.idx });
+        if (playerToAdd && playerToAdd.player_id) {
+          newState.lineup[index].player = playerToAdd;
+        }
       });
 
       // Update the title (optional)

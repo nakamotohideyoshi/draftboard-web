@@ -121,6 +121,7 @@ class Rank(models.Model):
     class Meta:
         verbose_name = 'Payout Structure'
         verbose_name_plural = 'Payout Structure'
+        ordering = ['rank']
 
 
 class CreateTicketPrizeStructure(models.Model):

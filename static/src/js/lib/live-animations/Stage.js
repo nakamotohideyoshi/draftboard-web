@@ -73,7 +73,7 @@ export default class Stage {
     // Wrap the node in a span element for absolutely positioning
     // the element within the field.
     const span = document.createElement('span');
-    span.className = 'field--item';
+    span.className = 'stage-item';
     span.style.position = 'absolute';
     span.style.left = `${x}px`;
     span.style.top = `${y}px`;

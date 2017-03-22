@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <style type="text/css">
+    /* Mobile-specific Styles */
+    @media only screen and (max-device-width: 480px) {
+      table[class=w580], td[class=w580], img[class=w580] {
+        width: 280px !important;
+      }
+
+      table[class=w640], td[class=w640], img[class=w640] {
+        width: 300px !important;
+      }
+
+      table[class=h0], td[class=h0] {
+        height: 0 !important;
+      }
+
+      p[class=footer-content-left] {
+        text-align: center !important;
+      }
+
+      #headline p {
+        font-size: 30px !important;
+      }
+
+      .article-content, #left-sidebar {
+        -webkit-text-size-adjust: 90% !important;
+        -ms-text-size-adjust: 90% !important;
+      }
+
+      .header-content, .footer-content-left {
+        -webkit-text-size-adjust: 80% !important;
+        -ms-text-size-adjust: 80% !important;
+      }
+    }
+
+    body {
+      width: 100% !important;
+    }
+
+    .ReadMsgBody {
+      width: 100%;
+    }
+
+    .ExternalClass {
+      width: 100%;
+      display: block !important;
+    }
+
+    body {
+      background-color: #dedede;
+      margin: 0;
+      padding: 0 0 40px;
+    }
+
+    img {
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      display: block;
+    }
+
+    br, strong br, b br, em br, i br {
+      line-height: 100%;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 100% !important;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+      color: blue !important;
+    }
+
+    h1 a:active, h2 a:active, h3 a:active, h4 a:active, h5 a:active, h6 a:active {
+      color: red !important;
+    }
+
+    table td, table tr {
+      border-collapse: collapse;
+    }
+
+    .yshortcuts, .yshortcuts a, .yshortcuts a:link, .yshortcuts a:visited, .yshortcuts a:hover, .yshortcuts a span {
+      color: black;
+      text-decoration: none !important;
+      border-bottom: none !important;
+      background: none !important;
+    }
+
+    code {
+      white-space: normal;
+      word-break: break-all;
+    }
+
+    #background-table {
+      background-color: #fff;
+    }
+
+    body, td {
+      font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif;
+    }
+
+    .article-title {
+      font-size: 18px;
+      line-height: 24px;
+      color: #293f4f;
+      font-weight: bold;
+      margin-top: 40px;
+      margin-bottom: 18px;
+      font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif;
+    }
+
+    .article-content {
+      font-size: 13px;
+      line-height: 18px;
+      color: #2a2a2a;
+      margin-top: 0px;
+      margin-bottom: 18px;
+      font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif;
+    }
+
+    .article-content a {
+      color: #8b171a;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .article-content p {
+      margin-bottom: 15px;
+    }
+
+    .notice {
+      font-size: 11px;
+      margin: 0 auto;
+      padding: 10px 0;
+      width: 640px;
+    }
+  </style>
+</head>
+<body>
+<table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" id="background-table">
+  <tbody>
+  <tr>
+    <td align="center" bgcolor="#ffffff">
+      <table class="w640" style="margin:0;" width="640" cellpadding="0" cellspacing="0" border="0">
+        <tbody>
+        <tr>
+          <td class="w640" width="640" height="30"></td>
+        </tr>
+        <tr>
+          <td id="header" class="w640" width="640" align="center" bgcolor="#ffffff">
+            <div align="left" style="text-align: left;">
+              <a href="{{ protocol }}://{{ domain }}">
+                <img id="customHeaderImage" label="Draftboard Logo" editable="true" width="60"
+                     height="50" src="https://static-players.draftboard.com/misc/email/logo.png"
+                     class="w640" border="0" align="top" style="display: inline">
+              </a>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="w580" width="580">
+            <br>
+            <div align="left" class="article-content">
+              {% block content %}{% endblock %}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="w640" width="640" height="30" bgcolor="#ffffff"></td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

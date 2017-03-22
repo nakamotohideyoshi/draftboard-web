@@ -1,27 +1,20 @@
-# sports/views.py
+import json
+
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import connection
-from rest_framework.response import Response
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import View
-from sports.forms import PlayerCsvForm
-import sports.classes
-from scoring.classes import MlbSalaryScoreSystem
-from sports.mlb.serializers import (
-    PlayerHistoryHitterSerializer,
-    PlayerHistoryPitcherSerializer,
-)
-from sports.mlb.models import (
-    PlayerStatsHitter,
-    PlayerStatsPitcher,
-)
 from rest_framework import generics
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-import json
-from dataden.cache.caches import PlayByPlayCache
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 import dataden.models
 import dataden.serializers
+import sports.classes
+from dataden.cache.caches import PlayByPlayCache
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
@@ -35,10 +28,19 @@ from draftgroup.serializers import (
     PlayerUpdateSerializer,
     PlayerStatusSerializer,
 )
+from scoring.classes import MlbSalaryScoreSystem
+from sports.forms import PlayerCsvForm
+from sports.mlb.models import (
+    PlayerStatsHitter,
+    PlayerStatsPitcher,
+)
+from sports.mlb.serializers import (
+    PlayerHistoryHitterSerializer,
+    PlayerHistoryPitcherSerializer,
+)
 
 
 class GetSerializedDataMixin:
-
     def get_serialized_data(self, model_class, serializer_class, sport):
         updates = model_class.objects.filter(sport=sport)
         serialized_data = serializer_class(updates, many=True).data
@@ -47,7 +49,6 @@ class GetSerializedDataMixin:
 
 
 class PlayerRetrieveAPIView(generics.ListAPIView):
-
     """
     return player updates by player_srid
     """
@@ -62,15 +63,14 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
 
 
 class AbstractUpdateAPIView(APIView, GetSerializedDataMixin):
-
     """
     parent view class for XXXXUpdateAPIView(s)
     """
 
-    authentication_classes = (IsAuthenticated, )
+    authentication_classes = (IsAuthenticated,)
 
-    model_class = None          # child view must set this
-    serializer_class = None     # child view must set this
+    model_class = None  # child view must set this
+    serializer_class = None  # child view must set this
 
     def get(self, request, *args, **kwargs):
         data = self.get_serialized_data(
@@ -79,13 +79,11 @@ class AbstractUpdateAPIView(APIView, GetSerializedDataMixin):
 
 
 class GameUpdateAPIView(AbstractUpdateAPIView):
-
     model_class = GameUpdate
     serializer_class = GameUpdateSerializer
 
 
 class PlayerUpdateAPIView(AbstractUpdateAPIView):
-
     model_class = PlayerUpdate
     serializer_class = PlayerUpdateSerializer
 
@@ -97,7 +95,6 @@ class PlayerStatusAPIView(AbstractUpdateAPIView):
 
 
 class UpdateAPIView(APIView, GetSerializedDataMixin):
-
     """
     return recent game & player updates for the sport
     """
@@ -115,7 +112,6 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
 
 
 class LeagueTeamAPIView(generics.ListAPIView):
-
     """
     Get the teams for the league teams for a sport.
     """
@@ -149,7 +145,6 @@ class LeagueTeamAPIView(generics.ListAPIView):
 
 
 class LeaguePlayerAPIView(generics.ListAPIView):
-
     """
     Get the players in the league, with more detailed information
     """
@@ -179,7 +174,6 @@ class LeaguePlayerAPIView(generics.ListAPIView):
 
 
 class LeagueInjuryAPIView(generics.ListAPIView):
-
     """
     Retrieve the contests which are relevant to the home page lobby.
     """
@@ -276,7 +270,6 @@ class PlayerCsvView(View):
 
 
 class LivePbpView(View):
-
     """
     uses dataden.cache.caches.PlayByPlayCache to access the most recent pbp objects (~100 per sport)
     """
@@ -288,11 +281,10 @@ class LivePbpView(View):
 
 
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
-
     """
     Get all Player's trailing history of Fantasy Points
     """
-    permission_classes = (IsAuthenticated,)
+    permission_classes = ()
 
     def dictfetchall(self, cursor):
         """Return all rows from a cursor as a dict"""
@@ -300,7 +292,7 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-        ]
+            ]
 
     def get_serializer_class(self):
         """
@@ -354,12 +346,11 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
 
 
 class PlayerHistoryAPIView(generics.ListAPIView):
-
     """
     averages for the primary scoring categories
     """
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = ()
     sport = None
     target_single_player_id = None
 
@@ -369,7 +360,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-        ]
+            ]
 
     def get_serializer_class(self):
         """
@@ -428,7 +419,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
 
             game_ctype = ContentType.objects.get_for_model(game_class)
             game_table_name = game_ctype.app_label + \
-                '_' + game_ctype.model     # ie: 'nba_game'
+                              '_' + game_ctype.model  # ie: 'nba_game'
 
             # these are the fields we want to aggregate and average for the serializer.
             # we use a raw query for efficiency purposes.
@@ -478,7 +469,8 @@ class PlayerHistoryAPIView(generics.ListAPIView):
             # inner select
             # (select all_player_stats.*, nba_game.home_id, nba_game.away_id, nba_game.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=5) as all_player_stats join nba_game on nba_game.srid = all_player_stats.srid_game) as player_stats group by player_id
             final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.srid_home, {1}.srid_away, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from {2}) as {2} where rn <= {3}{4}) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(
-                select_str, game_table_name, playerstats_table_name, str(n_games_history), self.get_target_player_query_part())
+                select_str, game_table_name, playerstats_table_name, str(n_games_history),
+                self.get_target_player_query_part())
 
             # the final query string
             # query_str = "{4} (select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id) as player_stats on {3}.srid = ANY(player_stats.games)".format(select_columns_str, database_table_name, str(n_games_history), game_table_name, outter_select_str)
@@ -498,7 +490,6 @@ class PlayerHistoryAPIView(generics.ListAPIView):
 
 
 class PlayerHistoryMlbHitterAPIView(PlayerHistoryAPIView):
-
     def get_serializer_class(self):
         """
         override for having to set the self.serializer_class
@@ -513,7 +504,6 @@ class PlayerHistoryMlbHitterAPIView(PlayerHistoryAPIView):
 
 
 class PlayerHistoryMlbPitcherAPIView(PlayerHistoryAPIView):
-
     def get_serializer_class(self):
         """
         override for having to set the self.serializer_class
@@ -528,7 +518,6 @@ class PlayerHistoryMlbPitcherAPIView(PlayerHistoryAPIView):
 
 
 class PlayerHistoryMlbAPIView(PlayerHistoryAPIView):
-
     score_system_class = MlbSalaryScoreSystem
 
     def get_mlb_player(self):
@@ -594,7 +583,6 @@ class PlayerHistoryMlbAPIView(PlayerHistoryAPIView):
 
 
 class TsxPlayerNewsAPIView(generics.ListAPIView):
-
     """
     gets the news for the sport
     """
@@ -627,7 +615,6 @@ class TsxPlayerNewsAPIView(generics.ListAPIView):
 
 
 class TsxPlayerItemsAPIView(generics.ListAPIView):
-
     """
     gets the news for the sport
     """
@@ -660,7 +647,6 @@ class TsxPlayerItemsAPIView(generics.ListAPIView):
 
 
 class PlayerNewsAPIView(generics.ListAPIView):
-
     """
     gets the news for the sport
     """
@@ -696,11 +682,11 @@ class PlayerNewsAPIView(generics.ListAPIView):
             # player_ctype = ContentType.objects.get_for_model(player_model)
             return sport_player_class.objects.filter(pk=player_id)
 
+
 # class DraftGroupGameBoxscoresView(View):
 
 
 class ScheduleGameBoxscoresView(View):
-
     """
     return all the boxscores for the given draft group (basically, all
     the live games (ie: Home @ Away with scores) from the context
@@ -716,14 +702,13 @@ class ScheduleGameBoxscoresView(View):
 
 
 class PbpDebugAPIView(generics.GenericAPIView):
-
     pbp_debug_class = dataden.models.PbpDebug
 
     serializer_class = dataden.serializers.PbpDebugSerializer
+
     # permission_classes = (IsAuthenticated,)
 
     def get(self, request, game_srid, srid, format=None):
-
         # game_srid   = self.kwargs.get('game_srid')
         # srid        = self.kwargs.get('pbp_srid')
         # print('get_queryset kwargs', str(self.kwargs))

@@ -2,7 +2,7 @@ from .local import *
 import logging
 
 # Disable any logging less than WARNING.
-logging.disable(logging.INFO)
+logging.disable(logging.DEBUG)
 
 print('Using `local_test.py` settings file.')
 
