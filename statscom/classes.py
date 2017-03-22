@@ -332,7 +332,7 @@ class DailyGamesNBA(Stats):
     retrieve the information for NBA game events.
     """
 
-    endpoint_daily_games = '/stats/basketball/nba/events/'
+    endpoint_daily_games = '/stats/basketball/nba/scores/'
 
     def __init__(self):
         super().__init__('nba')
