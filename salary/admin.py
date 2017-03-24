@@ -1,4 +1,5 @@
 from logging import getLogger
+from functools import partial
 
 import celery.states
 import django.db.utils
@@ -6,6 +7,9 @@ from django.contrib import (
     admin,
     messages,
 )
+
+from django import forms
+from django.forms.models import modelformset_factory, modelform_defines_fields, modelform_factory
 from django.db.transaction import atomic
 from django.utils.html import format_html
 from raven.contrib.django.raven_compat.models import client
@@ -45,8 +49,24 @@ class PlayerInline(admin.TabularInline):
     model = Player
 
 
+class SalaryAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(SalaryAdminForm, self).__init__(*args, **kwargs)
+
+        try:
+            self.fields['amount'] = forms.IntegerField(min_value=self.instance.pool.salary_config.min_player_salary)
+        except Pool.DoesNotExist:
+            pass
+            # import ipdb; ipdb.set_trace()
+
+    class Meta:
+        model = Salary
+        fields = '__all__'
+
+
 class SalaryInline(admin.TabularInline):
     model = Salary
+    form = SalaryAdminForm
     can_delete = False
     extra = 0
     ordering = ('-amount',)
@@ -226,14 +246,26 @@ class PoolAdmin(admin.ModelAdmin):
 
 
 @admin.register(Salary)
-class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
+class SalaryAdmin(admin.ModelAdmin, mysite.mixins.generic_search.GenericSearchMixin):
+
+    def get_changelist_formset(self, request, **kwargs):
+        defaults = {
+            "formfield_callback": partial(self.formfield_for_dbfield, request=request),
+            "form": SalaryAdminForm
+        }
+        defaults.update(kwargs)
+        return modelformset_factory(
+            self.model, extra=0,
+            fields=self.list_editable, **defaults)
+
+    form = SalaryAdminForm
     list_display = ['player', 'amount', 'salary_locked', 'pool',
                     'primary_roster', 'random_adjust_amount', 'fppg',
                     'avg_fppg_for_position',
                     'num_games_included', 'updated_at']
     list_editable = ['amount', 'salary_locked']
     readonly_fields = ('pool',)
-    model = Salary
+
     list_filter = ['primary_roster', 'salary_locked', 'pool']
     raw_id_admin = ('pool',)
     search_fields = ('player__first_name', 'player__last_name')
