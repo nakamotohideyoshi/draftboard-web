@@ -93,7 +93,7 @@ class OwnershipPercentageAdjuster(object):
         for player_srid, pct_owned in players.items():
             for player_salary in self.salaries:
                 if player_srid == player_salary.player.srid:
-                    print('updating %s percent-owned to %s' % (str(player_salary), str(pct_owned)))
+                    logger.info('updating %s percent-owned to %s' % (str(player_salary), str(pct_owned)))
                     player_salary.ownership_percentage = (pct_owned * 100)
                     player_salary.save()
                     updated_count += 1
@@ -503,7 +503,7 @@ class SalaryGenerator(FppgGenerator):
         #
         # Get the average score per position so we know
         # which positions should have more value
-        self.update_progress('calculating positional averages')
+        self.update_progress('calculating positional averages for players: %s' % players)
         position_average_list = self.helper_get_average_score_per_position(players)
 
         #
@@ -569,6 +569,8 @@ class SalaryGenerator(FppgGenerator):
                 pass
 
     def helper_get_player_stats(self, trailing_games=None):
+        logger.info('helper_get_player_stats() trailing_games: %s | player_stats_classes: %s' % (
+            trailing_games, self.player_stats_classes))
         """
         For each player in the PlayerStats table, get the games
         that are relevant.
@@ -576,6 +578,9 @@ class SalaryGenerator(FppgGenerator):
         :return a list of SalaryPlayerObjects
 
         """
+
+        logger.info(
+            'regular_season_games: %s' % len(self.regular_season_games))
 
         #
         players = []
@@ -599,7 +604,9 @@ class SalaryGenerator(FppgGenerator):
             # this statement will get the relevant games by ignoring games where
             # the players fantasy_points were 0.0, but for MLB and NHL we
             # do something more specific...
+            # print('reg_season_game_pks count: ', len(reg_season_game_pks))
             all_player_stats = player_stats_class.objects.filter(game_id__in=reg_season_game_pks)
+            # print('all_player_stats', all_player_stats)
             # excluded_players = []
             if SiteSportManager.MLB in self.site_sport.name:
                 class_name = player_stats_class().__class__.__name__.lower()
@@ -660,6 +667,9 @@ class SalaryGenerator(FppgGenerator):
             sal_obj.save()
 
     def helper_get_average_score_per_position(self, players):
+        logger.info('helper_get_average_score_per_position() - players: %s' % players)
+        if len(players) == 0:
+            logger.warn('No players were provided to helper_get_average_score_per_position()')
 
         position_average_list = {}
         #
@@ -787,16 +797,22 @@ class SalaryGenerator(FppgGenerator):
         # fantasy points for each spot * spot.amount
         roster_spots = RosterSpot.objects.filter(site_sport=self.site_sport)
         sum_average_points = 0.0
+        logger.info("roster_spots: %s" % roster_spots)
+        logger.info("position_average_list: %s" % position_average_list)
         for roster_spot in roster_spots:
+            logger.info(
+                'finding the positions that map to the specified roster spot: %s' % roster_spot)
             #
             # find the positions that map to the specified roster spot and average the
             # average fantasy points for the position from the position_average_list
             roster_maps = RosterSpotPosition.objects.filter(roster_spot=roster_spot)
             count = 0
             sum = 0.0
-            msg = 'roster_maps:%s for %s' % (str(len(roster_maps)), str(roster_spot))
+            msg = 'roster_maps: %s for %s' % (str(len(roster_maps)), str(roster_spot))
+            logger.info(msg)
             for roster_map in roster_maps:
                 position = roster_map.position
+                logger.info('position: %s' % position)
                 if position in position_average_list:
                     sum += position_average_list[position].average
                     count += 1
