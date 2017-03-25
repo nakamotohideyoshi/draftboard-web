@@ -328,24 +328,23 @@ export const Live = React.createClass({
         {opponentLineupComponent}
 
         <section className={`${block}__venues`}>
-          <div className={`${block}__venues-inner`}>
-            <LiveHeader
-              contest={contest}
-              lineups={uniqueLineups.lineups}
-              myLineup={myLineupInfo}
-              opponentLineup={opponentLineup}
-              selectLineup={this.selectLineup}
-              watching={watching}
-              currentEvent={this.props.currentEvent}
-              eventsMultipart={this.props.eventsMultipart}
-            />
+          <LiveHeader
+            contest={contest}
+            lineups={uniqueLineups.lineups}
+            myLineup={myLineupInfo}
+            opponentLineup={opponentLineup}
+            selectLineup={this.selectLineup}
+            watching={watching}
+            currentEvent={this.props.currentEvent}
+            eventsMultipart={this.props.eventsMultipart}
+          />
 
-            <LiveAnimationArea
-              watching={ this.props.watching }
-              currentEvent={ this.props.currentEvent }
-              eventsMultipart={ this.props.eventsMultipart }
-            />
-          </div>
+          <LiveAnimationArea
+            watching={ this.props.watching }
+            currentEvent={ this.props.currentEvent }
+            eventsMultipart={ this.props.eventsMultipart }
+          />
+          {liveStandingsPane}
         </section>
 
         <LiveContestsPane
@@ -353,8 +352,6 @@ export const Live = React.createClass({
           openOnStart={contestsPaneOpen}
           watching={watching}
         />
-
-        {liveStandingsPane}
 
         {liveBigPlaysDom}
       </div>

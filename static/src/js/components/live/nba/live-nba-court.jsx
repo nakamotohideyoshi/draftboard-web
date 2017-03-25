@@ -7,6 +7,9 @@ import NBAPlayRecapVO from '../../../lib/live-animations/nba/NBAPlayRecapVO';
 // assets
 require('../../../../sass/blocks/live/nba/live-nba-court.scss');
 
+const DEFAULT_WIDTH = 1280;
+const DEFAULT_HEIGHT = 337;
+
 /**
  * The court in the middle of the page
  */
@@ -18,53 +21,76 @@ export default React.createClass({
     onAnimationStart: React.PropTypes.func,
   },
 
-  shouldComponentUpdate(nextProps) {
-    const curEventId = this.props.currentEvent ? this.props.currentEvent.id : null;
-    const newEventId = nextProps.currentEvent ? nextProps.currentEvent.id : null;
-    return curEventId !== newEventId;
+  getInitialState() {
+    return { scale: 1, height: DEFAULT_HEIGHT };
+  },
+
+  componentDidMount() {
+    window.addEventListener('resize', this.handleWindowResize);
+    window.addEventListener('orientationchange', this.handleWindowResize);
+    this.handleWindowResize();
   },
 
   componentDidUpdate() {
-    if (!this.props.currentEvent) {
+    if (this.props.currentEvent === null || this.props.currentEvent.id === this.eventId) {
       return;
     }
 
-    // Simulate the current currentEvent.
-    const court = new NBACourt(this.refs.court);
+    this.eventId = this.props.currentEvent.id;
+
+    const court = new NBACourt(this.refs.stage);
     const recap = new NBAPlayRecapVO(this.props.currentEvent);
     const animation = new PlayAnimation();
 
-    this.animationStarted();
-
-    animation.play(recap, court).catch(error =>
-      Raven.captureMessage('Live animation failed', {
-        extra: {
-          message: error.message,
-          currentEvent: this.props.currentEvent,
-        },
-      })
-    ).then(
-      () => this.animationCompleted()
-    ).catch(
-      // ESLint forced catch (catch-or-return).
-    );
-  },
-
-  animationStarted() {
     if (this.props.onAnimationStart) {
       this.props.onAnimationStart();
     }
+
+    animation.play(recap, court)
+    .catch(error => Raven.capture('Live animation failed', {
+      extra: { message: error.message, currentEvent: this.props.currentEvent },
+    }))
+    .then(() => this.props.onAnimationComplete());
   },
 
-  animationCompleted() {
-    if (this.props.onAnimationComplete) {
-      this.props.onAnimationComplete();
-    }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleWindowResize);
+    window.removeEventListener('orientationchange', this.handleWindowResize);
+  },
+
+  getScale() {
+    const containerWidth = this.refs.container.offsetWidth;
+    const originalWidth = DEFAULT_WIDTH;
+    const originalHeight = DEFAULT_HEIGHT;
+    const scale = containerWidth / originalWidth;
+
+    return {
+      scale,
+      height: originalHeight * scale,
+    };
+  },
+
+  handleWindowResize() {
+    this.setState(this.getScale);
   },
 
   render() {
+    const courtStyles = {
+      width: '1280px',
+      height: '337px',
+      transformOrigin: '0 top',
+      transform: `scale(${this.state.scale})`,
+    };
+
+    const containerStyles = {
+      width: '100%',
+      height: `${this.state.height}px`,
+    };
+
     return (
-      <section key="court" ref="court" className="live-nba-court" ></section>
+      <div ref="container" style={containerStyles}>
+        <section ref="stage" className="live-nba-court" style={courtStyles}></section>
+      </div>
     );
   },
 });

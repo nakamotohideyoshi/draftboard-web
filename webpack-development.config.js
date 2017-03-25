@@ -10,6 +10,11 @@ const dashboard = new Dashboard();
 const config = Object.assign(
   baseConfig,
   {
+    output: {
+      path: path.join(__dirname, 'static', 'build'),
+      publicPath: 'http://localhost:8090/static/',
+      filename: 'js/[name].js',
+    },
     // An 'entry' is a compiled & bundled file.
     entry: {
       // Main app file.
