@@ -1,7 +1,7 @@
 """
 This Maps the stat projections we get from stats.com to our internal scoring fields that exist in
-scoring.models.StatPoint. The key is what stats.com calls the field, the value is our internal field value
-found in ScoreSystem.models.StatPoint
+scoring.models.StatPoint. The value is what stats.com calls the field, the key is our internal field
+value found in ScoreSystem.models.StatPoint (this is exposed in the admin panel)
 """
 STATPOINT_TO_STATSCOM_NBA = {
     # points scored (fgs, foul shots, whatever)
@@ -22,4 +22,28 @@ STATPOINT_TO_STATSCOM_NBA = {
     'dbl-dbl': 'doubleDoubles',
     # three 10+ categories from (points, rebs, asts, blks, steals)
     'triple-dbl': 'tripleDoubles',
+}
+
+# TODO (zach) Once stats.com has projections, fill out this map to match them up.
+STATPOINT_TO_STATSCOM_MLB = {
+    'hit-batsman': '',
+    'no-hitter': '',
+    'cgso': '',
+    'cg': '',
+    'walk': '',
+    'hit': '',
+    'er': '',
+    'win': '',
+    'k': '',
+    'ip': '',
+    'cs': '',
+    'sb': '',
+    'hbp': '',
+    'bb': '',
+    'run': '',
+    'rbi': '',
+    'hr': '',
+    'triple': '',
+    'double': '',
+    'single': '',
 }

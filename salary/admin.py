@@ -21,6 +21,7 @@ from .tasks import (
     generate_salaries_for_sport,
     generate_salaries_from_statscom_projections_nfl,
     generate_salaries_from_statscom_projections_nba,
+    generate_salaries_from_statscom_projections_mlb,
 )
 
 logger = getLogger('salary.admin')
@@ -196,6 +197,10 @@ class PoolAdmin(admin.ModelAdmin):
                 elif sport == 'nba':
                     logger.info('Queing NBA stats projection task.')
                     task_result = generate_salaries_from_statscom_projections_nba.delay()
+
+                elif sport == 'mlb':
+                    logger.info('Queing MLB stats projection task.')
+                    task_result = generate_salaries_from_statscom_projections_mlb.delay()
 
                 else:
                     msg = '[%s] is unimplemented server-side. DID NOT GENERATE SALARIES for %s!' % (
