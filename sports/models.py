@@ -126,6 +126,9 @@ class Season(models.Model):
         abstract = True
         unique_together = ('srid', 'season_year', 'season_type')
 
+    def __str__(self):
+        return "<Season type: %s | year: %s | srid: %s>" % (
+            self.season_type, self.season_year, self.srid)
 
 class Game(DirtyFieldsMixin, models.Model):
     """
