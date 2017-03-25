@@ -49,7 +49,7 @@ class GameStatus(object):
             'wdelay'        : inprogress,
             'fdelay'        : inprogress,
             'odelay'        : inprogress,
-            'cancelled'     : closed,
+            'canceled'      : closed,
             'unnecessary'   : closed,
             'postponed'     : closed,
             'suspended'     : closed,       # suspended and will be rescheduled [...], continuing where they left off.
@@ -63,7 +63,7 @@ class GameStatus(object):
             'halftime'      : inprogress,
             'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
             'closed'        : closed,       # game over, statistics validation done
-            'cancelled'     : closed,
+            'canceled'      : closed,
             'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
             'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
             'flex-schedule' : scheduled,    # scheduled with datetime, but likely to be moved for broadcast purposes
@@ -77,7 +77,7 @@ class GameStatus(object):
             'halftime'      : inprogress,
             'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
             'closed'        : closed,       # game over, statistics validation done
-            'cancelled'     : closed,
+            'canceled'      : closed,
             'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
             'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
             'time-tbd'      : scheduled,    # scheduled to occur, date known, start time not yet determined
@@ -93,7 +93,7 @@ class GameStatus(object):
             'inprogress'    : inprogress,
             'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
             'closed'        : closed,       # game over, statistics validation done
-            'cancelled'     : closed,
+            'canceled'      : closed,
             'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
             'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
             'time-tbd'      : scheduled,    # scheduled to occur, date known, start time not yet determined
