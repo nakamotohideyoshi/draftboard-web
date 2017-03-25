@@ -2,9 +2,9 @@
 {% block title %}Live | Draftboard{% endblock title %}
 {% load staticfiles %}
 
-{% block html_class %}section-live{% endblock %}
-{% block body_class %}one-col{% endblock %}
+{% block html_class %}section-live section-live-debugger{% endblock %}
 
 {% block content_container %}
+  {% include 'frontend/partials/nav-scoreboard.html' %}
   <section id="cmp-live"></section>
 {% endblock content_container %}

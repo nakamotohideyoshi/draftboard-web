@@ -6,15 +6,11 @@ $color-moneyline-red: #e33c3c;
 $color-moneyline-bg: #4a4e5f;
 
 #{$block} {
-  position: fixed;
-  left: 50%;
-  bottom: 120px;
-  z-index: $zindex-live-standings-pane;
-  width: 70%;
+  position: relative;
   display: flex;
   flex-direction: row-reverse;
   align-items: center;
-  transform: translateX(-50%);
+  width: 100%;
   
   &__legend {
     flex-shrink: 1;

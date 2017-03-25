@@ -1,6 +1,5 @@
 @import '../../variables.scss';
 
-
 //
 // BEM block for React LiveHeader
 //
@@ -8,11 +7,10 @@
 $block: '.live-header';
 
 #{$block} {
-  padding: 0 0 60px;
+  padding: 10px 0 30px;
   position: relative;
   text-align: center;
-  z-index: $zindex-live-header;
-
+  
   &__contest-name {
     color: #7a7d8b;
     font-family: $font-oswald;
@@ -163,40 +161,5 @@ $block: '.live-header';
         opacity: 1;
       }
     }
-  }
-}
-
-
-// annoying media queries to scale the football field, would love a dynamic way to accomplish this
-// but afaik you can't use calc() + percentage of width within a transform property
-@media (min-height: 950px) and (max-height: 1099px) {
-  #{$block} {
-    position: absolute;
-    z-index: 20;
-    left: 50%;
-    transform: scale(1) translateX(-50%);
-    top: 5vh;
-  }
-}
-@media (min-height: 1100px) and (max-height: 1299px) {
-  #{$block} {
-    position: absolute;
-    z-index: 20;
-    left: 50%;
-    transform: scale(1.25) translateX(-40%);
-    top: 12vh;
-  }
-}
-
-
-// annoying media queries to scale the football field, would love a dynamic way to accomplish this
-// but afaik you can't use calc() + percentage of width within a transform property
-@media (min-height: 1300px) {
-  #{$block} {
-    position: absolute;
-    z-index: 20;
-    left: 50%;
-    transform: scale(1.5) translateX(-33%);
-    top: 20vh;
   }
 }
