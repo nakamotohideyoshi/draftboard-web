@@ -58,14 +58,18 @@ $block: '.live';
     transition: width 600ms cubic-bezier(.65, .47, .35, 1);
   }
   
+  // Overlap the current .live__venue with the .live-header
+  &__venues > .live__venue {
+    margin-top: -10px;
+  }
+
   // Adjust the position of the LiveStandingsPane component to slightly overlap
   // the `live__venues` div. In the case of NBA, this puts the money-line within
   // the shadow of the NBA court, similarly for NFL and NHL.
   &__venues > .live-standings-pane {
-    position: relative;
-    top: -30px;
     width: 95% !important;
     margin: 0 auto;
+    margin-top: -50px;
   }
 
   // Scale up the LiveHeader (PMR rings etc.) for REALLY big displays.
