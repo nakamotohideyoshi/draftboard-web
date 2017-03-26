@@ -571,26 +571,37 @@ class BlockCreator(object):
             # Update: We're not filtering dupes by cutoff_time. This was causing multiple Blocks
             # to be created for a day if the schedule is manually changed.
             # We only ever want 1 Block per day, per sport, this should account for that.
+            err_msg = 'A %s scheduled block already exists for dfsday: start: %s | end: %s' % (
+                site_sport.name, start, end)
+
             block = Block.objects.get(
                 site_sport=site_sport,
                 dfsday_start=start,
                 dfsday_end=end)
-            err_msg = 'A %s scheduled block already exists for dfsday: start: %s | end: %s' % (
-                site_sport.name, start, end)
+
             logger.warning(err_msg)
             # Create any BlockPrizeStructure for this existing Block. If we don't do this, any new
             # prize structures will not be created to existing Blocks and thus will not spawn
             # contests.
             BlockPrizeStructureCreator(block).create()
+
+            # The block already exists, exit out of here instead of creating one.
             raise self.BlockExistsException(err_msg)
+
+        # There is already More than one block for this day!
+        except Block.MultipleObjectsReturned:
+            raise self.BlockExistsException(err_msg)
+
+        # If the block doesn't exist, keep going and create one.
         except Block.DoesNotExist:
             pass
 
         # create it
-        block = Block.objects.create(site_sport=self.sport_day.site_sport,
-                                     dfsday_start=start,
-                                     dfsday_end=end,
-                                     cutoff_time=cutoff_time)
+        block = Block.objects.create(
+            site_sport=self.sport_day.site_sport,
+            dfsday_start=start,
+            dfsday_end=end,
+            cutoff_time=cutoff_time)
         return block
 
     @staticmethod
