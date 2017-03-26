@@ -47,7 +47,7 @@ export default React.createClass({
     }
 
     animation.play(recap, court)
-    .catch(error => Raven.capture('Live animation failed', {
+    .catch(error => Raven.captureMessage('Live animation failed', {
       extra: { message: error.message, currentEvent: this.props.currentEvent },
     }))
     .then(() => this.props.onAnimationComplete());
