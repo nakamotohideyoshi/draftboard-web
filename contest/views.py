@@ -521,10 +521,9 @@ class EnterLineupAPIView(generics.CreateAPIView):
         except Limit.DoesNotExist:
             pass
 
-        task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
-
-        # get() blocks the view from returning until the task completes its work
         try:
+            # get() blocks the view from returning until the task completes its work
+            task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
             task_result.get()
         except OverdraftException:
             raise ValidationError(
