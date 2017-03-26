@@ -148,6 +148,17 @@ class TabularInlineBlockPrizeStructure(admin.TabularInline):
     model = contest.schedule.models.BlockPrizeStructure
 
 
+@admin.register(contest.schedule.models.Block)
+class BlockAdmin(admin.ModelAdmin):
+    list_display = [
+        'created',
+        'modified',
+        'site_sport',
+        'cutoff_time',
+        'dfsday_start',
+        'dfsday_end'
+    ]
+
 @admin.register(contest.schedule.models.UpcomingBlock)
 class UpcomingBlockAdmin(admin.ModelAdmin):
     # customize the template, basically so we can group blocks by a Date

@@ -26,7 +26,7 @@ class Block(models.Model):
 
     def __str__(self):
         local_cutoff = self.get_utc_cutoff().astimezone(pytz_timezone(settings.TIME_ZONE))
-        return '%s %s' % (self.site_sport, str(local_cutoff))
+        return '<Block id: %s | sport: %s | local_cutoff: %s>' % (self.pk, self.site_sport, str(local_cutoff))
 
     def save(self, *args, **kwargs):
         """

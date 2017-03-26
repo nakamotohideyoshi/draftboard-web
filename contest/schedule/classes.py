@@ -517,7 +517,7 @@ class ContestPoolScheduleManager(object):
 
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
-            # logger.info('Creating Blocks for %s - %s', (sport_day, date_str))
+            logger.info('Creating Blocks for %s - %s', (sport_day, date_str))
             self.sport_day = sport_day
             # use the BlockCreator to make new blocks
             # which will have all teh default prize structures
@@ -568,11 +568,15 @@ class BlockCreator(object):
         try:
             #
             # set fields: dfsday_start (datetime), dfsday_end (datetime), cutoff_time (time object)
-            block = Block.objects.get(site_sport=site_sport,
-                                      dfsday_start=start,
-                                      dfsday_end=end,
-                                      cutoff_time=cutoff_time)
-            err_msg = 'A %s scheduled block already exists' % site_sport.name
+            # Update: We're not filtering dupes by cutoff_time. This was causing multiple Blocks
+            # to be created for a day if the schedule is manually changed.
+            # We only ever want 1 Block per day, per sport, this should account for that.
+            block = Block.objects.get(
+                site_sport=site_sport,
+                dfsday_start=start,
+                dfsday_end=end)
+            err_msg = 'A %s scheduled block already exists for dfsday: start: %s | end: %s' % (
+                site_sport.name, start, end)
             logger.warning(err_msg)
             # Create any BlockPrizeStructure for this existing Block. If we don't do this, any new
             # prize structures will not be created to existing Blocks and thus will not spawn
@@ -589,7 +593,8 @@ class BlockCreator(object):
                                      cutoff_time=cutoff_time)
         return block
 
-    def create_block_games(self, block, games):
+    @staticmethod
+    def create_block_games(block, games):
         block_games = []
         for game in games:
             logger.info('creating a BlockGame for %s', game)
@@ -625,11 +630,11 @@ class BlockCreator(object):
         excluded_games = self.sport_day.get_excluded_games()
         all_games = list(included_games) + list(excluded_games)
         block_games = self.create_block_games(block, all_games)  # returns the created BlockGames
+        logger.info('Block Created %s', block)
 
         # create the block prize structures
         block_prize_structure_creator = BlockPrizeStructureCreator(block)
         block_prize_structure_creator.create()
-
         return block
 
 
@@ -717,12 +722,21 @@ class BlockManager(object):
         of not including very recent scheduling changes!
         """
 
+        # If we've already created pools for this block, don't attempt to create more,
+        # that would cause us to have multiple slates of pools per day.
+        if self.block.contest_pools_created:
+            logger.info('Contests pools have already been created for this block, '
+                        'not creating more. %s' % self.block)
+            return
+
         # default
         num_contest_pools_created = 0
 
         # determine the start time
         included_games = self.game_model_class.objects.filter(
-            start__gte=self.cutoff, start__lt=self.block.dfsday_end).order_by('start')
+            start__gte=self.cutoff,
+            start__lt=self.block.dfsday_end
+        ).order_by('start')
 
         # we will not check if there are enough games here, and
         # ultimately let the draft group creator raise an exception
@@ -857,4 +871,4 @@ class DefaultPrizeStructureManager(object):
                         created_default_prize_structures += 1
 
             logger.info("%s created_default_prize_structures for %s" % (
-            created_default_prize_structures, sport))
+                created_default_prize_structures, sport))
