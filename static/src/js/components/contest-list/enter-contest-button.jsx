@@ -111,7 +111,7 @@ const EnterContestButton = React.createClass({
    */
   getFocusedLineupEntryCount(contest) {
     if (contest.entryInfo) {
-      return contest.entryInfo.filter(entry => entry.lineup === this.props.lineup.id).length;
+      return contest.entryInfo.length;
     }
 
     return 0;
