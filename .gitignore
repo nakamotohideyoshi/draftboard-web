@@ -2,6 +2,9 @@
 bkup-*
 bkup/*
 
+# Temp files
+/tmp
+
 # OS-specific - .DS_Store is an OSX file system thing
 .DS_Store
 
