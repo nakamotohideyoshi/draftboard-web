@@ -29,6 +29,36 @@ class DailyGamesMLB(DailyGamesAbstract):
     def __init__(self):
         super().__init__('mlb')
 
+    # This is override for MLB because we need to get today's games instead of the default of
+    # tomorrow's
+    def get_event_ids(self, data=None):
+        """
+        return a list of the stats.com eventId(s) for all events (ie: games) in the
+        data returned by the method: get_games()
+
+        if no 'data' param is supplied, this method will call get_games()
+
+        :param data: the return value of get_games()
+        :return: list of integer eventId(s)
+        """
+
+        if data is None:
+            # Get TOMORROW'S games.
+            # data = self.get_tomorrows_games()
+            # Get TODAY's games.
+            data = self.get_games()
+
+        season = data.get('season')
+        # season.keys()
+        event_type_list = season.get('eventType')
+        # len(event_type_list)
+        event = event_type_list[0]
+        # event.keys()
+        events = event.get('events')
+
+        # return a list of the eventIds
+        return [game.get('eventId') for game in events]
+
 
 class PlayersMLB(PlayersAbstract):
     endpoint = '/stats/baseball/mlb/participants/'
@@ -142,7 +172,7 @@ class FantasyProjectionsMLB(FantasyProjections):
         # Players are sorted by teams, loop through each team, then loop through each player
         # on that team to extract projections.
         for team in teams:
-            team_player_projections = team.get('players')
+            team_player_projections = team.get('batters') + team.get('pitchers')
             for player_projection in team_player_projections:
                 logger.debug('===== PLAYER =====')
                 # logger.info('   projection: %s' % player_projection)
