@@ -181,9 +181,9 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         'created',
         'modified',
         'games_included',
-        'cutoff',
-        'dfsday_start',
-        'dfsday_end'
+        # 'cutoff',
+        # 'dfsday_start',
+        # 'dfsday_end'
     )
     list_filter = ['site_sport', ]
     list_editable = ['cutoff_time', ]
