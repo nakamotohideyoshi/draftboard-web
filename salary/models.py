@@ -257,6 +257,7 @@ class Salary(models.Model):
     )
 
     # the GFK to the Player
+    # This is a <sport>.models.Player instance.
     player_type = models.ForeignKey(ContentType)
     player_id = models.PositiveIntegerField()
     player = GenericForeignKey('player_type', 'player_id')
