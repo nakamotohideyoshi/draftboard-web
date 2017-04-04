@@ -25,28 +25,28 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
     lookup_model_class = PlayerLookup
 
     @atomic
-    def update(self, swish_update):
+    def update(self, rotowire_update):
         """
         override. update this third party data and enter it as a PlayerUpdate
 
         :param swish_update:
         """
         # get the players' swish id
-        pid = swish_update.get_field(UpdateData.field_player_id)
-        name = swish_update.get_player_name()
+        pid = rotowire_update.get_field(UpdateData.field_player_id)
+        name = rotowire_update.get_player_name()
         # try to get this player using the PlayerLookup (if the model is set)
         # otherwise falls back on simple name-matching
         player_srid = self.get_srid_for(pid=pid, name=name)  # TODO catch self.PlayerDoesNotExist
         # internally calls super().update(player_srid, *args, **kwargs)
-        update_id = swish_update.get_update_id()
+        update_id = rotowire_update.get_update_id()
 
         # hard code this to use the category: 'injury' for testing
         category = 'injury'
         type = 'rotowire'
-        value = swish_update.get_text() # latest news
+        value = rotowire_update.get_text() # latest news
 
         # get status
-        status = swish_update.get_injury_status()
+        status = rotowire_update.get_injury_status()
         # get source_origin
         source_origin = 'rotowire'
         # get url_origin
@@ -55,7 +55,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         # create a PlayerUpdate model in the db.
 
         kwargs = {
-            'published_at': swish_update.get_updated_at(),
+            'published_at': rotowire_update.get_updated_at(),
             'sport': self.sport
         }
 
