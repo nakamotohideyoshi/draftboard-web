@@ -665,9 +665,15 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # first_name  = o.get('first_name', None)
             # last_name   = o.get('last_name', None)
             # full_name   = '%s %s' % (str(first_name), str(last_name))
-            logger.error('Player object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
+            logger.warning('Player object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
                 obj, target))
-            client.captureException()
+            # Add some debugging info to the sentry error.
+            client.context.merge({'extra': {
+                'obj': obj,
+                'target': target,
+            }})
+            client.captureException('Player object for PlayerStats DoesNotExist')
+            client.context.clear()
             return  # dont create the playerstats then
 
         try:
@@ -686,10 +692,10 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         except self.player_stats_model.DoesNotExist:
             # We don't have a playerStats model for this player, so let's make one.
             logger.warning((
-                               'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
-                               '| game: %s | obj: %s | target: %s'
-                           ) % (srid_player, srid_game, self.p, self.g, obj, target)
-                           )
+               'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
+               '| game: %s | obj: %s | target: %s'
+                    ) % (srid_player, srid_game, self.p, self.g, obj, target)
+            )
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
