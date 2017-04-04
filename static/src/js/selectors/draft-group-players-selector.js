@@ -124,7 +124,7 @@ export const draftGroupPlayerSelector = createSelector(
 
  // Filter players based on the probable pitchers filter.
 const probablePitchersFilter = (state) => state.draftGroupPlayersFilters.filters.probablePitchersFilter.match;
-const draftGroupUpdatesSelector = (state) => state.upcomingDraftGroupUpdates;
+const draftGroupUpdatesSelector = (state) => state.draftGroupUpdates;
 
 const probablePitchersSelector = createSelector(
     [allPlayersSelector, probablePitchersFilter, draftGroupUpdatesSelector, sportSelector, activeDraftGroupIdSelector],
@@ -142,6 +142,7 @@ const probablePitchersSelector = createSelector(
       // Make sure the draftgroup with pitchers exists in the store.
       if (
         draftGroupId &&
+        draftGroupUpdates &&
         draftGroupUpdates.draftGroups &&
         draftGroupId in draftGroupUpdates.draftGroups &&
         draftGroupUpdates.draftGroups[draftGroupId].probablePitchers &&

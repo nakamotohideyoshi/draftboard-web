@@ -2,10 +2,6 @@ import Sprite from '../Sprite';
 
 export default class NBAClip {
 
-  static get FILE_PATH() {
-    return '/nba/live-animations';
-  }
-
   constructor(data) {
     this.data = data;
     this._curFrame = 1;
@@ -13,7 +9,7 @@ export default class NBAClip {
   }
 
   get file() {
-    return `${window.dfs.playerImagesBaseUrl}${NBAClip.FILE_PATH}/${this.data.file}`;
+    return this.data.file;
   }
 
   get width() {

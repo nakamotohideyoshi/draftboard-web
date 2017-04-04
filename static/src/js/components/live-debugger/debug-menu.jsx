@@ -26,23 +26,13 @@ export default React.createClass({
 
   toggleDebug() {
     window.DEBUG_LIVE_ANIMATIONS = !window.DEBUG_LIVE_ANIMATIONS;
+    document.body.classList[window.DEBUG_LIVE_ANIMATIONS ? 'add' : 'remove']('is-debugging');
   },
 
   render() {
-    const styles = {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 999,
-      width: '100%',
-      padding: '20px',
-      backgroundColor: '#000',
-      color: '#fff',
-    };
-
     const playOptions = pbpQueue.recaps
       .map((vo, index) => {
-        const label = `${vo.playType()} - ${vo._obj.description}`;
+        const label = `${vo.playType()} - ${vo.madeShot()} - ${vo._obj.description}`;
         return (
           <option value={ index } key={ vo._obj.id }>{ label }</option>
         );
@@ -50,7 +40,7 @@ export default React.createClass({
     );
 
     return (
-        <div style={ styles }>
+        <div className="debug-menu">
           <button onClick={ () => pbpQueue.prev() } disabled={!pbpQueue.hasPrev()}>Prev</button>
           <button onClick={ () => pbpQueue.next() } disabled={!pbpQueue.hasNext()}>Next</button>
           <button onClick={ () => pbpQueue.replay() } disabled={!pbpQueue.getCurEventObj()}>Replay</button>
