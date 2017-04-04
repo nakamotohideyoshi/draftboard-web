@@ -7,18 +7,17 @@
 $block: '.live-big-plays';
 
 #{$block} {
-  position: absolute;
-  left: 0;
-  bottom: 20px;
-  z-index: $zindex-live-big-plays;
+  display: flex;
+  position: relative;
   width: 100%;
-  padding: 0 80px;
+  height: (86px + 20px);
+  padding: 10px 80px 10px 80px;
 
   .btn-prev,
   .btn-next {
     display: inline-block;
     position: absolute;
-    top: -6px;
+    top: 2px;
     width: 40px;
     border: none;
     background-color: transparent;

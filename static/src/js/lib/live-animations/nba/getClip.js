@@ -1,10 +1,9 @@
 import NBAClip from './NBAClip';
-
-const data = require('../../../../img/blocks/live/nba/sequences/clips.json');
+import data from './nbaClips';
 
 export function getClip(play) {
   const file = data.plays[play];
-  const clip = data.clips.filter(dataClip => dataClip.file === file);
+  const clip = data.clips.filter(dataClip => dataClip.file.indexOf(file) !== -1);
 
   if (!clip.length) {
     throw new Error(`Unknown clip "${play}"`);
@@ -13,11 +12,12 @@ export function getClip(play) {
   }
 }
 
-export function getBasketClip(zone = null) {
+export function getBasketClip(made, zone = null) {
+  const madeOrMissed = made ? 'made' : 'missed';
   try {
-    return getClip(`basket_zone_${zone}`);
+    return getClip(`basket_${madeOrMissed}_zone_${zone}`);
   } catch (error) {
-    throw new Error(`Unknown basket clip for zone "${zone}"`);
+    throw new Error(`Unknown basket "${madeOrMissed}" clip for zone "${zone}"`);
   }
 }
 

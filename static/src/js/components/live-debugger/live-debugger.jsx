@@ -6,6 +6,8 @@ import LiveBigPlays from '../live/live-big-plays';
 import LiveStandingsPane from '../live/live-standings-pane';
 import DebugMenu from './debug-menu';
 
+require('../../../sass/blocks/live-debugger.scss');
+
 const stubMyLineup = {
   id: 2,
   name: 'My Lineup',
@@ -143,31 +145,25 @@ export default connect(mapStateToProps)(React.createClass({
   },
 
   render() {
-    const { eventsMultipart, watching } = stubData;
+    const { eventsMultipart, watching, contest } = stubData;
     const { currentEvent, bigEvents } = this.props;
 
     return (
-      <section className="debug-live-animations">
+      <div className="live">
         <DebugMenu />
-        <div className="live">
-          <section className="live__venues">
-            <div className="live__venues-inner">
-              <LiveHeader
-                currentEvent={currentEvent}
-                contest={stubData.contest}
-                lineups={stubData.uniqueLineups.lineups}
-                myLineup={stubData.myLineupInfo}
-                opponentLineup={stubData.opponentLineup}
-                selectLineup={stubData.selectLineup}
-                watching={stubData.watching}
-              />
-              <LiveAnimationArea {...{ watching, currentEvent, eventsMultipart }} />
-            </div>
-          </section>
-          <LiveStandingsPane contest={stubData.contest} watching={watching} />
-          <LiveBigPlays queue={bigEvents || []} />
-        </div>
-      </section>
+        <section className="live__venues">
+          <LiveHeader
+            {...{ contest, currentEvent, watching }}
+            lineups={stubData.uniqueLineups.lineups}
+            myLineup={stubData.myLineupInfo}
+            opponentLineup={stubData.opponentLineup}
+            selectLineup={stubData.selectLineup}
+          />
+          <LiveAnimationArea {...{ currentEvent, eventsMultipart, watching }} />
+          <LiveStandingsPane {...{ contest, watching }} />
+        </section>
+        <LiveBigPlays queue={bigEvents || []} />
+      </div>
     );
   },
 }));

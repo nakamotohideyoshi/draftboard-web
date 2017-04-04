@@ -21,9 +21,9 @@ logger = getLogger('salary.tasks')
 @app.task(name='salary.tasks.check_current_projections_week', bind=True)
 def check_current_projections_week(self):
     from statscom.classes import (
-        FantasyProjectionsNFL,
         ProjectionsWeekWebhook,
     )
+    from statscom.sports.nfl import FantasyProjectionsNFL
 
     api = FantasyProjectionsNFL()
     data = api.get_projections()
@@ -40,7 +40,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
         SalaryGeneratorFromProjections,
         PlayerProjection,
     )
-    from statscom.classes import FantasyProjectionsNFL
+    from statscom.sports.nfl import FantasyProjectionsNFL
 
     """ NFL """
     # from statscom.classes import FantasyProjectionsNFL
@@ -90,7 +90,7 @@ def generate_salaries_from_statscom_projections_nba(self):
      First it runs FantasyProjectionsNBA to fetch all of tomorrow's NBA game projections from STATS.com,
      then generates salaries based on those projections in SalaryGeneratorFromProjections.
     """
-    from statscom.classes import FantasyProjectionsNBA
+    from statscom.sports.nba import FantasyProjectionsNBA
     from salary.classes import (
         SalaryGeneratorFromProjections,
         PlayerProjection,
@@ -130,6 +130,66 @@ def generate_salaries_from_statscom_projections_nba(self):
     else:
         msg = (
             'action: generate_salaries_from_statscom_projections_nba - a task is already'
+            'generating salaries for sport: %s (stats.com)' % sport)
+        logger.error(msg)
+        print(msg)
+        client.captureMessage(msg)
+
+
+LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+
+
+@app.task(name='salary.tasks.generate_salaries_from_statscom_projections_mlb', bind=True)
+def generate_salaries_from_statscom_projections_mlb(self):
+    """
+    MLB
+
+     This task is kicked off from the django admin panel by pressing the
+     'Generate Salaries using STATS.com projections` button here: /admin/salary/pool/
+
+     First it runs FantasyProjectionsNBA to fetch all of tomorrow's NBA game projections from STATS.com,
+     then generates salaries based on those projections in SalaryGeneratorFromProjections.
+    """
+    from statscom.sports.mlb import FantasyProjectionsMLB
+    from salary.classes import (
+        SalaryGeneratorFromProjections,
+        PlayerProjection,
+    )
+
+    logger.info('action: generate_salaries_from_statscom_projections_mlb')
+    sport = 'mlb'
+
+    api = FantasyProjectionsMLB()
+    player_projections = api.get_player_projections()
+    logger.info('FINAL player_projections count: %s' % len(player_projections))
+    Pool.objects.all().count()
+    pool = Pool.objects.get(site_sport__name=sport)
+
+    sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
+    lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
+
+    logger.info('action: generate_salaries_from_statscom_projections_nba - acquiring lock')
+    # cache.add fails if the key already exists
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    # advantage of using add() for atomic locking
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            # start generating the salary pool, time consuming...
+            salary_generator = SalaryGeneratorFromProjections(
+                player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
+            salary_generator.generate_salaries()
+        except Exception as e:
+            logger.error(e)
+            client.captureException()
+        finally:
+            logger.info('action: generate_salaries_from_statscom_projections_mlb - releasing lock')
+            release_lock()
+
+    else:
+        msg = (
+            'action: generate_salaries_from_statscom_projections_mlb - a task is already'
             'generating salaries for sport: %s (stats.com)' % sport)
         logger.error(msg)
         print(msg)

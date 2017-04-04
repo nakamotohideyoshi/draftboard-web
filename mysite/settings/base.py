@@ -292,22 +292,8 @@ VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437aff
 # stats.com credentials for api usage
 STATSCOM_URL_BASE = 'http://api.stats.com/v1'
 STATSCOM_KEYS = {
-    'nfl': {
-        'api_key': 'ayecer82rvxzeu5pcea2a89p',
-        'secret': 'zj9pqF2882',
-    },
-    'mlb': {
-        'api_key': 'vqcfvb8vz9m732hqm5saxv3g',
-        'secret': 'kywJJpqs6a',
-    },
-    'nba': {
-        'api_key': '9ahek43b9cfxp2acrhyh55fz',
-        'secret': 'xz6dnnpkZx',
-    },
-    'nhl': {
-        'api_key': 'yubvm7f4gzxve5h3mh2qzgsb',
-        'secret': 'xQJ2CTWzP8',
-    }
+    'api_key': 'htkfzjjc6ja73gpz5sgqv2yr',
+    'secret': 'bS74caTFtx',
 }
 
 # RotoWire API Key

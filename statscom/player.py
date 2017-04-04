@@ -28,11 +28,17 @@ def get_fantasy_point_projection_from_stats_projection(stat_points, stats_projec
 
     logger.debug('========= get_fantasy_point_projection_from_stats_projection =============')
     for stat_point in stat_points:
+        # For each stat in our stat map, try to find it in our player's projection list.
         if stat_point.stat in stat_map:
-            stat_value = float(stats_projections[stat_map[stat_point.stat]]) * stat_point.value
-            fp_total += stat_value
-            logger.debug('%s %s is worth: %s' % (
-                stats_projections[stat_map[stat_point.stat]], stat_point.stat, stat_value ))
+            # Does it exist in the projection? If so, add it to our total.
+            if stat_map[stat_point.stat] in stats_projections.keys():
+                stat_value = float(stats_projections[stat_map[stat_point.stat]]) * stat_point.value
+                fp_total += stat_value
+                logger.debug('%s %s is worth: %s' % (
+                    stats_projections[stat_map[stat_point.stat]], stat_point.stat, stat_value ))
+            else:
+                logger.info(
+                    'projection for %s not found in this projection.' % stat_map[stat_point.stat])
         else:
             logger.warning('Player projection stat not found: %s' % stat_point.stat)
 
