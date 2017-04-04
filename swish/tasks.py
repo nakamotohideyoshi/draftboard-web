@@ -58,7 +58,5 @@ def update_injury_feed(self, sport):
 
                 for player in player_update_manager.players_not_found:
                     logger.warning('%s | rotowire player not found: %s' % (sport, player))
-            else:
-                updates = PlayerUpdate.objects.filter(sport=sport).order_by('-updated_at')
         finally:
             release_lock()
