@@ -7,9 +7,8 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
-from util.fairmatch import (
+from contest.classes import (
     FairMatch,
-    FairMatchNoCancel,
 )
 
 logger = getLogger('util.tests')
@@ -77,21 +76,21 @@ class TestFairMatch(TestCase):
         self.fm = FairMatch([1, 2, 3, 4], 3)
 
 
-class TestFairMatchNoCancel(TestCase):
-    """
-    the "no cancel" version of fairmatch runs FairMatch,
-    and as a final step it will place all unused entries
-    into contests which may result in overlay.
-    """
-
-    def setUp(self):
-        self.entry_pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                           21, 21, 22, 22, 23, 23, 24,
-                           24, 25, 26, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31,
-                           31, 32, 32, 32, 33, 33, 33]
-        self.contest_size = 10
-        self.fmnc = FairMatchNoCancel([1, 2, 3, 4], 3)
-
+# class TestFairMatchNoCancel(TestCase):
+#     """
+#     the "no cancel" version of fairmatch runs FairMatch,
+#     and as a final step it will place all unused entries
+#     into contests which may result in overlay.
+#     """
+#
+#     def setUp(self):
+#         self.entry_pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#                            21, 21, 22, 22, 23, 23, 24,
+#                            24, 25, 26, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31,
+#                            31, 32, 32, 32, 33, 33, 33]
+#         self.contest_size = 10
+#         self.fmnc = FairMatchNoCancel([1, 2, 3, 4], 3)
+#
 
 class ReducerTest(TestCase):
     def setUp(self):
