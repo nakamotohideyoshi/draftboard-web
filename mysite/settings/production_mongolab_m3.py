@@ -18,5 +18,5 @@ MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % ( MONGO_USER,
 
 # Override our default redis max connection limit. At 5 we get
 # `ConnectionError: Too many connections` errors.
-overrides = {'CONNECTION_POOL_KWARGS': {'max_connections': 10}}
+overrides = {'CONNECTION_POOL_KWARGS': {'max_connections': 5}}
 CACHES['default']['OPTIONS'].update(overrides)
