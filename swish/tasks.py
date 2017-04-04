@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 from django.core.cache import cache
+
+from draftgroup.classes import AbstractUpdateManager
 from mysite.celery_app import app
 from draftgroup.models import PlayerUpdate, PlayerStatus
 from swish.classes import (
@@ -31,16 +33,20 @@ def update_injury_feed(self, sport):
             updates = rotowire.get_updates()
             with transaction.atomic():
                 for player_update in updates:
-                    pid = player_update.get_pid()
-                    name = player_update.get_player_name()
-                    player_srid = player_update_manager.get_srid_for(pid=pid, name=name)
-                    status, created = PlayerStatus.objects.get_or_create(
-                        player_id=pid,
-                        sport=sport,
-                        player_srid=player_srid,
-                    )
-                    status.status = player_update.get_injury_status()
-                    status.save()
+                    try:
+                        update_model = player_update_manager.update(player_update)
+                        pid = player_update.get_pid()
+                        player_srid = update_model.player_srid
+                        status, created = PlayerStatus.objects.get_or_create(
+                            player_id=pid,
+                            sport=sport,
+                            player_srid=player_srid,
+                        )
+                        status.status = player_update.get_injury_status()
+                        status.save()
+                    except PlayerUpdateManager.PlayerDoesNotExist:
+                        pass
+
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
