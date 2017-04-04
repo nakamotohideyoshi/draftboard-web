@@ -20,9 +20,9 @@ class GameTeamAdmin(admin.ModelAdmin):
 
 @admin.register(draftgroup.models.PlayerUpdate)
 class PlayerUpdateAdmin(admin.ModelAdmin):
-    list_display = ['player', 'sport', 'created', 'category', 'status', 'type', 'value']
+    list_display = ['player', 'sport', 'created', 'category', 'status', 'type', 'notes', 'analysis']
     list_filter = ['sport', 'created', 'status', 'category', 'type']
-    search_fields = ['update_id', 'player_srid', 'category', 'type', 'value', 'sport']
+    search_fields = ['update_id', 'player_srid', 'category', 'type', 'value', 'sport', 'notes', 'analysis']
 
     @staticmethod
     def player(obj):
