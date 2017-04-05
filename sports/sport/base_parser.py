@@ -669,10 +669,11 @@ class DataDenPlayerStats(AbstractDataDenParseable):
                 obj, target))
             # Add some debugging info to the sentry error.
             client.context.merge({'extra': {
-                'obj': obj,
+                'o': str(o),
                 'target': target,
+                'player': "%s %s" % (o.get('first_name', None), o.get('last_name', None))
             }})
-            client.captureException('Player object for PlayerStats DoesNotExist')
+            client.captureMessage('Player object for PlayerStats DoesNotExist')
             client.context.clear()
             return  # dont create the playerstats then
 
