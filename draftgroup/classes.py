@@ -914,6 +914,7 @@ class GameUpdateManager(
             gu = self.model()
             gu.category = category
             gu.type = type
+            gu.updated_at = timezone.now()
             created = True
 
         if gu.value is None or gu.value != value:
