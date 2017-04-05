@@ -6,7 +6,7 @@ celerybeat: celery -A mysite beat
 
 
 # Standard celery worker.
-celery: newrelic-admin run-program celery -A mysite worker -l info --autoscale=2,4 -n Standard@%n
+celery: newrelic-admin run-program celery -A mysite worker -l info --autoscale=2,4 --time-limit=600 -n Standard@%n
 
 
 # Long-running celery task queue for things like <sport>.cleanup_roster that take a while.
