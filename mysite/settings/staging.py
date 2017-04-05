@@ -6,6 +6,8 @@ from urllib import parse
 # Constant for determining environment
 DOMAIN = 'staging.draftboard.com'
 ALLOWED_HOSTS = [DOMAIN, 'draftboard-staging.herokuapp.com']
+SITE_ADMIN_EMAIL = ['zach@draftboard.com']
+
 
 # Testing mode off
 DEBUG = False
