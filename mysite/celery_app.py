@@ -82,7 +82,7 @@ app.conf.update(
     # This uses 'America/New York'
     timezone=settings.TIME_ZONE,
     task_track_started=True,
-    redis_max_connections=5,
+    redis_max_connections=2,
     worker_max_tasks_per_child=100,
     broker_pool_limit=None,
     beat_scheduler='django',
