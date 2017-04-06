@@ -84,9 +84,12 @@ app.conf.update(
     task_track_started=True,
     # The docs don't make it clear how this interacts with the main cache config's
     # CONNECTION_POOL_KWARGS setting.
-    redis_max_connections=1,
+    redis_max_connections=2,
     worker_max_tasks_per_child=100,
-    broker_pool_limit=2,
+    # None'ing this disables the conneciton pool, which means a new conneciton will be
+    # established and removed every time. For some reason doing this is the only way I
+    # can figure out to keep the total connection count low.
+    broker_pool_limit=None,
     beat_scheduler='django',
 
     # Scheduled Tasks
