@@ -86,7 +86,7 @@ app.conf.update(
     # CONNECTION_POOL_KWARGS setting.
     redis_max_connections=2,
     worker_max_tasks_per_child=100,
-    broker_pool_limit=10,
+    broker_pool_limit=2,
     beat_scheduler='django',
 
     # Scheduled Tasks
