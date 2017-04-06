@@ -6,16 +6,16 @@ celerybeat: celery -A mysite beat
 
 
 # Standard celery worker.
-celery: newrelic-admin run-program celery -A mysite worker -l info --autoscale=2,4 --time-limit=600 -n Standard@%n
+celery: newrelic-admin run-program celery -A mysite worker -l info --autoscale=2,1 --time-limit=600 -n Standard@%n
 
 
 # Long-running celery task queue for things like <sport>.cleanup_roster that take a while.
 # soft time limit of 9 mins, hard cutoff at 10 mins.
-celery_long: newrelic-admin run-program celery -A mysite worker -Q long_running -l info --time-limit=600 --soft-time-limit=540 -Ofair --autoscale=2,4 -n Long@%n
+celery_long: newrelic-admin run-program celery -A mysite worker -Q long_running -l info --time-limit=600 --soft-time-limit=540 -Ofair --autoscale=2,1 -n Long@%n
 
 
 # celery workers for realtime stat updates from the trigger
-celeryrt: newrelic-admin run-program celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,4 -n Realtime@%n
+celeryrt: newrelic-admin run-program celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,1 -n Realtime@%n
 
 
 # purger is also a normal celery worker.
