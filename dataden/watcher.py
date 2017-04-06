@@ -228,7 +228,7 @@ class Trigger(object):
                 logger.info('%s new_updates: %s' % (self.__class__.__name__, ctr))
 
             except Exception as e:
-                logger.error('%s couldnt get redis connection' % self.__class__.__name__)
+                logger.error(str(e))
                 client.captureException()
 
     work_size = 425
