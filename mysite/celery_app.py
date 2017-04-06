@@ -84,7 +84,7 @@ app.conf.update(
     task_track_started=True,
     # The docs don't make it clear how this interacts with the main cache config's
     # CONNECTION_POOL_KWARGS setting.
-    redis_max_connections=2,
+    redis_max_connections=1,
     worker_max_tasks_per_child=100,
     broker_pool_limit=2,
     beat_scheduler='django',
