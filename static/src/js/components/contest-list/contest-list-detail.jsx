@@ -202,9 +202,16 @@ const ContestListDetail = React.createClass({
 
   getEnterContestButton() {
     let enteredText = 'Enter Again';
+    const focusedLineup = this.props.focusedLineup;
+    const lineupsInfo = this.props.lineupsInfo;
+    const focusedLineupName = this.props.focusedLineup.name;
 
-    if (this.props.focusedLineup) {
-      enteredText = `Enter '${this.props.focusedLineup.name}' Again`;
+    if (focusedLineup) {
+      if (lineupsInfo[focusedLineup.id].contestPoolEntries[this.props.focusedContestId]) {
+        enteredText = `Enter '${focusedLineupName}' Again`;
+      } else {
+        enteredText = `Enter '${focusedLineupName}'`;
+      }
     }
 
     return (
@@ -303,6 +310,15 @@ const ContestListDetail = React.createClass({
     );
   },
 
+  isObjectEmpty(obj) {
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        return false;
+      }
+    }
+
+    return JSON.stringify(obj) === JSON.stringify({});
+  },
 
   stripContestFromUrl() {
     this.props.routerPush('/contests/');
