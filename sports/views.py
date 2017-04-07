@@ -15,13 +15,18 @@ import dataden.models
 import dataden.serializers
 import sports.classes
 from dataden.cache.caches import PlayByPlayCache
+from django.http import HttpResponse
+from django.contrib.contenttypes.models import ContentType
+
 from draftgroup.models import (
     GameUpdate,
     PlayerUpdate,
+    PlayerStatus,
 )
 from draftgroup.serializers import (
     GameUpdateSerializer,
     PlayerUpdateSerializer,
+    PlayerStatusSerializer,
 )
 from scoring.classes import MlbSalaryScoreSystem
 from sports.forms import PlayerCsvForm
@@ -37,10 +42,8 @@ from sports.mlb.serializers import (
 
 class GetSerializedDataMixin:
     def get_serialized_data(self, model_class, serializer_class, sport):
-        serialized_data = cache.get('{}_player_updates'.format(sport))
-        if not (serialized_data and serializer_class == PlayerUpdateSerializer):
-            updates = model_class.objects.filter(sport=sport).order_by('-updated_at')
-            serialized_data = serializer_class(updates, many=True).data
+        updates = model_class.objects.filter(sport=sport)
+        serialized_data = serializer_class(updates, many=True).data
 
         return serialized_data
 
@@ -85,6 +88,12 @@ class PlayerUpdateAPIView(AbstractUpdateAPIView):
     serializer_class = PlayerUpdateSerializer
 
 
+class PlayerStatusAPIView(AbstractUpdateAPIView):
+
+    model_class = PlayerStatus
+    serializer_class = PlayerStatusSerializer
+
+
 class UpdateAPIView(APIView, GetSerializedDataMixin):
     """
     return recent game & player updates for the sport
@@ -94,8 +103,7 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
 
     def get(self, request, *args, **kwargs):
         data = {
-            'player_updates': self.get_serialized_data(PlayerUpdate, PlayerUpdateSerializer,
-                                                       sport=kwargs['sport']),
+            'player_updates': self.get_serialized_data(PlayerStatus, PlayerStatusSerializer, sport=kwargs['sport']),
             # 'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
             # TODO truncate game_updates and player_updates!
             'game_updates': [],

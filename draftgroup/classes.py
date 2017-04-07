@@ -819,7 +819,7 @@ class PlayerUpdateManager(AbstractUpdateManager):
             new_value = kwargs.get(f)
             if old_value is None or old_value != new_value:
                 setattr(update_obj, f, new_value)
-        update_obj.player_srid = player_srid
+        update_obj.c = player_srid
         update_obj.save()
         return update_obj
 

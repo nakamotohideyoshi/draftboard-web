@@ -347,3 +347,12 @@ class GameUpdate(AbstractUpdate):
 
     class Meta:
         abstract = False
+
+
+class PlayerStatus(models.Model):
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    player_srid = models.CharField(max_length=64, null=False)
+    player_id = models.IntegerField(null=False, default=0)
+    sport = models.CharField(max_length=4, null=False)
+    status = models.CharField(max_length=128, null=False, default='na')
+

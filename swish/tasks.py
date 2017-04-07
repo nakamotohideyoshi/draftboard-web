@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 from django.core.cache import cache
+
+from draftgroup.classes import AbstractUpdateManager
 from mysite.celery_app import app
-from draftgroup.models import PlayerUpdate
+from draftgroup.models import PlayerUpdate, PlayerStatus
 from swish.classes import (
     PlayerUpdateManager,
     SwishAnalytics,
@@ -9,6 +11,7 @@ from swish.classes import (
 )
 from logging import getLogger
 from draftgroup.serializers import PlayerUpdateSerializer
+from django.db import transaction
 
 logger = getLogger('swish.tasks')
 LOCK_EXPIRE = 59
@@ -28,6 +31,22 @@ def update_injury_feed(self, sport):
             player_update_manager = PlayerUpdateManager(sport)
             rotowire = RotoWire(sport)
             updates = rotowire.get_updates()
+            with transaction.atomic():
+                for player_update in updates:
+                    try:
+                        update_model = player_update_manager.update(player_update)
+                        pid = player_update.get_pid()
+                        player_srid = update_model.player_srid
+                        status, created = PlayerStatus.objects.get_or_create(
+                            player_id=pid,
+                            sport=sport,
+                            player_srid=player_srid,
+                        )
+                        status.status = player_update.get_injury_status()
+                        status.save()
+                    except PlayerUpdateManager.PlayerDoesNotExist:
+                        pass
+
             for u in updates:
                 try:
                     update_model = player_update_manager.update(u)
@@ -41,7 +60,5 @@ def update_injury_feed(self, sport):
                     logger.warning('%s | rotowire player not found: %s' % (sport, player))
             else:
                 updates = PlayerUpdate.objects.filter(sport=sport).order_by('-updated_at')
-                serializer_data = PlayerUpdateSerializer(updates, many=True).data
-                cache.set('{}_player_updates'.format(sport), serializer_data, None)
         finally:
             release_lock()
