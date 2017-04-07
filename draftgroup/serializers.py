@@ -7,8 +7,10 @@ from draftgroup.models import (
     Player,
     PlayerUpdate,
     GameUpdate,
+    PlayerStatus,
 )
 from roster.models import RosterSpot
+
 
 class PlayerSerializer(serializers.ModelSerializer):
 
@@ -30,6 +32,7 @@ class PlayerSerializer(serializers.ModelSerializer):
                   'start', 'position', 'fppg',
                   'team_alias', 'game_srid', 'team_srid', 'player_srid')
 
+
 class PlayerUpdateSerializer(serializers.ModelSerializer):
 
     srid = serializers.SerializerMethodField()
@@ -39,6 +42,14 @@ class PlayerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerUpdate
         fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
+
+
+class PlayerStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PlayerStatus
+        fields = ('player_srid', 'status')
+
 
 class GameUpdateSerializer(serializers.ModelSerializer):
 
@@ -50,6 +61,7 @@ class GameUpdateSerializer(serializers.ModelSerializer):
         model = GameUpdate
         fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
 
+
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """
     super class which has the sport for the DraftGroup
@@ -59,6 +71,7 @@ class AbstractDraftGroupSerializer(serializers.ModelSerializer):
 
     def get_sport(self, draft_group):
         return draft_group.salary_pool.site_sport.name
+
 
 class DraftGroupSerializer(AbstractDraftGroupSerializer):
 
@@ -70,8 +83,11 @@ class DraftGroupSerializer(AbstractDraftGroupSerializer):
         model = DraftGroup
         fields = ('pk', 'start', 'end', 'sport', 'game_updates', 'players', 'closed')
 
+
 class UpcomingDraftGroupSerializer(AbstractDraftGroupSerializer):
 
     class Meta:
-        model   = DraftGroup
-        fields  = ('pk', 'start', 'sport', 'num_games','category')
+        model = DraftGroup
+        fields = ('pk', 'start', 'sport', 'num_games','category')
+
+

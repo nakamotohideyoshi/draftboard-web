@@ -25,28 +25,28 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
     lookup_model_class = PlayerLookup
 
     @atomic
-    def update(self, swish_update):
+    def update(self, rotowire_update):
         """
         override. update this third party data and enter it as a PlayerUpdate
 
         :param swish_update:
         """
         # get the players' swish id
-        pid = swish_update.get_field(UpdateData.field_player_id)
-        name = swish_update.get_player_name()
+        pid = rotowire_update.get_field(UpdateData.field_player_id)
+        name = rotowire_update.get_player_name()
         # try to get this player using the PlayerLookup (if the model is set)
         # otherwise falls back on simple name-matching
         player_srid = self.get_srid_for(pid=pid, name=name)  # TODO catch self.PlayerDoesNotExist
         # internally calls super().update(player_srid, *args, **kwargs)
-        update_id = swish_update.get_update_id()
+        update_id = rotowire_update.get_update_id()
 
         # hard code this to use the category: 'injury' for testing
         category = 'injury'
         type = 'rotowire'
-        value = swish_update.get_text() # latest news
+        value = rotowire_update.get_text() # latest news
 
         # get status
-        status = swish_update.get_injury_status()
+        status = rotowire_update.get_injury_status()
         # get source_origin
         source_origin = 'rotowire'
         # get url_origin
@@ -55,7 +55,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         # create a PlayerUpdate model in the db.
 
         kwargs = {
-            'published_at': swish_update.get_updated_at(),
+            'published_at': rotowire_update.get_updated_at(),
             'sport': self.sport
         }
 
@@ -89,7 +89,6 @@ class UpdateData(object):
 
     field_player = 'Player'
     field_player_id = 'Id'
-     # "SportsDataId": "b1b2d578-44df-4e05-9884-31dd89e82cf0",
 
     field_player_first_name = 'FirstName'  # its the first name
     field_player_last_name = 'LastName'  # its the last name
@@ -97,10 +96,8 @@ class UpdateData(object):
     field_source = 'source'  # ???
     field_source_origin = 'sourceOrigin'  # ???  # ie: rotowire, twitter, etc...
 
-
     field_injury = 'Injury'
     field_injury_status = 'Status'
-
 
     field_url_origin = 'urlOrigin'  # ???  # for twitter, the url to the post
     field_roster_status = 'rosterStatus'   # ???
@@ -110,7 +107,6 @@ class UpdateData(object):
     field_player_status_confidence = 'playerStatusConfidence'  # ???
     field_last_text = 'lastText'  # ???
     field_game = 'game'  # ???
-
 
     def __init__(self, data):
         self.data = data
@@ -163,11 +159,11 @@ class UpdateData(object):
         """ returns the news text. """
         return '{} {}'.format(self.data.get(self.field_notes),
                               self.data.get(self.field_analysis))
+
     def get_injury_status(self):
         """ returns injury status. """
         status = self.data.get(self.field_injury).get(self.field_injury_status)
         return status if status else 'active'
-
 
 
 class RotoWire(object):
@@ -301,7 +297,6 @@ class RotoWire(object):
         return self.updates
 
 
-
 class SwishAnalytics(object):
     """
     api example:
@@ -403,9 +398,21 @@ class SwishAnalytics(object):
                                                          self.api_player_status, player_id, team, self.api_key)
         response_data = self.call_api(url)
         results = response_data.get('data', {}).get('results', [])
+
         if results:
             data = results[0]
             return {x: data.get(x) for x in self.extra_player_fields}
+        else:
+            return {}
+
+    def get_player_extra_data_multiple(self, player_id):
+        url = '%s/%s%s?playerId=%s&apikey=%s' % (self.api_base_url, self.sport,
+                                                             self.api_player_status, player_id, self.api_key)
+
+        response_data = self.call_api(url)
+        results = response_data.get('data', {}).get('results', [])
+        if results:
+            return results
         else:
             return {}
 
@@ -427,5 +434,4 @@ class SwishAnalytics(object):
             self.updates.append(UpdateData(update_data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
-
         return self.updates
