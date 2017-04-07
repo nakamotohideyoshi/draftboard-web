@@ -1,6 +1,6 @@
 #
 # sports/mlb/parser.py
-
+from logging import getLogger
 from redis import Redis
 from util.dicts import (
     Reducer,
@@ -53,6 +53,8 @@ from draftgroup.classes import (
 )
 import scoring.classes
 from urllib import parse
+
+logger = getLogger('sports.mlb.parser')
 
 
 def get_redis_instance():
@@ -2406,7 +2408,13 @@ class PbpParser(DataDenPbpDescription):
         try:
             req = self.get_req_from(self.o, target)
         except self.PickoffPitchException as e:
-            return  # nothing to do for a zone pitch thats not actually a zone pitch
+            # We don't 'care about pickoff pitches.
+            logger.warning('Ignoring MLB pbp pickoff pitch. %s' % self.o)
+            return 'Ignoring MLB pbp pickoff pitch.'
+        except self.IncompleteZonePitch as e:
+            # Ignore any objects missing a `pitch_zone`.
+            logger.warning('Ignoring MLB pbp due to missing `pitch_zone`. %s' % self.o)
+            return 'Ignoring MLB pbp due to missing `pitch_zone`'
 
         # now ask the req for the whole pbp obj.
         # if it cant build it, will return None
