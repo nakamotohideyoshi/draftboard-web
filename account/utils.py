@@ -107,7 +107,7 @@ class CheckUserAccess(object):
             no_dots = self.ip.replace('.', '')
             ip_first_five_int = int(no_dots[0:5])
         except:
-            logger.warn('Invalid IP address error - %s' % self.ip)
+            logger.warning('Invalid IP address error - %s' % self.ip)
             client.captureMessage("Invalid IP address error - %s" % self.ip)
             return False
 
@@ -229,7 +229,7 @@ class CheckUserAccess(object):
             return True, 'Minimum age for this location is met.'
 
         # They don't have a verified identity so we don't care right now.
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist, AttributeError):
             return True, 'User has no identity, no age to check.'
 
         except AddressNotFoundError:
@@ -247,7 +247,7 @@ class CheckUserAccess(object):
         #     return True, ''
 
         if not self.geo_ip_response:
-            logger.warn('IP address not found in database: %s user: %s' % (self.ip, self.user))
+            logger.warning('IP address not found in database: %s user: %s' % (self.ip, self.user))
             return True, 'IP not found in database'
 
         # do it one by one because it doesn't make a sense to check ip if country
