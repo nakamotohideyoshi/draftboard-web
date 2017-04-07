@@ -13,16 +13,18 @@ from roster.models import RosterSpot
 
 
 class PlayerSerializer(serializers.ModelSerializer):
-
     game_srid = serializers.SerializerMethodField()
+
     def get_game_srid(self, draft_group_player):
         return draft_group_player.game_team.game_srid
 
     team_srid = serializers.SerializerMethodField()
+
     def get_team_srid(self, draft_group_player):
         return draft_group_player.game_team.team_srid
 
     player_srid = serializers.SerializerMethodField()
+
     def get_player_srid(self, draft_group_player):
         return draft_group_player.player.srid
 
@@ -34,32 +36,32 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class PlayerUpdateSerializer(serializers.ModelSerializer):
-
     srid = serializers.SerializerMethodField()
+
     def get_srid(self, obj):
         return obj.player_srid
 
     class Meta:
         model = PlayerUpdate
-        fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
+        fields = ('updated_at', 'category', 'type', 'value', 'srid', 'status', 'source_origin', 'url_origin',
+                  'notes', 'analysis')
 
 
 class PlayerStatusSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = PlayerStatus
         fields = ('player_srid', 'status')
 
 
 class GameUpdateSerializer(serializers.ModelSerializer):
-
     srid = serializers.SerializerMethodField()
+
     def get_srid(self, obj):
         return obj.game_srid
 
     class Meta:
         model = GameUpdate
-        fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
+        fields = ('updated_at', 'category', 'type', 'value', 'srid', 'status', 'source_origin', 'url_origin')
 
 
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
@@ -74,7 +76,6 @@ class AbstractDraftGroupSerializer(serializers.ModelSerializer):
 
 
 class DraftGroupSerializer(AbstractDraftGroupSerializer):
-
     players = PlayerSerializer(many=True, read_only=True)
 
     game_updates = GameUpdateSerializer(source='gameupdate_set', many=True, read_only=True)
@@ -85,9 +86,6 @@ class DraftGroupSerializer(AbstractDraftGroupSerializer):
 
 
 class UpcomingDraftGroupSerializer(AbstractDraftGroupSerializer):
-
     class Meta:
         model = DraftGroup
-        fields = ('pk', 'start', 'sport', 'num_games','category')
-
-
+        fields = ('pk', 'start', 'sport', 'num_games', 'category')
