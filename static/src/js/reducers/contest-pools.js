@@ -60,13 +60,19 @@ module.exports = (state = initialState, action = {}) => {
 
   switch (action.type) {
 
-    case actionTypes.FETCH_CONTEST_POOLS:
+    case actionTypes.FETCH_CONTEST_POOLS: {
       return merge({}, state, {
         isFetchingContestPools: true,
       });
+    }
 
 
-    case actionTypes.FETCH_CONTEST_POOLS_SUCCESS:
+    case actionTypes.FETCH_CONTEST_POOLS_SUCCESS: {
+      let activeSport = state.filters.sportFilter.match;
+
+      if (state.filters.sportFilter.match === '') {
+        activeSport = findPreselectedSport(action.response, preselectedSportFilterOrder);
+      }
       // Return a copy of the previous state with our new things added to it.
       return merge({}, state, {
         allContests: action.response,
@@ -74,10 +80,11 @@ module.exports = (state = initialState, action = {}) => {
         isFetchingContestPools: false,
         filters: {
           sportFilter: {
-            match: findPreselectedSport(action.response, preselectedSportFilterOrder),
+            match: activeSport,
           },
         },
       });
+    }
 
 
     case actionTypes.FETCH_CONTEST_POOLS_FAIL:
