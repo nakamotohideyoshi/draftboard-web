@@ -28,7 +28,7 @@ export const fetchDraftGroupUpdates = (sport) => (dispatch) => {
         actionTypes.DRAFT_GROUP_UPDATES__FETCH_SUCCESS,
         actionTypes.ADD_MESSAGE,
       ],
-      endpoint: `/api/sports/updates/${sport}/`,
+      endpoint: `/api/sports/player-status/${sport}/`,
       callback: (json) => {
         const categories = groupBy(json.player_updates, 'category');
         const playerUpdates = {};
