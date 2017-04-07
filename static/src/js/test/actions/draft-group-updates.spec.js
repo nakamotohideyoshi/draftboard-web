@@ -36,7 +36,7 @@ describe('actions.draftGroupUpdates.fetchDraftGroupUpdates', () => {
 
   it('should fetch contest pool entries', () => {
     nock('http://localhost')
-      .get('/api/sports/updates/nfl/')
+      .get('/api/sports/player-status/nfl/')
       .reply(200, sportUpdatesFix);
 
     return store.dispatch(actions.fetchDraftGroupUpdates('nfl'))
