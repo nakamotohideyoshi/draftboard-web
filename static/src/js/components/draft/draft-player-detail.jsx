@@ -11,7 +11,7 @@ import get from 'lodash/get';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors';
 import { createLineupAddPlayer, removePlayer } from '../../actions/upcoming-lineup-actions';
 import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils';
-import { fetchSinglePlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
+import { fetchSinglePlayerBoxScoreHistoryIfNeeded, fetchSinglePlayerNews } from '../../actions/player-box-score-history-actions';
 import DraftPlayerDetailAverages from './draft-player-detail-averages';
 import DraftPlayerDetailGameLogs from './draft-player-detail-game-logs';
 
@@ -54,6 +54,7 @@ function mapDispatchToProps(dispatch) {
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
     fetchSinglePlayerBoxScoreHistoryIfNeeded: (sport, playerId) =>
       dispatch(fetchSinglePlayerBoxScoreHistoryIfNeeded(sport, playerId)),
+    fetchSinglePlayerNews: (sport, player_srid) => dispatch(fetchSinglePlayerNews(sport, player_srid))
   };
 }
 
@@ -69,6 +70,7 @@ const DraftPlayerDetail = React.createClass({
     draftPlayer: React.PropTypes.func.isRequired,
     unDraftPlayer: React.PropTypes.func.isRequired,
     fetchSinglePlayerBoxScoreHistoryIfNeeded: React.PropTypes.func.isRequired,
+    fetchSinglePlayerNews: React.PropTypes.func.isRequired,
   },
 
 
@@ -93,6 +95,9 @@ const DraftPlayerDetail = React.createClass({
       if (get(this.props, 'player.player_id') !== get(nextProps, 'player.player_id')) {
         this.props.fetchSinglePlayerBoxScoreHistoryIfNeeded(
           nextProps.player.sport, nextProps.player.player_id
+        );
+        this.props.fetchSinglePlayerNews(
+          nextProps.player.sport, nextProps.player.player_srid
         );
       }
     }
@@ -203,7 +208,9 @@ const DraftPlayerDetail = React.createClass({
           className={classes}
           onClick={this.handleTabClick.bind(this, tab.tab)}
         >
-          {tab.title}
+          <span className="tab-title">
+            {tab.title}  
+          </span>
         </li>
       );
     });
@@ -290,7 +297,7 @@ const DraftPlayerDetail = React.createClass({
         <article key={i} className="report">
           <header className="header">
             <address className="byline">
-              <a rel="nofollow" target="_blank" href={item.url_origin}>{item.source_origin}</a>&nbsp;
+               /*<a rel="nofollow" target="_blank" href={item.url_origin}>{item.source_origin}</a>&nbsp;*/
               <span className="timestamp">{moment.utc(item.updated_at).fromNow()}</span>
             </address>
 
@@ -363,7 +370,13 @@ const DraftPlayerDetail = React.createClass({
           {this.renderNextGameInfo()}
 
           <section className="tabs">
-            <ul className="tab-nav">{tabNav}</ul>
+            <ul className="tab-nav">
+              {tabNav}
+              <li>
+                <a rel="nofollow" target="_blank" href="http://www.rotowire.com/">Updates provided by </a>
+                <div className="rotowire-icon"></div>
+              </li>
+            </ul>
 
             <div className="tab-content">
               {this.getActiveTabContent()}
