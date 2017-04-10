@@ -27,6 +27,16 @@ module.exports = (state = initialState, action = {}) => {
       });
     }
 
+    case ActionTypes.PLAYER_NEWS_SINGLE__RECEIVE: {
+      const {id, sport, fields } = action.response;
+      debugger;
+      return merge({}, state, {
+        [sport]: {
+          [id]: fields
+        }
+      })
+    }
+
 
     default:
       return state;
