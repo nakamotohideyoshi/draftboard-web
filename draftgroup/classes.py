@@ -813,7 +813,7 @@ class PlayerUpdateManager(AbstractUpdateManager):
         """
         # create the model instance
         update_obj = super().add(*args, **kwargs)
-        fields = ['sport', 'notes', 'analysis']
+        fields = ['sport', 'notes', 'analysis', 'headline']
         for f in fields:
             old_value = getattr(update_obj, f)
             new_value = kwargs.get(f)

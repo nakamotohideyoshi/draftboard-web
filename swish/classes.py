@@ -46,6 +46,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         value = rotowire_update.get_text() # latest news
         notes = rotowire_update.get_notes()
         analysis = rotowire_update.get_analysis()
+        headline = rotowire_update.get_headline()
 
         # get status
         status = rotowire_update.get_injury_status()
@@ -60,7 +61,8 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
             'published_at': rotowire_update.get_updated_at(),
             'sport': self.sport,
             'notes': notes,
-            'analysis': analysis
+            'analysis': analysis,
+            'headline': headline,
         }
 
         update_obj = self.add(
@@ -89,6 +91,7 @@ class UpdateData(object):
 
     field_notes = 'Notes'  # ???
     field_analysis = 'Analysis'  # ???
+    field_headline = 'Headline'  # ???
     field_sport = 'sport'  # ???
 
     field_player = 'Player'
@@ -171,6 +174,10 @@ class UpdateData(object):
     def get_analysis(self):
         """ returns the news field_analysis. """
         return self.data.get(self.field_analysis)
+
+    def get_headline(self):
+        """ returns the news field_analysis. """
+        return self.data.get(self.field_headline)
 
     def get_injury_status(self):
         """ returns injury status. """
