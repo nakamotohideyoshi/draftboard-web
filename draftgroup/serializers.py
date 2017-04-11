@@ -44,7 +44,7 @@ class PlayerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerUpdate
         fields = ('updated_at', 'category', 'type', 'value', 'srid', 'status', 'source_origin', 'url_origin',
-                  'notes', 'analysis')
+                  'notes', 'analysis', 'headline')
 
 
 class PlayerStatusSerializer(serializers.ModelSerializer):
