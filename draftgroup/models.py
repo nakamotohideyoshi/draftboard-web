@@ -316,6 +316,7 @@ class PlayerUpdate(AbstractUpdate):
     player_srid = models.CharField(max_length=64, null=False)
     player_id = models.IntegerField(null=False, default=0)
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
+    headline = models.CharField(max_length=1024)
     notes = models.CharField(max_length=1024 * 8, null=False, default='')
     analysis = models.TextField(null=False, default='')
     # roster_status = models.CharField(max_length=64, null=True)
