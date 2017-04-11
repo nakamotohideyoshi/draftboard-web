@@ -11,7 +11,8 @@ import get from 'lodash/get';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors';
 import { createLineupAddPlayer, removePlayer } from '../../actions/upcoming-lineup-actions';
 import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils';
-import { fetchSinglePlayerBoxScoreHistoryIfNeeded, fetchSinglePlayerNews } from '../../actions/player-box-score-history-actions';
+import { fetchSinglePlayerBoxScoreHistoryIfNeeded,
+fetchSinglePlayerNews } from '../../actions/player-box-score-history-actions';
 import DraftPlayerDetailAverages from './draft-player-detail-averages';
 import DraftPlayerDetailGameLogs from './draft-player-detail-game-logs';
 
@@ -54,7 +55,7 @@ function mapDispatchToProps(dispatch) {
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
     fetchSinglePlayerBoxScoreHistoryIfNeeded: (sport, playerId) =>
       dispatch(fetchSinglePlayerBoxScoreHistoryIfNeeded(sport, playerId)),
-    fetchSinglePlayerNews: (sport, player_srid) => dispatch(fetchSinglePlayerNews(sport, player_srid))
+    fetchSinglePlayerNews: (sport, playerSrid) => dispatch(fetchSinglePlayerNews(sport, playerSrid)),
   };
 }
 
@@ -209,7 +210,7 @@ const DraftPlayerDetail = React.createClass({
           onClick={this.handleTabClick.bind(this, tab.tab)}
         >
           <span className="tab-title">
-            {tab.title}  
+            {tab.title}
           </span>
         </li>
       );
@@ -293,18 +294,23 @@ const DraftPlayerDetail = React.createClass({
     }
 
     forEach(this.props.player.news, (item, i) => {
+    // <a rel="nofollow" target="_blank" href={item.url_origin}>{item.source_origin}</a>&nbsp;
       news.push(
         <article key={i} className="report">
           <header className="header">
             <address className="byline">
-               /*<a rel="nofollow" target="_blank" href={item.url_origin}>{item.source_origin}</a>&nbsp;*/
               <span className="timestamp">{moment.utc(item.updated_at).fromNow()}</span>
             </address>
-
-            <h5 className="title">{item.status}</h5>
+            <h5 className="title">{item.headline}</h5>
           </header>
           <section className="content">
-            <p>{item.value}</p>
+            <p>{item.notes}</p>
+          </section>
+          <header className="header">
+            <h5 className="title">Analysis</h5>
+          </header>
+          <section className="content">
+            <p>{item.analysis}</p>
           </section>
         </article>
       );
