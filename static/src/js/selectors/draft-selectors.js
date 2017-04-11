@@ -11,6 +11,7 @@ const sportSelector = (state) => state.draftGroupPlayers.sport;
 const draftGroupUpdatesSelector = (state) => state.draftGroupUpdates.sports;
 const playerBoxScoreHistorySelector = (state) => state.playerBoxScoreHistory;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
+const playerAnalysisAndHistory = (state) => state.playerAnalysisAndHistory.playerAnalysisAndHistory;
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
 const sportInfoSelector = (state) => state.sports;
 const availablePositionSelector = (state) => state.createLineup.availablePositions;
@@ -32,8 +33,9 @@ export const focusedPlayerSelector = createSelector(
   sportInfoSelector,
   availablePositionSelector,
   newLineupSelector,
+  playerAnalysisAndHistory,
   (focusedPlayerId, allPlayers, draftGroupUpdates, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId,
-    sportInfo, availablePositions, newLineup
+    sportInfo, availablePositions, newLineup, playerNews
   ) => {
     // if no player is focused, return nothing.
     if (!focusedPlayerId) {
@@ -48,19 +50,16 @@ export const focusedPlayerSelector = createSelector(
 
     const player = merge({}, focusedPlayer, {
       sport,
-      news: {},
+      news: [],
       nextGame: {},
       boxScoreHistory: {},
       splitsHistory: [],
     });
 
     // Attach any news stories to the player object.
-    if (draftGroupUpdates && sport &&
-      sport in draftGroupUpdates &&
-      'playerUpdates' in draftGroupUpdates[sport] &&
-      'injury' in draftGroupUpdates[sport].playerUpdates
-    ) {
-      player.news = draftGroupUpdates[sport].playerUpdates.injury[focusedPlayer.player_srid];
+    if (playerNews.length) {
+      // player.news = draftGroupUpdates[sport].playerUpdates.injury[focusedPlayer.player_srid];
+      player.news = playerNews;
     }
 
 
