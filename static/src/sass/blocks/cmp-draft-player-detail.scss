@@ -102,19 +102,20 @@
       top: auto;
       left: auto;
       transform: none;
-      margin: 0 30px 0 0;
+      margin: 0;
+      width: 100%;
       display: flex;
       flex-direction: row;
       justify-content: center;
 
 
       > li {
-        margin: 0 10px;
+        margin: auto;
         flex-grow: 1;
-        text-align: left;
+        text-align: center;
 
         .stat-name {
-          text-align: left;
+          text-align: center;
         }
       }
     }

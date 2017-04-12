@@ -9,8 +9,8 @@ import { dateNow } from '../../lib/utils';
 require('../../../sass/lib/slick-carousel.scss');
 
 
-const LeftNavButton = (props) => (<div {...props}>&lt;</div>);
-const RightNavButton = (props) => (<div {...props}>&gt;</div>);
+// const LeftNavButton = (props) => (<div {...props}>&lt;</div>);
+// const RightNavButton = (props) => (<div {...props}>&gt;</div>);
 
 const ResultsDaysSlider = React.createClass({
 
@@ -30,14 +30,23 @@ const ResultsDaysSlider = React.createClass({
       settings: {
         dots: false,
         infinite: false,
-        prevArrow: <LeftNavButton />,
-        nextArrow: <RightNavButton />,
+        // prevArrow: <LeftNavButton />,
+        // nextArrow: <RightNavButton />,
+
+        prevArrow: <this.getLeftButton />,
+        nextArrow: <this.getRightButton />,
         speed: 500,
         initialSlide: this.props.day - 1,
         slidesToShow: 7,
         slidesToScroll: 7,
         variableWidth: true,
+        afterChange: this.changeStateDate,
+        // beforeChange: this.beforeChangeStateDate
+
       },
+      day: this.props.day,
+      month: this.props.month,
+      year: this.props.year,
     };
   },
 
@@ -47,9 +56,24 @@ const ResultsDaysSlider = React.createClass({
     state.itemsList = this.getItemsList();
     state.settings.initialSlide = nextProps.day - 1;
     this.setState(state);
-
+    this.setState({
+      day: this.props.day,
+      month: this.props.month,
+      year: this.props.year,
+    });
     this.refs.slider.slickGoTo(nextProps.day - 1);
   },
+
+  getRightButton(props) {
+    return (<div {...props} onClick={this.nextSlide.bind(this, props.className)}>&gt;</div>);
+  },
+  getLeftButton(props) {
+    return (<div {...props} onClick={this.prevSlide.bind(this, props.className)}>&lt;</div>);
+  },
+
+  // beforeChangeStateDate(prevSlide, nextSlide) {
+    // console.log('prevSlide', prevSlide,'nextSlide', nextSlide);
+  // },
 
   getItemsList() {
     const mapDay = (d, index) => {
@@ -98,6 +122,56 @@ const ResultsDaysSlider = React.createClass({
       // rendered React component internal representation.
       (accum, l) => accum.concat.apply(accum, l), []
     );
+  },
+
+  changeStateDate() {
+    let day;
+    if (this.state.isRightArrow) {
+      day = this.state.day + 7;
+    } else {
+      day = this.state.day - 7;
+    }
+    this.setState({
+      day,
+    });
+  },
+
+  prevSlide(className) {
+    if (new RegExp('slick-disabled').test(className)) {
+      if (!(this.props.month - 1)) {
+        const date = new Date(this.props.year - 1, 11);
+        const dayOfMonth = date.getDate();
+        date.setDate(dayOfMonth - 1);
+        const lastDay = date.getDate();
+        this.props.onSelectDate(this.props.year - 1, 12, lastDay);
+      } else {
+        const date = new Date(this.props.year, this.props.month - 1);
+        const dayOfMonth = date.getDate();
+        date.setDate(dayOfMonth - 1);
+        const lastDay = date.getDate();
+        this.props.onSelectDate(this.props.year, this.props.month - 1, lastDay);
+      }
+    } else {
+      this.refs.slider.slickPrev();
+    }
+  },
+
+  nextSlide(className) {
+    const week = 7;
+    if (new RegExp('slick-disabled').test(className)) {
+      const today = new Date().getTime();
+      const calendarDate = new Date(this.state.year, this.state.month, this.state.day + week).getTime();
+      if (calendarDate < today) {
+        // Set the first day of next month
+        if ((this.props.month + 1) > 12) {
+          this.props.onSelectDate(this.props.year + 1, 1, 1);
+        } else {
+          this.props.onSelectDate(this.props.year, this.props.month + 1, 1);
+        }
+      }
+    } else {
+      this.refs.slider.slickNext();
+    }
   },
 
   // changeHandler() {

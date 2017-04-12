@@ -18,6 +18,7 @@ const livePlayers = require('./live-players');
 const messages = require('./messages');
 const payments = require('./payments');
 const playerBoxScoreHistory = require('./player-box-score-history');
+const playerAnalysisAndHistory = require('./player-analysis-history');
 const prizes = require('./prizes');
 const results = require('./results');
 const sports = require('./sports');
@@ -52,6 +53,7 @@ export default combineReducers({
   messages,
   payments,
   playerBoxScoreHistory,
+  playerAnalysisAndHistory,
   prizes,
   events,
   results,

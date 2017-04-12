@@ -27,7 +27,6 @@ module.exports = (state = initialState, action = {}) => {
       });
     }
 
-
     default:
       return state;
   }
