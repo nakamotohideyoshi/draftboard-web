@@ -587,7 +587,8 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.quarter', 'pbp'):
             # QuarterPbp().parse( obj )
             # use Pusher to send this object after DB entry created
-            # PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            # PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send(
+            #   obj, async=settings.DATADEN_ASYNC_UPDATES )
             # self.add_pbp( obj ) # stashes the pbp object for the trailing
             # history
             pass  # i dont think we need to parse this!

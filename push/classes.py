@@ -12,6 +12,7 @@ from pusher import Pusher
 from pusher.http import Request, make_query_string, POST, request_method
 from pusher.signature import sign
 from pusher.util import ensure_text, validate_channel, validate_socket_id
+from raven.contrib.django.raven_compat.models import client
 
 import util.timeshift as timeshift
 from dataden.cache.caches import (
@@ -379,6 +380,21 @@ class AbstractPush(object):
             # print to console if its disable to remind us
             logger.info(
                 'settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
+
+        # Should we write out to a local kinda-json-formatted text file?
+        if settings.PUSHER_OUTPUT_TO_FILE:
+            file_path = 'tmp/pusher_events__%s.%s.txt' % (self.channel, self.event)
+            logger.info("Writing out pusher events to: `%s`" % file_path)
+
+            try:
+                # Open the file and append our event data in JSON format.
+                with open(file_path, mode='a+', encoding='utf-8') as outfile:
+                    outfile.write(json.dumps(data))
+                    outfile.write('\n')
+
+            except Exception as e:
+                logger.error(e)
+                client.captureException()
 
     @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
     def edit_linker_queue(self, channel, linkable_object, linker, linker_queue):

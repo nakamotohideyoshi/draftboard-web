@@ -278,6 +278,10 @@ PUSHER_SECRET = '498b39ae3744d83be7d9'
 PUSHER_CHANNEL_PREFIX = ''  # prepends any Pusher channel, useful for silo-ing calls per dev
 # if Pusher will actually send objects its told to send()
 PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')
+# If enabled, pusher events will also be written to a local text file.
+# This can be used with the export_game_pbp management command to dump out all pusher events
+# from a specific game.
+PUSHER_OUTPUT_TO_FILE = False
 
 # Paypal - test
 PAYPAL_REST_API_BASE = 'https://api.sandbox.paypal.com'

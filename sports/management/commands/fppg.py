@@ -1,12 +1,8 @@
-#
-# sports/management/commands/fppg.py
+from django.core.management.base import BaseCommand
 
-from django.utils import timezone
-from django.core.management.base import BaseCommand, CommandError
 from dataden.classes import DataDen
-from sports.parser import DataDenParser
-from sports.sport.base_parser import TsxContentParser
 from dataden.classes import Season
+
 
 class Command(BaseCommand):
     """
@@ -36,11 +32,11 @@ class Command(BaseCommand):
         """
 
         msg = 'updating Fantasy Points Per Game (FPPG)'
-        self.stdout.write( msg )
+        self.stdout.write(msg)
 
         dd = DataDen()
 
-        site_sport  = None
+        site_sport = None
         for sport in options['sport']:
             print('   %s' % sport)
             #

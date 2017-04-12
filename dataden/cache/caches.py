@@ -1,18 +1,21 @@
 #
 # dataden/cache/caches.py
 
+import random
+from queue import Queue, Full, Empty
+from random import Random
+
 from django.core.cache import caches
 from django.utils import timezone
-from queue import Queue, Full, Empty
-from mysite.exceptions import IncorrectVariableTypeException
-from keyprefix.classes import UsesCacheKeyPrefix
-from dataden.util.hsh import Hashable
-from random import Random
+
 from dataden.models import (
     LiveStatsCacheConfig,
     Trigger,
 )
-import random
+from dataden.util.hsh import Hashable
+from keyprefix.classes import UsesCacheKeyPrefix
+from mysite.exceptions import IncorrectVariableTypeException
+
 
 # >>> cache1 = caches['myalias']
 # >>> cache  = caches['default'] # ie: settings.CACHES = { 'default' : THIS }
@@ -36,7 +39,7 @@ import random
 #  set( key, value )            # default ttl
 #  set( key, value, ttl )       # specify the ttl
 
-class LiveStatsCache( UsesCacheKeyPrefix ):
+class LiveStatsCache(UsesCacheKeyPrefix):
     """
     LiveStatsCache is responsible for handling a large volume of stat updates,
     the primary of which are coming from triggers.
@@ -53,7 +56,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
 
         def __init__(self):
             try:
-                self.conf = LiveStatsCacheConfig.objects.get( pk=1 )
+                self.conf = LiveStatsCacheConfig.objects.get(pk=1)
             except LiveStatsCacheConfig.DoesNotExist:
                 self.conf = LiveStatsCacheConfig()
 
@@ -80,7 +83,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
             self.conf.save()
 
     def __init__(self, name='default', key_version=1, to=86400,
-                        to_mod=5, clear=False, use_admin_conf=True):
+                 to_mod=5, clear=False, use_admin_conf=True):
         """
         'to' is the timeout when setting an object in the cache
         'to_mod' is an integer value from 0 to anything that specifies the percentage
@@ -100,19 +103,19 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         """
         super().__init__()
 
-        self.c = caches[ name ]             # 'default' is the settings.CACHES['default'] !
-        if clear == True:
-            self.c.clear() # REMOVE THE WORLD from the cache. everything. is. gone.
+        self.c = caches[name]  # 'default' is the settings.CACHES['default'] !
+        if clear is True:
+            self.c.clear()  # REMOVE THE WORLD from the cache. everything. is. gone.
 
-        self.key_version    = key_version
+        self.key_version = key_version
 
         if use_admin_conf:
             self.config = self.Config()
-            self.to             = self.config.get_key_timeout()
-            self.to_mod         = self.config.get_timeout_mod()
+            self.to = self.config.get_key_timeout()
+            self.to_mod = self.config.get_timeout_mod()
         else:
-            self.to             = abs(to)       # seconds until expires from cache
-            self.to_mod         = abs(to_mod)   # +/- percentage to randomly adjust timeout
+            self.to = abs(to)  # seconds until expires from cache
+            self.to_mod = abs(to_mod)  # +/- percentage to randomly adjust timeout
 
         self.r = Random()
 
@@ -125,7 +128,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         :return:
         """
         if not issubclass(type(livestat), Hashable):
-            raise IncorrectVariableTypeException(type(self).__name__, 'livestat' )
+            raise IncorrectVariableTypeException(type(self).__name__, 'livestat')
 
     def update(self, livestat):
         """
@@ -158,8 +161,8 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
 
         #
         # the return value, a boolean, is True if it was added, otherwise False
-        was_added = self.c.add( self.get_key(livestat.hsh()), livestat.get_id(),
-                              self.get_to(), version=self.key_version )
+        was_added = self.c.add(self.get_key(livestat.hsh()), livestat.get_id(),
+                               self.get_to(), version=self.key_version)
         return override or was_added
 
     def update_pbp(self, livestat):
@@ -168,28 +171,30 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         '_id' field matching livestat.get_id() was just added.
         """
 
-        self.__validate_livestat( livestat )
+        self.__validate_livestat(livestat)
 
-        sent_pbp = self.c.get( self.sent_pbp_table_key, {} )
+        sent_pbp = self.c.get(self.sent_pbp_table_key, {})
+
         if sent_pbp.get(livestat.get_id(), None) is not None:
             # it exists
             was_added = False
         else:
             # it did not exist !
-            sent_pbp[livestat.get_id()] = 'x' # set to anything
+            sent_pbp[livestat.get_id()] = 'x'  # set to anything
             was_added = True
             # add the dict back into the cache
-            self.c.set( self.sent_pbp_table_key, sent_pbp, self.to, version=self.key_version )
+            self.c.set(self.sent_pbp_table_key, sent_pbp, self.to, version=self.key_version)
 
-        return was_added    # if was_added is True, that means we just added it
+        return was_added  # if was_added is True, that means we just added it
 
     def get_to(self):
         # int( float(797) * ( float(r.randint( -1 * 13, 13 )) / 100.0 ) )
-        rand = self.r.randint( -1 * self.to_mod, self.to_mod )
-        modifier = int( float(self.to) * (float(rand) / 100.0) )
+        rand = self.r.randint(-1 * self.to_mod, self.to_mod)
+        modifier = int(float(self.to) * (float(rand) / 100.0))
         return self.to + modifier
 
-class TriggerCache( UsesCacheKeyPrefix ):
+
+class TriggerCache(UsesCacheKeyPrefix):
     """
     loads enabled triggers from redis
 
@@ -198,7 +203,7 @@ class TriggerCache( UsesCacheKeyPrefix ):
     """
 
     KEY = "enabled_triggers"
-    TIMEOUT = 1 # 100 # seconds - turned down to 1 second for debugging
+    TIMEOUT = 1  # 100 # seconds - turned down to 1 second for debugging
 
     def __init__(self, name='default', clear=False, key_version=1):
         """
@@ -212,11 +217,11 @@ class TriggerCache( UsesCacheKeyPrefix ):
         :return:
         """
         super().__init__()
-        self.c = caches[ name ]     # 'default' is the settings.CACHES['default'] !
+        self.c = caches[name]  # 'default' is the settings.CACHES['default'] !
         if clear == True:
             self.clear()
-        self.key_version    = key_version
-        self.triggers       = self.get_triggers()
+        self.key_version = key_version
+        self.triggers = self.get_triggers()
 
     def __key(self):
         """
@@ -226,12 +231,12 @@ class TriggerCache( UsesCacheKeyPrefix ):
         return self.get_key(self.KEY)
 
     def clear(self):
-        self.c.delete( self.__key() ) # removes the item at the key
+        self.c.delete(self.__key())  # removes the item at the key
         self.triggers = []
 
     def add_triggers(self, triggers):
-        was_added = self.c.add( self.__key(), self.triggers,
-                                self.TIMEOUT, version=self.key_version )
+        was_added = self.c.add(self.__key(), self.triggers,
+                               self.TIMEOUT, version=self.key_version)
         return was_added
 
     def get_triggers(self):
@@ -241,16 +246,17 @@ class TriggerCache( UsesCacheKeyPrefix ):
 
         :return:
         """
-        self.triggers = self.c.get( self.__key(), None )
+        self.triggers = self.c.get(self.__key(), None)
         if not self.triggers:
             #
             # retrieve them from the regular database
-            self.triggers = Trigger.objects.filter( enabled=True )
-            self.add_triggers( triggers=self.triggers )
+            self.triggers = Trigger.objects.filter(enabled=True)
+            self.add_triggers(triggers=self.triggers)
 
         return self.triggers
 
-class PlayByPlayCache( UsesCacheKeyPrefix ):
+
+class PlayByPlayCache(UsesCacheKeyPrefix):
     """
     For the trailing history of pbp objects available.
 
@@ -260,9 +266,9 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
     to keep track of a small window in time behind the actual time.
     """
 
-    KEY         = "PlayByPlayCache_"
-    TIMEOUT     = 60*60*48                 #  before this cache data expires. (add() refreshes countdown)
-    MAX         = 100
+    KEY = "PlayByPlayCache_"
+    TIMEOUT = 60 * 60 * 48  # before this cache data expires. (add() refreshes countdown)
+    MAX = 100
 
     def __init__(self, sport, name='default', clear=False, key_version=1, max=0):
         """
@@ -277,16 +283,16 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
         """
         super().__init__()
 
-        self.sport  = sport
+        self.sport = sport
 
-        self.c = caches[ name ]     # 'default' is the settings.CACHES['default'] !
+        self.c = caches[name]  # 'default' is the settings.CACHES['default'] !
 
         if clear == True:
             self.clear()
 
-        self.key_version    = key_version
+        self.key_version = key_version
 
-        self.max = self.MAX # default value
+        self.max = self.MAX  # default value
         if max > 0:
             self.max = max
 
@@ -299,7 +305,7 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
         return self.get_key(self.KEY) + self.sport
 
     def clear(self):
-        self.c.delete( self.__key() ) # removes the item at the key
+        self.c.delete(self.__key())  # removes the item at the key
 
     def add(self, pbp):
         """
@@ -309,8 +315,9 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
         :return:
         """
         current = self.get_pbps()
-        new = [ pbp ] + current[0:self.max - 1]     # get the first MAX pbp objects, and push on the new one
-        self.c.set( self.__key(), new, self.TIMEOUT, version=self.key_version )
+        new = [pbp] + current[
+                      0:self.max - 1]  # get the first MAX pbp objects, and push on the new one
+        self.c.set(self.__key(), new, self.TIMEOUT, version=self.key_version)
 
     def get_pbps(self):
         """
@@ -320,7 +327,8 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
 
         :return:
         """
-        return self.c.get( self.__key(), [] )
+        return self.c.get(self.__key(), [])
+
 
 class QuteQueue(object):
     """
@@ -329,11 +337,12 @@ class QuteQueue(object):
     minus the threadsafe behavior -- but QuteQueue can be cached
     which cant be said for queue.Queue
     """
+
     def __init__(self, size=10):
         super().__init__()
-        self.queue          = list()
-        self.max_size       = size
-        self.current_size   = 0
+        self.queue = list()
+        self.max_size = size
+        self.current_size = 0
 
     def remove(self, obj):
         """
@@ -341,7 +350,7 @@ class QuteQueue(object):
         :param obj:
         :return:
         """
-        self.queue.remove( obj )
+        self.queue.remove(obj)
         self.current_size -= 1
 
     def put(self, obj):
@@ -374,7 +383,8 @@ class QuteQueue(object):
         else:
             return None
 
-class NonBlockingQueue( Queue ):
+
+class NonBlockingQueue(Queue):
     """
     queue that discards the oldest items.
     instead of blocking on put() if its Full, put simply returns
@@ -396,8 +406,8 @@ class NonBlockingQueue( Queue ):
         try:
             super().put(obj, False)
         except Full:
-            ejected_obj = super().get( False )
-            super().put(obj, False )
+            ejected_obj = super().get(False)
+            super().put(obj, False)
 
         # return the item that is being ejected -- otherwise return None
         return ejected_obj
@@ -412,8 +422,8 @@ class NonBlockingQueue( Queue ):
         except Empty:
             return None
 
-class CommonId(object):
 
+class CommonId(object):
     def __init__(self, common_id, obj):
         self.common_id = common_id
         self.obj = obj
@@ -424,8 +434,8 @@ class CommonId(object):
     def get_obj(self):
         return self.obj
 
-class RandomId(object):
 
+class RandomId(object):
     def get_random_id(self):
         """
         returns random values using random.getrandbits(128)
@@ -437,13 +447,15 @@ class RandomId(object):
         """
         return '%032x' % random.getrandbits(128)
 
+
 class RandomIdMixin(RandomId):
     """ classes wanting use of the method get_random_id() """
     pass
 
-class AbstractLinkableObject(object):
 
-    class LinkingIdIsNoneException(Exception): pass
+class AbstractLinkableObject(object):
+    class LinkingIdIsNoneException(Exception):
+        pass
 
     default_linkable_id_field = 'id'
 
@@ -455,12 +467,12 @@ class AbstractLinkableObject(object):
         :param link_id:
         :return:
         """
-        if not isinstance( obj, dict ):
+        if not isinstance(obj, dict):
             # print('AbstractLinkableObject __init__ - warning converting %s "obj" '
             #       'to its dictionary representation: %s >>>> %s' % (type(obj), str(obj), str(obj.get_o())))
             self.obj = obj.get_o()
         else:
-            #print('AbstractLinkableObject __init__ - obj is a dict already: %s' %str(obj))
+            # print('AbstractLinkableObject __init__ - obj is a dict already: %s' %str(obj))
             self.obj = obj
 
         if field is not None:
@@ -486,10 +498,10 @@ class AbstractLinkableObject(object):
         :param linking_id:
         :return: True if the specified linking_id is found within this object, otherwise False
         """
-        return linking_id in str( self.obj )
+        return linking_id in str(self.obj)
+
 
 class LinkableObject(AbstractLinkableObject):
-
     def __init__(self, obj, field=None, link_id=None):
         """
 
@@ -513,17 +525,16 @@ class LinkableObject(AbstractLinkableObject):
 
 
 class QueueItem(object):
-
-    def __init__(self, linkable_object, identifier=None, created=None ):
+    def __init__(self, linkable_object, identifier=None, created=None):
         """
         :param identifier: a unique string identifier
         :param created: a python datetime object when this obj was added to the queue.
                         (note: not what time this QueueItem was created)
         :param obj: a dictionary-like object
         """
-        self.linkable_object    = linkable_object
-        self.identifier         = identifier
-        self.created            = created
+        self.linkable_object = linkable_object
+        self.identifier = identifier
+        self.created = created
 
     def get_identifier(self):
         return self.identifier
@@ -534,18 +545,23 @@ class QueueItem(object):
     def get_linkable_object(self):
         return self.linkable_object
 
+
 class QueueTable(RandomIdMixin):
     """
     an object that has 0 or more named queues, named by strings
     """
 
-    class QueueNotFoundException(Exception): pass
+    class QueueNotFoundException(Exception):
+        pass
 
-    class QueueNamesNotSetException(Exception): pass
+    class QueueNamesNotSetException(Exception):
+        pass
 
-    class UniqueQueueNameConstraintException(Exception): pass
+    class UniqueQueueNameConstraintException(Exception):
+        pass
 
-    class IllegalMethodException(Exception): pass
+    class IllegalMethodException(Exception):
+        pass
 
     queue_size = 15
 
@@ -592,7 +608,7 @@ class QueueTable(RandomIdMixin):
         :return: NonBlockingQueue object
         """
         if name in self.queues.keys():
-            return self.queues[ name ]
+            return self.queues[name]
         # else raise exception with the name of the queue
         raise self.QueueNotFoundException(name)
 
@@ -622,7 +638,7 @@ class QueueTable(RandomIdMixin):
         manages the data structure of the linker queue!
         """
         q = self.get_queue(name)
-        q.queue.remove( obj )
+        q.queue.remove(obj)
 
     def add(self, name, obj, identifier=None):
         """
@@ -637,9 +653,10 @@ class QueueTable(RandomIdMixin):
         else:
             uid = RandomId().get_random_id()
         now = timezone.now()
-        q   = self.get_queue(name)
+        q = self.get_queue(name)
         tup = (uid, now, obj)
-        q.put( tup )
+        q.put(tup)
+
 
 class LinkedExpiringObjectQueueTable(QueueTable):
     """
@@ -690,7 +707,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         #
         # look for object linked to this one, and return linked objects if any are found.
         new_linked_object_data = self.get_any_linked_objects(name, linkable_object)
-        #print('++++++++++++NEW_LINKED_OBJECT_DATA: %s' % str(new_linked_object_data))
+        # print('++++++++++++NEW_LINKED_OBJECT_DATA: %s' % str(new_linked_object_data))
 
         identifier = None
         if new_linked_object_data is None:
@@ -701,7 +718,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
 
             #
             # call super().add() to add it to the queue, using our own identifier
-            super().add( name, linkable_object, identifier=identifier )
+            super().add(name, linkable_object, identifier=identifier)
 
         #
         # return a tuple in the form ( <None or identifier>, <list of linked ( identifier, obj )> )
@@ -726,15 +743,15 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         # iterate the queue we are potentially adding the linkable_object to first,
         # if we find another with the same link_id, return None
         # because the one thats already in there is first priority to get linked.
-        for identifier, dt, lnk_obj in list( self.get_queue(queue_name).queue ):
+        for identifier, dt, lnk_obj in list(self.get_queue(queue_name).queue):
             if lnk_obj.get_linking_id() == link_id:
-                #print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
+                # print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
                 return None
 
         #
         # get the names of the other queues
         queue_names_to_search = self.get_queue_names()
-        queue_names_to_search.remove( queue_name )
+        queue_names_to_search.remove(queue_name)
 
         # by default there are no objects to send, because we havent linked anything
         linked_objects_to_send = []
@@ -744,12 +761,12 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         for name in queue_names_to_search:
             q = self.get_queue(name)
             # iterate the queue looking for an object with a matching get_linking_id()
-            for identifier, dt, lnk_obj in list( q.queue ):
+            for identifier, dt, lnk_obj in list(q.queue):
                 #
                 # inspect the current object to see if we can find a matching link id within it!
-                if lnk_obj.is_linked_with( link_id ):
-                    linked_item_identifiers_found.append( identifier )
-                    break # just the inner loop!
+                if lnk_obj.is_linked_with(link_id):
+                    linked_item_identifiers_found.append(identifier)
+                    break  # just the inner loop!
 
         #
         # if we didnt link an item from each queue, get out of here
@@ -758,19 +775,21 @@ class LinkedExpiringObjectQueueTable(QueueTable):
 
         #
         # second pass to actually remove them if we linked an item from each queue!
-        linked_objects_to_send.append( (queue_name, QueueItem(linkable_object) ) ) # add initial object
+        linked_objects_to_send.append(
+            (queue_name, QueueItem(linkable_object)))  # add initial object
         for name in queue_names_to_search:
             q = self.get_queue(name)
-            for queue_item in list( q.queue ):
-                identifier          = queue_item[0] # its the first index of the tuple
-                created             = queue_item[1]
+            for queue_item in list(q.queue):
+                identifier = queue_item[0]  # its the first index of the tuple
+                created = queue_item[1]
                 found_linked_object = queue_item[2]
                 if identifier in linked_item_identifiers_found:
                     # remove this item from the queue,
                     # and append queue name and raw data object
-                    q.queue.remove( queue_item )
-                    linked_objects_to_send.append( (name, QueueItem(found_linked_object, identifier, created) ) )
-                    break # just the inner loop!
+                    q.queue.remove(queue_item)
+                    linked_objects_to_send.append(
+                        (name, QueueItem(found_linked_object, identifier, created)))
+                    break  # just the inner loop!
 
         #
         # now if we found a number items equal to the
