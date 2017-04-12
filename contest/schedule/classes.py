@@ -517,7 +517,7 @@ class ContestPoolScheduleManager(object):
 
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
-            logger.info('Creating Blocks for %s - %s', (sport_day, date_str))
+            logger.info('Creating Blocks for %s - %s' % (sport_day, date_str))
             self.sport_day = sport_day
             # use the BlockCreator to make new blocks
             # which will have all teh default prize structures
@@ -608,7 +608,7 @@ class BlockCreator(object):
     def create_block_games(block, games):
         block_games = []
         for game in games:
-            logger.info('creating a BlockGame for %s', game)
+            logger.info('creating a BlockGame for %s' % game)
             block_game = BlockGame()
             block_game.block = block
             block_game.name = game.get_home_at_away_str()
@@ -641,7 +641,7 @@ class BlockCreator(object):
         excluded_games = self.sport_day.get_excluded_games()
         all_games = list(included_games) + list(excluded_games)
         block_games = self.create_block_games(block, all_games)  # returns the created BlockGames
-        logger.info('Block Created %s', block)
+        logger.info('Block Created %s' % block)
 
         # create the block prize structures
         block_prize_structure_creator = BlockPrizeStructureCreator(block)
