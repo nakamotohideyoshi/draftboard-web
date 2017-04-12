@@ -668,13 +668,17 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             logger.warning('Player object for PlayerStats DoesNotExist: obj: %s | target: %s' % (
                 obj, target))
             # Add some debugging info to the sentry error.
-            client.context.merge({'extra': {
-                'o': str(o),
-                'target': target,
-                'player': "%s %s" % (o.get('first_name', None), o.get('last_name', None))
-            }})
-            client.captureMessage('Player object for PlayerStats DoesNotExist')
-            client.context.clear()
+
+            # This happens so frequently with MLB (new players being called up) that
+            # we don't want all the sentry noise. - disabled for now.
+
+            # client.context.merge({'extra': {
+            #     'o': str(o),
+            #     'target': target,
+            #     'player': "%s %s" % (o.get('first_name', None), o.get('last_name', None))
+            # }})
+            # client.captureMessage('Player object for PlayerStats DoesNotExist')
+            # client.context.clear()
             return  # dont create the playerstats then
 
         try:
