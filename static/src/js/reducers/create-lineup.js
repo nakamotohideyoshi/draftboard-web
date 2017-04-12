@@ -48,7 +48,7 @@ const insertPlayerIntoLineup = (player, state) => {
 
 /**
  * How many players have been added to the lineup.
- * @return {Integer} The number of players in the lineup.
+ * @return {Number} The number of players in the lineup.
  */
 // const getPlayerCount = function(state) {
 //   return state.lineup.reduce(function(prev, curr, i, lineup) {
@@ -62,7 +62,7 @@ const insertPlayerIntoLineup = (player, state) => {
 
 /**
  * Get the sum of lineup players' salary.
- * @return {Integer} The total lineup salary.
+ * @return {Number} The total lineup salary.
  */
 const getTotalSalary = (state) => state.lineup.reduce((previousValue, currentValue, index, lineup) => {
   if (lineup[index].player) {
@@ -75,14 +75,14 @@ const getTotalSalary = (state) => state.lineup.reduce((previousValue, currentVal
 
 /**
  * Find how much money is left to spend on players.
- * @return {Integer} Salary cap minus current lineup salary.
+ * @return {Number} Salary cap minus current lineup salary.
  */
 const getRemainingSalary = (state) => state.contestSalaryLimit - getTotalSalary(state);
 
 
 /**
  * Find the average remaining salary per available slots.
- * @return {Inteter} The average player salary, rounded down to the nearest Int.
+ * @return {Number} The average player salary, rounded down to the nearest Int.
  */
 const getAvgRemainingPlayerSalary = (state) => {
   const EmptySlotCount = getAvailableLineupSlots(state).length;

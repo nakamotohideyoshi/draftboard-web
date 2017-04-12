@@ -1,11 +1,8 @@
-#
-# sports/management/commands/updatecontent.py
+from django.core.management.base import BaseCommand
 
-from django.utils import timezone
-from django.core.management.base import BaseCommand, CommandError
 from dataden.classes import DataDen
 from sports.parser import DataDenParser
-from sports.sport.base_parser import TsxContentParser
+
 
 class Command(BaseCommand):
     """
@@ -35,13 +32,12 @@ class Command(BaseCommand):
         """
 
         msg = 'updating The Sports Xchange news, injury info, and transactions'
-        self.stdout.write( msg )
+        self.stdout.write(msg)
 
         dd = DataDen()
 
-        site_sport  = None
+        site_sport = None
         for sport in options['sport']:
-
             # # print the # of content items for this sport total to test
             # items = dd.find( sport, 'item', 'content' )
             # self.stdout.write('')
@@ -82,10 +78,10 @@ class Command(BaseCommand):
             #
             # this is simply a test that parses ALL the content in DataDen/mongo for the sport
             p = DataDenParser()
-            p.setup( sport, force_triggers=DataDenParser.CONTENT_TRIGGERS )
+            p.setup(sport, force_triggers=DataDenParser.CONTENT_TRIGGERS)
 
     def print_objects(self, items):
         pass
         for item in items:
-            self.stdout.write( '' )
-            self.stdout.write( str(item) )
+            self.stdout.write('')
+            self.stdout.write(str(item))

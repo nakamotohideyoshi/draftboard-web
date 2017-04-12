@@ -85,7 +85,8 @@ class AbstractDataDenParser(object):
         """
         return self.__class__.__name__
 
-    def unimplemented(self, ns, parent_api):
+    @staticmethod
+    def unimplemented(ns, parent_api):
         print('')
         print('UNIMPLEMENTED <<< %s | %s >>> ... generally this means DataDen<Sport> .parse() just needs an addition \
             to the switch statement.' % (ns, parent_api))
@@ -168,12 +169,11 @@ class AbstractDataDenParseable(object):
         self.o = None
         self.wrapped = wrapped
         self.srid_finder = None
+        self.start = None
+        self.stop = None
 
     def get_obj(self):
         return self.original_obj
-
-        self.start = None
-        self.stop = None
 
     def timer_start(self):
         self.start = timezone.now()
@@ -206,7 +206,8 @@ class AbstractDataDenParseable(object):
         self.srid_finder = SridFinder(self.o)
         logger.debug('AbstractDataDenParseable.parse_triggered_object() obj: %s' % self.o)
 
-    def get_site_sport(self, obj):
+    @staticmethod
+    def get_site_sport(obj):
         """
         Return the sport by splitting the mongo object's 'ns' on the dot
         and taking the leftmost part!
@@ -381,7 +382,7 @@ class DataDenTeamHierarchy(AbstractDataDenParseable):
 
         # db.team.findOne({'parent_api__id':'hierarchy'})
         # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWQ1NGRjNzM0OC1jMWQyLTQwZDgtODhiMy1jNGMwMTM4ZTA4NWRpZDU4M2VjZWE2LWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw==",
+        #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1...",
         #     "alias" : "MIA",
         #     "id" : "583ecea6-fb46-11e1-82cb-f4ce4684ea4c",
         #     "market" : "Miami",
@@ -484,14 +485,16 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
             # print( str(o) )
-            # print( 'Team (home) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
+            # print(
+            # 'Team (home) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
             # print( str(o) )
-            # print( 'Team (away) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
+            # print(
+            # 'Team (away) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
             return
 
         try:
@@ -697,10 +700,10 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         except self.player_stats_model.DoesNotExist:
             # We don't have a playerStats model for this player, so let's make one.
             logger.warning((
-               'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
-               '| game: %s | obj: %s | target: %s'
-                    ) % (srid_player, srid_game, self.p, self.g, obj, target)
-            )
+                               'Attempting to create new PlayerStats: srid_player: %s |srid_game: %s | player: %s '
+                               '| game: %s | obj: %s | target: %s'
+                           ) % (srid_player, srid_game, self.p, self.g, obj, target)
+                           )
             self.ps = self.player_stats_model()
             self.ps.srid_game = srid_game
             self.ps.srid_player = srid_player
@@ -714,7 +717,8 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # site_sport      = self.get_site_sport(obj)
             # position_name   = self.o.get(self.position_key, None)
             # if position_name is None:
-            #     raise Exception('"%s" value is None -- cant determine player position!'%self.position_key)
+            #     raise Exception(
+            #       '"%s" value is None -- cant determine player position!'%self.position_key)
             # try:
             #     position = Position.objects.get(name=position_name)
             # except Position.DoesNotExist:
@@ -762,7 +766,7 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         try:
             game = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist as e:
-            logger.error(e);
+            logger.error(e)
             return  # go no further
 
         # if the game instance has a status of 'closed', dont change it
@@ -785,7 +789,7 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
 
         # db.game.findOne({'parent_api__id':'boxscores','status':'inprogress'})
         # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZGMzNGMwZDRjLWU1ZGQtNDMzOS04YjIyLWZhZWUyOWEzZDFhMQ==",
+        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZGMzNGMwZDRjLWU1ZGQtNDMzOS04YjIyL...",
         #     "away_team" : "4417d3cb-0f24-11e2-8525-18a905767e44",
         #     "clock" : "14:22",
         #     "coverage" : "full",
@@ -871,9 +875,11 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
         super().__init__()
 
     def parse(self, obj, target=None):
-        # db.team.findOne({'game__id':'c34c0d4c-e5dd-4339-8b22-faee29a3d1a1','parent_api__id':'boxscores'})
+        # db.team.findOne(
+        #   {'game__id':'c34c0d4c-e5dd-4339-8b22-faee29a3d1a1','parent_api__id':'boxscores'}
+        # )
         # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZGMzNGMwZDRjLWU1ZGQtNDMzOS04YjIyLWZhZWUyOWEzZDFhMWlkNDQxN2QzY2ItMGYyNC0xMWUyLTg1MjUtMThhOTA1NzY3ZTQ0",
+        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZGMzNGMwZDRjLWU1ZGQtNDMzOS04YjL...",
         #     "id" : "4417d3cb-0f24-11e2-8525-18a905767e44",
         #     "market" : "Tampa Bay",
         #     "name" : "Lightning",
@@ -1132,10 +1138,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         """
         super().send()
 
-        if not self.add_to_cache(self.get_obj()) and force == False:
+        if not self.add_to_cache(self.get_obj()) and force is False:
+            logger.info('PBP was found in cache, has already been sent, not sending again.')
             # return out of method - we dont need to send this obj again
             return
-        #
         # #
         # # try to retrieve the player(s) and game srids to look up linked PlayerStats
         # # and add them to the player_stats list if found.
@@ -1145,9 +1151,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # send normally, or as linked data depending on the found PlayerStats instances
         # if len(player_stats) == 0:
         # solely push pbp object
-        push.classes.DataDenPush(self.pusher_sport_pbp,
-                                 self.pusher_sport_pbp_event).send(
-            self.get_send_data())  # pusher_sport_pbp_event
+        push.classes.DataDenPush(
+            self.pusher_sport_pbp,
+            self.pusher_sport_pbp_event
+        ).send(self.get_send_data())  # pusher_sport_pbp_event
 
         # else:
         #     # push combined pbp+stats data
@@ -1159,9 +1166,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         #     primary_object_hash = hashable.hsh()
         #     self.delete_cache_tokens(player_stats)
         #     data = self.build_linked_pbp_stats_data( player_stats )
-        #     push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=primary_object_hash ).send( send_data )
+        #     push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=primary_object_hash
+        #           ).send( send_data )
 
-    def delete_cache_tokens(self, player_stats_objects):
+    @staticmethod
+    def delete_cache_tokens(player_stats_objects):
         for player_stats in player_stats_objects:
             cache.delete(player_stats.get_cache_token())
 
@@ -1328,6 +1337,8 @@ class DataDenInjury(AbstractDataDenParseable):
 
 
 class TsxContentParser(AbstractDataDenParseable):
+    # TODO: (zach) Remove TsxContentParser. we don't use the Sports Xchange player update info.
+
     """
     Parses The Sports Xchange news, injuries, and transactions
     from dataden objects into site models.
@@ -1350,8 +1361,8 @@ class TsxContentParser(AbstractDataDenParseable):
 
         the values determine the type of content object
         we create in our own database:
-              1) 'injury' == True                             --> indicates injury content
-              2) 'transaction' == True                        --> indicates transaction content (like a trade)
+              1) 'injury' == True  --> indicates injury content
+              2) 'transaction' == True  --> indicates transaction content (like a trade)
               3) 'injury' == False && 'transaction' == False  --> indicates general news content
 
     """
@@ -1402,7 +1413,8 @@ class TsxContentParser(AbstractDataDenParseable):
                         ('sport.collection', 'parent_api')
         :return: a 3-tuple in the form:    ( tsxcontent, tsxitems, tsxrefs )
                     'tsxcontest' the the model instance for the content
-                    'tsxitems' is a list of every TsxItem (... ie TsxNews, TsxInjury, or TsxTransaction objects)
+                    'tsxitems' is a list of every TsxItem (... ie TsxNews, TsxInjury, or 
+                        TsxTransaction objects)
                     'tsxrefs' is a list of every TsxTeam or TsxPlayer for each TsxItem
         """
 
@@ -1428,7 +1440,7 @@ class TsxContentParser(AbstractDataDenParseable):
 
         #
         # return the created and/or update models in a 3-tuple!
-        return (tsxcontent, tsxitems)
+        return tsxcontent, tsxitems
 
     def get_or_create_tsxcontent(self):
         #
@@ -1517,7 +1529,8 @@ class TsxContentParser(AbstractDataDenParseable):
             self.__parse_item_for_class(
                 tsxcontent, item_obj, self.news_model_class)
 
-    def __parse_datetime(self, datetime_str):
+    @staticmethod
+    def __parse_datetime(datetime_str):
         """
         use pythons dateutil module to parse a string and return the datetime object
 
@@ -1588,7 +1601,8 @@ class TsxContentParser(AbstractDataDenParseable):
 
         return tsxitem
 
-    def __get_ref_list(self, item_obj):
+    @staticmethod
+    def __get_ref_list(item_obj):
         """
         get the 'refs__list' out of the item object
 
@@ -1655,14 +1669,14 @@ class TsxContentParser(AbstractDataDenParseable):
         tsxitem_type = ContentType.objects.get_for_model(tsxitem)
         # print('')
         # print(str(ref_obj))
-        tsxref, c = tsx_ref_model_class.objects.get_or_create(sportsdataid=sportsdataid,
-                                                              sportradarid=sportradarid,
-                                                              player=player,
-                                                              name=ref_obj.get(
-                                                                  'name'),
-                                                              tsxitem_type=tsxitem_type,
-                                                              tsxitem_id=tsxitem.pk,
-                                                              content_published=tsxitem.content_published)
+        tsxref, c = tsx_ref_model_class.objects.get_or_create(
+            sportsdataid=sportsdataid,
+            sportradarid=sportradarid,
+            player=player,
+            name=ref_obj.get('name'),
+            tsxitem_type=tsxitem_type,
+            tsxitem_id=tsxitem.pk,
+            content_published=tsxitem.content_published)
 
         return tsxref
 
