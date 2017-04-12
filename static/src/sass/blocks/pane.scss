@@ -5,7 +5,7 @@
 // when a user requests something and a pane slides out from the right hand side
 // drew says it will always be the same width
 .pane {
-  background: #fff;
+  //background: #fff;
   background-size: auto 110%;
   height: 100%;
   overflow-x: hidden;
@@ -20,6 +20,7 @@
   will-change: right, transition, transform;
   transform: translateZ(0); // To prevent repaint on scroll.
   z-index: $zindex-modal + 6;
+  padding-left: 15px;
 
   &__close {
     background: url('../img/blocks/pane/btn-close-arrow.png') no-repeat;
@@ -29,7 +30,7 @@
     height: 20px;
     width: 30px;
     position: absolute;
-    left: 5px;
+    left: -15px;
     top: 50px;
     // z-index: $zindex-modal + 2;
 
@@ -41,6 +42,8 @@
   &__content {
     height: 100%;
     width: 100%;
+    position: relative;
+    background: #fff;
   }
 }
 

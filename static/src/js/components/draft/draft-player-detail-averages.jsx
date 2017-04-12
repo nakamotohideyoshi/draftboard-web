@@ -212,6 +212,12 @@ const DraftPlayerDetailAverages = (props) => {
         <div className="player-stats">
           <ul>
             <li>
+              <div className="stat-name">AVG</div>
+              <div className="stat-score">
+                {roundUpToDecimalPlace(bsh.avg_fp, 1)}
+              </div>
+            </li>
+            <li>
               <div className="stat-name">PPG</div>
               <div className="stat-score">
                 {roundUpToDecimalPlace(bsh.avg_points, 1)}
@@ -233,12 +239,6 @@ const DraftPlayerDetailAverages = (props) => {
               <div className="stat-name">STLPG</div>
               <div className="stat-score">
                 {roundUpToDecimalPlace(bsh.avg_steals, 1)}
-              </div>
-            </li>
-            <li>
-              <div className="stat-name">TO</div>
-              <div className="stat-score">
-                {roundUpToDecimalPlace(bsh.avg_turnovers, 1)}
               </div>
             </li>
             <li>

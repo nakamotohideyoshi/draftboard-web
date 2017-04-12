@@ -30,6 +30,21 @@ const fetchSinglePlayerBoxScoreHistory = (sport, id) => ({
   },
 });
 
+export const fetchSinglePlayerNews = (sport, playerSrid) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.PLAYER_NEWS_SINGLE__REQUEST,
+      ActionTypes.PLAYER_NEWS_SINGLE__RECEIVE,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    endpoint: `/api/sports/updates/player/${playerSrid}/`,  // fetch the news and analysis
+    requestFields: { sport, playerSrid },
+    callback: (json) => ({
+      fields: json,
+    }),
+  },
+});
+
 
 /**
  * Quick check to see if we should fetch the history of a player

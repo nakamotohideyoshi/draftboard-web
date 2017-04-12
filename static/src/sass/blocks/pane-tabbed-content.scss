@@ -28,6 +28,34 @@
       display: inline-block;
       cursor: pointer;
       line-height: 2em;
+      &:last-child{
+        margin: 0;
+        padding: 5px 0 0 0;
+        float: right;
+        a{
+          color: #b0b2c1;
+          text-transform: uppercase;
+          font-weight: 500;
+          font-size: 10px;
+          &:hover {
+            color: #262a3b;
+            cursor: pointer;
+            text-decoration: none;
+          }
+        }
+        .rotowire-icon {
+          //size:(115 px, 39 px);
+          background-image: url('../img/common/rwlogo-500w.png');
+          background-position: 1px 4px;
+          background-repeat: no-repeat;
+          margin-top: -7px;
+          height: 26px;
+          width: 70px;
+          display: inline-block;
+          background-size: contain;
+          vertical-align: top;
+        }
+      }
 
       &:hover {
         color: #262a3b;
@@ -35,7 +63,21 @@
 
       &.active {
         color: #262a3b;
-        border-bottom: 2px solid #e0e3eb;
+        position: relative;
+        //border-bottom: 2px solid #46495e;
+        .tab-title {
+          &:before {
+            content: '';
+            width: 23px;
+            border-bottom: 2px solid #46495e;
+            //box-shadow: #a3a4ae 0 1px 0;
+
+            position: absolute;
+            left: 0;
+            height: 1px;
+            bottom: -5px;
+          }
+        }
       }
     }
   }
