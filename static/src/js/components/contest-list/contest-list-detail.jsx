@@ -204,9 +204,10 @@ const ContestListDetail = React.createClass({
     let enteredText = 'Enter Again';
     const focusedLineup = this.props.focusedLineup;
     const lineupsInfo = this.props.lineupsInfo;
-    const focusedLineupName = this.props.focusedLineup.name;
 
     if (focusedLineup) {
+      const focusedLineupName = this.props.focusedLineup.name;
+
       if (lineupsInfo[focusedLineup.id].contestPoolEntries[this.props.focusedContestId]) {
         enteredText = `Enter '${focusedLineupName}' Again`;
       } else {
