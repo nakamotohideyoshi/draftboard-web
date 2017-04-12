@@ -19,12 +19,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='playerupdate',
-            name='headline',
-            field=models.CharField(default='', max_length=1024),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='playerupdate',
             name='notes',
             field=models.CharField(default='', max_length=8192),
         ),
