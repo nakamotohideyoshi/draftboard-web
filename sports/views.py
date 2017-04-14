@@ -58,7 +58,7 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         player_srid = self.kwargs['player_srid']
-        queryset = self.model.objects.filter(player_srid=player_srid)
+        queryset = self.model.objects.filter(player_srid=player_srid).order_by('-created').distinct()[:10]
         return queryset
 
 
