@@ -206,7 +206,7 @@ class Trigger(object):
 
             try:
                 size = len(obj_list)
-                logger.info('%s total_updates: %s' % (self.__class__.__name__, size))
+                logger.debug('%s total_updates: %s' % (self.__class__.__name__, size))
             except:
                 pass
 
