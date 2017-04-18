@@ -1,13 +1,13 @@
 #
 # custom command: manage.py schedule
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from django.core.cache import cache
 from contest.schedule.classes import ScheduleManager
 from contest.schedule.management.commands.schedule import Command as ScheduleCommand
 import time
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
 
     help = "created scheduled contests in the near future"
 
@@ -33,7 +33,7 @@ class Command(NoArgsCommand):
     #     print( str(options_minutes) )
     #     print( str(options_sports) )
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
         """
 
         :param options:

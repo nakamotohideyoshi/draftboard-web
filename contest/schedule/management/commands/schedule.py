@@ -1,13 +1,16 @@
-#
-# custom command: manage.py schedule
-
-from django.core.management.base import NoArgsCommand
 from django.core.cache import cache
+from django.core.management.base import BaseCommand
+
 from contest.schedule.classes import ScheduleManager
-import time
 
-class Command(NoArgsCommand):
+"""
+Tested Apr 18, 2017 - this is broken:
 
+    'ScheduleManager' object has no attribute 'print_schedules'
+"""
+
+
+class Command(BaseCommand):
     help = "created scheduled contests in the near future"
 
     cache_key_lock = 'contest.schedule.classes.ScheduleManager'
@@ -32,7 +35,7 @@ class Command(NoArgsCommand):
     #     print( str(options_minutes) )
     #     print( str(options_sports) )
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
         """
 
         :param options:
@@ -45,14 +48,14 @@ class Command(NoArgsCommand):
             return
 
         # get the the lock so we are the only ones performing the scheduling
-        cache.set(self.cache_key_lock, 'working', 60)    # 60 seconds max lock
+        cache.set(self.cache_key_lock, 'working', 60)  # 60 seconds max lock
 
         #
-        #------------------------------------------------------------
+        # ------------------------------------------------------------
         schedule_manager = ScheduleManager()
         schedule_manager.print_schedules()
         schedule_manager.run()
-        #------------------------------------------------------------
+        # ------------------------------------------------------------
 
         # relinquish the lock when we are done, or if any error occurred
         cache.delete(self.cache_key_lock)

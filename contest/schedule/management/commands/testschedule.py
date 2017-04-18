@@ -1,19 +1,22 @@
 #
-# custom command: manage.py schedule
+# custom command: manage.py testschedule
 
-from django.core.management.base import NoArgsCommand
-from django.utils import timezone
-from datetime import datetime, timedelta
-from util.dfsdate import DfsDate
+from django.core.management.base import BaseCommand
+
 from contest.schedule.classes import (
     ScheduleDay,
 )
 
-class Command(NoArgsCommand):
 
+class Command(BaseCommand):
+    """
+    This seem so simply print out what daily time bocks we have set
+    to represent a sport "day". I don't know what it is used for.
+    -Zach
+    """
     help = "created scheduled contests in the near future"
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
         """
         :param options:
         :return:
