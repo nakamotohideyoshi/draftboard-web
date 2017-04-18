@@ -3,7 +3,7 @@
 #
 # This is a wrapper to run each app in codeship.py's TEST_SANDBOXED_INSTALLED_APPS list
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from mysite.settings.codeship import TEST_SANDBOXED_INSTALLED_APPS
 import subprocess
@@ -11,11 +11,11 @@ from django.contrib.auth.models import User
 
 # call_command('my_command', 'foo', bar='baz')
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
 
     help = "run sandboxed django tests in the order defined in codeship.py"
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
 
         # (venv) vagrant@vagrant-ubuntu-trusty-64:/vagrant$ sudo -u postgres psql -c "CREATE DATABASE template_dfs_pbpstats TEMPLATE dfs_pbpstats;"
         # CREATE DATABASE
