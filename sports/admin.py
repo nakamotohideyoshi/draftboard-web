@@ -59,3 +59,14 @@ class GameAdmin(admin.ModelAdmin):
     list_display = ['id']
     list_filter = ['status', 'start', 'home', 'away']
     search_fields = ['status', 'start', 'srid']
+
+
+class SportGameBoxScoreAdmin(admin.ModelAdmin):
+    list_display = ['id', 'get_score', 'status', 'coverage', 'title', 'updated', 'srid_game']
+    list_filter = ['status', 'updated']
+    search_fields = ['srid_game', 'title', 'srid_home', 'srid_away']
+    ordering = ['id']
+
+    @staticmethod
+    def get_score(obj):
+        return "%s: %s @ %s: %s" % (obj.away, obj.away_score, obj.home, obj.home_score)
