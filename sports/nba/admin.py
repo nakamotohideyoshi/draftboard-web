@@ -60,11 +60,8 @@ class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
 
 
 @admin.register(sports.nba.models.GameBoxscore)
-class GameBoxscoreAdmin(admin.ModelAdmin):
-    list_display = ['id', 'srid_game', 'status', 'title', 'home_score', 'home',
-                    'away', 'away_score', 'quarter', 'clock', 'coverage',
-                    'home_scoring_json', 'away_scoring_json']
-    ordering = ['id']
+class GameBoxscoreAdmin(sports.admin.SportGameBoxScoreAdmin):
+    list_display = sports.admin.SportGameBoxScoreAdmin.list_display + ['quarter', 'clock']
 
 
 @admin.register(sports.nba.models.GamePortion)
