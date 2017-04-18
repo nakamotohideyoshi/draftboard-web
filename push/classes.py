@@ -202,16 +202,12 @@ class AbstractPush(object):
     delay_seconds = None
 
     def __init__(self, channel):
-
-        # print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
-        #        'settings.PUSHER_KEY', settings.PUSHER_KEY,
-        #        'settings.PUSHER_SECRET', settings.PUSHER_SECRET )
-        # self.pusher = Pusher( app_id=settings.PUSHER_APP_ID,
-        self.pusher = RealGoodPusher(app_id=settings.PUSHER_APP_ID,  #
-                                     key=settings.PUSHER_KEY,
-                                     secret=settings.PUSHER_SECRET,
-                                     ssl=True,
-                                     port=443)
+        self.pusher = RealGoodPusher(
+            app_id=settings.PUSHER_APP_ID,
+            key=settings.PUSHER_KEY,
+            secret=settings.PUSHER_SECRET,
+            ssl=True,
+            port=443)
         self.channel = PUSHER_CHANNEL_PREFIX + channel
         self.event = None
 

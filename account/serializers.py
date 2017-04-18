@@ -133,8 +133,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
 
-        # TODO add in blacklist of usernames
-
         if not search(r'^%s{3,}$' % '[a-zA-Z0-9_.-]', value):
             raise serializers.ValidationError('Must be 3 or more alphanumeric characters.')
 

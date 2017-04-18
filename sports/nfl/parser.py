@@ -506,6 +506,8 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
         self.update_boxscore_data_in_game(data)
 
+        # Save the final pusher send data for debugging + testing.
+        self.send_data = data
         # pusher it
         push.classes.DataDenPush(self.channel, self.event).send(data)
 
@@ -1171,7 +1173,7 @@ class PlayParser(DataDenPbpDescription):
     def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
         # now we can use self.o which is the data object we care about.
-        self.parse_triggered_object(obj)
+        super().parse(obj, target)
 
         # update the current object it its own cache first
         ts, play_srid = self.cache_target(self.o, target)
@@ -1185,28 +1187,36 @@ class PlayParser(DataDenPbpDescription):
     def get_send_data(self):
         """ build the linked object from the parts """
 
-        #
         # assumes that everthing must exist at this point for us to be able to build it!
         play = self.PlayCache().fetch(self.ts, self.play_srid)
 
-        #
         # get the PlayerStats model instances associated with this play
         # which can be found using the game and player srids
         srid_finder = SridFinder(play)
         srid_games = srid_finder.get_for_field('game__id')
         srid_players = srid_finder.get_for_field('player')
-        player_stats = self.player_stats_model.objects.filter(srid_game__in=srid_games,
-                                                              srid_player__in=srid_players)
+        player_stats = self.player_stats_model.objects.filter(
+            srid_game__in=srid_games,
+            srid_player__in=srid_players
+        )
+
         logger.info('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
             player_stats.count(),
-            srid_games, srid_players))
-        player_stats_json = [ps.to_json() for ps in player_stats]
+            srid_games, srid_players)
+        )
 
-        #
+        # Gather linked player stats.
+        player_stats_json = []
+        for ps in player_stats:
+            stats = ps.to_json()
+            # Attach first + last name to the player stats info.
+            stats['first_name']= ps.player.first_name
+            stats['last_name'] = ps.player.last_name
+            player_stats_json.append(stats)
+
         start_location = self.StartLocationCache().fetch(self.ts, self.play_srid)
         start_possession = self.StartPossessionCache().fetch(self.ts, self.play_srid)
 
-        #
         end_location = self.EndLocationCache().fetch(self.ts, self.play_srid)
         end_possession = self.EndPossessionCache().fetch(self.ts, self.play_srid)
 
@@ -1224,6 +1234,7 @@ class PlayParser(DataDenPbpDescription):
         play['end_situation__list']['possession'] = PossessionManager(end_possession).get_data()
         play['end_situation__list']['location'] = LocationManager(end_location).get_data()
 
+        # Attach PBP and linked stats, then return.
         data = {
             self.field_pbp_object: PlayManager(play).get_data(),
             self.field_stats: player_stats_json,

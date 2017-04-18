@@ -1,5 +1,8 @@
 from collections import Counter
 from functools import reduce
+from logging import getLogger
+
+logger = getLogger('util.dicts')
 
 
 # %cpaste
@@ -33,8 +36,7 @@ class DictTools:
 
         :param d1: the target dict
         :param d2: using the key-value pairs in d2, combine and add them to d1
-        :param exclude: list of keys to ignore.
-        :return: Counter object - you can easily cast it to a dict if you wish with dict( Counter() )
+        :return: Counter object - you can easily cast it to a dict if you wish with dict(Counter())
         """
 
         def update_in_place(a, b):
@@ -191,7 +193,8 @@ class Shrinker(object):
             #     print('    old_field pop()ed value:', str(val))
             #     continue # dont add a random default value if the field doesnt exist
 
-            # print('    remapping old_field[%s] to { "%s" : "%s" }' % (old_field, new_field, str(val)))
+            # print('    remapping old_field[%s] to { "%s" : "%s" }' % (
+            # old_field, new_field, str(val)))
             self.shrunk[new_field] = val
         #
         return self.shrunk
@@ -227,9 +230,13 @@ class Manager(object):
         if self.shrinker_class is None:
             raise self.InvalidShrinker('"shrinker_class" cant be None')
 
+        if raw_data is None:
+            logger.warning("raw_data is None - %s" % self.__class__.__name__)
+            raw_data = {}
         self.raw_data = raw_data
 
-    def int2bool(self, val):
+    @staticmethod
+    def int2bool(val):
         """ takes str2bool a step further and turns """
 
         # convert floats to ints
@@ -262,7 +269,8 @@ class Manager(object):
         # add_data should be called after
         return self.add_data(shrunk, additional_data)
 
-    def add_data(self, base_data, additional=None):
+    @staticmethod
+    def add_data(base_data, additional=None):
         if additional is not None:
             for k, v in additional.items():
                 # add this key:value of additional data,
