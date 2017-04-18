@@ -40,28 +40,25 @@ const ResultsDaysSlider = React.createClass({
         slidesToShow: 7,
         slidesToScroll: 7,
         variableWidth: true,
-        afterChange: this.changeStateDate,
-        // beforeChange: this.beforeChangeStateDate
-
+        afterChange: this.afterChangeHandler,
       },
-      day: this.props.day,
-      month: this.props.month,
-      year: this.props.year,
     };
   },
 
   componentWillReceiveProps(nextProps) {
     const state = merge({}, this.state);
-
+    // Forced overwrite properties before getting the new items;
+    this.props.day = nextProps.day;
+    this.props.month = nextProps.month;
+    this.props.year = nextProps.year;
     state.itemsList = this.getItemsList();
     state.settings.initialSlide = nextProps.day - 1;
     this.setState(state);
-    this.setState({
-      day: this.props.day,
-      month: this.props.month,
-      year: this.props.year,
-    });
-    this.refs.slider.slickGoTo(nextProps.day - 1);
+  },
+
+  componentDidUpdate() {
+    // Sliding only after updating of all properties
+    this.refs.slider.slickGoTo(this.props.day - 1);
   },
 
   getRightButton(props) {
@@ -70,10 +67,6 @@ const ResultsDaysSlider = React.createClass({
   getLeftButton(props) {
     return (<div {...props} onClick={this.prevSlide.bind(this, props.className)}>&lt;</div>);
   },
-
-  // beforeChangeStateDate(prevSlide, nextSlide) {
-    // console.log('prevSlide', prevSlide,'nextSlide', nextSlide);
-  // },
 
   getItemsList() {
     const mapDay = (d, index) => {
@@ -124,22 +117,21 @@ const ResultsDaysSlider = React.createClass({
     );
   },
 
-  changeStateDate() {
-    let day;
-    if (this.state.isRightArrow) {
-      day = this.state.day + 7;
+  afterChangeHandler(currSlide) {
+    const today = dateNow();
+    const future = new Date(this.props.year, this.props.month - 1, currSlide + 1).getTime();
+    if (today > future) {
+      this.props.onSelectDate(this.props.year, this.props.month, currSlide + 1);
     } else {
-      day = this.state.day - 7;
+      // we don't change anything
+      return false;
     }
-    this.setState({
-      day,
-    });
   },
 
   prevSlide(className) {
     if (new RegExp('slick-disabled').test(className)) {
       if (!(this.props.month - 1)) {
-        const date = new Date(this.props.year - 1, 11);
+        const date = new Date(this.props.year - 1, 12);
         const dayOfMonth = date.getDate();
         date.setDate(dayOfMonth - 1);
         const lastDay = date.getDate();
@@ -159,13 +151,18 @@ const ResultsDaysSlider = React.createClass({
   nextSlide(className) {
     const week = 7;
     if (new RegExp('slick-disabled').test(className)) {
-      const today = new Date().getTime();
-      const calendarDate = new Date(this.state.year, this.state.month, this.state.day + week).getTime();
-      if (calendarDate < today) {
-        // Set the first day of next month
+      const today = dateNow();
+      const sliderDate = new Date(this.props.year, this.props.month - 1, this.props.day + week).getTime();
+      const isPast = sliderDate < today;
+      if (isPast) {
         if ((this.props.month + 1) > 12) {
           this.props.onSelectDate(this.props.year + 1, 1, 1);
         } else {
+          // The next line is the solution to the problem when the number of elements for the slider
+          // becomes smaller than the index of the current slide
+          this.refs.slider.innerSlider.setState({
+            currentSlide: 0,
+          });
           this.props.onSelectDate(this.props.year, this.props.month + 1, 1);
         }
       }

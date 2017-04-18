@@ -287,7 +287,7 @@ const DraftPlayerDetail = React.createClass({
 
   renderPlayerNews() {
     let news = [];
-    if (!this.props.player.news) {
+    if (!this.props.player.news.length) {
       news = (
         <div><h5>No recent news updates.</h5></div>
       );
