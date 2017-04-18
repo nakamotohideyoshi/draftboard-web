@@ -1984,8 +1984,8 @@ class AtBatExtras(OidExtras):
 
     score_system_class = scoring.classes.MlbSalaryScoreSystem
 
-    FIRST_NAME = 'fn'
-    LAST_NAME = 'ln'
+    FIRST_NAME = 'first_name'
+    LAST_NAME = 'last_name'
     SRID_TEAM = 'srid_team'
     STATS_STR = 'stats_str'
 

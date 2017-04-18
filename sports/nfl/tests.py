@@ -1,24 +1,21 @@
-from model_mommy import mommy
-from mock import patch
-from django.utils import timezone
 from ast import literal_eval
-from test.classes import AbstractTest
+
+from django.utils import timezone
+from model_mommy import mommy
+
 import sports.nfl.models
+from dataden.watcher import OpLogObjWrapper
 from sports.nfl.models import (
     Team,
-    Player,
     Season,
     Game,
     PlayerStats,
+    Player
 )
-from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nfl.parser import (
     DataDenNfl,
 
     SeasonSchedule,
-    GameSchedule,
-    GameBoxscoreParser,
-    TeamBoxscoreParser,
     TeamHierarchy,
     PlayParser,
 
@@ -30,10 +27,10 @@ from sports.nfl.parser import (
     # extra data "description parser"
     ExtraInfo,
 )
-import re
+from test.classes import AbstractTest
+from django.core.cache import cache
 
 class TeamHierarchyParserTest(AbstractTest):
-
     def setUp(self):
         super().setUp()
         self.parser = TeamHierarchy()
@@ -72,6 +69,7 @@ class TeamHierarchyParserTest(AbstractTest):
         # check if the team is there and the alias is correct now
         self.assertEquals(self.parser.team.alias, data.get('alias'))
 
+
 # examples for TestPlayManagerRegexScraping
 # (14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall).
 # (13:51) (Shotgun) A.Morris right guard to WAS 39 for 6 yards (K.Misi).
@@ -109,7 +107,6 @@ class TeamHierarchyParserTest(AbstractTest):
 # (14:00) (Shotgun) R.Tannehill pass incomplete short middle to J.Landry. Penalty on MIA-J.James, Illegal Formation, declined."""
 
 class TestRushPlayManagerRegexScraping(AbstractTest):
-
     def setUp(self):
         super().setUp()
         self.play_type = 'rush'  # this would come in the SportRadar play data
@@ -151,6 +148,7 @@ class TestRushPlayManagerRegexScraping(AbstractTest):
         self.assertFalse(rush_data.get(ExtraInfo.scramble))
         self.assertEquals(ExtraInfo.side_middle, rush_data.get(ExtraInfo.side))
 
+
 class TestPassPlayManagerRegexScraping(AbstractTest):
     """
     the nfl play will have some datapoints extracted from the text description.
@@ -178,14 +176,14 @@ class TestPassPlayManagerRegexScraping(AbstractTest):
 
     def setUp(self):
         super().setUp()
-        self.play_type = 'pass' # this would come in the SportRadar play data
+        self.play_type = 'pass'  # this would come in the SportRadar play data
 
     def test_pass_1(self):
         """ test formation: shotgun """
         description = """(:27) (Shotgun) R.Tannehill pass incomplete short right to J.Cameron (J.Hatcher)."""
         extra_info_instance = ExtraInfo(self.play_type, description)
         data = extra_info_instance.get_data()
-        #print('data:', str(data))
+        # print('data:', str(data))
         self.assertIsNotNone(data.get(self.play_type))
 
         # more tests
@@ -196,7 +194,7 @@ class TestPassPlayManagerRegexScraping(AbstractTest):
         description = """(14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall)."""
         extra_info_instance = ExtraInfo(self.play_type, description)
         data = extra_info_instance.get_data()
-        #print('data:', str(data))
+        # print('data:', str(data))
         pass_data = data.get(self.play_type)
         self.assertIsNotNone(pass_data)
 
@@ -231,6 +229,7 @@ class TestPassPlayManagerRegexScraping(AbstractTest):
         # more tests
         self.assertTrue(data.get(ExtraInfo.intercepted))
         self.assertEquals(ExtraInfo.default_formation, data.get(ExtraInfo.formation))
+
 
 class TestPlayManager(AbstractTest):
     """ parse some information out of the human readable text description """
@@ -316,7 +315,7 @@ class TestPlayManager(AbstractTest):
             2.  a shrink
             3.  optionally updates its data with an additional dict
         """
-        additional_data = {'special_field_1' : 'special_value_1'}
+        additional_data = {'special_field_1': 'special_value_1'}
         play_manager = PlayManager(self.data)
 
         # the fields in additional_data should NOT show up in the
@@ -337,6 +336,7 @@ class TestPlayManager(AbstractTest):
         """
         play_manager = PlayManager(self.data)
         # TODO
+
 
 class TestTeamBoxscoreParser(AbstractTest):
     """ tests the send() part only """
@@ -374,6 +374,7 @@ class TestTeamBoxscoreParser(AbstractTest):
 
         # Parse it!
         self.__parse_and_send(data, (sport_db + '.' + 'team', parent_api))
+
 
 class TestGameBoxscoreParser(AbstractTest):
     """ tests the send() part only """
@@ -464,6 +465,7 @@ class TestGameBoxscoreParser(AbstractTest):
 
         self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
+
 class TestPlayParser(AbstractTest):
     """
     parsers and sends PBP objects from the official feed
@@ -473,11 +475,11 @@ class TestPlayParser(AbstractTest):
     """
 
     def setUp(self):
+        cache.clear()
         super().setUp()
         self.parser = PlayParser()
 
     def __parse_and_send(self, unwrapped_obj, target, tag=None):
-
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
         parts = target[0].split('.')
@@ -487,6 +489,7 @@ class TestPlayParser(AbstractTest):
 
         self.parser.parse(oplog_obj, target=target)
 
+        return self.parser
         # #
         # # get the 'player' srids
         # player_srids = self.parser.get_srids_for_field('player')
@@ -502,7 +505,7 @@ class TestPlayParser(AbstractTest):
         # player_stats_found = self.parser.find_player_stats()
         # print('player_stats_found:', str(player_stats_found), ' BECAUSE THERE ARE NONE IN THE TEST DB!')
 
-        #print('get_send_data:', self.parser.get_send_data())
+        # print('get_send_data:', self.parser.get_send_data())
 
         # print('SL', self.parser.StartLocationCache().fetch(self.parser.ts, self.parser.play_srid))
         # print('SP', self.parser.StartPossessionCache().fetch(self.parser.ts, self.parser.play_srid))
@@ -518,26 +521,37 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
         play = {
-            'start_situation__list': {'yfd': 0.0, 'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'clock': '15:00',
-                                      'possession': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'down': 0.0},
+            'start_situation__list': {'yfd': 0.0,
+                                      'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                                      'clock': '15:00',
+                                      'possession': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                                      'down': 0.0},
             'away_points': 0.0, 'reference': 63.0,
-            'end_situation__list': {'yfd': 10.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '15:00',
-                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0},
+            'end_situation__list': {'yfd': 10.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                    'clock': '15:00',
+                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                    'down': 1.0},
             'alt_description': 'A.Franks kicks 65 yards from MIA 35 to end zone, Touchback.',
-            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp', 'clock': '15:00',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp',
+            'clock': '15:00',
             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'statistics__list': {
-                'kick__list': {'gross_yards': 74.0, 'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'yards': 65.0,
-                               'attempt': 1.0, 'touchback': 1.0, 'player': '59da7aea-f21a-43c5-b0bf-2d1e8b19da80',
+                'kick__list': {'gross_yards': 74.0, 'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                               'yards': 65.0,
+                               'attempt': 1.0, 'touchback': 1.0,
+                               'player': '59da7aea-f21a-43c5-b0bf-2d1e8b19da80',
                                'confirmed': 'true'},
-                'return__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'touchback': 1.0, 'confirmed': 'true',
-                                 'category': 'kick_return'}}, 'id': '9de4c5df-5e94-4fe2-b646-ba1dca0a1afd',
+                'return__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'touchback': 1.0,
+                                 'confirmed': 'true',
+                                 'category': 'kick_return'}},
+            'id': '9de4c5df-5e94-4fe2-b646-ba1dca0a1afd',
             'sequence': 63.0, 'parent_list__id': 'play_by_play__list', 'home_points': 0.0,
             'description': '3-A.Franks kicks 65 yards from MIA 35 to end zone, Touchback.',
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ5ZGU0YzVkZi01ZTk0LTRmZTItYjY0Ni1iYTFkY2EwYTFhZmQ=',
-            'type': 'kickoff', 'play_clock': 12.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'type': 'kickoff', 'play_clock': 12.0,
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'dd_updated__id': 1464841517401, 'wall_clock': '2015-09-13T17:02:41+00:00'}
 
-        #self.__parse_and_send(unwrapped_obj)
+        # self.__parse_and_send(unwrapped_obj)
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
     def test_2(self):
@@ -545,9 +559,12 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        start_location = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'market': 'Washington',
-                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0, 'yardline': 20.0,
-                          'parent_list__id': 'start_situation__list', 'dd_updated__id': 1464841517401,
+        start_location = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                          'market': 'Washington',
+                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                          'reference': 4971.0, 'yardline': 20.0,
+                          'parent_list__id': 'start_situation__list',
+                          'dd_updated__id': 1464841517401,
                           'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
                           '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzFpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
                           'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
@@ -555,17 +572,21 @@ class TestPlayParser(AbstractTest):
         self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
 
         start_possession = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                            'market': 'Washington', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                            'market': 'Washington',
+                            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
                             'reference': 4971.0, 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-                            'parent_list__id': 'start_situation__list', 'dd_updated__id': 1464841517401,
+                            'parent_list__id': 'start_situation__list',
+                            'dd_updated__id': 1464841517401,
                             'name': 'Redskins',
                             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzFpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
                             'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
                             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff'}
         self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
 
-        end_location = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'market': 'Washington',
-                        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0, 'yardline': 25.0,
+        end_location = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                        'market': 'Washington',
+                        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0,
+                        'yardline': 25.0,
                         'parent_list__id': 'end_situation__list', 'dd_updated__id': 1464841517401,
                         'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
                         '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkM2EyZTliYjQtNmI3OS00NzNhLWI4NmEtNTIyYjkyZTg4YzcxaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
@@ -573,9 +594,12 @@ class TestPlayParser(AbstractTest):
                         'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e'}
         self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
 
-        end_possession = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'market': 'Washington',
-                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0,
-                          'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_list__id': 'end_situation__list',
+        end_possession = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                          'market': 'Washington',
+                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                          'reference': 4971.0,
+                          'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                          'parent_list__id': 'end_situation__list',
                           'dd_updated__id': 1464841517401, 'name': 'Redskins',
                           '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkM2EyZTliYjQtNmI3OS00NzNhLWI4NmEtNTIyYjkyZTg4YzcxaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
                           'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
@@ -583,25 +607,33 @@ class TestPlayParser(AbstractTest):
         self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
 
         play = {'parent_api__id': 'pbp', 'id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
-                'start_situation__list': {'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0, 'yfd': 10.0,
-                                          'clock': '15:00', 'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624'},
-                'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                'start_situation__list': {'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                          'down': 1.0, 'yfd': 10.0,
+                                          'clock': '15:00',
+                                          'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624'},
+                'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
+                'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
                 'statistics__list': {'defense__list': {'confirmed': 'true', 'tackle': 1.0,
                                                        'player': '7190fb71-0916-4f9d-88a0-8c1a8c1c9d0d',
                                                        'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06'},
                                      'rush__list': {'inside_20': 0.0, 'yards': 5.0,
                                                     'player': 'bd10efdf-d8e7-4e23-ab1a-1e42fb65131b',
-                                                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'confirmed': 'true',
-                                                    'attempt': 1.0, 'goaltogo': 0.0}}, 'reference': 82.0,
+                                                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                                    'confirmed': 'true',
+                                                    'attempt': 1.0, 'goaltogo': 0.0}},
+                'reference': 82.0,
                 'type': 'rush', 'wall_clock': '2015-09-13T17:03:26+00:00',
                 'description': '(15:00) 46-A.Morris left tackle to WAS 25 for 5 yards (52-K.Sheppard).',
                 'dd_updated__id': 1464841517401, 'play_clock': 12.0,
                 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'clock': '15:00',
                 '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzE=',
                 'parent_list__id': 'play_by_play__list', 'away_points': 0.0, 'home_points': 0.0,
-                'end_situation__list': {'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0, 'yfd': 5.0,
-                                        'clock': '14:30', 'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624'},
-                'alt_description': '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).', 'sequence': 82.0}
+                'end_situation__list': {'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                        'down': 2.0, 'yfd': 5.0,
+                                        'clock': '14:30',
+                                        'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624'},
+                'alt_description': '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).',
+                'sequence': 82.0}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
     def test_3(self):
@@ -609,69 +641,96 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        start_possession = {'alias': 'WAS', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp',
-            'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'reference': 4971.0, 'market': 'Washington',
-            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2JpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
-            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
-            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-            'parent_list__id': 'start_situation__list'}
+        start_possession = {'alias': 'WAS', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                            'parent_api__id': 'pbp',
+                            'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'reference': 4971.0,
+                            'market': 'Washington',
+                            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2JpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+                            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
+                            'dd_updated__id': 1464841517401,
+                            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                            'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                            'parent_list__id': 'start_situation__list'}
         self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
         # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
         # self.assertTrue(None in required_parts)
 
-        end_possession = {'alias': 'WAS', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp',
-             'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'reference': 4971.0, 'market': 'Washington',
-             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkN2U0OWRiNTQtNjhkMC00NDRkLWIyNDQtNjkwZjM5MzBiNzdiaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
-             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
-             'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-             'parent_list__id': 'end_situation__list'}
+        end_possession = {'alias': 'WAS', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                          'parent_api__id': 'pbp',
+                          'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'reference': 4971.0,
+                          'market': 'Washington',
+                          '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkN2U0OWRiNTQtNjhkMC00NDRkLWIyNDQtNjkwZjM5MzBiNzdiaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
+                          'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
+                          'dd_updated__id': 1464841517401,
+                          'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                          'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                          'parent_list__id': 'end_situation__list'}
         self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
         # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
         # self.assertTrue(None in required_parts)
 
         start_location = {'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'alias': 'WAS',
-             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp', 'yardline': 25.0,
-             'reference': 4971.0, 'market': 'Washington',
-             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2JpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
-             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
-             'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-             'parent_list__id': 'start_situation__list'}
+                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                          'parent_api__id': 'pbp', 'yardline': 25.0,
+                          'reference': 4971.0, 'market': 'Washington',
+                          '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2JpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+                          'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
+                          'dd_updated__id': 1464841517401,
+                          'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                          'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                          'parent_list__id': 'start_situation__list'}
         self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
         # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
         # self.assertTrue(None in required_parts)
 
         end_location = {'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'alias': 'WAS',
-             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp', 'yardline': 29.0,
-             'reference': 4971.0, 'market': 'Washington',
-             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkN2U0OWRiNTQtNjhkMC00NDRkLWIyNDQtNjkwZjM5MzBiNzdiaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
-             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
-             'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-             'parent_list__id': 'end_situation__list'}
+                        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                        'parent_api__id': 'pbp', 'yardline': 29.0,
+                        'reference': 4971.0, 'market': 'Washington',
+                        '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkN2U0OWRiNTQtNjhkMC00NDRkLWIyNDQtNjkwZjM5MzBiNzdiaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
+                        'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
+                        'dd_updated__id': 1464841517401,
+                        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                        'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                        'parent_list__id': 'end_situation__list'}
         self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
         # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
         # self.assertTrue(None in required_parts)
 
         play = {
-            'start_situation__list': {'yfd': 5.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '14:30',
-                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0},
+            'start_situation__list': {'yfd': 5.0,
+                                      'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                      'clock': '14:30',
+                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                      'down': 2.0},
             'away_points': 0.0, 'reference': 103.0,
-            'end_situation__list': {'yfd': 1.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '13:56',
-                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 3.0},
+            'end_situation__list': {'yfd': 1.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                    'clock': '13:56',
+                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                    'down': 3.0},
             'alt_description': '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
-            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp', 'clock': '14:30',
-            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'id': '7e49db54-68d0-444d-b244-690f3930b77b',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp',
+            'clock': '14:30',
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
+            'id': '7e49db54-68d0-444d-b244-690f3930b77b',
             'sequence': 103.0, 'parent_list__id': 'play_by_play__list', 'home_points': 0.0,
             'description': '(14:30) (Shotgun) 8-K.Cousins pass short right to 12-A.Roberts to WAS 29 for 4 yards (21-B.Grimes).',
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2I=',
             'type': 'pass', 'statistics__list': {
-                'receive__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0, 'goaltogo': 0.0,
-                                  'player': '9691f874-be36-4529-a7eb-dde22ee4a848', 'confirmed': 'true',
-                                  'reception': 1.0, 'yards_after_catch': 2.0, 'inside_20': 0.0, 'target': 1.0},
-                'pass__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0, 'goaltogo': 0.0,
-                               'att_yards': 2.0, 'attempt': 1.0, 'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                'receive__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0,
+                                  'goaltogo': 0.0,
+                                  'player': '9691f874-be36-4529-a7eb-dde22ee4a848',
+                                  'confirmed': 'true',
+                                  'reception': 1.0, 'yards_after_catch': 2.0, 'inside_20': 0.0,
+                                  'target': 1.0},
+                'pass__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0,
+                               'goaltogo': 0.0,
+                               'att_yards': 2.0, 'attempt': 1.0,
+                               'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
                                'complete': 1.0, 'inside_20': 0.0, 'confirmed': 'true'},
                 'defense__list': {'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'tackle': 1.0,
-                                  'player': '7979b613-6dbf-4534-8166-6430433c1ec3', 'confirmed': 'true'}},
+                                  'player': '7979b613-6dbf-4534-8166-6430433c1ec3',
+                                  'confirmed': 'true'}},
             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'dd_updated__id': 1464841517401,
             'wall_clock': '2015-09-13T17:03:57+00:00'}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
@@ -685,7 +744,8 @@ class TestPlayParser(AbstractTest):
                           'play__id': '9098ec62-d4c2-49df-a452-60170c144715', 'reference': 4944.0,
                           'dd_updated__id': 1464854648745, 'yardline': 35.0,
                           '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYjRkMzc0LTljN2MtNDE2ZS04YWE5LTQ1NmUyMmEzNmFmNnF1YXJ0ZXJfX2lkN2I5OWNmZTQtY2EyOS00ODY4LTg1NzctMDFiMmI2Y2QzNGU5cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTU3ZTdmYTktY2MyYS00ZWI0LTg5MzQtOTQ4MTA3ZTczZmQ2cGxheV9faWQ5MDk4ZWM2Mi1kNGMyLTQ5ZGYtYTQ1Mi02MDE3MGMxNDQ3MTVpZGU2YWExM2E0LTAwNTUtNDhhOS1iYzQxLWJlMjhkYzEwNjkyOQ==',
-                          'parent_api__id': 'pbp', 'name': 'Falcons', 'id': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
+                          'parent_api__id': 'pbp', 'name': 'Falcons',
+                          'id': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
                           'alias': 'ATL', 'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6',
                           'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6',
                           'parent_list__id': 'start_situation__list', 'market': 'Atlanta'}
@@ -693,20 +753,25 @@ class TestPlayParser(AbstractTest):
 
         start_possession = {'quarter__id': '7b99cfe4-ca29-4868-8577-01b2b6cd34e9',
                             'play__id': '9098ec62-d4c2-49df-a452-60170c144715', 'reference': 4944.0,
-                            'dd_updated__id': 1464854648745, 'parent_list__id': 'start_situation__list',
+                            'dd_updated__id': 1464854648745,
+                            'parent_list__id': 'start_situation__list',
                             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYjRkMzc0LTljN2MtNDE2ZS04YWE5LTQ1NmUyMmEzNmFmNnF1YXJ0ZXJfX2lkN2I5OWNmZTQtY2EyOS00ODY4LTg1NzctMDFiMmI2Y2QzNGU5cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTU3ZTdmYTktY2MyYS00ZWI0LTg5MzQtOTQ4MTA3ZTczZmQ2cGxheV9faWQ5MDk4ZWM2Mi1kNGMyLTQ5ZGYtYTQ1Mi02MDE3MGMxNDQ3MTVpZGU2YWExM2E0LTAwNTUtNDhhOS1iYzQxLWJlMjhkYzEwNjkyOQ==',
-                            'parent_api__id': 'pbp', 'name': 'Falcons', 'id': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
+                            'parent_api__id': 'pbp', 'name': 'Falcons',
+                            'id': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
                             'alias': 'ATL', 'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6',
-                            'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6', 'market': 'Atlanta'}
+                            'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6',
+                            'market': 'Atlanta'}
         self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
 
         end_location = {'quarter__id': '7b99cfe4-ca29-4868-8577-01b2b6cd34e9',
                         'play__id': '9098ec62-d4c2-49df-a452-60170c144715', 'reference': 4953.0,
                         'dd_updated__id': 1464854648745, 'yardline': 25.0,
                         '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYjRkMzc0LTljN2MtNDE2ZS04YWE5LTQ1NmUyMmEzNmFmNnF1YXJ0ZXJfX2lkN2I5OWNmZTQtY2EyOS00ODY4LTg1NzctMDFiMmI2Y2QzNGU5cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE1N2U3ZmE5LWNjMmEtNGViNC04OTM0LTk0ODEwN2U3M2ZkNnBsYXlfX2lkOTA5OGVjNjItZDRjMi00OWRmLWE0NTItNjAxNzBjMTQ0NzE1aWRkMjZhMWNhNS03MjJkLTQyNzQtOGY5Ny1jOTJlNDljOTYzMTU=',
-                        'parent_api__id': 'pbp', 'name': 'Titans', 'id': 'd26a1ca5-722d-4274-8f97-c92e49c96315',
+                        'parent_api__id': 'pbp', 'name': 'Titans',
+                        'id': 'd26a1ca5-722d-4274-8f97-c92e49c96315',
                         'alias': 'TEN', 'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6',
-                        'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6', 'parent_list__id': 'end_situation__list',
+                        'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6',
+                        'parent_list__id': 'end_situation__list',
                         'market': 'Tennessee'}
         self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
 
@@ -714,12 +779,15 @@ class TestPlayParser(AbstractTest):
                           'play__id': '9098ec62-d4c2-49df-a452-60170c144715', 'reference': 4953.0,
                           'dd_updated__id': 1464854648745, 'parent_list__id': 'end_situation__list',
                           '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYjRkMzc0LTljN2MtNDE2ZS04YWE5LTQ1NmUyMmEzNmFmNnF1YXJ0ZXJfX2lkN2I5OWNmZTQtY2EyOS00ODY4LTg1NzctMDFiMmI2Y2QzNGU5cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE1N2U3ZmE5LWNjMmEtNGViNC04OTM0LTk0ODEwN2U3M2ZkNnBsYXlfX2lkOTA5OGVjNjItZDRjMi00OWRmLWE0NTItNjAxNzBjMTQ0NzE1aWRkMjZhMWNhNS03MjJkLTQyNzQtOGY5Ny1jOTJlNDljOTYzMTU=',
-                          'parent_api__id': 'pbp', 'name': 'Titans', 'id': 'd26a1ca5-722d-4274-8f97-c92e49c96315',
+                          'parent_api__id': 'pbp', 'name': 'Titans',
+                          'id': 'd26a1ca5-722d-4274-8f97-c92e49c96315',
                           'alias': 'TEN', 'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6',
-                          'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6', 'market': 'Tennessee'}
+                          'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6',
+                          'market': 'Tennessee'}
         self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
 
-        play = {'wall_clock': '2015-08-14T01:39:07+00:00', 'quarter__id': '7b99cfe4-ca29-4868-8577-01b2b6cd34e9',
+        play = {'wall_clock': '2015-08-14T01:39:07+00:00',
+                'quarter__id': '7b99cfe4-ca29-4868-8577-01b2b6cd34e9',
                 'away_points': 24.0, 'end_situation__list': {'down': 1.0, 'clock': '7:29',
                                                              'location': 'd26a1ca5-722d-4274-8f97-c92e49c96315',
                                                              'yfd': 10.0,
@@ -728,7 +796,8 @@ class TestPlayParser(AbstractTest):
                 'description': '5-M.Bosher kicks 69 yards from ATL 35 to TEN -4. 16-T.McBride to TEN 25 for 29 yards (27-K.White).',
                 '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYjRkMzc0LTljN2MtNDE2ZS04YWE5LTQ1NmUyMmEzNmFmNnF1YXJ0ZXJfX2lkN2I5OWNmZTQtY2EyOS00ODY4LTg1NzctMDFiMmI2Y2QzNGU5cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTU3ZTdmYTktY2MyYS00ZWI0LTg5MzQtOTQ4MTA3ZTczZmQ2aWQ5MDk4ZWM2Mi1kNGMyLTQ5ZGYtYTQ1Mi02MDE3MGMxNDQ3MTU=',
                 'start_situation__list': {'down': 0.0, 'clock': '7:35',
-                                          'location': 'e6aa13a4-0055-48a9-bc41-be28dc106929', 'yfd': 0.0,
+                                          'location': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
+                                          'yfd': 0.0,
                                           'possession': 'e6aa13a4-0055-48a9-bc41-be28dc106929'},
                 'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6',
                 'alt_description': 'M.Bosher kicks 69 yards from ATL 35 to TEN -4. T.McBride to TEN 25 for 29 yards (K.White).',
@@ -736,13 +805,17 @@ class TestPlayParser(AbstractTest):
                 'kick__list': {'confirmed': 'true', 'yards': 69.0, 'endzone': 1.0, 'attempt': 1.0,
                                'team': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
                                'player': '947ba5a9-71de-4cc5-839a-884cfa49544b'},
-                'defense__list': {'confirmed': 'true', 'tackle': 1.0, 'team': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
+                'defense__list': {'confirmed': 'true', 'tackle': 1.0,
+                                  'team': 'e6aa13a4-0055-48a9-bc41-be28dc106929',
                                   'player': 'aada7f5b-2b2b-456f-a3fa-7b834dbdb52b'},
-                'return__list': {'return': 1.0, 'yards': 29.0, 'category': 'kick_return', 'confirmed': 'true',
+                'return__list': {'return': 1.0, 'yards': 29.0, 'category': 'kick_return',
+                                 'confirmed': 'true',
                                  'team': 'd26a1ca5-722d-4274-8f97-c92e49c96315',
                                  'player': '24779156-67f5-45ac-a73e-09184d4d314a'}},
-                'id': '9098ec62-d4c2-49df-a452-60170c144715', 'parent_list__id': 'play_by_play__list', 'clock': '7:35',
-                'play_clock': 5.0, 'sequence': 3493.0, 'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6',
+                'id': '9098ec62-d4c2-49df-a452-60170c144715',
+                'parent_list__id': 'play_by_play__list', 'clock': '7:35',
+                'play_clock': 5.0, 'sequence': 3493.0,
+                'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6',
                 'type': 'kickoff'}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
@@ -753,17 +826,22 @@ class TestPlayParser(AbstractTest):
 
         start_location = {
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ1NTZiMzE4YS1mOTQ0LTRiMzctODZkZC00YjBkYmE0ZDA2NDRpZDQ4MDllY2IwLWFiZDMtNDUxZC05YzRhLTkyYTkwYjgzY2EwNg==',
-            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-            'market': 'Miami', 'yardline': 26.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+            'market': 'Miami', 'yardline': 26.0,
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'reference': 4958.0, 'alias': 'MIA', 'id': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Dolphins', 'dd_updated__id': 1464841517401,
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Dolphins',
+            'dd_updated__id': 1464841517401,
             'parent_api__id': 'pbp', 'parent_list__id': 'start_situation__list'}
         self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
 
         start_possession = {
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ1NTZiMzE4YS1mOTQ0LTRiMzctODZkZC00YjBkYmE0ZDA2NDRpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
-            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-            'market': 'Washington', 'reference': 4971.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+            'market': 'Washington', 'reference': 4971.0,
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'name': 'Redskins', 'alias': 'WAS', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'dd_updated__id': 1464841517401,
             'parent_api__id': 'pbp', 'parent_list__id': 'start_situation__list'}
@@ -771,17 +849,22 @@ class TestPlayParser(AbstractTest):
 
         end_location = {
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkNTU2YjMxOGEtZjk0NC00YjM3LTg2ZGQtNGIwZGJhNGQwNjQ0aWQ0ODA5ZWNiMC1hYmQzLTQ1MWQtOWM0YS05MmE5MGI4M2NhMDY=',
-            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-            'market': 'Miami', 'yardline': 34.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+            'market': 'Miami', 'yardline': 34.0,
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'reference': 4958.0, 'alias': 'MIA', 'id': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Dolphins', 'dd_updated__id': 1464841517401,
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Dolphins',
+            'dd_updated__id': 1464841517401,
             'parent_api__id': 'pbp', 'parent_list__id': 'end_situation__list'}
         self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
 
         end_possession = {
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkNTU2YjMxOGEtZjk0NC00YjM3LTg2ZGQtNGIwZGJhNGQwNjQ0aWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
-            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-            'market': 'Washington', 'reference': 4971.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'play__id': '556b318a-f944-4b37-86dd-4b0dba4d0644',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+            'market': 'Washington', 'reference': 4971.0,
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'name': 'Redskins', 'alias': 'WAS', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'dd_updated__id': 1464841517401,
             'parent_api__id': 'pbp', 'parent_list__id': 'end_situation__list'}
@@ -789,26 +872,34 @@ class TestPlayParser(AbstractTest):
 
         play = {
             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ1NTZiMzE4YS1mOTQ0LTRiMzctODZkZC00YjBkYmE0ZDA2NDQ=',
-            'away_points': 0.0, 'end_situation__list': {'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'yfd': 18.0,
-                                                        'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                                                        'down': 2.0, 'clock': '9:00'},
-            'alt_description': '(9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).', 'play_clock': 6.0,
+            'away_points': 0.0,
+            'end_situation__list': {'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'yfd': 18.0,
+                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                    'down': 2.0, 'clock': '9:00'},
+            'alt_description': '(9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).',
+            'play_clock': 6.0,
             'clock': '9:40', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'reference': 315.0,
             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'type': 'pass',
             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'home_points': 0.0,
             'id': '556b318a-f944-4b37-86dd-4b0dba4d0644',
-            'start_situation__list': {'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'yfd': 10.0,
-                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0,
+            'start_situation__list': {'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                                      'yfd': 10.0,
+                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                      'down': 1.0,
                                       'clock': '9:40'},
             'description': '(9:40) 8-K.Cousins sacked at MIA 34 for -8 yards (97-J.Phillips).',
-            'wall_clock': '2015-09-13T17:09:46+00:00', 'sequence': 315.0, 'dd_updated__id': 1464841517401,
+            'wall_clock': '2015-09-13T17:09:46+00:00', 'sequence': 315.0,
+            'dd_updated__id': 1464841517401,
             'statistics__list': {
-                'pass__list': {'sack': 1.0, 'goaltogo': 0.0, 'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                               'sack_yards': -8.0, 'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e', 'inside_20': 0.0,
+                'pass__list': {'sack': 1.0, 'goaltogo': 0.0,
+                               'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                               'sack_yards': -8.0, 'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                               'inside_20': 0.0,
                                'confirmed': 'true'},
                 'defense__list': {'sack': 1.0, 'tlost': 1.0, 'tlost_yards': 8.0, 'qb_hit': 1.0,
                                   'player': '023af11a-3aa1-4266-b163-31cf6369ef3b',
-                                  'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'sack_yards': -8.0, 'tackle': 1.0,
+                                  'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                                  'sack_yards': -8.0, 'tackle': 1.0,
                                   'confirmed': 'true'}}, 'parent_api__id': 'pbp',
             'parent_list__id': 'play_by_play__list'}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
@@ -817,9 +908,12 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        start_location = {'parent_list__id': 'start_situation__list', 'id': '97354895-8c77-4fd4-a860-32e62ea7382a',
-                          'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'New England',
-                          'reference': 4960.0, 'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+        start_location = {'parent_list__id': 'start_situation__list',
+                          'id': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                          'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c',
+                          'market': 'New England',
+                          'reference': 4960.0,
+                          'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
                           'dd_updated__id': 1464842199562, 'alias': 'NE', 'name': 'Patriots',
                           'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
                           '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkMjFkZGViN2QtMTNmYS00YjgxLWJiMWYtZDA4MDQ4NDFlMDk3cGxheV9faWRkYTFkYmRmMS1iNTAxLTQ4ZGQtYTcyOC03MmI5ZDhmMzFlYzhpZDk3MzU0ODk1LThjNzctNGZkNC1hODYwLTMyZTYyZWE3MzgyYQ==',
@@ -827,48 +921,70 @@ class TestPlayParser(AbstractTest):
                           'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
         self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
 
-        start_possession = {'parent_list__id': 'start_situation__list', 'id': '97354895-8c77-4fd4-a860-32e62ea7382a',
-                            'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'New England',
-                            'reference': 4960.0, 'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+        start_possession = {'parent_list__id': 'start_situation__list',
+                            'id': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                            'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c',
+                            'market': 'New England',
+                            'reference': 4960.0,
+                            'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
                             'dd_updated__id': 1464842199562, 'alias': 'NE', 'name': 'Patriots',
                             'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
                             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkMjFkZGViN2QtMTNmYS00YjgxLWJiMWYtZDA4MDQ4NDFlMDk3cGxheV9faWRkYTFkYmRmMS1iNTAxLTQ4ZGQtYTcyOC03MmI5ZDhmMzFlYzhpZDk3MzU0ODk1LThjNzctNGZkNC1hODYwLTMyZTYyZWE3MzgyYQ==',
-                            'parent_api__id': 'pbp', 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+                            'parent_api__id': 'pbp',
+                            'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
         self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
 
-        end_location = {'parent_list__id': 'end_situation__list', 'id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
-                        'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'Pittsburgh', 'reference': 4966.0,
-                        'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d', 'dd_updated__id': 1464842199562,
-                        'alias': 'PIT', 'name': 'Steelers', 'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+        end_location = {'parent_list__id': 'end_situation__list',
+                        'id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                        'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'Pittsburgh',
+                        'reference': 4966.0,
+                        'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+                        'dd_updated__id': 1464842199562,
+                        'alias': 'PIT', 'name': 'Steelers',
+                        'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
                         '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZDIxZGRlYjdkLTEzZmEtNGI4MS1iYjFmLWQwODA0ODQxZTA5N3BsYXlfX2lkZGExZGJkZjEtYjUwMS00OGRkLWE3MjgtNzJiOWQ4ZjMxZWM4aWRjYjJmOWYxZi1hYzY3LTQyNGUtOWU3Mi0xNDc1Y2IwZWQzOTg=',
-                        'yardline': 20.0, 'parent_api__id': 'pbp', 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+                        'yardline': 20.0, 'parent_api__id': 'pbp',
+                        'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
         self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
 
-        end_possession = {'parent_list__id': 'end_situation__list', 'id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
-                          'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'Pittsburgh',
-                          'reference': 4966.0, 'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+        end_possession = {'parent_list__id': 'end_situation__list',
+                          'id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                          'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c',
+                          'market': 'Pittsburgh',
+                          'reference': 4966.0,
+                          'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
                           'dd_updated__id': 1464842199562, 'alias': 'PIT', 'name': 'Steelers',
                           'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
                           '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZDIxZGRlYjdkLTEzZmEtNGI4MS1iYjFmLWQwODA0ODQxZTA5N3BsYXlfX2lkZGExZGJkZjEtYjUwMS00OGRkLWE3MjgtNzJiOWQ4ZjMxZWM4aWRjYjJmOWYxZi1hYzY3LTQyNGUtOWU3Mi0xNDc1Y2IwZWQzOTg=',
-                          'parent_api__id': 'pbp', 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+                          'parent_api__id': 'pbp',
+                          'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
         self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
 
-        play = {'parent_list__id': 'play_by_play__list', 'id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+        play = {'parent_list__id': 'play_by_play__list',
+                'id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
                 'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c',
-                'start_situation__list': {'down': 0.0, 'possession': '97354895-8c77-4fd4-a860-32e62ea7382a',
-                                          'location': '97354895-8c77-4fd4-a860-32e62ea7382a', 'yfd': 0.0,
+                'start_situation__list': {'down': 0.0,
+                                          'possession': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                                          'location': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                                          'yfd': 0.0,
                                           'clock': '15:00'}, 'reference': 36.0,
-                'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d', 'dd_updated__id': 1464842199562,
+                'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+                'dd_updated__id': 1464842199562,
                 'statistics__list': {
-                    'return__list': {'team': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398', 'confirmed': 'true',
+                    'return__list': {'team': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                                     'confirmed': 'true',
                                      'touchback': 1.0, 'category': 'kick_return'},
-                    'kick__list': {'gross_yards': 74.0, 'confirmed': 'true', 'touchback': 1.0, 'attempt': 1.0,
+                    'kick__list': {'gross_yards': 74.0, 'confirmed': 'true', 'touchback': 1.0,
+                                   'attempt': 1.0,
                                    'team': '97354895-8c77-4fd4-a860-32e62ea7382a',
-                                   'player': 'a527b7db-0b52-4379-9e4c-2e08c1fe1bed', 'yards': 65.0}},
+                                   'player': 'a527b7db-0b52-4379-9e4c-2e08c1fe1bed',
+                                   'yards': 65.0}},
                 'alt_description': 'S.Gostkowski kicks 65 yards from NE 35 to end zone, Touchback.',
                 'wall_clock': '2015-09-11T00:41:06+00:00', 'type': 'kickoff', 'home_points': 0.0,
-                'end_situation__list': {'down': 1.0, 'possession': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
-                                        'location': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398', 'yfd': 10.0,
+                'end_situation__list': {'down': 1.0,
+                                        'possession': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                                        'location': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                                        'yfd': 10.0,
                                         'clock': '15:00'}, 'sequence': 36.0, 'away_points': 0.0,
                 '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkMjFkZGViN2QtMTNmYS00YjgxLWJiMWYtZDA4MDQ4NDFlMDk3aWRkYTFkYmRmMS1iNTAxLTQ4ZGQtYTcyOC03MmI5ZDhmMzFlYzg=',
                 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097',
@@ -876,50 +992,155 @@ class TestPlayParser(AbstractTest):
                 'parent_api__id': 'pbp', 'clock': '15:00'}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
+    def test_player_names(self):
+        """
+        Test that player names are being added to the parser output data.
+        :return: 
+        """
+        play = {
+            '_id': 'UID1',
+            'away_points': 0.0,
+            'end_situation__list': {
+                'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                'yfd': 18.0,
+                'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                'down': 2.0, 'clock': '9:00'},
+            'alt_description': '(9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).',
+            'play_clock': 6.0,
+            'clock': '9:40',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+            'reference': 315.0,
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'type': 'pass',
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
+            'home_points': 0.0,
+            'id': 'UID-556b318a-f944-4b37-86dd-4b0dba4d0644',
+            'start_situation__list': {
+                'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                'yfd': 10.0,
+                'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                'down': 1.0,
+                'clock': '9:40'},
+            'description': '(9:40) 8-K.Cousins sacked at MIA 34 for -8 yards (97-J.Phillips).',
+            'wall_clock': '2015-09-13T17:09:46+00:00', 'sequence': 315.0,
+            'dd_updated__id': 1464841517401,
+            'statistics__list': {
+                'pass__list': {
+                    'sack': 1.0, 'goaltogo': 0.0,
+                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                    'sack_yards': -8.0,
+                    'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                    'inside_20': 0.0,
+                    'confirmed': 'true'},
+                'defense__list': {
+                    'sack': 1.0,
+                    'tlost': 1.0,
+                    'tlost_yards': 8.0,
+                    'qb_hit': 1.0,
+                    'player': '023af11a-3aa1-4266-b163-31cf6369ef3b',
+                    'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                    'sack_yards': -8.0, 'tackle': 1.0,
+                    'confirmed': 'true'}
+            },
+            'parent_api__id': 'pbp',
+            'parent_list__id': 'play_by_play__list'
+        }
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        player = mommy.make(
+            Player,
+            srid=play['statistics__list']['pass__list']['player'],
+            make_m2m=True
+        )
+
+        player_stats = mommy.make(
+            PlayerStats,
+            srid_game=play['game__id'],
+            srid_player=player.srid,
+            make_m2m=True,
+        )
+        player_stats.player = player
+        player_stats.save()
+
+        self.assertEqual(
+            player_stats.player.srid,
+            play['statistics__list']['pass__list']['player']
+        )
+
+        parser = self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
+        parser.send()
+        sent_data = parser.get_send_data()
+        # for NFL, We can also use `parser.send_data`. None of the others
+        # are setting their sent data in a local state yet.
+
+        # Ensure that both the first and last names are set, match the player's
+        # and are not empty.
+        self.assertEqual(
+            sent_data['stats'][0]['first_name'],
+            player.first_name
+        )
+        self.assertNotEqual(
+            sent_data['stats'][0]['first_name'],
+            ''
+        )
+
+        self.assertEqual(
+            sent_data['stats'][0]['last_name'],
+            player.last_name
+        )
+        self.assertNotEqual(
+            sent_data['stats'][0]['last_name'],
+            ''
+        )
+
+
 class GameStatusChangedSignal(AbstractTest):
-
-    def __create_team(self, alias, market):
+    @staticmethod
+    def __create_team(alias, market):
         team = Team()
-        team.srid               = 'test-srid-' + alias
-        team.alias              = alias
-        team.market             = market
+        team.srid = 'test-srid-' + alias
+        team.alias = alias
+        team.market = market
 
-        team.srid_league        = '4353138d-4c22-4396-95d8-5f587d2df25c'
-        team.srid_conference    = '3960cfac-7361-4b30-bc25-8d393de6f62f'
-        team.srid_division      = '54dc7348-c1d2-40d8-88b3-c4c0138e085d'
+        team.srid_league = '4353138d-4c22-4396-95d8-5f587d2df25c'
+        team.srid_conference = '3960cfac-7361-4b30-bc25-8d393de6f62f'
+        team.srid_division = '54dc7348-c1d2-40d8-88b3-c4c0138e085d'
         team.save()
         return team
 
     def setUp(self):
         super().setUp()
-        self.SCHEDULED = 'scheduled' # the default game status
-        self.COMPLETE  = 'complete'  # made up - does not actually reflect a real status, necessarily
+        self.SCHEDULED = 'scheduled'  # the default game status
+        self.COMPLETE = 'complete'  # made up - does not actually reflect a real status, necessarily
 
         self.home = self.__create_team('alias-home', 'market-home')
         self.away = self.__create_team('alias-away', 'market-away')
 
         self.game = Game()
 
-        self.game.season, created = Season.objects.get_or_create(srid='nflsrid',season_year=2015,season_type='reg')
-        self.game.srid      = '%s--test--%s' % (self.away.srid, self.home.srid)
+        self.game.season, created = Season.objects.get_or_create(srid='nflsrid', season_year=2015,
+                                                                 season_type='reg')
+        self.game.srid = '%s--test--%s' % (self.away.srid, self.home.srid)
 
-        self.game.home      = self.home
+        self.game.home = self.home
         self.game.srid_home = self.home.srid
 
-        self.game.away      = self.away
+        self.game.away = self.away
         self.game.srid_away = self.away.srid
 
-        self.game.title         = 'testing game for status change signal'
-        self.game.weather_json  = '{}'
-        self.game.start         = timezone.now()
+        self.game.title = 'testing game for status change signal'
+        self.game.weather_json = '{}'
+        self.game.start = timezone.now()
 
-        self.game.status        = self.SCHEDULED
+        self.game.status = self.SCHEDULED
 
         self.game.save()
 
     def test_signal_sent_on_game_status_changed(self):
         self.game.status = self.COMPLETE
         self.game.save()
+
 
 # class DstPlayerCreation(AbstractTest):
 #     """
@@ -982,15 +1203,16 @@ class SeasonScheduleParserTest(AbstractTest):
 
     def test_pst_season(self):
         obj = literal_eval(self.obj_str)
-        srid = obj.get(SeasonSchedule.field_srid) # the srid will be found in the 'id' field
+        srid = obj.get(SeasonSchedule.field_srid)  # the srid will be found in the 'id' field
         obj_season_year = obj.get(SeasonSchedule.field_season_year)
         obj_season_type = obj.get(SeasonSchedule.field_season_type)
-        oplog_obj = OpLogObjWrapper(self.sport,'season', obj)
+        oplog_obj = OpLogObjWrapper(self.sport, 'season', obj)
         self.season_parser.parse(oplog_obj)
         season = sports.nfl.models.Season.objects.get(srid=srid)
 
         self.assertEquals(season.season_year, obj_season_year)
         self.assertEquals(season.season_type, obj_season_type.lower())
+
 
 class GameScheduleParserTest(AbstractTest):
     """
@@ -1094,10 +1316,12 @@ class GameScheduleParserTest(AbstractTest):
           'year': 2016.0}"""
         data = self.__parse_obj_str(self.sport, 'season', season_str)
         qs = sports.nfl.models.Season.objects.filter(srid=data.get('id'))
-        self.assertTrue(1 <= qs.count()) # should be at least 1, more tests will confirm its the one we expect
+        self.assertTrue(
+            1 <= qs.count())  # should be at least 1, more tests will confirm its the one we expect
         season = qs[0]
-        self.assertEquals(data.get('year'), season.season_year)             # the year matches
-        self.assertTrue(season.season_type in SeasonSchedule.season_types)  # the season type is correct
+        self.assertEquals(data.get('year'), season.season_year)  # the year matches
+        self.assertTrue(
+            season.season_type in SeasonSchedule.season_types)  # the season type is correct
 
         # parse a team
         away_team_str = """{'_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkM2M2ZDMxOGEtNjE2NC00MjkwLTliYmMtYmY5YmIyMWNjNGI4Y29uZmVyZW5jZV9faWRiMTgwOGU1Zi1kNDBiLTQ3YzAtOGFmOC01MTc1YzBmZGNkMjZkaXZpc2lvbl9faWQ2ZGMxOTMzZi1jYTkwLTQ2ZTYtYWFmNy05Yjk1Y2M0NDMwNmFpZGEyMDQ3MWI0LWE4ZDktNDBjNy05NWFkLTkwY2MzMGU0NjkzMg==',
@@ -1114,7 +1338,8 @@ class GameScheduleParserTest(AbstractTest):
          'venue': '5a60dd3a-302c-41c6-ab0f-dd335c1103c2'}"""
         data = self.__parse_obj_str(self.sport, 'team', away_team_str)
         qs = sports.nfl.models.Team.objects.filter(srid=data.get('id'))
-        self.assertTrue(1 == qs.count())  # should be at least 1, more tests will confirm its the one we expect
+        self.assertTrue(
+            1 == qs.count())  # should be at least 1, more tests will confirm its the one we expect
         team = qs[0]
         self.assertEquals(data.get('name'), team.name)
         self.assertEquals(data.get('alias'), team.alias)
@@ -1134,7 +1359,8 @@ class GameScheduleParserTest(AbstractTest):
          'venue': '6ed18563-53e0-46c2-a91d-12d73a16456d'}"""
         data = self.__parse_obj_str(self.sport, 'team', home_team_str)
         qs = sports.nfl.models.Team.objects.filter(srid=data.get('id'))
-        self.assertTrue(1 == qs.count())  # should be at least 1, more tests will confirm its the one we expect
+        self.assertTrue(
+            1 == qs.count())  # should be at least 1, more tests will confirm its the one we expect
         team = qs[0]
         self.assertEquals(data.get('name'), team.name)
         self.assertEquals(data.get('alias'), team.alias)
@@ -1173,21 +1399,21 @@ class GameScheduleParserTest(AbstractTest):
         # make sure this game was created properly
         data = self.__parse_obj_str(self.sport, 'game', scheduled_game_str)
         qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
-        self.assertEquals(1, qs.count())  # should be at least 1, more tests will confirm its the one we expect
+        # should be at least 1, more tests will confirm its the one we expect
+        self.assertEquals(1, qs.count())
         game = qs[0]
         self.assertEquals('scheduled', game.status)
 
-        #
-        # now parse the game in the inprogress state (its 'status' field is only change to make sure it changes
+        # now parse the game in the inprogress state (its 'status' field is only change to make
+        # sure it changes
         inprogress = 'inprogress'
         data['status'] = inprogress
         data = self.__parse_obj(self.sport, 'game', data)
         qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
-        self.assertEquals(1, qs.count()) # there should still only be 1
+        self.assertEquals(1, qs.count())  # there should still only be 1
         game = qs[0]
         self.assertEquals(inprogress, game.status)
 
-        #
         # change the status again
         complete = 'complete'
         data['status'] = complete
@@ -1197,8 +1423,8 @@ class GameScheduleParserTest(AbstractTest):
         game = qs[0]
         self.assertEquals(complete, game.status)
 
-        #
-        # change the status again - to the final state it should ever be in if it successfully finished
+        # change the status again - to the final state it should ever be in if it successfully
+        # finished
         closed = 'closed'
         data['status'] = closed
         data = self.__parse_obj(self.sport, 'game', data)

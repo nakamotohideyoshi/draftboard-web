@@ -171,6 +171,7 @@ class AbstractDataDenParseable(object):
         self.srid_finder = None
         self.start = None
         self.stop = None
+        self.send_data = None
 
     def get_obj(self):
         return self.original_obj
@@ -201,7 +202,6 @@ class AbstractDataDenParseable(object):
         else:
             self.o = obj
 
-        #
         # construct an SridFinder with the dictionary data
         self.srid_finder = SridFinder(self.o)
         logger.debug('AbstractDataDenParseable.parse_triggered_object() obj: %s' % self.o)
@@ -1151,10 +1151,14 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # send normally, or as linked data depending on the found PlayerStats instances
         # if len(player_stats) == 0:
         # solely push pbp object
+
+        # Save the stuff we are sending to pusher for testing + debugging purposes.
+        self.send_data = self.get_send_data()
+        # Send to pusher.
         push.classes.DataDenPush(
             self.pusher_sport_pbp,
             self.pusher_sport_pbp_event
-        ).send(self.get_send_data())  # pusher_sport_pbp_event
+        ).send(self.send_data)  # pusher_sport_pbp_event
 
         # else:
         #     # push combined pbp+stats data
