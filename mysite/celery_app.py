@@ -89,7 +89,7 @@ app.conf.update(
     # None'ing this disables the conneciton pool, which means a new conneciton will be
     # established and removed every time. For some reason doing this is the only way I
     # can figure out to keep the total connection count low.
-    broker_pool_limit=5,
+    broker_pool_limit=10,
     beat_scheduler='django',
 
     # Scheduled Tasks
