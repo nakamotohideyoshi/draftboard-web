@@ -73,10 +73,12 @@ class AbstractDataDenParser(object):
         return self.triggers
 
     def add_pbp(self, obj):
+        # Note: Disabled. See docs of PlayByPlayCache for explanation.
+        return
         # the self.ns is "sport.collection"
-        pbp_cache = PlayByPlayCache(self.ns.split('.')[0])
-        pbp_obj = obj.get_o()
-        pbp_cache.add(pbp_obj)
+        # pbp_cache = PlayByPlayCache(self.ns.split('.')[0])
+        # pbp_obj = obj.get_o()
+        # pbp_cache.add(pbp_obj)
 
     def name(self):
         """
@@ -87,9 +89,9 @@ class AbstractDataDenParser(object):
 
     @staticmethod
     def unimplemented(ns, parent_api):
-        print('')
-        print('UNIMPLEMENTED <<< %s | %s >>> ... generally this means DataDen<Sport> .parse() just needs an addition \
-            to the switch statement.' % (ns, parent_api))
+        logger.error(
+            'UNIMPLEMENTED <<< %s | %s >>> ... generally this means DataDen<Sport> .parse() '
+            'just needs an addition to the switch statement.' % (ns, parent_api))
 
     def parse(self, obj, verbose=False):
         # debug, remove this print:
