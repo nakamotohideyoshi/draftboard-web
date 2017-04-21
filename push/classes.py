@@ -270,6 +270,7 @@ class AbstractPush(object):
         # get the linkedExpiringObjectQueueTable (ie: pbp+stats combiner
         # check if its the type of object we should throw in the pbp+stats linker queue
         if not force:
+            raise Exception('We are using the LinkedExpiringObjectQueueTable')
             #
             # run this object thru the stat linker to see if we can match it up
             linker = self.Linker()
@@ -458,31 +459,6 @@ class DataDenPush(AbstractPush):
 
 class PlayerStatsPush(DataDenPush):
     delay_seconds = 1
-
-
-class StatsDataDenPush(AbstractPush):
-    """
-    Any stats objects, which may be linkable from dataden, should be pushed with this class.
-    """
-
-    def __init__(self, channel, event):
-        """
-        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
-        event: the string name of the general type of the object, ie: 'player', or 'team'
-        """
-        super().__init__(channel)  # init pusher object
-        self.event = event
-
-    def send(self, stats_data, async=True, force=False):
-        """
-        override the default behavior of send(), such that we check
-        if the object has already been sent... if it has, then do not send it!
-        """
-        # print('stats_data: %s' % str(stats_data))
-        link_id = stats_data.get('fields').get('srid_player')
-        # print('link_id: %s' % str(link_id))
-        self.set_linkable_object(stats_data, link_id=link_id)
-        super().send(stats_data, async=async, force=force)
 
 
 class PbpDataDenPush(AbstractPush):
