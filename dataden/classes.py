@@ -1,13 +1,16 @@
 from __future__ import generators
+
+import time
+import xml.etree.ElementTree as ET
+
+import requests
+from django.conf import settings
 from django.db import IntegrityError
 from django.utils import timezone
-import time
-import requests
-import xml.etree.ElementTree as ET
 from pymongo import MongoClient, DESCENDING
+
 import dataden.cache.caches
 import dataden.models
-from django.conf import settings
 from util.slack import Webhook
 
 
@@ -54,7 +57,8 @@ class FeedTest(object):
 
             if i % 10 == 0:
                 print('%s of %s' % (str(i), str(iterations)))
-            time.sleep(float(float(delay_ms) / float(1000.0)))  # divide millis by 1000 to get values in seconds
+            time.sleep(float(
+                float(delay_ms) / float(1000.0)))  # divide millis by 1000 to get values in seconds
             i += 1
 
     def download(self):
@@ -258,7 +262,8 @@ class DataDen(object):
         if projection and projection.keys():
             #
             # if the projection has any keys, use it
-            return coll.find(filter=target, projection=projection, no_cursor_timeout=self.no_cursor_timeout)
+            return coll.find(filter=target, projection=projection,
+                             no_cursor_timeout=self.no_cursor_timeout)
 
         # by default, dont apply projection
         return coll.find(filter=target, no_cursor_timeout=self.no_cursor_timeout)
