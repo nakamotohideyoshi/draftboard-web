@@ -269,17 +269,6 @@ class PlayerCsvView(View):
         return render(request, self.template_name, context)
 
 
-class LivePbpView(View):
-    """
-    uses dataden.cache.caches.PlayByPlayCache to access the most recent pbp objects (~100 per sport)
-    """
-
-    def get(self, request, sport):
-        pbp_cache = PlayByPlayCache(sport)
-
-        return HttpResponse(json.dumps(pbp_cache.get_pbps()), content_type='application/json')
-
-
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
     Get all Player's trailing history of Fantasy Points
