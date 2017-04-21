@@ -1,7 +1,6 @@
 import json
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
 from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -14,10 +13,6 @@ from rest_framework.views import APIView
 import dataden.models
 import dataden.serializers
 import sports.classes
-from dataden.cache.caches import PlayByPlayCache
-from django.http import HttpResponse
-from django.contrib.contenttypes.models import ContentType
-
 from draftgroup.models import (
     GameUpdate,
     PlayerUpdate,
@@ -58,7 +53,8 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         player_srid = self.kwargs['player_srid']
-        queryset = self.model.objects.filter(player_srid=player_srid).order_by('-created').distinct()[:10]
+        queryset = self.model.objects.filter(player_srid=player_srid).order_by(
+            '-created').distinct()[:10]
         return queryset
 
 
@@ -89,7 +85,6 @@ class PlayerUpdateAPIView(AbstractUpdateAPIView):
 
 
 class PlayerStatusAPIView(AbstractUpdateAPIView):
-
     model_class = PlayerStatus
     serializer_class = PlayerStatusSerializer
 
@@ -103,7 +98,8 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
 
     def get(self, request, *args, **kwargs):
         data = {
-            'player_updates': self.get_serialized_data(PlayerStatus, PlayerStatusSerializer, sport=kwargs['sport']),
+            'player_updates': self.get_serialized_data(PlayerStatus, PlayerStatusSerializer,
+                                                       sport=kwargs['sport']),
             # 'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
             # TODO truncate game_updates and player_updates!
             'game_updates': [],
@@ -269,17 +265,6 @@ class PlayerCsvView(View):
         return render(request, self.template_name, context)
 
 
-class LivePbpView(View):
-    """
-    uses dataden.cache.caches.PlayByPlayCache to access the most recent pbp objects (~100 per sport)
-    """
-
-    def get(self, request, sport):
-        pbp_cache = PlayByPlayCache(sport)
-
-        return HttpResponse(json.dumps(pbp_cache.get_pbps()), content_type='application/json')
-
-
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
     Get all Player's trailing history of Fantasy Points
@@ -292,7 +277,7 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-            ]
+        ]
 
     def get_serializer_class(self):
         """
@@ -360,7 +345,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-            ]
+        ]
 
     def get_serializer_class(self):
         """

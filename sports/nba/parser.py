@@ -602,8 +602,8 @@ class DataDenNba(AbstractDataDenParser):
             # pushers the pbp + stats data as one piece of data
             event_pbp.send()
 
-            # stashes the pbp object for the trailing history api
-            self.add_pbp(obj)
+            # stashes the pbp object for the trailing history api - DISABLED
+            # self.add_pbp(obj)
 
         # nba.player
         elif self.target == ('nba.player', 'rosters'):
