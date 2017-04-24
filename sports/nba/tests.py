@@ -8,9 +8,9 @@ from sports.nba.parser import (
     SeasonSchedule,
     GameSchedule,
     TeamHierarchy,
-    EventPbp,
+    PbpEventParser,
     GameBoxscoreParser,
-    PlayerStats,
+    PlayerStatsParser,
 )
 from test.classes import AbstractTest
 
@@ -160,7 +160,7 @@ class TestEventPbp(AbstractTest):
 
     def setUp(self):
         super().setUp()
-        self.obj_str = """{'o':  {
+        self.dataden_obj = {'o': {
             'ns': 'nba.event',
             'ts': 1454659978,
             'event_type': 'threepointmiss',
@@ -168,7 +168,7 @@ class TestEventPbp(AbstractTest):
             'description': 'Damian Lillard misses three point jump shot',
             'parent_list__id': 'events__list',
             'location__list': {'coord_x': 370.0,
-            'coord_y': 209.0},
+                               'coord_y': 209.0},
             'parent_api__id': 'pbp',
             'quarter__id': '715a0977-ab1e-4d13-9425-7d776b69615e',
             'game__id': 'dcecc6c6-d6f8-40e2-a83c-d22953e55112',
@@ -178,18 +178,21 @@ class TestEventPbp(AbstractTest):
             'updated': '2016-02-05T03:12:41+00:00',
             'clock': '11:41',
             'statistics__list': {
-              'fieldgoal__list': {
-                'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
-                'made': 'false',
-                'three_point_shot': 'true',
-                'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd',
-                'shot_type': 'jump shot'
-              }
+                'fieldgoal__list': {
+                    'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c',
+                    'made': 'false',
+                    'three_point_shot': 'true',
+                    'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd',
+                    'shot_type': 'jump shot'
+                }
             },
-          }
-        }"""  # noqa
-        self.data = literal_eval(self.obj_str)  # convert to dict
-        self.oplog_obj = OpLogObj(self.data)
+        }
+        }
+
+        # create the OpLogOjb wrapper. This is what the parse is expecting.
+        self.oplog_object = OpLogObj(self.dataden_obj)
+        # get the raw event data.
+        self.event_data = self.oplog_object.get_o()
 
         # the field we will try to get a game srid from
         self.game_srid_field = 'game__id'
@@ -205,11 +208,13 @@ class TestEventPbp(AbstractTest):
 
     def test_event_pbp_parse(self):
         """
+        This test only parses, no assertions. I guess it makes sure parsing
+        doesn't blow up.
         """
-        event_pbp = EventPbp()
-        event_pbp.parse(self.oplog_obj)
+        parser = PbpEventParser()
+        parser.parse(self.oplog_object)
 
-        game_srids = event_pbp.get_srids_for_field(self.game_srid_field)
+        game_srids = parser.get_srids_for_field(self.game_srid_field)
         self.assertIsInstance(game_srids, list)
         self.assertEquals(set(game_srids), set(self.target_game_srids))
         self.assertEquals(len(set(game_srids)), 1)
@@ -220,8 +225,63 @@ class TestEventPbp(AbstractTest):
 
         # we are going to use the list of player srids for the PlayerStats
         # filter()
-        player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
+        player_srids = parser.get_srids_for_field(self.player_srid_field)
         self.assertTrue(set(self.target_player_srids) <= set(player_srids))
+        parser.send()
+
+    def test_player_names(self):
+        """
+        Test that player names are being added to the parser output data.
+        :return: 
+        """
+
+        player = mommy.make(
+            sports.nba.models.Player,
+            srid=self.event_data['statistics__list']['fieldgoal__list']['player'],
+            make_m2m=True,
+            first_name="Damian",
+            last_name="Lillard",
+        )
+
+        player_stats = mommy.make(
+            sports.nba.models.PlayerStats,
+            srid_game=self.event_data['game__id'],
+            srid_player=player.srid,
+            make_m2m=True,
+        )
+        player_stats.player = player
+        player_stats.save()
+
+        self.assertEqual(
+            player_stats.player.srid,
+            self.event_data['statistics__list']['fieldgoal__list']['player']
+        )
+
+        parser = PbpEventParser()
+        parser.parse(self.oplog_object)
+
+        # parser.send()
+        sent_data = parser.get_send_data()
+
+        # Ensure that both the first and last names are set, match the player's
+        # and are not empty.
+        self.assertEqual(
+            sent_data['stats'][0]['first_name'],
+            player.first_name
+        )
+        self.assertNotEqual(
+            sent_data['stats'][0]['first_name'],
+            ''
+        )
+
+        self.assertEqual(
+            sent_data['stats'][0]['last_name'],
+            player.last_name
+        )
+        self.assertNotEqual(
+            sent_data['stats'][0]['last_name'],
+            ''
+        )
 
 
 class TestPlayerStats(AbstractTest):
@@ -229,9 +289,10 @@ class TestPlayerStats(AbstractTest):
     Test the PlayerStats Parser. It should take an update object from mongo and create a PlayerStat
     from it.
     """
+
     def setUp(self):
         super().setUp()
-        self.parser = PlayerStats()
+        self.parser = PlayerStatsParser()
         # some info needed for the parser
         self.sport_db = 'nba'
         self.parent_api = 'stats'
@@ -289,8 +350,8 @@ class TestPlayerStats(AbstractTest):
 
         # Fetch any existing PlayerStats. should be none.
         existing_player_stat = self.parser.player_stats_model.objects.filter(
-                srid_game=game.srid,
-                srid_player=player.srid
+            srid_game=game.srid,
+            srid_player=player.srid
         )
         # Ensure none exist.
         self.assertEquals(existing_player_stat.count(), 0)
@@ -300,8 +361,8 @@ class TestPlayerStats(AbstractTest):
 
         # Fetch the new PlayerStat that was created.
         new_player_stat = self.parser.player_stats_model.objects.filter(
-                srid_game=game.srid,
-                srid_player=player.srid
+            srid_game=game.srid,
+            srid_player=player.srid
         )
         # Make sure it exists.
         self.assertEquals(new_player_stat.count(), 1)

@@ -1068,7 +1068,7 @@ class LocationManager(Manager):
 #     reducer_class = RushReducer
 #     shrinker_class = RushShrinker
 
-class PlayParser(DataDenPbpDescription):
+class PbpEventParser(DataDenPbpDescription):
     class PlayCache(QuickCache):
         name = 'PlayCache_nflo_pbp'
 
@@ -1087,9 +1087,6 @@ class PlayParser(DataDenPbpDescription):
     class EndLocationCache(QuickCache):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
-
-    field_pbp_object = 'pbp'
-    field_stats = 'stats'
 
     game_model = Game
     pbp_model = Pbp
@@ -1195,12 +1192,9 @@ class PlayParser(DataDenPbpDescription):
         srid_finder = SridFinder(play)
         srid_games = srid_finder.get_for_field('game__id')
         srid_players = srid_finder.get_for_field('player')
-        player_stats = self.player_stats_model.objects.filter(
-            srid_game__in=srid_games,
-            srid_player__in=srid_players
-        )
+        player_stats = self.find_player_stats(srid_players)
 
-        logger.info('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
+        logger.debug('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
             player_stats.count(),
             srid_games, srid_players)
         )
@@ -1236,8 +1230,8 @@ class PlayParser(DataDenPbpDescription):
 
         # Attach PBP and linked stats, then return.
         data = {
-            self.field_pbp_object: PlayManager(play).get_data(),
-            self.field_stats: player_stats_json,
+            'pbp': PlayManager(play).get_data(),
+            'stats': player_stats_json,
         }
 
         # print('get_send_data:', str(data))
@@ -1380,7 +1374,7 @@ class DataDenNfl(AbstractDataDenParser):
                 or self.target == (self.mongo_db_for_sport + '.location', 'pbp') \
                 or self.target == (self.mongo_db_for_sport + '.possession', 'pbp'):
 
-            parser = PlayParser()
+            parser = PbpEventParser()
             parser.parse(obj, self.target)  # will call send() if it can
 
         #
