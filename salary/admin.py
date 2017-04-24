@@ -1,21 +1,19 @@
-from logging import getLogger
 from functools import partial
+from logging import getLogger
 
 import celery.states
-import django.db.utils
+from django import forms
 from django.contrib import (
     admin,
     messages,
 )
-
-from django import forms
-from django.forms.models import modelformset_factory, modelform_defines_fields, modelform_factory
+from django.db.models import Q
 from django.db.transaction import atomic
+from django.forms.models import modelformset_factory
 from django.utils.html import format_html
 from raven.contrib.django.raven_compat.models import client
 
 import mysite.mixins.generic_search
-import sports.classes
 from salary.classes import (
     OwnershipPercentageAdjuster,
 )
@@ -55,7 +53,8 @@ class SalaryAdminForm(forms.ModelForm):
         super(SalaryAdminForm, self).__init__(*args, **kwargs)
 
         try:
-            self.fields['amount'] = forms.IntegerField(min_value=self.instance.pool.salary_config.min_player_salary)
+            self.fields['amount'] = forms.IntegerField(
+                min_value=self.instance.pool.salary_config.min_player_salary)
         except Pool.DoesNotExist:
             pass
             # import ipdb; ipdb.set_trace()
@@ -252,7 +251,6 @@ class PoolAdmin(admin.ModelAdmin):
 
 @admin.register(Salary)
 class SalaryAdmin(admin.ModelAdmin, mysite.mixins.generic_search.GenericSearchMixin):
-
     def get_changelist_formset(self, request, **kwargs):
         defaults = {
             "formfield_callback": partial(self.formfield_for_dbfield, request=request),
@@ -273,7 +271,8 @@ class SalaryAdmin(admin.ModelAdmin, mysite.mixins.generic_search.GenericSearchMi
 
     list_filter = ['primary_roster', 'salary_locked', 'pool']
     raw_id_admin = ('pool',)
-    search_fields = ('player__first_name', 'player__last_name')
+    # This is a BS thing just so we can get the search field. it is override in get_search_results
+    search_fields = ('amount',)
 
     def has_add_permission(self, request):
         return False
@@ -282,16 +281,21 @@ class SalaryAdmin(admin.ModelAdmin, mysite.mixins.generic_search.GenericSearchMi
     def player(obj):
         return '%s %s' % (obj.player.first_name, obj.player.last_name)
 
+    def get_search_results(self, request, queryset, search_term):
+        """
+        Super basic filter for a bunch of generic relations.
+        Note: this doesn't currently work with other list_filter filters.        
+        """
+        results = super(SalaryAdmin, self).get_queryset(request).prefetch_related('player')
+        filtered_results = results
+        excluded_pks = []
 
-    try:
-        related_search_mapping = {
-            'player': {
-                'content_type': 'player_type',
-                'object_id': 'player_id',
-                'ctypes': sports.classes.SiteSportManager().get_player_classes()
-            }
-        }
-    except (django.db.utils.OperationalError, django.db.utils.ProgrammingError):
-        # relation "django_content_type" does not exist
-        logger.info('relation "django_content_type" does not exist - this should only happen on '
-                    'the first migrate!')
+        for salary in results:
+            if (
+                search_term.lower() not in salary.player.last_name.lower()
+                and search_term.lower() not in salary.player.first_name.lower()
+            ):
+                excluded_pks.append(salary.pk)
+
+        filtered_results = results.filter(~Q(id__in=excluded_pks))
+        return filtered_results, True
