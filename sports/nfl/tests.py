@@ -17,7 +17,7 @@ from sports.nfl.parser import (
 
     SeasonSchedule,
     TeamHierarchy,
-    PlayParser,
+    PbpEventParser,
 
     # reducers, shrinkers, managers
     PlayReducer,
@@ -373,7 +373,7 @@ class TestTeamBoxscoreParser(AbstractTest):
         }
 
         # Parse it!
-        self.__parse_and_send(data, (sport_db + '.' + 'team', parent_api))
+        self.__parse_and_send(data, (sport_db + '.' + 'play', parent_api))
 
 
 class TestGameBoxscoreParser(AbstractTest):
@@ -477,7 +477,7 @@ class TestPlayParser(AbstractTest):
     def setUp(self):
         cache.clear()
         super().setUp()
-        self.parser = PlayParser()
+        self.parser = PbpEventParser()
 
     def __parse_and_send(self, unwrapped_obj, target, tag=None):
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)

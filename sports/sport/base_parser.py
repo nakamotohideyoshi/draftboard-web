@@ -11,7 +11,7 @@ from raven.contrib.django.raven_compat.models import client
 
 import push.classes
 import sports.classes
-from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
+from dataden.cache.caches import LiveStatsCache
 from dataden.classes import DataDen
 from dataden.util.timestamp import Parse as DataDenDatetime
 from sports.game_status import GameStatus
@@ -1144,12 +1144,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             logger.info('PBP was found in cache, has already been sent, not sending again.')
             # return out of method - we dont need to send this obj again
             return
-        # #
-        # # try to retrieve the player(s) and game srids to look up linked PlayerStats
-        # # and add them to the player_stats list if found.
+
+        # try to retrieve the player(s) and game srids to look up linked PlayerStats
+        # and add them to the player_stats list if found.
         # player_stats = self.find_player_stats()
 
-        #
         # send normally, or as linked data depending on the found PlayerStats instances
         # if len(player_stats) == 0:
         # solely push pbp object
@@ -1196,7 +1195,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         """
         extract player and game srids and return a list
         of any matching PlayerStats models found
-        :return:
+        
+        :return: <sport>.models.PlayerStats queryset
         """
 
         game_srid = self.get_srid_game('game__id')
@@ -1209,8 +1209,12 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             # this method
             pass
 
-        return self.player_stats_model.objects.filter(srid_game=game_srid,
-                                                      srid_player__in=player_srids)
+        # We are prefetching the 'player' in order to attach player
+        # info like first & last name to pbp events.
+        return self.player_stats_model.objects.filter(
+            srid_game=game_srid,
+            srid_player__in=player_srids
+        ).prefetch_related('player')
 
     def build_linked_pbp_stats_data(self, player_stats):
         """

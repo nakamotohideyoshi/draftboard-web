@@ -288,7 +288,7 @@ class TeamHierarchy(DataDenTeamHierarchy):
         self.team.save()
 
 
-class PlayerStats(DataDenPlayerStats):
+class PlayerStatsParser(DataDenPlayerStats):
     game_model = Game
     player_model = Player
     player_stats_model = sports.nba.models.PlayerStats
@@ -442,16 +442,15 @@ class QuarterPbp(DataDenPbpDescription):
 
             idx += 1
 
-            # EventPbp will take care of saving the 'description' field
+            # PbpEventParser will take care of saving the 'description' field
         self.timer_stop()
 
 
-class EventPbp(DataDenPbpDescription):
+class PbpEventParser(DataDenPbpDescription):
     game_model = Game
     pbp_model = Pbp
     portion_model = GamePortion
     pbp_description_model = PbpDescription
-    #
     player_stats_model = sports.nba.models.PlayerStats
     pusher_sport_pbp = push.classes.PUSHER_NBA_PBP
     pusher_sport_stats = push.classes.PUSHER_NBA_STATS
@@ -460,39 +459,96 @@ class EventPbp(DataDenPbpDescription):
         super().__init__()
 
     def parse(self, obj, target=None):
-        # since we dont call super().parse() in this class
-        self.original_obj = obj
-        self.srid_finder = SridFinder(obj.get_o())
-        #
-        # dont need to call super for EventPbp - just get the event by srid.
-        # if it doesnt exist dont do anything, else set the description
-        self.o = obj.get_o()  # we didnt call super so we should do this
+        """
+        Parse the NBA PBP event.
+        
+        :param obj: an OpLogObject
+        :param target: 
+        :return: 
+        """
+        super().parse(obj, target)
+
         # Log object for debugging.
         logger.info("Parsing NBA PBP Object: %s" % self.o)
         srid_pbp_desc = self.o.get('id', None)
         pbp_desc = self.get_pbp_description_by_srid(srid_pbp_desc)
+
+        # TODO: (zach) I'm not sure if any of this description stuff is needed.
         if pbp_desc:
-            # DataDenNba.parse() | nba.event pbp {'updated': '2015-06-17T03:58:49+00:00', 'parent_list__id': 'events__list', 'possession': '583ec825-fb46-11e1-82cb-f4ce4684ea4c', 'dd_updated__id': 1441316758302, 'parent_api__id': 'pbp', 'clock': '00:00', 'description': 'End of 4th Quarter.', 'event_type': 'endperiod', 'quarter__id': '37d8a2b0-eb65-431d-827f-1c25396a3f1f', 'game__id': '63aa3abe-c1c2-4d69-8d0f-5e3e2f263470', 'id': '3688ff8b-f056-412f-9189-7f123073217f', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYWEzYWJlLWMxYzItNGQ2OS04ZDBmLTVlM2UyZjI2MzQ3MHF1YXJ0ZXJfX2lkMzdkOGEyYjAtZWI2NS00MzFkLTgyN2YtMWMyNTM5NmEzZjFmcGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWQzNjg4ZmY4Yi1mMDU2LTQxMmYtOTE4OS03ZjEyMzA3MzIxN2Y='}
-            # pbp_description_model: <class 'sports.nba.models.PbpDescription'> srid: 3688ff8b-f056-412f-9189-7f123073217f
-            # ... got it: PbpDescription object pk: 461
-            # print( '>>>>>>', str(self.o) )
+            # DataDenNba.parse() | nba.event pbp {
+            # 'updated': '2015-06-17T03:58:49+00:00',
+            # 'parent_list__id': 'events__list',
+            # 'possession': '583ec825-fb46-11e1-82cb-f4ce4684ea4c',
+            # 'dd_updated__id': 1441316758302,
+            # 'parent_api__id': 'pbp',
+            # 'clock': '00:00',
+            # 'description': 'End of 4th Quarter.',
+            # 'event_type': 'endperiod',
+            # 'quarter__id': '37d8a2b0-eb65-431d-827f-1c25396a3f1f',
+            # 'game__id': '63aa3abe-c1c2-4d69-8d0f-5e3e2f263470',
+            # 'id': '3688ff8b-f056-412f-9189-7f123073217f',
+            # '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYWEzYWJlLWMxYzItNGQ2OS04ZDBmLTVlM2U...'
+            # }
+
+            # pbp_description_model: <class 'sports.nba.models.PbpDescription'>
+
             description = self.o.get('description', None)
-            # print( 'description:', str(description))
+            logger.debug('description: %s' % description)
+
             if pbp_desc.description != description:
                 # only save it if its changed
-                # print( '...... saving it because it doesnt match the description we currently have (must have changed)')
+                logger.debug(
+                    '..saving it because it doesnt match the description we currently have (must '
+                    'have changed)')
                 pbp_desc.description = description
                 pbp_desc.save()
-                # print( 'before:', str(pbp_desc.description))
+                logger.debug('before: %s' % pbp_desc.description)
                 pbp_desc.refresh_from_db()
-                # print( 'after:', str(pbp_desc.description))
-
+                logger.debug('after: %s' % pbp_desc.description)
             else:
-                # print( '...... not saving description because it matches what we currently have.')
+                logger.debug('..not saving description because it matches what we currently have.')
                 pass
         else:
-            # print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+            logger.debug('pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
+
+    def get_send_data(self):
+        """
+        Build the linked object from the parts
+        
+        This gets called in self.send() just before the payload is Pusher'd
+        :return: 
+        """
+
+        # get the PlayerStats model instances associated with this play
+        # which can be found using the game and player srids
+        srid_finder = SridFinder(self.o)
+        srid_games = srid_finder.get_for_field('game__id')
+        srid_players = srid_finder.get_for_field('player')
+        player_stats = self.find_player_stats(srid_players)
+
+        logger.debug(
+            '%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
+                player_stats.count(),
+                srid_games, srid_players)
+        )
+
+        # Gather linked player stats.
+        player_stats_json = []
+        for ps in player_stats:
+            stats = ps.to_json()
+            # Attach first + last name to the player stats info.
+            stats['first_name'] = ps.player.first_name
+            stats['last_name'] = ps.player.last_name
+            player_stats_json.append(stats)
+
+        # Attach PBP and linked stats, then return.
+        data = {
+            'pbp': self.o,
+            'stats': player_stats_json,
+        }
+
+        return data
 
 
 class Injury(DataDenInjury):
@@ -597,7 +653,7 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.event', 'pbp'):
             #
             # handle a play by play event from dataden.
-            event_pbp = EventPbp()
+            event_pbp = PbpEventParser()
             event_pbp.parse(obj)  # takes care of pushering the data too.
             # pushers the pbp + stats data as one piece of data
             event_pbp.send()
@@ -613,7 +669,7 @@ class DataDenNba(AbstractDataDenParser):
             #
             # will save() the nba PlayerStats model corresponding to this
             # player.
-            PlayerStats().parse(obj)
+            PlayerStatsParser().parse(obj)
             # note: the PlayerStats model takes care of pushering its updated data!
 
         # nba.injury
