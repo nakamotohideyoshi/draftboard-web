@@ -1,7 +1,6 @@
 import json
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
 from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -15,13 +14,11 @@ import dataden.models
 import dataden.serializers
 import sports.classes
 from dataden.cache.caches import PlayByPlayCache
-from django.http import HttpResponse
-from django.contrib.contenttypes.models import ContentType
-
 from draftgroup.models import (
     GameUpdate,
     PlayerUpdate,
     PlayerStatus,
+    DraftGroup
 )
 from draftgroup.serializers import (
     GameUpdateSerializer,
@@ -29,6 +26,7 @@ from draftgroup.serializers import (
     PlayerStatusSerializer,
 )
 from scoring.classes import MlbSalaryScoreSystem
+from sports.classes import SiteSportManager
 from sports.forms import PlayerCsvForm
 from sports.mlb.models import (
     PlayerStatsHitter,
@@ -58,7 +56,8 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         player_srid = self.kwargs['player_srid']
-        queryset = self.model.objects.filter(player_srid=player_srid).order_by('-created').distinct()[:10]
+        queryset = self.model.objects.filter(player_srid=player_srid).order_by(
+            '-created').distinct()[:10]
         return queryset
 
 
@@ -89,25 +88,44 @@ class PlayerUpdateAPIView(AbstractUpdateAPIView):
 
 
 class PlayerStatusAPIView(AbstractUpdateAPIView):
-
     model_class = PlayerStatus
     serializer_class = PlayerStatusSerializer
 
 
 class UpdateAPIView(APIView, GetSerializedDataMixin):
     """
-    return recent game & player updates for the sport
+    return recent game & player updates for the sport. This includes brief injury status and
+    probable pitchers for MLB.
     """
 
     authentication_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
         data = {
-            'player_updates': self.get_serialized_data(PlayerStatus, PlayerStatusSerializer, sport=kwargs['sport']),
+            'player_updates': self.get_serialized_data(
+                PlayerStatus, PlayerStatusSerializer, sport=kwargs['sport']
+            ),
+            # This is for rain delays and things like that. It does not currently work.
             # 'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
-            # TODO truncate game_updates and player_updates!
-            'game_updates': [],
         }
+
+        # Attach Probable Pitcher info for MLB.
+        if kwargs['sport'] == 'mlb':
+            # Find the most current draft group for MLB. We need to know this in order to
+            # filter out old PP updates.
+            site_sport = SiteSportManager().get_site_sport('mlb')
+            latest_mlb_draftgroup = DraftGroup.objects.filter(
+                salary_pool__site_sport=site_sport,
+            ).order_by('-created').last()
+
+            # Get a list of probable pitcher SRIDs. (they are stored in the 'value' column)
+            pitcher_srids = GameUpdate.objects.filter(
+                type='pp',
+                draft_groups=latest_mlb_draftgroup
+            ).values('value')
+
+            data['probable_pitchers'] = pitcher_srids
+
         return Response(data, status=200)
 
 
@@ -292,7 +310,7 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-            ]
+        ]
 
     def get_serializer_class(self):
         """
@@ -360,7 +378,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
-            ]
+        ]
 
     def get_serializer_class(self):
         """
