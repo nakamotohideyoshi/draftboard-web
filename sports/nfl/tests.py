@@ -1094,6 +1094,19 @@ class TestPlayParser(AbstractTest):
             ''
         )
 
+        # Ensure home + away scores are in PBP
+        self.assertEqual(
+            sent_data['pbp']['away_points'],
+            play['away_points']
+        )
+        self.assertEqual(
+            sent_data['pbp']['home_points'],
+            play['home_points']
+        )
+
+        # from pprint import pprint
+        # pprint(sent_data)
+
 
 class GameStatusChangedSignal(AbstractTest):
     @staticmethod

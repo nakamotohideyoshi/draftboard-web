@@ -721,9 +721,7 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
 
 class PlayReducer(Reducer):
     remove_fields = [
-        'away_points',
         'wall_clock',
-        'home_points',
         # 'statistics__list',       # this has the passer/rusher / receiver/defense guy
         'parent_api__id',
         '_id',
