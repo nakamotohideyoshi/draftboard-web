@@ -17,6 +17,7 @@ from draftgroup.models import (
     GameUpdate,
     PlayerUpdate,
     PlayerStatus,
+    DraftGroup
 )
 from draftgroup.serializers import (
     GameUpdateSerializer,
@@ -24,6 +25,7 @@ from draftgroup.serializers import (
     PlayerStatusSerializer,
 )
 from scoring.classes import MlbSalaryScoreSystem
+from sports.classes import SiteSportManager
 from sports.forms import PlayerCsvForm
 from sports.mlb.models import (
     PlayerStatsHitter,
@@ -91,19 +93,38 @@ class PlayerStatusAPIView(AbstractUpdateAPIView):
 
 class UpdateAPIView(APIView, GetSerializedDataMixin):
     """
-    return recent game & player updates for the sport
+    return recent game & player updates for the sport. This includes brief injury status and
+    probable pitchers for MLB.
     """
 
     authentication_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
         data = {
-            'player_updates': self.get_serialized_data(PlayerStatus, PlayerStatusSerializer,
-                                                       sport=kwargs['sport']),
+            'player_updates': self.get_serialized_data(
+                PlayerStatus, PlayerStatusSerializer, sport=kwargs['sport']
+            ),
+            # This is for rain delays and things like that. It does not currently work.
             # 'game_updates' : self.get_serialized_data(GameUpdate, GameUpdateSerializer),
-            # TODO truncate game_updates and player_updates!
-            'game_updates': [],
         }
+
+        # Attach Probable Pitcher info for MLB.
+        if kwargs['sport'] == 'mlb':
+            # Find the most current draft group for MLB. We need to know this in order to
+            # filter out old PP updates.
+            site_sport = SiteSportManager().get_site_sport('mlb')
+            latest_mlb_draftgroup = DraftGroup.objects.filter(
+                salary_pool__site_sport=site_sport,
+            ).order_by('-created').last()
+
+            # Get a list of probable pitcher SRIDs. (they are stored in the 'value' column)
+            pitcher_srids = GameUpdate.objects.filter(
+                type='pp',
+                draft_groups=latest_mlb_draftgroup
+            ).values('value')
+
+            data['probable_pitchers'] = pitcher_srids
+
         return Response(data, status=200)
 
 
