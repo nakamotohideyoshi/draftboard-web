@@ -37,7 +37,7 @@ def get_fantasy_point_projection_from_stats_projection(stat_points, stats_projec
                 logger.debug('%s %s is worth: %s' % (
                     stats_projections[stat_map[stat_point.stat]], stat_point.stat, stat_value ))
             else:
-                logger.info(
+                logger.debug(
                     'projection for %s not found in this projection.' % stat_map[stat_point.stat])
         else:
             logger.warning('Player projection stat not found: %s' % stat_point.stat)
