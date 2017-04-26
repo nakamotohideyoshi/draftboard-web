@@ -1158,10 +1158,10 @@ class PbpEventParser(DataDenPbpDescription):
         # else:
         return None  # TODO dont return None! raise something... the caller expects a tuple...
 
-    # def get_srid_game(self, fieldname): # returns a string
+    # def get_game_srid(self, fieldname): # returns a string
 
     # def find_player_stats(self, player_srids=None):
-    #     game_srid = self.get_srid_game('game__id')
+    #     game_srid = self.get_game_srid('game__id')
     #     return self.player_stats_model.objects.filter(srid_game=game_srid,
     #                                                   srid_player__in=player_srids)
 
@@ -1230,6 +1230,7 @@ class PbpEventParser(DataDenPbpDescription):
         data = {
             'pbp': PlayManager(play).get_data(),
             'stats': player_stats_json,
+            'game': self.get_game_info(),
         }
 
         # print('get_send_data:', str(data))
