@@ -942,7 +942,7 @@ class TeamNameCache(object):
             # Run through each sport and grab its teams.
             for sport in sports:
                 sport_teams = ssm.get_team_class(sport).objects.values()
-                logger.warning('caching %s %s teams' % (len(sport_teams), sport))
+                logger.info('caching %s %s teams' % (len(sport_teams), sport))
                 for team in sport_teams:
                     teams[team['srid']] = team
                     # Add in sport field for easy filtering.
@@ -950,7 +950,7 @@ class TeamNameCache(object):
 
             # Set the teams into the cache
             cache.set(self.cache_key, teams)
-            logger.warning(
+            logger.info(
                 'cached %s teams from %s sports into the team cache' % (len(teams), len(sports)))
             self.team_cache = teams
 
@@ -960,7 +960,11 @@ class TeamNameCache(object):
         Args:
             srid: <sport>.models.Team.team_srid
         """
-        return self.team_cache[srid]
+        team = self.team_cache.get(srid, {})
+        if not team:
+            logger.error('Team not found from srid: %s' % srid)
+
+        return team
 
     @staticmethod
     def search(values, search_for):

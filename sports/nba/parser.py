@@ -546,6 +546,7 @@ class PbpEventParser(DataDenPbpDescription):
         data = {
             'pbp': self.o,
             'stats': player_stats_json,
+            'game': self.get_game_info(),
         }
 
         return data

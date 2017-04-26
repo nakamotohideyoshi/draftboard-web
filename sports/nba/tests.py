@@ -13,6 +13,7 @@ from sports.nba.parser import (
     PlayerStatsParser,
 )
 from test.classes import AbstractTest
+from django.core.cache import cache
 
 
 class TestSeasonScheduleParser(AbstractTest):
@@ -158,7 +159,12 @@ class TestEventPbp(AbstractTest):
     there is a more generic test in sports.sport.tests
     """
 
+    def tearDown(self):
+        cache.clear()
+        super().tearDown()
+
     def setUp(self):
+        cache.clear()
         super().setUp()
         self.dataden_obj = {'o': {
             'ns': 'nba.event',
@@ -281,6 +287,46 @@ class TestEventPbp(AbstractTest):
         self.assertNotEqual(
             sent_data['stats'][0]['last_name'],
             ''
+        )
+
+    def test_game_info(self):
+        """
+        Make sure that game info is being added into the 'game' attribute of the pbp. 
+        """
+        # Create some teams and a game.
+        home_team = mommy.make(
+            sports.nba.models.Team,
+            alias="DEN"
+        )
+        away_team = mommy.make(
+            sports.nba.models.Team,
+            alias="SLC"
+        )
+        game = mommy.make(
+            sports.nba.models.Game,
+            srid=self.event_data['game__id'],
+            srid_home=home_team.srid,
+            home=home_team,
+            srid_away=away_team.srid,
+            away=away_team,
+            make_m2m=True,
+        )
+
+        # Parse the event
+        parser = PbpEventParser()
+        parser.parse(self.oplog_object)
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        # ensure the teams were added to the event as it was parsed and sent.
+        self.assertEqual(
+            sent_data['game']['away']['alias'],
+            away_team.alias
+        )
+        self.assertEqual(
+            sent_data['game']['home']['alias'],
+            home_team.alias
         )
 
 

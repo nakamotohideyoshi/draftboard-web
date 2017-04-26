@@ -14,6 +14,7 @@ import sports.classes
 from dataden.cache.caches import LiveStatsCache
 from dataden.classes import DataDen
 from dataden.util.timestamp import Parse as DataDenDatetime
+from sports.classes import TeamNameCache
 from sports.game_status import GameStatus
 from sports.models import SiteSport, Position
 
@@ -1179,7 +1180,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         for player_stats in player_stats_objects:
             cache.delete(player_stats.get_cache_token())
 
-    def get_srid_game(self, fieldname):
+    def get_game_srid(self, fieldname):
         """
         we should expect to find only 1 game srid
         :return:
@@ -1199,7 +1200,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         :return: <sport>.models.PlayerStats queryset
         """
 
-        game_srid = self.get_srid_game('game__id')
+        game_srid = self.get_game_srid('game__id')
 
         # we may find any number of player srids - including 0
         if player_srids is None:
@@ -1216,24 +1217,40 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             srid_player__in=player_srids
         ).prefetch_related('player')
 
-    def build_linked_pbp_stats_data(self, player_stats):
+    def get_game_info(self):
         """
-        builds and returns a dictionary in the form:
-
-            {
-                "nba_pbp"   : { <typical nba_pbp pusher formatted data> },
-                "nba_stats" : [
-                    { <PlayerStats pusher formatted data> },
-                    { <PlayerStats pusher formatted data> },
-                ],
-            }
-
+        packages up necessary game info for PBP events. This is mostly used for showing the big
+        play card things at the bottom of the Live section. 
         """
-        data = {
-            self.linked_pbp_field: self.o,
-            self.linked_stats_field: [ps.to_json() for ps in player_stats]
-        }
-        return data
+        # If the subclass has a game_model set (it should!)
+        if self.game_model:
+            try:
+                # Get the team objects from our cache based on the game srid.
+                teams = TeamNameCache()
+                game = self.game_model.objects.get(srid=self.get_game_srid('game__id'))
+
+                # Extract the needed fields and return.
+                return {
+                    'away': {
+                        'alias': teams.get_team_from_srid(game.srid_away)['alias'],
+                        'name': teams.get_team_from_srid(game.srid_away)['name'],
+                        'market': teams.get_team_from_srid(game.srid_away)['market'],
+                    },
+                    'home': {
+                        'alias': teams.get_team_from_srid(game.srid_home)['alias'],
+                        'name': teams.get_team_from_srid(game.srid_home)['name'],
+                        'market': teams.get_team_from_srid(game.srid_home)['market'],
+                    },
+                }
+            # Other than during testing, I can't think of a reason we wouldn't have a Game
+            # object for a pbp, but let's handle that smoothly and return an empty dict.
+            except self.game_model.DoesNotExist as e:
+                logger.warning("While attaching game info to a pbp event: %s.%s - %s" % (
+                    self.game_model._meta.app_label, e, self.get_game_srid('game__id')))
+                return {}
+
+        logger.warning('no game_model has been set, not attaching game info to pbp.')
+
 
 
 class DataDenInjury(AbstractDataDenParseable):
