@@ -207,6 +207,18 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         return self.model.objects.filter(cutoff__lt=block.cutoff,
                                          site_sport=block.site_sport).count() == 0
 
+    def save_model(self, request, obj, form, change):
+        # If the schedule block is already drafting (contest pools are created) don't allow it to
+        # be edited.
+        if self.__is_block_drafting(obj):
+            msg = ("YOU CAN'T EDIT THIS SCHEDULE! Contest Pools have been created for it. Changes "
+                   "were NOT saved.")
+            messages.error(request, msg)
+            return
+
+        # otherwise do the normal save stuff.
+        return super(UpcomingBlockAdmin, self).save_model(request, obj, form, change)
+
     # @staticmethod
     def spans_multiple_days(self, block):
         # In[9]: (b.dfsday_end - b.dfsday_start).days == 1
