@@ -57,7 +57,12 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
     def get_queryset(self):
         category = self.request.query_params.get('category')
         player_srid = self.kwargs['player_srid']
-        queryset = self.model.objects.filter(player_srid=player_srid, category=category).order_by(
+        filters = {
+            'player_srid':player_srid
+        }
+        if category:
+            filters['category'] = category
+        queryset = self.model.objects.filter(**filters).order_by(
             '-created').distinct()[:10]
         return queryset
 
