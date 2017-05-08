@@ -43,6 +43,7 @@ def update_injury_feed(self, sport):
                             sport=sport,
                             player_srid=player_srid,
                         )
+
                         status.status = player_update.get_injury_status()
                         status.save()
                     except PlayerUpdateManager.PlayerDoesNotExist:
