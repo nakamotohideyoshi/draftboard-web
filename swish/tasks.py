@@ -30,9 +30,10 @@ def update_injury_feed(self, sport):
         try:
             player_update_manager = PlayerUpdateManager(sport)
             rotowire = RotoWire(sport)
-            updates = rotowire.get_updates()
+            news = rotowire.get_news()
+            injuries = rotowire.get_injuries()
             with transaction.atomic():
-                for player_update in updates:
+                for player_update in injuries:
                     try:
                         update_model = player_update_manager.update(player_update)
                         pid = player_update.get_pid()
@@ -42,12 +43,13 @@ def update_injury_feed(self, sport):
                             sport=sport,
                             player_srid=player_srid,
                         )
+
                         status.status = player_update.get_injury_status()
                         status.save()
                     except PlayerUpdateManager.PlayerDoesNotExist:
                         pass
 
-            for u in updates:
+            for u in news:
                 try:
                     update_model = player_update_manager.update(u)
                 except PlayerUpdateManager.PlayerDoesNotExist:
