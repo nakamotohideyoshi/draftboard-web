@@ -177,14 +177,19 @@ class UpdateData(object):
     def get_analysis(self):
         """ returns the news field_analysis. """
         return self.data.get(self.field_analysis, '')
+
     def get_headline(self):
         """ returns the news field_analysis. """
         return self.data.get(self.field_headline, '')
 
     def get_injury_status(self):
         """ returns injury status. """
-        status = self.data.get(self.field_injury).get(self.field_injury_status)
-        return status if status else 'active'
+        if self.get_sport() == 'mlb':
+            status = self.data.get(self.field_player).get(self.field_injury).get(self.field_injury_status, 'active')
+        else:
+            status = self.data.get(self.field_injury).get(self.field_injury_status, 'active')
+
+        return status
 
 
 class RotoWire(object):
@@ -303,12 +308,17 @@ class RotoWire(object):
         for update_data in results:
             data = {}
             data['category'] = 'injury'
+            data['sport'] = self.sport
             data['Player'] = {}
-            data['Injury'] = {}
             data['Player']['Id'] = update_data.get('Id')
             data['Player']['FirstName'] = update_data.get('FirstName')
             data['Player']['LastName'] = update_data.get('LastName')
-            data['Injury']['Status'] = update_data.get('InjuryStatus')
+            if self.sport == 'mlb':
+                data['Player']['Injury'] = {}
+                data['Player']['Injury']['Status'] = update_data.get('InjuryStatus')
+            else:
+                data['Injury'] = {}
+                data['Injury']['Status'] = update_data.get('InjuryStatus')
             self.updates.append(UpdateData(data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
@@ -329,6 +339,7 @@ class RotoWire(object):
         self.updates = []
         for update_data in results:
             update_data['category'] = 'news'
+            update_data['sport'] = self.sport
             self.updates.append(UpdateData(update_data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
