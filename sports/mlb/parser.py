@@ -1,21 +1,23 @@
-#
-# sports/mlb/parser.py
-from logging import getLogger
-from redis import Redis
-from util.dicts import (
-    Reducer,
-    Shrinker,
-    Manager,
-)
-from util.timesince import timeit
+import json
+from ast import literal_eval
 from collections import (
     OrderedDict,
 )
-from django.db.transaction import atomic
+from logging import getLogger
+
 from django.core.cache import cache
+from django.db.transaction import atomic
+from django_redis import get_redis_connection
+
+import push.classes
+import scoring.classes
+# mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
+import sports.mlb.models
+from dataden.classes import DataDen
+from draftgroup.classes import (
+    GameUpdateManager,
+)
 from sports.game_status import GameStatus
-from sports.trigger import CacheList
-from sports.models import Position
 from sports.mlb.models import (
     Team,
     Game,
@@ -27,8 +29,7 @@ from sports.mlb.models import (
     Season,
     ProbablePitcher,
 )
-# mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
-import sports.mlb.models
+from sports.models import Position
 from sports.sport.base_parser import (
     AbstractDataDenParser,
     AbstractDataDenParseable,
@@ -42,33 +43,21 @@ from sports.sport.base_parser import (
     DataDenInjury,
     DataDenSeasonSchedule,
 )
-import json
-from ast import literal_eval
-from dataden.classes import DataDen
-import push.classes
-from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
-from draftgroup.classes import (
-    GameUpdateManager,
+from sports.trigger import CacheList
+from util.dicts import (
+    Reducer,
+    Shrinker,
+    Manager,
 )
-import scoring.classes
-from urllib import parse
+from util.timesince import timeit
 
 logger = getLogger('sports.mlb.parser')
 
-
-def get_redis_instance():
-    redis_url_parsed = parse.urlparse(settings.REDIS_URL)
-    # return cache
-    return Redis(
-        host=redis_url_parsed.hostname,
-        port=redis_url_parsed.port,
-        password=redis_url_parsed.password,
-        db=0)
+redis_connection = get_redis_connection("default")
 
 
 class HomeAwaySummary(DataDenTeamBoxscores):
-
     gameboxscore_model = GameBoxscore
 
     def __init__(self):
@@ -349,7 +338,6 @@ class GameBoxscoreManager(Manager):
 
 
 class GameBoxscores(DataDenGameBoxscores):
-
     gameboxscore_model = GameBoxscore
     team_model = Team
 
@@ -364,7 +352,7 @@ class GameBoxscores(DataDenGameBoxscores):
     game_status = GameStatus(GameStatus.mlb)
 
     # for pusher to know the channel & event
-    channel = push.classes.PUSHER_BOXSCORES   # 'boxscores', its not sport specific
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores', its not sport specific
     event = 'game'
 
     def __init__(self):
@@ -527,7 +515,6 @@ class GameBoxscores(DataDenGameBoxscores):
 
 
 class TeamHierarchy(DataDenTeamHierarchy):
-
     team_model = Team
 
     def __init__(self):
@@ -562,7 +549,6 @@ class SeasonSchedule(DataDenSeasonSchedule):
 
 
 class GameSchedule(DataDenGameSchedule):
-
     team_model = Team
     game_model = Game
     season_model = Season
@@ -610,16 +596,15 @@ class GameSchedule(DataDenGameSchedule):
         #     }
         # }
 
-        self.game.attendance = self.o.get('attendance',   0)
-        self.game.day_night = self.o.get('day_night',    None)
-        self.game.game_number = self.o.get('game_number',  None)
+        self.game.attendance = self.o.get('attendance', 0)
+        self.game.day_night = self.o.get('day_night', None)
+        self.game.game_number = self.o.get('game_number', None)
         self.game.srid_venue = self.o.get('venue', '')
 
         self.game.save()
 
 
 class PlayerTeamProfile(DataDenPlayerRosters):
-
     POSITION_DH = 'DH'
     POSITION_1B = '1B'
 
@@ -684,15 +669,14 @@ class PlayerTeamProfile(DataDenPlayerRosters):
         self.player.birthcity = self.o.get('birthcity', '')
         self.player.birthcountry = self.o.get('birthcountry', '')
 
-        self.player.pro_debut = self.o.get('pro_debut',    '')
-        self.player.throw_hand = self.o.get('throw_hand',   '')
-        self.player.bat_hand = self.o.get('bat_hand',     '')
+        self.player.pro_debut = self.o.get('pro_debut', '')
+        self.player.throw_hand = self.o.get('throw_hand', '')
+        self.player.bat_hand = self.o.get('bat_hand', '')
 
         self.player.save()
 
 
 class PlayerStats(DataDenPlayerStats):
-
     game_model = Game
     player_model = Player
 
@@ -827,78 +811,78 @@ class PlayerStats(DataDenPlayerStats):
         # }
 
         # "pitching__list" : {
-                # 	"bf" : 3,
-                # 	"era" : 0,
-                # 	"error" : 0,
-                # 	"gofo" : 0,
-                # 	"ip_1" : 3,
-                # 	"ip_2" : 1,
-                # 	"k9" : 18,
-                # 	"kbb" : 0,
-                # 	"lob" : 0,
-                # 	"oba" : 0,
-                # 	"pitch_count" : 15,
-                # 	"whip" : 0,
-                # 	"onbase__list" : {
-                # 		"bb" : 0,
-                # 		"d" : 0,
-                # 		"fc" : 0,
-                # 		"h" : 0,
-                # 		"hbp" : 0,
-                # 		"hr" : 0,
-                # 		"ibb" : 0,
-                # 		"roe" : 0,
-                # 		"s" : 0,
-                # 		"t" : 0,
-                # 		"tb" : 0
-                # 	},
-                # 	"runs__list" : {
-                # 		"earned" : 0,
-                # 		"total" : 0,
-                # 		"unearned" : 0
-                # 	},
-                # 	"outcome__list" : {
-                # 		"ball" : 5,
-                # 		"dirtball" : 0,
-                # 		"foul" : 4,
-                # 		"iball" : 0,
-                # 		"klook" : 4,
-                # 		"kswing" : 1,
-                # 		"ktotal" : 5
-                # 	},
-                # 	"outs__list" : {
-                # 		"fidp" : 0,
-                # 		"fo" : 1,
-                # 		"gidp" : 0,
-                # 		"go" : 0,
-                # 		"klook" : 2,
-                # 		"kswing" : 0,
-                # 		"ktotal" : 2,
-                # 		"lidp" : 0,
-                # 		"lo" : 0,
-                # 		"po" : 0,
-                # 		"sacfly" : 0,
-                # 		"sachit" : 0
-                # 	},
-                # 	"steal__list" : {
-                # 		"caught" : 0,
-                # 		"stolen" : 0
-                # 	},
-                # 	"games__list" : {
-                # 		"blown_save" : 0,
-                # 		"complete" : 0,
-                # 		"finish" : 0,
-                # 		"hold" : 0,
-                # 		"loss" : 0,
-                # 		"play" : 1,
-                # 		"qstart" : 0,
-                # 		"save" : 0,
-                # 		"shutout" : 0,
-                # 		"start" : 0,
-                # 		"svo" : 0,
-                # 		"win" : 0
-                # 	}
-                # },
+        # 	"bf" : 3,
+        # 	"era" : 0,
+        # 	"error" : 0,
+        # 	"gofo" : 0,
+        # 	"ip_1" : 3,
+        # 	"ip_2" : 1,
+        # 	"k9" : 18,
+        # 	"kbb" : 0,
+        # 	"lob" : 0,
+        # 	"oba" : 0,
+        # 	"pitch_count" : 15,
+        # 	"whip" : 0,
+        # 	"onbase__list" : {
+        # 		"bb" : 0,
+        # 		"d" : 0,
+        # 		"fc" : 0,
+        # 		"h" : 0,
+        # 		"hbp" : 0,
+        # 		"hr" : 0,
+        # 		"ibb" : 0,
+        # 		"roe" : 0,
+        # 		"s" : 0,
+        # 		"t" : 0,
+        # 		"tb" : 0
+        # 	},
+        # 	"runs__list" : {
+        # 		"earned" : 0,
+        # 		"total" : 0,
+        # 		"unearned" : 0
+        # 	},
+        # 	"outcome__list" : {
+        # 		"ball" : 5,
+        # 		"dirtball" : 0,
+        # 		"foul" : 4,
+        # 		"iball" : 0,
+        # 		"klook" : 4,
+        # 		"kswing" : 1,
+        # 		"ktotal" : 5
+        # 	},
+        # 	"outs__list" : {
+        # 		"fidp" : 0,
+        # 		"fo" : 1,
+        # 		"gidp" : 0,
+        # 		"go" : 0,
+        # 		"klook" : 2,
+        # 		"kswing" : 0,
+        # 		"ktotal" : 2,
+        # 		"lidp" : 0,
+        # 		"lo" : 0,
+        # 		"po" : 0,
+        # 		"sacfly" : 0,
+        # 		"sachit" : 0
+        # 	},
+        # 	"steal__list" : {
+        # 		"caught" : 0,
+        # 		"stolen" : 0
+        # 	},
+        # 	"games__list" : {
+        # 		"blown_save" : 0,
+        # 		"complete" : 0,
+        # 		"finish" : 0,
+        # 		"hold" : 0,
+        # 		"loss" : 0,
+        # 		"play" : 1,
+        # 		"qstart" : 0,
+        # 		"save" : 0,
+        # 		"shutout" : 0,
+        # 		"start" : 0,
+        # 		"svo" : 0,
+        # 		"win" : 0
+        # 	}
+        # },
 
         # db.player.distinct('primary_position')
         # >>> [ "1B", "LF", "3B", "CF", "RF", "C", "2B", "SP", "RP", "SS", "DH" ]
@@ -947,10 +931,10 @@ class PlayerStats(DataDenPlayerStats):
             self.ps.qstart = bool(games.get('qstart', 0))
             self.ps.ktotal = outs.get('ktotal', 0)
             self.ps.er = runs.get('earned', 0)  # earned runs allowed
-            self.ps.r_total = runs.get('total', 0)   # total runs allowed (earned and unearned)
-            self.ps.h = onbase.get('h', 0)     # hits against
-            self.ps.bb = onbase.get('bb', 0)    # walks against
-            self.ps.hbp = onbase.get('hbp', 0)   # hit batsmen
+            self.ps.r_total = runs.get('total', 0)  # total runs allowed (earned and unearned)
+            self.ps.h = onbase.get('h', 0)  # hits against
+            self.ps.bb = onbase.get('bb', 0)  # walks against
+            self.ps.hbp = onbase.get('hbp', 0)  # hit batsmen
             self.ps.cg = bool(games.get('complete', 0))  # complete game
             self.ps.cgso = bool(games.get('shutout', 0)) and self.ps.cg  # complete game shut out
             # no hitter if hits == 0, and complete game
@@ -999,7 +983,6 @@ class PlayerStats(DataDenPlayerStats):
 
 
 class AbstractManager(object):
-
     # exceptions for validity checking
     class InvalidReducer(Exception):
         pass
@@ -1031,7 +1014,8 @@ class AbstractManager(object):
         # add_data should be called after
         return self.add_data(shrunk, additional_data)
 
-    def add_data(self, base_data, additional=None):
+    @staticmethod
+    def add_data(base_data, additional=None):
         if additional is not None:
             for k, v in additional.items():
                 # add this key:value of additional data,
@@ -1096,7 +1080,6 @@ class AbstractStatReducer(object):
 
 
 class AbstractShrinker(object):
-
     fields = None
 
     def __init__(self, data):
@@ -1121,7 +1104,6 @@ class AbstractShrinker(object):
 
 
 class AtBatReducer(Reducer):
-
     remove_fields = [
         '_id',
         'errors__list',
@@ -1144,7 +1126,6 @@ class AtBatReducer(Reducer):
 
 
 class AtBatShrinker(Shrinker):
-
     fields = {
         'at_bat__id': 'srid',
         'dd_updated__id': 'ts',
@@ -1155,20 +1136,18 @@ class AtBatShrinker(Shrinker):
 
 
 class AtBatManager(AbstractManager):
-
     reducer_class = AtBatReducer
     shrinker_class = AtBatShrinker
 
 
 class ZonePitchReducer(AbstractStatReducer):
-
     remove_fields = [
         '_id',
         'parent_api__id',
         'game__id',
-        'id',               # comment out for testing
-        'at_bat__id',       # comment out for testing
-        'pitch__id',        # comment out for testing
+        'id',  # comment out for testing
+        'at_bat__id',  # comment out for testing
+        'pitch__id',  # comment out for testing
         'dd_updated__id',
         'hitter_hand',
         'pitcher_hand',
@@ -1226,7 +1205,7 @@ class ZonePitchSorter(object):
         # for i, pitch_dict in enumerate(self.pitchs):
         for i, pitch_srid in enumerate(self.srid_pitchs):
             # pitch_srid = pitch_dict.get('pitch')
-            pitch_order_map[pitch_srid] = i + 1   # map of srid -> atbat pitch index
+            pitch_order_map[pitch_srid] = i + 1  # map of srid -> atbat pitch index
         # print('pitch_order_map:', str(pitch_order_map))
         # we will remove pitch__ids we've used from this.
         # if there are pitch srids remaining at the end, those are ones we missed,
@@ -1328,7 +1307,6 @@ class ZonePitchManager(Manager):
 
 
 class RunnerReducer(AbstractStatReducer):
-
     remove_fields = [
         '_id',
         'at_bat__id',
@@ -1355,7 +1333,6 @@ class RunnerReducer(AbstractStatReducer):
 
 
 class RunnerShrinker(AbstractShrinker):
-
     fields = {
         'id': 'srid',
         'starting_base': 'start',
@@ -1367,7 +1344,6 @@ class RunnerShrinker(AbstractShrinker):
 
 
 class RunnerManager(AbstractManager):
-
     def __init__(self, runners):
         self.runners = runners
 
@@ -1385,7 +1361,6 @@ class RunnerManager(AbstractManager):
 
 
 class PitchPbpReducer(AbstractStatReducer):
-
     class FlagsReducer(AbstractStatReducer):
         """
         parent class is only used for its 'pre_reduce' method
@@ -1414,7 +1389,7 @@ class PitchPbpReducer(AbstractStatReducer):
         'created_at',
         'updated_at',
         'fielders__list',
-        'runners__list',    # leave runners_list in there for debugging
+        'runners__list',  # leave runners_list in there for debugging
         'hit_location',
         'hit_type',
         'parent_api__id',
@@ -1437,7 +1412,6 @@ class PitchPbpShrinker(AbstractShrinker):
     """ reduce() then shrink the fields of a ZonePitch """
 
     class CountShrinker(AbstractShrinker):
-
         key = 'count'
 
         fields = {
@@ -1466,7 +1440,6 @@ class PitchPbpShrinker(AbstractShrinker):
 
 
 class PitchPbpManager(AbstractManager):
-
     reducer_class = PitchPbpReducer
     shrinker_class = PitchPbpShrinker
 
@@ -1572,7 +1545,7 @@ class HittingListToStr(object):
         stat_desc_list.append(self.format_stat('RBI', self.data.get('rbi')))
         stat_desc_list.append(self.format_stat('B', onbase_list.get('bb')))
         stat_desc_list.append(self.format_stat('HBP', onbase_list.get('hbp')))
-        stat_desc_list.append(self.format_stat('HR',  onbase_list.get('hr')))
+        stat_desc_list.append(self.format_stat('HR', onbase_list.get('hr')))
         stat_desc_list.append(self.format_stat('2B', onbase_list.get('d')))
         stat_desc_list.append(self.format_stat('3B', onbase_list.get('t')))
         stat_desc_list.append(self.format_stat('SB', steal_list.get('stolen')))
@@ -1586,7 +1559,8 @@ class HittingListToStr(object):
             desc += suffix
         return desc
 
-    def format_stat(self, name, value):
+    @staticmethod
+    def format_stat(name, value):
         if value is None or value == 0:
             return ''
         elif value == 1:
@@ -1596,7 +1570,6 @@ class HittingListToStr(object):
 
 
 class PlayerStatsToStr(HittingListToStr):
-
     def __init__(self, player_stats_instance):
         super().__init__(player_stats_instance)
 
@@ -1612,14 +1585,14 @@ class PlayerStatsToStr(HittingListToStr):
         homers = self.data.hr
         at_bats = self.data.ab
         hits = singles + doubles + triples + homers
-        stat_desc_list.append(self.format_stat('R',   self.data.r))
+        stat_desc_list.append(self.format_stat('R', self.data.r))
         stat_desc_list.append(self.format_stat('RBI', self.data.rbi))
-        stat_desc_list.append(self.format_stat('B',   self.data.bb))
+        stat_desc_list.append(self.format_stat('B', self.data.bb))
         stat_desc_list.append(self.format_stat('HBP', self.data.hbp))
-        stat_desc_list.append(self.format_stat('HR',  homers))
-        stat_desc_list.append(self.format_stat('2B',  doubles))
-        stat_desc_list.append(self.format_stat('3B',  triples))
-        stat_desc_list.append(self.format_stat('SB',  self.data.sb))
+        stat_desc_list.append(self.format_stat('HR', homers))
+        stat_desc_list.append(self.format_stat('2B', doubles))
+        stat_desc_list.append(self.format_stat('3B', triples))
+        stat_desc_list.append(self.format_stat('SB', self.data.sb))
 
         # generaet the return string
         desc = '%s for %s' % (hits, at_bats)
@@ -1656,15 +1629,12 @@ class QuickCache(object):
     def __init__(self, data=None, stash_now=True, override_cache=None):
         # self.key_prefix_pattern = self.name + '--%s--'            # ex: 'QuickCache--%s--'
         self.key_prefix_pattern = self.name + self.extra_key
-        self.scan_pattern = self.key_prefix_pattern + '*'         # ex: 'QuickCache--%s--*'
-        self.key_pattern = self.key_prefix_pattern + '%s'         # ex: 'QuickCache--%s--%s'
+        self.scan_pattern = self.key_prefix_pattern + '*'  # ex: 'QuickCache--%s--*'
+        self.key_pattern = self.key_prefix_pattern + '%s'  # ex: 'QuickCache--%s--%s'
 
         self.cache = override_cache
         if self.cache is None:
-            # default: use django default cache
-            # TODO fix this hack
-
-            self.cache = get_redis_instance()
+            self.cache = redis_connection
 
         # immediately cache it based on 'stash_now' bool
         if data is not None and stash_now is True:
@@ -1676,13 +1646,10 @@ class QuickCache(object):
 
     def scan(self, ts):
         """ return the keys for objects matching the same cache and timestamp 'ts' """
-
-        redis = get_redis_instance()
-
         keys = []
         pattern = self.scan_pattern % ts
         # print('scan pattern:', pattern)
-        for k in redis.scan_iter(pattern):
+        for k in self.cache.scan_iter(pattern):
             keys.append(k)
         return keys
 
@@ -1695,7 +1662,8 @@ class QuickCache(object):
             raise self.BytesIsNoneException(err_msg)
         return literal_eval(bytes.decode())
 
-    def validate_stashable(self, data):
+    @staticmethod
+    def validate_stashable(data):
         if not isinstance(data, dict):
             err_msg = 'data must be an instance of dict'
             raise Exception(err_msg)
@@ -1755,7 +1723,8 @@ class QuickCacheList(QuickCache):
         """
         return self.cache.rpush(k, data)
 
-    def remove_duplicates_by_field(self, l, field, reverse=True):
+    @staticmethod
+    def remove_duplicates_by_field(l, field, reverse=True):
         added = []
         ret_list = []
         if reverse:
@@ -1793,6 +1762,7 @@ class QuickCacheList(QuickCache):
         ret_list = [self.bytes_2_dict(dict_bytes) for dict_bytes in l]
         # print(self.name, 'fetched: key', str(k), ':', str(ret_list))
         return ret_list
+
 
 #
 ###############################################################
@@ -1861,6 +1831,7 @@ class RunnerCacheList(QuickCacheList):
         l = super().fetch(id)
         return self.remove_duplicates_by_field(l, self.field_runner_id)
 
+
 #
 ###############################################################
 # requirement objects will each attempt to build the rest
@@ -1872,7 +1843,6 @@ class RunnerCacheList(QuickCacheList):
 
 
 class Req(object):
-
     # raised if child class does not override and implement build()
     class MustImplementBuildMethodException(Exception):
         pass
@@ -1911,7 +1881,8 @@ class Req(object):
         err_msg = '%s must override and implement build() method' % self.__class__.__name__
         raise self.MustImplementBuildMethodException(err_msg)
 
-    def build_from(self, pitch, at_bat, zone_pitches, runners):
+    @staticmethod
+    def build_from(pitch, at_bat, zone_pitches, runners):
         """ runners needs to be at least an empty list in the case there are no runners to be valid (not None) """
         raw = {
             'pitch': pitch,
@@ -1923,7 +1894,6 @@ class Req(object):
 
 
 class OidExtras(object):
-
     class ScoreSystemClassNotSetException(Exception):
         pass
 
@@ -2096,7 +2066,8 @@ class ReqPitch(Req):
 
         # 2. get 'pitches' ie: zone_pitches
         # zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
-        zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id())  # could also use: at_bat.get('id')
+        zone_pitches = PitcherCacheList().fetch(
+            self.get_at_bat_id())  # could also use: at_bat.get('id')
         # print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
             # print('    ', tag, 'pitches -> None (ie: zone_pitches)')
@@ -2346,7 +2317,6 @@ class ReqRunner(Req):
 
 
 class PbpParser(DataDenPbpDescription):
-
     # for zone pitches that are lacking the pitch_zone
     class IncompleteZonePitch(Exception):
         pass
@@ -2455,15 +2425,14 @@ class PbpParser(DataDenPbpDescription):
         :param raw_requirements:
         :return:
         """
-        r = get_redis_instance()
         pitch = self.pbp_raw.get('pitch')  # in the raw, its still 'pitch' here not yet 'pbp' !
         ts = pitch.get('dd_updated__id')
         id = pitch.get('id')
         # cache_key = 'mlblinkedpbp-%s-%s' % (ts, id)
         cache_key = 'mlblinkedpbp-%s' % id  # just the pitch id, otherwise we can send same pitch, diff times
         # the send_hsh should only exist if we havent sent it yet
-        is_sendable = r.get(cache_key) is None
-        return is_sendable, cache_key, r
+        is_sendable = cache.get(cache_key) is None
+        return is_sendable, cache_key, cache
 
     def get_req_from(self, data, target):
         """
@@ -2570,7 +2539,8 @@ class PbpParser(DataDenPbpDescription):
     #######
     # original methods from PitchPbp
     #########
-    def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
+    @staticmethod
+    def __find_player_stats(player_stats_class, srid_game, srid_players=[]):
         # print('__find_player_stats', str(player_stats_class), 'srid_game', srid_game, 'srid_players:', str(srid_players))
         player_stats = player_stats_class.objects.filter(
             srid_game=srid_game, srid_player__in=srid_players)
@@ -2642,7 +2612,8 @@ class Injury(DataDenInjury):
         self.srid_player_key = 'id'
         self.NON_INJURY_STATUSES = ['A']
 
-    def get_custom_iid(self, status, updated, srid_player):
+    @staticmethod
+    def get_custom_iid(status, updated, srid_player):
         """
         DO NOT CHANGE THIS FUNCTION or it will break the injury_cleaup method.
 
@@ -2700,7 +2671,6 @@ class Injury(DataDenInjury):
 
 
 class ProbablePitcherParser(AbstractDataDenParseable):
-
     probable_pitcher_type = 'pp'
 
     model = ProbablePitcher
@@ -2754,7 +2724,6 @@ class ProbablePitcherParser(AbstractDataDenParseable):
 
 
 class DataDenMlb(AbstractDataDenParser):
-
     # the name of the mongo database
     mongo_db_for_sport = 'mlb'
 
@@ -2898,7 +2867,8 @@ class DataDenMlb(AbstractDataDenParser):
         else:
             self.unimplemented(self.target[0], self.target[1])
 
-    def cleanup_injuries(self):
+    @staticmethod
+    def cleanup_injuries():
         """
 
 
@@ -2946,7 +2916,7 @@ class DataDenMlb(AbstractDataDenParser):
         and rosters parent api so it can flag players
         who are no long on the teams roster on_active_roster = False
         """
-        super().cleanup_rosters(self.sport,                         # datadeb sport db, ie: 'nba'
-                                sports.mlb.models.Team,             # model class for the Team
-                                sports.mlb.models.Player,           # model class for the Player
-                                parent_api='team_profile')               # parent api where the roster players found
+        super().cleanup_rosters(self.sport,  # datadeb sport db, ie: 'nba'
+                                sports.mlb.models.Team,  # model class for the Team
+                                sports.mlb.models.Player,  # model class for the Player
+                                parent_api='team_profile')  # parent api where the roster players found

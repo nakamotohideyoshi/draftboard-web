@@ -22,6 +22,6 @@ MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
 #
 # If this is too low, you'll get a lot of `Redis ConnectionError: Too many connections` and
 # the trigger will start eating tons of memory.
-# That errordoesn't make much sense but whatever.
-overrides = {'CONNECTION_POOL_KWARGS': {'max_connections': 50}}
+# That error doesn't make much sense but whatever.
+overrides = {'CONNECTION_POOL_KWARGS': {'max_connections': 80}}
 CACHES['default']['OPTIONS'].update(overrides)

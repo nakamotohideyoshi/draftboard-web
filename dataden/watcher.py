@@ -1,15 +1,19 @@
-from raven.contrib.django.raven_compat.models import client
+import threading
 from logging import getLogger
 from threading import Thread
-from util.timesince import timeit
-from django.conf import settings
-from dataden.util.hsh import Hashable
-from dataden.util.simpletimer import SimpleTimer
-from dataden.cache.caches import LiveStatsCache, TriggerCache
+
 import pymongo
+from django.conf import settings
+from django_redis import get_redis_connection
 from pymongo import MongoClient
 from pymongo.cursor import CursorType
+from raven.contrib.django.raven_compat.models import client
+
+from dataden.cache.caches import LiveStatsCache, TriggerCache
 from dataden.signals import Update
+from dataden.util.hsh import Hashable
+from dataden.util.simpletimer import SimpleTimer
+from util.timesince import timeit
 
 # this setting can have a huge impact on the speed of stat updates
 # because it will us celery tasks to do all the updates, but
@@ -197,6 +201,10 @@ class Trigger(object):
     """
 
     class UpdateWorker(Thread):
+        """
+        This is a worker thread that churns through events from the mongo oplog. It checks to see
+        if we've seen the event already, if not, create a celery task to parse it.
+        """
 
         def __init__(self, obj_list, oplogobj_class, live_stats_cache, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -204,16 +212,10 @@ class Trigger(object):
             self.obj_list = obj_list
             self.live_stats_cache = live_stats_cache
 
-            try:
-                size = len(obj_list)
-                logger.debug('%s total_updates: %s' % (self.__class__.__name__, size))
-            except:
-                pass
-
         def run(self):
             """ start working by calling: start() """
             try:
-                ctr = 0
+                counter = 0
                 for obj in self.obj_list:
                     # create a hashable object as the key to cache it with
                     hashable_object = self.oplogobj_class(obj)
@@ -222,16 +224,37 @@ class Trigger(object):
                     if self.live_stats_cache.update(hashable_object):
                         # the object is new or has been updated.
                         # send the update signal along with the object to Pusher/etc...
-                        ctr += 1
+                        counter += 1
                         Update(hashable_object).send(async=True)
 
-                logger.info('%s new_updates: %s' % (self.__class__.__name__, ctr))
+                # Some debugging info for current redis connection count
+                r = get_redis_connection()
+                connection_pool = r.connection_pool
 
+                logger.info(
+                    'UpdateWorker.run() (%s workers, %s redis connections). '
+                    '%s of %s Dataden objects sent to Celery' %
+                    (threading.active_count(), connection_pool._created_connections,
+                     counter, len(self.obj_list)))
+
+            # We want redis connection errors to kill the thread. Otherwise we end up with a
+            # deadlock situation and the dyno process is stuck.
+            # except redis.ConnectionError as e:
+            #     # If you get a `Too many connections` error coming from here, it
+            #     # actually means there are not enough connections left in the
+            #     # connection pool in order to complete this worker's task. You can
+            #     # either bump up the redis connection pool limit, or increase the
+            #     # number of object each worker handles with the `work_size` attribute.
+            #     raise e
+
+            # Catch any other exceptions that are likely to be event-specific, which means we do
+            # not want to kill the thread. Log the error and continue processing remaining events.
             except Exception as e:
-                logger.error(str(e))
+                logger.error(e)
                 client.captureException()
+                raise e
 
-    work_size = 425
+    work_size = 2000
 
     DB_LOCAL = 'local'
     OPLOG = 'oplog.rs'
@@ -368,7 +391,8 @@ class Trigger(object):
                 #     print('trigger:', str(obj))
                 #     Update( hashable_object ).send(async=True)
 
-    def log_for_sumo(self, hashable_object):
+    @staticmethod
+    def log_for_sumo(hashable_object):
         """
         log the mongo object the instant we pick it up in from the oplog.
         be sure to present and identifiable token for the object,
