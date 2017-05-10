@@ -37,7 +37,7 @@ export const fetchSinglePlayerNews = (sport, playerSrid) => ({
       ActionTypes.PLAYER_NEWS_SINGLE__RECEIVE,
       ActionTypes.ADD_MESSAGE,
     ],
-    endpoint: `/api/sports/updates/player/${playerSrid}?category=news/`,  // fetch the news and analysis
+    endpoint: `/api/sports/updates/player/${playerSrid}?category=news`,  // fetch the news and analysis
     requestFields: { sport, playerSrid },
     callback: (json) => ({
       fields: json,
