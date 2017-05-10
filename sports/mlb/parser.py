@@ -50,7 +50,6 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
-from util.timesince import timeit
 
 logger = getLogger('sports.mlb.parser')
 
@@ -2393,7 +2392,6 @@ class PbpParser(DataDenPbpDescription):
         # attempt to send it. send() method checks if it can & wont send duplicates
         self.send()
 
-    @timeit
     def send(self):
 
         if self.pbp_raw is None:
