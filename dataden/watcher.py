@@ -195,65 +195,65 @@ class OpLogObjWithTs(OpLogObj):
     exclude_field_names = []
 
 
+class UpdateWorker(Thread):
+    """
+    This is a worker thread that churns through events from the mongo oplog. It checks to see
+    if we've seen the event already, if not, create a celery task to parse it.
+    """
+
+    def __init__(self, obj_list, oplogobj_class, live_stats_cache, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.oplogobj_class = oplogobj_class
+        self.obj_list = obj_list
+        self.live_stats_cache = live_stats_cache
+
+    def run(self):
+        """ start working by calling: start() """
+        try:
+            counter = 0
+            for obj in self.obj_list:
+                # create a hashable object as the key to cache it with
+                hashable_object = self.oplogobj_class(obj)
+
+                # the live stats cache will add every item it sees to the redis cache
+                if self.live_stats_cache.update(hashable_object):
+                    # the object is new or has been updated.
+                    # send the update signal along with the object to Pusher/etc...
+                    counter += 1
+                    Update(hashable_object).send(async=True)
+
+            # Some debugging info for current redis connection count
+            r = get_redis_connection()
+            connection_pool = r.connection_pool
+
+            logger.info(
+                'UpdateWorker.run() (%s workers, %s redis connections). '
+                '%s of %s Dataden objects  sent to Celery' %
+                (threading.active_count(), connection_pool._created_connections,
+                 counter, len(self.obj_list)))
+
+        # We want redis connection errors to kill the thread. Otherwise we end up with a
+        # deadlock situation and the dyno process is stuck.
+        # except redis.ConnectionError as e:
+        #     # If you get a `Too many connections` error coming from here, it
+        #     # actually means there are not enough connections left in the
+        #     # connection pool in order to complete this worker's task. You can
+        #     # either bump up the redis connection pool limit, or increase the
+        #     # number of object each worker handles with the `work_size` attribute.
+        #     raise e
+
+        # Catch any other exceptions that are likely to be event-specific, which means we do
+        # not want to kill the thread. Log the error and continue processing remaining events.
+        except Exception as e:
+            logger.error(e)
+            client.captureException()
+            raise e
+
+
 class Trigger(object):
     """
     uses local.oplog.rs to implement mongo triggers
     """
-
-    class UpdateWorker(Thread):
-        """
-        This is a worker thread that churns through events from the mongo oplog. It checks to see
-        if we've seen the event already, if not, create a celery task to parse it.
-        """
-
-        def __init__(self, obj_list, oplogobj_class, live_stats_cache, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.oplogobj_class = oplogobj_class
-            self.obj_list = obj_list
-            self.live_stats_cache = live_stats_cache
-
-        def run(self):
-            """ start working by calling: start() """
-            try:
-                counter = 0
-                for obj in self.obj_list:
-                    # create a hashable object as the key to cache it with
-                    hashable_object = self.oplogobj_class(obj)
-
-                    # the live stats cache will add every item it sees to the redis cache
-                    if self.live_stats_cache.update(hashable_object):
-                        # the object is new or has been updated.
-                        # send the update signal along with the object to Pusher/etc...
-                        counter += 1
-                        Update(hashable_object).send(async=True)
-
-                # Some debugging info for current redis connection count
-                r = get_redis_connection()
-                connection_pool = r.connection_pool
-
-                logger.info(
-                    'UpdateWorker.run() (%s workers, %s redis connections). '
-                    '%s of %s Dataden objects sent to Celery' %
-                    (threading.active_count(), connection_pool._created_connections,
-                     counter, len(self.obj_list)))
-
-            # We want redis connection errors to kill the thread. Otherwise we end up with a
-            # deadlock situation and the dyno process is stuck.
-            # except redis.ConnectionError as e:
-            #     # If you get a `Too many connections` error coming from here, it
-            #     # actually means there are not enough connections left in the
-            #     # connection pool in order to complete this worker's task. You can
-            #     # either bump up the redis connection pool limit, or increase the
-            #     # number of object each worker handles with the `work_size` attribute.
-            #     raise e
-
-            # Catch any other exceptions that are likely to be event-specific, which means we do
-            # not want to kill the thread. Log the error and continue processing remaining events.
-            except Exception as e:
-                logger.error(e)
-                client.captureException()
-                raise e
-
     work_size = 2000
 
     DB_LOCAL = 'local'
@@ -360,7 +360,7 @@ class Trigger(object):
                 # send current UpdateWorker unless theres
                 # actually 0 things left to send
                 if len(obj_list) > 0:
-                    worker = self.UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
+                    worker = UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
                     worker.start()  # join it? will it die? should we hold onto it?
                     # and reset ctr and obj_list
                     ctr = 0
@@ -372,7 +372,7 @@ class Trigger(object):
             obj_list.append(obj)
 
             if ctr >= self.work_size:
-                worker = self.UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
+                worker = UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
                 worker.start()  # join it? will it die? should we hold onto it?
                 # and reset ctr and obj_list
                 ctr = 0
