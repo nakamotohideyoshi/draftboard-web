@@ -42,7 +42,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
 
         # hard code this to use the category: 'injury' for testing
         # category = 'injury'
-        category = rotowire_update.get_field('category', 'injury')
+        category = rotowire_update.get_field('category')
         type = 'rotowire'
         value = rotowire_update.get_text() # latest news
         notes = rotowire_update.get_notes()
@@ -185,9 +185,9 @@ class UpdateData(object):
     def get_injury_status(self):
         """ returns injury status. """
         if self.get_sport() == 'mlb':
-            status = self.data.get(self.field_player).get(self.field_injury).get(self.field_injury_status, 'active')
+            status = self.data.get(self.field_player).get(self.field_injury).get(self.field_injury_status) or 'active'
         else:
-            status = self.data.get(self.field_injury).get(self.field_injury_status, 'active')
+            status = self.data.get(self.field_injury).get(self.field_injury_status) or 'active'
 
         return status
 
