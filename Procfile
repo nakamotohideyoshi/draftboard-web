@@ -25,19 +25,6 @@ celeryrt: newrelic-admin run-program celery -A mysite worker -Q realtime -l info
 purger: newrelic-admin run-program celery -A mysite worker -l info --purge -n Purger
 
 
-# the mandatory (and the only) worker responsible for running dataden.
-# no other worker should consume from the queue this worker consumes from
-#
-#   -q : quick startup flag (for restarting without re-parsing initialization feeds)
-#   -apiSpeedDelta <integer> : +/- values will increase or decrease the parse interval
-#
-dataden: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-
-
-# use this to reset the schedule, or startup from scratch
-dataden_init: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -apiSpeedDelta -15 -t 8
-
-
 # the mandatory (and the only) worker responsible for running dataden triggers
 # on the mongo database. this task ensures data is being pushed from mongo to django/postgres.
 # 1x Dyno sport triggers using mongolab.com --> M3 <-- instance

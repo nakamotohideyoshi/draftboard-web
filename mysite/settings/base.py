@@ -261,8 +261,8 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # Live Mongo Connection settings (we use live for everything, no local instance)
 MONGO_SERVER_ADDRESS = 'ds015781-a0.mlab.com'
 MONGO_AUTH_DB = 'admin'
-MONGO_USER = 'dataden'
-MONGO_PASSWORD = '2hqppYXCoHRMszVp2gCcP4Eh7KULr2VmrriAtLoJ'
+MONGO_USER = 'django_readonly'
+MONGO_PASSWORD = '7GZAG3wrtppzgWCfGdLBTcvDFazpNxsmL4rH9NE8'
 MONGO_PORT = 15781  # default port may be the actual port
 MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
     MONGO_USER,
@@ -371,7 +371,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'stream': stdout,
-            'formatter': 'verbose'
+            'formatter': 'simple'
         },
     },
     'loggers': {

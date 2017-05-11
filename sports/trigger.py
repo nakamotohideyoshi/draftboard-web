@@ -58,7 +58,7 @@ class MlbOpLogObj(OpLogObj):
         """
         if self.get_ns() == self.object_namespace and self.get_o().get('description') is None:
             my_ns = self.get_ns()
-            print('(override!) my_ns: %s' % my_ns)
+            logger.debug('(override!) my_ns: %s' % my_ns)
             return True
         return False
 
