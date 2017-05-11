@@ -145,6 +145,22 @@ class PlayerHistoryHitterSerializer(sports.serializers.PlayerHistorySerializer):
         child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
     )
 
+    h = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_h(obj):
+        """
+        Since we don't save hits to the DB, add up singles, doubles, triples and HRs
+        to determine them.
+        :param obj: 
+        :return: list 
+        """
+        h = []
+        for key, value in enumerate(obj['s']):
+            h.append(obj['s'][key] + obj['d'][key] + obj['t'][key] + obj['hr'][key])
+        return h
+
+
 class PlayerHistoryPitcherSerializer(sports.serializers.PlayerHistorySerializer):
     """
     use the fields, especially from the PlayerStats get_scoring_fields()
