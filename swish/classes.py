@@ -41,7 +41,8 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         update_id = rotowire_update.get_update_id()
 
         # hard code this to use the category: 'injury' for testing
-        category = 'injury'
+        # category = 'injury'
+        category = rotowire_update.get_field('category')
         type = 'rotowire'
         value = rotowire_update.get_text() # latest news
         notes = rotowire_update.get_notes()
@@ -83,6 +84,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
 class UpdateData(object):
     """ wrapper for each update object. this class is constructed with the JSON of an individual update """
 
+    field_category = 'category'
     field_update_id = 'Id'
 
     field_datetime_utc = 'DateTime'  # ???
@@ -140,10 +142,11 @@ class UpdateData(object):
             Out[34]: datetime.datetime(2016, 8, 16, 22, 11, 55, tzinfo=<UTC>)
 
         """
-        parsed = dateutil.parser.parse(self.data.get(self.field_datetime_utc))
-        new_format = parsed.strftime('%Y-%m-%d %H:%M:%S')
-        dt_str = '%s UTC' % new_format
-        return dateutil.parser.parse(dt_str, tzinfos={'UTC': UtcTime.TZ_UTC})
+        if self.data.get(self.field_datetime_utc):
+            parsed = dateutil.parser.parse(self.data.get(self.field_datetime_utc))
+            new_format = parsed.strftime('%Y-%m-%d %H:%M:%S')
+            dt_str = '%s UTC' % new_format
+            return dateutil.parser.parse(dt_str, tzinfos={'UTC': UtcTime.TZ_UTC})
 
     def get_update_id(self):
         """ converts the update id to a str, and returns it """
@@ -169,20 +172,24 @@ class UpdateData(object):
 
     def get_notes(self):
         """ returns the news notes. """
-        return self.data.get(self.field_notes)
+        return self.data.get(self.field_notes, '')
 
     def get_analysis(self):
         """ returns the news field_analysis. """
-        return self.data.get(self.field_analysis)
+        return self.data.get(self.field_analysis, '')
 
     def get_headline(self):
         """ returns the news field_analysis. """
-        return self.data.get(self.field_headline)
+        return self.data.get(self.field_headline, '')
 
     def get_injury_status(self):
         """ returns injury status. """
-        status = self.data.get(self.field_injury).get(self.field_injury_status)
-        return status if status else 'active'
+        if self.get_sport() == 'mlb':
+            status = self.data.get(self.field_player).get(self.field_injury).get(self.field_injury_status) or 'active'
+        else:
+            status = self.data.get(self.field_injury).get(self.field_injury_status) or 'active'
+
+        return status
 
 
 class RotoWire(object):
@@ -202,7 +209,7 @@ class RotoWire(object):
     # range(1, 15) but for some reason here no 12 didn't find any description in docs
     NBA = 'nba'
     MLB = 'mlb'
-    SPORTS = { NBA: 'Basketball', MLB: 'Baseball'}
+    SPORTS = {NBA: 'Basketball', MLB: 'Baseball'}
 
     statuses = [
         (STARTING, 'starting'),
@@ -287,29 +294,52 @@ class RotoWire(object):
         now = datetime.now()
         return str(now.date())
 
-    def get_player_extra_data(self):
-        url = '{}/Basketball/{}/{}?key={}&format=json'.format(self.api_base_url, self.sport, self.api_injuries,
-                                                              self.api_key)
+    def get_injuries(self):
+        url = '{}/{}/{}/{}?key={}&format=json'.format(
+            self.api_base_url,
+            self.SPORTS.get(self.sport),
+            self.sport,
+            self.api_injuries,
+            self.api_key
+        )
         response_data = self.call_api(url)
-        results = response_data.get('Updates', {})
-        if results:
+        results = response_data.get('Players', {})
+        self.updates = []
+        for update_data in results:
+            data = {}
+            data['category'] = 'injury'
+            data['sport'] = self.sport
+            data['Player'] = {}
+            data['Player']['Id'] = update_data.get('Id')
+            data['Player']['FirstName'] = update_data.get('FirstName')
+            data['Player']['LastName'] = update_data.get('LastName')
+            if self.sport == 'mlb':
+                data['Player']['Injury'] = {}
+                data['Player']['Injury']['Status'] = update_data.get('InjuryStatus')
+            else:
+                data['Injury'] = {}
+                data['Injury']['Status'] = update_data.get('InjuryStatus')
+            self.updates.append(UpdateData(data))
 
-            data = results
-            return {str(update.get('Player').get('Id')): '{} {}'.format(update.get('Notes'), update.get('Analysis')) for update in data}
-        else:
-            return {}
+        logger.info('%s UpdateData(s)' % len(self.updates))
+        return self.updates
 
-    def get_updates(self):
+    def get_news(self):
         formatted_date = self.get_formatted_date()
-        url = '{}/{}/{}/{}?key={}&format=json&hours=24'.format(self.api_base_url, self.SPORTS.get(self.sport) , self.sport, self.api_news,  self.api_key)
+        url = '{}/{}/{}/{}?key={}&format=json&hours=24'.format(
+            self.api_base_url,
+            self.SPORTS.get(self.sport),
+            self.sport,
+            self.api_news,
+            self.api_key
+        )
         response_data = self.call_api(url)
-        # text_data = self.get_player_extra_data()
         # results will be a list of the updates from swish
         results = response_data.get('Updates', {})
         self.updates = []
         for update_data in results:
-
-            # update_data['text'] = text_data.get(str(update_data.get('id')))
+            update_data['category'] = 'news'
+            update_data['sport'] = self.sport
             self.updates.append(UpdateData(update_data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))

@@ -1,3 +1,4 @@
+from logging import getLogger
 from random import Random
 
 from django.core.cache import caches
@@ -9,6 +10,8 @@ from dataden.models import (
 from dataden.util.hsh import Hashable
 from keyprefix.classes import UsesCacheKeyPrefix
 from mysite.exceptions import IncorrectVariableTypeException
+
+logger = getLogger('dataden.cache.caches')
 
 
 # >>> cache1 = caches['myalias']
@@ -147,11 +150,10 @@ class LiveStatsCache(UsesCacheKeyPrefix):
         # thru the trigger filter based on its own logic
         # even if the underlying data has not changed.
         override = livestat.override_new()
-        # TODO remove this debug
         if override:
             ns = livestat.get_ns()
             o = livestat.get_o()
-            print('override trigger filter! ns: %s, o: %s' % (ns, str(o)))
+            logger.debug('override trigger filter! ns: %s, o: %s' % (ns, str(o)))
 
         #
         # the return value, a boolean, is True if it was added, otherwise False

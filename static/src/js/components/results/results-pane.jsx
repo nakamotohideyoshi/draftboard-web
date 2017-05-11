@@ -87,7 +87,7 @@ const ResultsPane = React.createClass({
       }
 
       return (
-        <tr key={lineup.final_rank}>
+        <tr key={lineup.username}>
           <td>{lineup.username}</td>
           <td>{humanizeCurrency(payout)}</td>
           <td>{lineup.fantasy_points}</td>

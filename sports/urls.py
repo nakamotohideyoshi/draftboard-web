@@ -20,7 +20,6 @@ urlpatterns = [
     # get updates for a sport
     url(r'^updates/player/(?P<player_srid>[a-z0-9\-]+)/$', PlayerRetrieveAPIView.as_view()),
     url(r'^player-status/nba/$', UpdateAPIView.as_view(), {"sport": "nba"}),
-    url(r'^player-status/nba/$', UpdateAPIView.as_view(), {"sport": "nba"}),
     url(r'^player-status/nfl/$', UpdateAPIView.as_view(), {"sport": "nfl"}),
     url(r'^player-status/nhl/$', UpdateAPIView.as_view(), {"sport": "nhl"}),
     url(r'^player-status/mlb/$', UpdateAPIView.as_view(), {"sport": "mlb"}),

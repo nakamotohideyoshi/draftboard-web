@@ -47,12 +47,10 @@ const ResultsDaysSlider = React.createClass({
 
   componentWillReceiveProps(nextProps) {
     const state = merge({}, this.state);
-    // Forced overwrite properties before getting the new items;
-    this.props.day = nextProps.day;
-    this.props.month = nextProps.month;
-    this.props.year = nextProps.year;
-    state.itemsList = this.getItemsList();
     state.settings.initialSlide = nextProps.day - 1;
+
+    // Forced overwrite properties before getting the new items;
+    state.itemsList = this.getItemsList();
     this.setState(state);
   },
 

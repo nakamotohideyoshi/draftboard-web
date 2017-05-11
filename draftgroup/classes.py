@@ -175,7 +175,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
         """
         updates the final_fantasy_points for all players in the draft group
 
-        :param draft_group:
+        :param draft_group_id:
         :param scorer_class: gives the caller ability to override the scoring class used to calc fantasy points
         :return:
         """
@@ -323,7 +323,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         return data
 
-    def get_game_teams(self, draft_group):
+    @staticmethod
+    def get_game_teams(draft_group):
         """
         Return a QuerySet of the draftgroup.models.GameTeam objects
         for the draftgroup.
@@ -331,7 +332,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
         Each GameTeam object has srids for the game, and for one of the teams.
         (So there will typically be one GameTeam for home, and one for away.)
 
-        :param draftgroup: draftgroup.models.DraftGroup instance
+        :param draft_group: draftgroup.models.DraftGroup instance
         :return:
         """
         return GameTeam.objects.filter(draft_group=draft_group)
@@ -396,7 +397,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
         # return pbp_description_model.objects.filter( description__srid_game__in=game_srids )[:15]
         return pbp_description_model.objects.filter()[:15]
 
-    def get_for_game(self, game):
+    @staticmethod
+    def get_for_game(game):
         """
         return a list of all the DraftGroups which contain this Game
 
@@ -495,7 +497,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
         # build lists of all the teams, and all the player srids in the draft group
         game_srids = {}
         team_srids = {}
-        game_teams = {}  # newly created game_team objects will need to be associated with draftgroup players
+        # newly created game_team objects will need to be associated with draftgroup players
+        game_teams = {}
         for g in games:
             # add each game srid as a key, using the game itself as the value
             game_srids[g.srid] = g
@@ -544,7 +547,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
         # # can have any relevant GameUpdates created
         # try:
         #     sport = draft_group.salary_pool.site_sport.name # ie: 'mlb', or 'nfl', etc...
-        #     sig = CheckForGameUpdatesSignal( draft_group.pk, sport, game_srids=list(game_srids.keys()))
+        #     sig = CheckForGameUpdatesSignal(
+        #           draft_group.pk, sport, game_srids=list(game_srids.keys()))
         #     sig.send()
         # except Exception as e:
         #     print('unable to send CheckForGameUpdatesSignal, skipping...')
@@ -604,7 +608,7 @@ class AbstractUpdateManager(object):
         update.category = category
         update.type = type
 
-        fields = ['updated_at',  'status', 'source_origin', 'url_origin', 'value']
+        fields = ['updated_at', 'status', 'source_origin', 'url_origin', 'value']
         for f in fields:
             old_value = getattr(update, f)
             if old_value is None or old_value != eval(f):
@@ -856,9 +860,9 @@ class PlayerUpdateManager(AbstractUpdateManager):
         return self.get_player_srid_for_name(name)
 
 
-class GameUpdateManager(
-    AbstractUpdateManager):  # TODO need to fix this to be more like PlayerUpdateManager
+class GameUpdateManager(AbstractUpdateManager):
     """
+    # TODO need to fix this to be more like PlayerUpdateManager
     This class should exclusively be used as the interface
     to adding draftgroup.models.GameUpdate objects to draftgroups.
 
@@ -912,6 +916,7 @@ class GameUpdateManager(
             gu = self.model.objects.get(update_id=update_id)
         except self.model.DoesNotExist:
             gu = self.model()
+            gu.game_srid = self.game_srid
             gu.category = category
             gu.type = type
             gu.updated_at = timezone.now()
@@ -921,7 +926,7 @@ class GameUpdateManager(
             gu.value = value
             gu.save()
 
-        if created == True:
+        if created:
             # add it if we are in the process of creating it
             for draft_group in self.draft_groups:
                 gu.draft_groups.add(draft_group)  # ManyToMany relationship!

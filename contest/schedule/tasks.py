@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 
 from contest.schedule.classes import ContestPoolScheduleManager
 from contest.schedule.models import UpcomingBlock
+from draftgroup.exceptions import NotEnoughGamesException
 from mysite.celery_app import app
 from mysite.utils import send_email
 
@@ -70,6 +71,10 @@ def create_scheduled_contest_pools(self, sport):
 
         except ContestPoolScheduleManager.ActiveBlockNotFoundException:
             logger.warning('No Block was found for %s', scheduler)
+            pass
+
+        except NotEnoughGamesException as e:
+            logger.warning(e)
             pass
 
         finally:
