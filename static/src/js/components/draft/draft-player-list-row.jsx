@@ -77,9 +77,9 @@ const DraftPlayerListRow = React.createClass({
 
 
   // Get any non-'active' status.
-  getInjuryStatus(update) {
-    if (update && 'status' in update && update.status !== 'active') {
-      return update.status;
+  getInjuryStatus(status) {
+    if (status !== 'active') {
+      return status;
     }
 
     return '';
@@ -90,8 +90,7 @@ const DraftPlayerListRow = React.createClass({
     // console.log('render player');
     let classes = 'cmp-player-list__row';
     let salaryClasses = 'salary ';
-    const statusClasses = this.getInjuryStatus(
-      this.props.latestInjuryUpdate) === 'starting' ? 'positive status' : 'status';
+    const statusClasses = this.props.row.status === 'active' ? 'positive status' : 'status';
 
     if (this.props.row.draftable === false) {
       classes += ' fade';
@@ -131,7 +130,7 @@ const DraftPlayerListRow = React.createClass({
           <span className="player">{this.props.row.name} </span>
           <span className="team">{this.props.row.team_alias}</span>
         </td>
-        <td className={statusClasses}>{this.getInjuryStatus(this.props.latestInjuryUpdate)}</td>
+        <td className={statusClasses}>{this.props.row.status}</td>
         <td className="game">
           <DraftPlayerNextGame
             game={this.props.row.nextGame}

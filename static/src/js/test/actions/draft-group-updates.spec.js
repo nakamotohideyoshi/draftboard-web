@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+import {assert} from 'chai';
 import mockStore from '../mock-store-with-middleware';
 import nock from 'nock';
 
@@ -44,7 +44,6 @@ describe('actions.draftGroupUpdates.fetchDraftGroupUpdates', () => {
         const dispatchedActions = store.getActions();
         // Did the action get dispatched?
         assert.isDefined(find(dispatchedActions, { type: 'DRAFT_GROUP_UPDATES__FETCHING' }));
-
         const actionBody = find(
           dispatchedActions,
           { type: 'DRAFT_GROUP_UPDATES__FETCH_SUCCESS' }
@@ -58,7 +57,7 @@ describe('actions.draftGroupUpdates.fetchDraftGroupUpdates', () => {
         assert.property(actionBody.updates, 'playerUpdates');
         // the fixtures have 2 injury updates for 2 differnet playres, these get grouped, so we
         // should have 2 injury update entries.
-        assert.equal(Object.keys(actionBody.updates.playerUpdates.injury).length, 2);
+        assert.equal(Object.keys(actionBody.updates.playerUpdates.playerStatus).length, 1);
       });
   });
 
