@@ -31,8 +31,10 @@ const playersWithInfo = createSelector(
     // Duplicate the player so we don't mutate the state.
     const playerWithInfo = merge({}, player);
     // Add injury status if we have it.
-    if (injuries.hasOwnProperty(player.player_id)) {
-      playerWithInfo.status = injuries[player.player_id].status;
+    if (injuries.sports[sport].hasOwnProperty('playerUpdates')) {
+      if (injuries.sports[sport].playerUpdates.playerStatus.hasOwnProperty(player.player_srid)) {
+        playerWithInfo.status = injuries.sports[sport].playerUpdates.playerStatus[player.player_srid][0].status;
+      }
     }
 
     // Add FP history.
