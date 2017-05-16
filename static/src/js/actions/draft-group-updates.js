@@ -33,8 +33,8 @@ export const fetchDraftGroupUpdates = (sport) => (dispatch) => {
         const categories = groupBy(json.player_updates, 'category');
         const playerUpdates = {};
 
-        forEach(categories, (updates, key) => {
-          playerUpdates[key] = groupBy(updates, 'srid');
+        forEach(categories, (updates) => {
+          playerUpdates.playerStatus = groupBy(updates, 'player_srid');
         });
 
         return {
