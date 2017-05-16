@@ -933,6 +933,7 @@ class PlayerStats(DataDenPlayerStats):
             self.ps.r_total = runs.get('total', 0)  # total runs allowed (earned and unearned)
             self.ps.h = onbase.get('h', 0)  # hits against
             self.ps.bb = onbase.get('bb', 0)  # walks against
+            self.ps.ibb = onbase.get('ibb', 0)  # intentional walks against
             self.ps.hbp = onbase.get('hbp', 0)  # hit batsmen
             self.ps.cg = bool(games.get('complete', 0))  # complete game
             self.ps.cgso = bool(games.get('shutout', 0)) and self.ps.cg  # complete game shut out
@@ -956,6 +957,7 @@ class PlayerStats(DataDenPlayerStats):
             outs = hitting.get('outs__list', {})
 
             self.ps.bb = onbase.get('bb', 0)
+            self.ps.ibb = onbase.get('ibb', 0)
             self.ps.s = onbase.get('s', 0)
             self.ps.d = onbase.get('d', 0)
             self.ps.t = onbase.get('t', 0)

@@ -1,28 +1,27 @@
-#
-# scoring/cache.py
+from django.core.cache import caches
 
 from keyprefix.classes import UsesCacheKeyPrefix
-from django.core.cache import caches
+
 
 class ScoreSystemCache(UsesCacheKeyPrefix):
     """
     Get the cache for the specified sport's scoring system stat values.
     """
 
-    KEY     = "score_system"
+    KEY = "score_system"
     TIMEOUT = 360
 
     def __init__(self, sport, name='default', clear=False, key_version=1):
         super().__init__()
 
-        self.c = caches[ name ]     # 'default' is the settings.CACHES['default'] !
-        if clear == True:
+        self.c = caches[name]  # 'default' is the settings.CACHES['default'] !
+        if clear:
             self.clear()
-        self.sport          = sport
-        self.key_version    = key_version
+        self.sport = sport
+        self.key_version = key_version
 
     def clear(self):
-        self.c.delete( self.__key() ) # removes the item at the key
+        self.c.delete(self.__key())  # removes the item at the key
         self.stat_values = []
 
     def __key(self):
@@ -42,7 +41,7 @@ class ScoreSystemCache(UsesCacheKeyPrefix):
         :param stat_values:
         :return:
         """
-        was_added = self.c.add( self.__key(), stat_values, self.TIMEOUT, version=self.key_version )
+        was_added = self.c.add(self.__key(), stat_values, self.TIMEOUT, version=self.key_version)
         return was_added
 
     def get_stat_values(self):
@@ -52,4 +51,4 @@ class ScoreSystemCache(UsesCacheKeyPrefix):
 
         :return:
         """
-        return self.c.get( self.__key(), None )
+        return self.c.get(self.__key(), None)
