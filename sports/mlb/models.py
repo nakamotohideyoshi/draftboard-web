@@ -1,9 +1,10 @@
-from django.db import models
-import sports.models
-import scoring.classes
-import push.classes
-from django.contrib.postgres.fields import JSONField
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
+from django.db import models
+
+import push.classes
+import scoring.classes
+import sports.models
 
 
 class Season(sports.models.Season):
@@ -116,7 +117,7 @@ class Player(sports.models.Player):
         max_length=64,
         null=False,
         default='',
-        blank = True,
+        blank=True,
         help_text='roster status - ie: "A" means they are ON the roster. Not particularly active as in not-injured!'
     )
     pro_debut = models.CharField(max_length=64, null=False, default='', blank=True)
@@ -196,12 +197,14 @@ class PlayerStatsHitter(PlayerStats):
         'rbi',
         'r',
         'bb',
+        'ibb',
         'hbp',
         'sb',
         'cs',
     ]
 
     bb = models.IntegerField(default=0, null=False)  # walks
+    ibb = models.IntegerField(default=0, null=False)  # intentional base on balls
     s = models.IntegerField(default=0, null=False)  # singles
     d = models.IntegerField(default=0, null=False)  # doubles
     t = models.IntegerField(default=0, null=False)  # triples
@@ -243,7 +246,9 @@ class PlayerStatsPitcher(PlayerStats):
         'ktotal',
         'er',
         'h',
+        'hbp',
         'bb',
+        'ibb',
     ]
 
     ip_1 = models.FloatField(default=0.0, null=False)  # outs, basically
@@ -256,6 +261,7 @@ class PlayerStatsPitcher(PlayerStats):
     r_total = models.IntegerField(default=0, null=False)  # total runs allowed
     h = models.IntegerField(default=0, null=False)  # hits against
     bb = models.IntegerField(default=0, null=False)  # walks against
+    ibb = models.IntegerField(default=0, null=False)  # intentional base on balls (walk)
     hbp = models.IntegerField(default=0, null=False)  # hit batsmen
     cg = models.BooleanField(default=False, null=False)  # complete game
     cgso = models.BooleanField(default=False, null=False)  # complete game shut out
@@ -266,7 +272,8 @@ class PlayerStatsPitcher(PlayerStats):
         unique_together = ('srid_player', 'srid_game')
 
 
-class RealTimeAtBat(models.Model):  # django.contrib.contenttypes.xxxx where generic has been moved here
+class RealTimeAtBat(
+    models.Model):  # django.contrib.contenttypes.xxxx where generic has been moved here
     """
     entries in this table wont necessarily be unique.
     we just want to capture the realtime at bat objects

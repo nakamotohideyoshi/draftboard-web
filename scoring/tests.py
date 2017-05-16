@@ -2,16 +2,17 @@
 # scoring/tests.py
 
 import itertools
-import sports.nba.models
-import sports.nhl.models
+
 import sports.mlb.models
+import sports.nba.models
 import sports.nfl.models
-from test.classes import AbstractTest
+import sports.nhl.models
+from dataden.util.timestamp import Parse as DataDenDatetime
 from scoring.classes import (
     NbaSalaryScoreSystem, NhlSalaryScoreSystem, MlbSalaryScoreSystem, NflSalaryScoreSystem
 )
-from dataden.util.timestamp import Parse as DataDenDatetime
 from sports.models import SiteSport, Position
+from test.classes import AbstractTest
 
 
 class MlbOutcome2FantasyPointTest(AbstractTest):
@@ -34,7 +35,6 @@ class MlbOutcome2FantasyPointTest(AbstractTest):
 
 
 class SiteSportPosition():
-
     def get_position(self, site_sport, name):
         try:
             position = Position.objects.get(site_sport__name=site_sport, name=name)
@@ -109,15 +109,15 @@ class NbaScoringTest(AbstractTest):
         birthdate = "1980-10-04"
         college = "Miami"
         experience = 11
-        height = 80      # inches
-        weight = 215      # lbs.
+        height = 80  # inches
+        weight = 215  # lbs.
         jersey_number = 1
 
         ssp = SiteSportPosition()
         position = ssp.get_position(site_sport="nba", name="SF")
         primary_position = ssp.get_position(site_sport="nba", name="SF")
 
-        status = "ACT"   # roster status, ie: basically whether they are on it
+        status = "ACT"  # roster status, ie: basically whether they are on it
 
         draft_pick = 49
         draft_round = 2
@@ -132,7 +132,7 @@ class NbaScoringTest(AbstractTest):
             p = sports.nba.models.Player()
             p.srid = srid
 
-        p.team = t             # team could easily change of course
+        p.team = t  # team could easily change of course
         p.first_name = first_name
         p.last_name = last_name
 
@@ -442,15 +442,15 @@ class NhlScoringTest(AbstractTest):
         birthdate = "1980-10-04"
         college = "Miami"
         experience = 11
-        height = 80      # inches
-        weight = 215      # lbs.
+        height = 80  # inches
+        weight = 215  # lbs.
         jersey_number = 1
 
         ssp = SiteSportPosition()
         position = ssp.get_position(site_sport="nhl", name="G")
         primary_position = ssp.get_position(site_sport="nhl", name="G")
 
-        status = "ACT"   # roster status, ie: basically whether they are on it
+        status = "ACT"  # roster status, ie: basically whether they are on it
 
         draft_pick = 49
         draft_round = 2
@@ -465,7 +465,7 @@ class NhlScoringTest(AbstractTest):
             p = sports.nhl.models.Player()
             p.srid = srid
 
-        p.team = t             # team could easily change of course
+        p.team = t  # team could easily change of course
         p.first_name = first_name
         p.last_name = last_name
 
@@ -785,15 +785,15 @@ class MlbScoringTest(AbstractTest):
         birthdate = "1980-10-04"
         college = "Miami"
         experience = 4
-        height = 80      # inches
-        weight = 215      # lbs.
+        height = 80  # inches
+        weight = 215  # lbs.
         jersey_number = 1
 
         ssp = SiteSportPosition()
         position = ssp.get_position(site_sport="mlb", name="SP")
         primary_position = ssp.get_position(site_sport="mlb", name="SP")
 
-        status = "ACT"   # roster status, ie: basically whether they are on it
+        status = "ACT"  # roster status, ie: basically whether they are on it
 
         draft_pick = 49
         draft_round = 2
@@ -808,7 +808,7 @@ class MlbScoringTest(AbstractTest):
             p = sports.mlb.models.Player()
             p.srid = srid
 
-        p.team = t             # team could easily change of course
+        p.team = t  # team could easily change of course
         p.first_name = first_name
         p.last_name = last_name
 
@@ -840,15 +840,15 @@ class MlbScoringTest(AbstractTest):
         birthdate = "1980-10-04"
         college = "Miami"
         experience = 4
-        height = 80      # inches
-        weight = 215      # lbs.
+        height = 80  # inches
+        weight = 215  # lbs.
         jersey_number = 1
 
         ssp = SiteSportPosition()
         position = ssp.get_position(site_sport="mlb", name="1B")
         primary_position = ssp.get_position(site_sport="mlb", name="1B")
 
-        status = "ACT"   # roster status, ie: basically whether they are on it
+        status = "ACT"  # roster status, ie: basically whether they are on it
 
         draft_pick = 49
         draft_round = 2
@@ -863,7 +863,7 @@ class MlbScoringTest(AbstractTest):
             p = sports.mlb.models.Player()
             p.srid = srid
 
-        p.team = t             # team could easily change of course
+        p.team = t  # team could easily change of course
         p.first_name = first_name
         p.last_name = last_name
 
@@ -941,10 +941,10 @@ class MlbScoringTest(AbstractTest):
         ps.qstart = bool(0)
         ps.ktotal = 0
         ps.er = 0  # earned runs allowed
-        ps.r_total = 0   # total runs allowed (earned and unearned)
-        ps.h = 0     # hits against
-        ps.bb = 0    # walks against
-        ps.hbp = 0   # hit batsmen
+        ps.r_total = 0  # total runs allowed (earned and unearned)
+        ps.h = 0  # hits against
+        ps.bb = 0  # walks against
+        ps.hbp = 0  # hit batsmen
         ps.cg = bool(0)  # complete game
         ps.cgso = bool(0) and ps.cg  # complete game shut out
         ps.nono = bool(ps.h) and ps.cg  # no hitter if hits == 0, and complete game
@@ -1087,6 +1087,15 @@ class MlbScoringTest(AbstractTest):
             self.assertAlmostEquals(self.mlb_Salary_Score_System.score_player(
                 self.pitcher_stats), walks * multiplier)
 
+    def test_pitcher_intentional_walks(self):
+        # Test various values of walk to make sure the calculations are correct
+        self.create_pitcher_stats()
+        for iwalks in range(11):
+            self.update_pitcher_stats({'ibb': iwalks})
+            multiplier = self.mlb_Salary_Score_System.get_value_of('iwalk')
+            self.assertAlmostEquals(self.mlb_Salary_Score_System.score_player(
+                self.pitcher_stats), iwalks * multiplier)
+
     def test_pitcher_complete_game(self):
         # Test the bonus for a pitcher getting a complete game
         self.create_pitcher_stats()
@@ -1117,27 +1126,30 @@ class MlbScoringTest(AbstractTest):
         # Test combinations of all stats
         self.create_pitcher_stats()
         self.update_pitcher_stats({'nono': bool(1), 'cg': bool(1), 'cgso': bool(1), 'win': bool(1)})
-        for ip, k, er, hit, walk in itertools.product(range(0, 41, 10), range(0, 10, 9),
-                                                      range(0, 4, 3), range(0, 7, 6),
-                                                      range(0, 3, 2)):
+        for ip, k, er, hit, walk, iwalk in itertools.product(
+                range(0, 41, 10), range(0, 10, 9), range(0, 4, 3), range(0, 7, 6), range(0, 3, 2),
+                range(0, 4, 1)):
             stats = {
                 'ip_1': ip,
                 'ktotal': k,
                 'er': er,
                 'h': hit,
-                'bb': walk
+                'bb': walk,
+                'ibb': iwalk,
             }
             self.update_pitcher_stats(stats)
 
-            total = (float(ip / 3.0) * self.mlb_Salary_Score_System.get_value_of('ip') +
-                     k * self.mlb_Salary_Score_System.get_value_of('k') +
-                     er * self.mlb_Salary_Score_System.get_value_of('er') +
-                     hit * self.mlb_Salary_Score_System.get_value_of('hit') +
-                     walk * self.mlb_Salary_Score_System.get_value_of('walk') +
-                     self.mlb_Salary_Score_System.get_value_of('no-hitter') +
-                     self.mlb_Salary_Score_System.get_value_of('cg') +
-                     self.mlb_Salary_Score_System.get_value_of('cgso') +
-                     self.mlb_Salary_Score_System.get_value_of('win'))
+            total = (
+                float(ip / 3.0) * self.mlb_Salary_Score_System.get_value_of('ip') +
+                k * self.mlb_Salary_Score_System.get_value_of('k') +
+                er * self.mlb_Salary_Score_System.get_value_of('er') +
+                hit * self.mlb_Salary_Score_System.get_value_of('hit') +
+                walk * self.mlb_Salary_Score_System.get_value_of('walk') +
+                iwalk * self.mlb_Salary_Score_System.get_value_of('iwalk') +
+                self.mlb_Salary_Score_System.get_value_of('no-hitter') +
+                self.mlb_Salary_Score_System.get_value_of('cg') +
+                self.mlb_Salary_Score_System.get_value_of('cgso') +
+                self.mlb_Salary_Score_System.get_value_of('win'))
 
             self.assertAlmostEquals(
                 self.mlb_Salary_Score_System.score_player(self.pitcher_stats), total)
@@ -1223,6 +1235,15 @@ class MlbScoringTest(AbstractTest):
             self.assertAlmostEquals(self.mlb_Salary_Score_System.score_player(
                 self.hitter_stats), bbs * multiplier)
 
+    def test_hitter_intentional_walks(self):
+        # Test various values of bb to make sure the calculations are correct
+        self.create_hitter_stats()
+        for ibbs in range(5):
+            self.update_hitter_stats({'ibb': ibbs})
+            multiplier = self.mlb_Salary_Score_System.get_value_of('ibb')
+            self.assertAlmostEquals(self.mlb_Salary_Score_System.score_player(
+                self.hitter_stats), ibbs * multiplier)
+
     def test_hitter_hit_by_pitch(self):
         # Test various values of hbp to make sure the calculations are correct
         self.create_hitter_stats()
@@ -1253,9 +1274,9 @@ class MlbScoringTest(AbstractTest):
     def test_multiple_hitter_stats(self):
         # Test combinations of all stats
         self.create_hitter_stats()
-        for single, double, triple, hr, rbi, run, bb, hbp, sb, cs in itertools.product(
-            range(3, 5), range(2, 4), range(2), range(0, 3, 2), range(3, 7, 3), range(0, 4, 3),
-            range(2), range(2), range(2), range(2)
+        for single, double, triple, hr, rbi, run, bb, hbp, sb, cs, ibb in itertools.product(
+                range(3, 5), range(2, 4), range(2), range(0, 3, 2), range(3, 7, 3), range(0, 4, 3),
+                range(2), range(2), range(2), range(2), range(0, 4, 2)
         ):
             stats = {
                 's': single,
@@ -1265,6 +1286,7 @@ class MlbScoringTest(AbstractTest):
                 'rbi': rbi,
                 'r': run,
                 'bb': bb,
+                'ibb': ibb,
                 'hbp': hbp,
                 'sb': sb,
                 'cs': cs
@@ -1278,6 +1300,7 @@ class MlbScoringTest(AbstractTest):
                      rbi * self.mlb_Salary_Score_System.get_value_of('rbi') +
                      run * self.mlb_Salary_Score_System.get_value_of('run') +
                      bb * self.mlb_Salary_Score_System.get_value_of('bb') +
+                     ibb * self.mlb_Salary_Score_System.get_value_of('ibb') +
                      hbp * self.mlb_Salary_Score_System.get_value_of('hbp') +
                      sb * self.mlb_Salary_Score_System.get_value_of('sb') +
                      cs * self.mlb_Salary_Score_System.get_value_of('cs'))
@@ -1343,15 +1366,15 @@ class NflScoringTest(AbstractTest):
         birthdate = ""
         college = "UAB"
         experience = 0
-        height = 73      # inches
-        weight = 201      # lbs.
+        height = 73  # inches
+        weight = 201  # lbs.
         jersey_number = 0
 
         ssp = SiteSportPosition()
         position = ssp.get_position(site_sport="nfl", name="QB")
         primary_position = ssp.get_position(site_sport="nfl", name="QB")
 
-        status = "ACT"   # roster status, ie: basically whether they are on it
+        status = "ACT"  # roster status, ie: basically whether they are on it
 
         draft_pick = ""
         draft_round = ""
@@ -1698,7 +1721,7 @@ class NflScoringTest(AbstractTest):
         for blocked_punt_ret_td in range(0, 10):
             self.update_player_stats({'ret_blk_punt_td': blocked_punt_ret_td})
             total = blocked_punt_ret_td * \
-                self.nfl_Salary_Score_System.get_value_of('blk-punt-ret-td')
+                    self.nfl_Salary_Score_System.get_value_of('blk-punt-ret-td')
             self.assertAlmostEquals(
                 self.nfl_Salary_Score_System.score_player(self.player_stats), total)
 
