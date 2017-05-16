@@ -89,6 +89,7 @@ const fetchDraftGroup = (draftGroupId) => (dispatch) => {
           json.players,
           arrayOf(playerSchema)
         );
+        // console.error('json', json, '\nplayerSchema', playerSchema,'\nnormalizer',normalizedPlayers);
 
         // return some normalized json to the success action.
         return {
