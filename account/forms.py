@@ -15,7 +15,12 @@ class LoginForm(AuthenticationForm):
         # access, msg = checker.check_access
         # if not access:
         #     raise forms.ValidationError(msg)
-        exclude_date = self.user_cache.information.exclude_date
+        try:
+            exclude_date = self.user_cache.information.exclude_date
+        # If the user has no Information object, have them contact support.
+        except Information.DoesNotExist:
+            raise forms.ValidationError(
+                "Unable to verify account information. Please contact support")
         if exclude_date and exclude_date > timezone.now().date():
             raise forms.ValidationError(
                 "Your user was self-excluded. Please contact support to get more details")
