@@ -44,16 +44,20 @@ def generate_salaries_from_statscom_projections_nfl(self):
 
     """ NFL """
     # from statscom.classes import FantasyProjectionsNFL
-    api = FantasyProjectionsNFL()
-    # projections = api.get_projections(week=1)
-    # player_projections = api.get_player_projections(week=1)
-    player_projections = api.get_player_projections()
+    try:
+        api = FantasyProjectionsNFL()
+        # projections = api.get_projections(week=1)
+        # player_projections = api.get_player_projections(week=1)
+        player_projections = api.get_player_projections()
 
-    Pool.objects.all().count()
-    pool = Pool.objects.get(site_sport__name='nfl')
-    # salary_generator = SalaryGeneratorFromProjections(
-    #   player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
-    # salary_generator.generate_salaries()
+        Pool.objects.all().count()
+        pool = Pool.objects.get(site_sport__name='nfl')
+        # salary_generator = SalaryGeneratorFromProjections(
+        #   player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
+        # salary_generator.generate_salaries()
+    except Exception as e:
+        logger.warning(e)
+        return str(e)
 
     sport_md5 = md5(str('nfl').encode('utf-8')).hexdigest()
     lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
@@ -99,11 +103,15 @@ def generate_salaries_from_statscom_projections_nba(self):
     logger.info('action: generate_salaries_from_statscom_projections_nba')
     sport = 'nba'
 
-    api = FantasyProjectionsNBA()
-    player_projections = api.get_player_projections()
-    logger.info('FINAL player_projections count: %s' % len(player_projections))
-    Pool.objects.all().count()
-    pool = Pool.objects.get(site_sport__name=sport)
+    try:
+        api = FantasyProjectionsNBA()
+        player_projections = api.get_player_projections()
+        logger.info('FINAL player_projections count: %s' % len(player_projections))
+        Pool.objects.all().count()
+        pool = Pool.objects.get(site_sport__name=sport)
+    except Exception as e:
+        logger.warning(e)
+        return str(e)
 
     sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
     lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
@@ -158,12 +166,15 @@ def generate_salaries_from_statscom_projections_mlb(self):
 
     logger.info('action: generate_salaries_from_statscom_projections_mlb')
     sport = 'mlb'
-
-    api = FantasyProjectionsMLB()
-    player_projections = api.get_player_projections()
-    logger.info('FINAL player_projections count: %s' % len(player_projections))
-    Pool.objects.all().count()
-    pool = Pool.objects.get(site_sport__name=sport)
+    try:
+        api = FantasyProjectionsMLB()
+        player_projections = api.get_player_projections()
+        logger.info('FINAL player_projections count: %s' % len(player_projections))
+        Pool.objects.all().count()
+        pool = Pool.objects.get(site_sport__name=sport)
+    except Exception as e:
+        logger.warning(e)
+        return str(e)
 
     sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
     lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
