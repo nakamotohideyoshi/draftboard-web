@@ -1,9 +1,9 @@
+import datetime
 import hashlib
 import json
 import time
 import urllib.parse
 from logging import getLogger
-import datetime
 
 import pytz
 import requests
@@ -97,14 +97,14 @@ class ResponseDataParser(object):
         api_results = self.data.get(self.field_api_results)
         # log error + exit
         if api_results is None:
-            err_msg = 'stats.com api error: got %s, expected %s' % (
+            err_msg = 'bad stats.com api response: got %s, expected %s' % (
                 self.field_api_results, self.default_api_results)
-            logger.error(err_msg)
+            logger.warning(err_msg)
             raise self.UnexpectedApiResults(err_msg)
 
         num_results = len(api_results)
         if num_results != self.default_api_results:
-            err_msg = 'stats.com api error: got %s %s, expected %s' % (
+            err_msg = 'bad stats.com api response: got %s %s, expected %s' % (
                 num_results, self.field_api_results, self.default_api_results)
             logger.error(err_msg)
             raise self.UnexpectedApiResults(err_msg)
@@ -171,7 +171,8 @@ class Stats(object):
         as well as the response format. (format defaults to JSON)
         example: '?api_key=XXXXXXXXXXXX&sig=ALKSJDLKAJSDLKJASDJKLAKSJD&accept=json'
         """
-        return '?api_key=%s&sig=%s&accept=%s' % (self.get_api_key(), self.get_sig(), self.response_format)
+        return '?api_key=%s&sig=%s&accept=%s' % (
+        self.get_api_key(), self.get_sig(), self.response_format)
 
     def get_api_key(self):
         return self.api_key
@@ -248,7 +249,7 @@ class Stats(object):
         # check if there is an error
         msg = self.data.get(self.field_message)
         if msg:
-            logger.error("stats.com api error: %s" % msg)
+            raise Exception("bad stats.com api response: %s" % msg)
 
         # if no self.parser_class is set, return the entire json response
         if self.parser_class is None:
@@ -459,16 +460,22 @@ class DailyGamesAbstract(Stats):
             # Get TOMORROW'S games.
             data = self.get_tomorrows_games()
 
-        season = data.get('season')
-        # season.keys()
-        event_type_list = season.get('eventType')
-        # len(event_type_list)
-        event = event_type_list[0]
-        # event.keys()
-        events = event.get('events')
+        # if we still have no data, there are no game projections avialable.
+        if data is None:
+            raise Exception('No events were returned from the stats.com API. %s' % data)
 
-        # return a list of the eventIds
-        return [game.get('eventId') for game in events]
+        season = data.get('season', {})
+        # season.keys()
+        event_type_list = season.get('eventType', [])
+        # If there are games, return them in a list.
+        if len(event_type_list):
+            # len(event_type_list)
+            event = event_type_list[0]
+            # event.keys()
+            events = event.get('events')
+
+            # return a list of the eventIds
+            return [game.get('eventId') for game in events]
 
 
 class PlayersAbstract(Stats):
