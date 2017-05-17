@@ -467,7 +467,7 @@ class ContestPoolScheduleManager(object):
         upcoming_blocks = UpcomingBlock.objects.filter(site_sport__name=self.sport)
         if upcoming_blocks.count() == 0:
             err_msg = '[%s] ContestPoolScheduleManager an active block could not be found!' % self.sport
-            logger.error(err_msg)
+            logger.warning(err_msg)
             raise self.ActiveBlockNotFoundException(err_msg)
 
         # return the first UpcomingBlock
