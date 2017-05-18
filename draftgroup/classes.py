@@ -285,7 +285,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
         :return:
         """
         # ssm = SiteSportManager()
-        return Player.objects.filter(draft_group=draft_group)
+        return Player.objects.filter(draft_group=draft_group).select_related('salary_player')
 
     def get_player_stats(self, draft_group):
         """
