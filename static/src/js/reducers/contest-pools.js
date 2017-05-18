@@ -144,7 +144,7 @@ module.exports = (state = initialState, action = {}) => {
 
     case actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS: {
       const newEntrants = merge({}, state.entrants);
-      newEntrants[action.contestId] = action.entrants;
+      newEntrants[action.response.contestId] = action.response.entrants;
 
       return merge({}, state, {
         isFetchingEntrants: false,

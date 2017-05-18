@@ -278,64 +278,64 @@ export function enterContest(contestPoolId, lineupId) {
  */
 
 // Do we need to fetch the specified contest entrants?
-// function shouldFetchContestEntrants(state, contestId) {
-//   const entrants = state.contestPools.entrants;
-//
-//   if (entrants.hasOwnProperty(contestId)) {
-//     // does the state already have entrants for this contest?
-//     return false;
-//   } else if (state.contestPools.isFetchingEntrants) {
-//     // are we currently fetching it?
-//     return false;
-//   }
-//
-//   // Default to true.
-//   return true;
-// }
-//
-//
-// const fetchContestEntrants = (contestId) => (dispatch) => {
-//   const apiActionResponse = dispatch({
-//     [CALL_API]: {
-//       types: [
-//         actionTypes.FETCHING_CONTEST_ENTRANTS,
-//         actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS,
-//         actionTypes.ADD_MESSAGE,
-//       ],
-//       endpoint: `/api/contest/registered-users/${contestId}/`,
-//       callback: (json) => {
-//         /* eslint-disable no-param-reassign */
-//         json.contestId = contestId;
-//         /* eslint-enable no-param-reassign */
-//         return json;
-//       },
-//     },
-//   });
-//
-//   apiActionResponse.then((action) => {
-//     // If something fails, the 3rd action is dispatched, then this.
-//     if (action.error) {
-//       dispatch({
-//         type: actionTypes.FETCH_CONTEST_ENTRANTS_FAIL,
-//         response: action.error,
-//       });
-//     }
-//   });
-//
-//   // Return the promise chain in case we want to use it elsewhere.
-//   return apiActionResponse;
-// };
-//
-//
-// export function fetchContestEntrantsIfNeeded(contestId) {
-//   return (dispatch, getState) => {
-//     if (shouldFetchContestEntrants(getState(), contestId)) {
-//       return dispatch(fetchContestEntrants(contestId));
-//     }
-//
-//     return Promise.resolve();
-//   };
-// }
+function shouldFetchContestEntrants(state, contestId) {
+  const entrants = state.contestPools.entrants;
+
+  if (entrants.hasOwnProperty(contestId)) {
+    // does the state already have entrants for this contest?
+    return false;
+  } else if (state.contestPools.isFetchingEntrants) {
+    // are we currently fetching it?
+    return false;
+  }
+
+  // Default to true.
+  return true;
+}
+
+
+const fetchContestEntrants = (contestId) => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_CONTEST_ENTRANTS,
+        actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/contest/registered-users/${contestId}/`,
+      callback: (json) => ({
+        entrants: json,
+        contestId,
+      }),
+    },
+  });
+
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    let result;
+    if (action.error) {
+      result = dispatch({
+        type: actionTypes.FETCH_CONTEST_ENTRANTS_FAIL,
+        response: action.error,
+      });
+    }
+    //to reassure eslint
+    return result;
+  });
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
+
+
+export function fetchContestEntrantsIfNeeded(contestId) {
+  return (dispatch, getState) => {
+    if (shouldFetchContestEntrants(getState(), contestId)) {
+      return dispatch(fetchContestEntrants(contestId));
+    }
+
+    return Promise.resolve();
+  };
+}
 
 
 export function upcomingContestUpdateReceived(contest) {
