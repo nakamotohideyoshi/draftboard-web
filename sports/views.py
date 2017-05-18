@@ -124,7 +124,7 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
             site_sport = SiteSportManager().get_site_sport('mlb')
             latest_mlb_draftgroup = DraftGroup.objects.filter(
                 salary_pool__site_sport=site_sport,
-            ).order_by('-created').last()
+            ).order_by('-created').first()
 
             # Get a list of probable pitcher SRIDs. (they are stored in the 'value' column)
             pitcher_srids = GameUpdate.objects.filter(
@@ -132,7 +132,10 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
                 draft_groups=latest_mlb_draftgroup
             ).values('value')
 
-            data['probable_pitchers'] = pitcher_srids
+            # Tweak it a little bit to match the format of other updates.
+            data['probable_pitchers'] = [
+                {'player_srid': pitcher['value']} for pitcher in pitcher_srids
+            ]
 
         return Response(data, status=200)
 
