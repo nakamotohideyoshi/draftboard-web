@@ -308,7 +308,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         # fill with 0s for every player in the draft group first
         for stats_model in player_stats_models:
-            for draft_group_player in Player.objects.filter(draft_group=draft_group):
+            for draft_group_player in Player.objects.filter(
+                    draft_group=draft_group).prefetch_related('salary_player__player__position'):
                 data[draft_group_player.player_id] = {
                     stats_model.field_id: draft_group_player.player_id,
                     stats_model.field_fp: 0.0,
