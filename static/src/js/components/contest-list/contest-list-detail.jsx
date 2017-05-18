@@ -5,9 +5,10 @@ import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx';
 import GamesList from './games-list.jsx';
 import EntryList from './entry-list.jsx';
+import EntrantList from './entrant-list';
 import EnterContestButton from './enter-contest-button.jsx';
 import ScoringInfo from './scoring-info';
-import { enterContest, setFocusedContest, removeContestPoolEntry }
+import { enterContest, setFocusedContest, removeContestPoolEntry, fetchContestEntrantsIfNeeded }
   from '../../actions/contest-pool-actions';
 import * as AppActions from '../../stores/app-state-store';
 import { humanizeCurrency } from '../../lib/utils/currency';
@@ -48,6 +49,7 @@ function mapStateToProps(state) {
  */
 function mapDispatchToProps(dispatch) {
   return {
+    fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
@@ -69,6 +71,7 @@ const ContestListDetail = React.createClass({
     enterContest: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
     fetchTeamsIfNeeded: React.PropTypes.func,
+    fetchContestEntrantsIfNeeded: React.PropTypes.func,
     focusedContestId: React.PropTypes.oneOfType([
       React.PropTypes.string,
       React.PropTypes.number,
@@ -106,6 +109,7 @@ const ContestListDetail = React.createClass({
         nextProps.params.contestId &&
         nextProps.focusedContestInfo.contest.id !== nextProps.params.contestId
       ) {
+      this.props.fetchContestEntrantsIfNeeded(nextProps.focusedContestId);
       AppActions.openPane();
       // This is what "monitors" for URL changes.
       // If our current url prop for contestId does not match the focousedContest in the state,
@@ -155,6 +159,11 @@ const ContestListDetail = React.createClass({
           />
         );
       }
+
+      case 'entries':
+        return (
+          <EntrantList entrants={this.props.focusedContestInfo.entrants} />
+        );
 
       case 'scoring': {
         return (
@@ -220,6 +229,7 @@ const ContestListDetail = React.createClass({
         lineup={this.props.focusedLineup}
         contest={this.props.focusedContestInfo.contest}
         lineupsInfo={this.props.lineupsInfo}
+        entrants={this.props.fetchContestEntrantsIfNeeded.bind(this)}
         onEnterClick={this.handleEnterContest}
         onEnterSuccess={this.close}
         buttonText= {{
