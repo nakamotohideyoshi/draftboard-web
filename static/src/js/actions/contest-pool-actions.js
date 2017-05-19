@@ -319,7 +319,7 @@ const fetchContestEntrants = (contestId) => (dispatch) => {
         response: action.error,
       });
     }
-    //to reassure eslint
+    // to reassure eslint
     return result;
   });
   // Return the promise chain in case we want to use it elsewhere.

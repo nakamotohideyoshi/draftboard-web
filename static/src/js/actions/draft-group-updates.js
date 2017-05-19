@@ -32,9 +32,14 @@ export const fetchDraftGroupUpdates = (sport) => (dispatch) => {
       callback: (json) => {
         const categories = groupBy(json.player_updates, 'category');
         const playerUpdates = {};
+        const probablePitchers = [];
 
         forEach(categories, (updates) => {
           playerUpdates.playerStatus = groupBy(updates, 'player_srid');
+        });
+
+        forEach(json.probable_pitchers, (pitcher) => {
+          probablePitchers.push(pitcher.player_srid);
         });
 
         return {
@@ -42,6 +47,7 @@ export const fetchDraftGroupUpdates = (sport) => (dispatch) => {
           updates: {
             playerUpdates,
             gameUpdates: json.game_updates,
+            probablePitchers,
           },
         };
       },
