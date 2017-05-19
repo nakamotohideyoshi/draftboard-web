@@ -347,7 +347,7 @@ class AbstractLineupAPIView(generics.ListAPIView):
 
 class UserCurrentAPIView(AbstractLineupAPIView):
     """
-    Get the User's upcoming lineups which are before the draft group start time
+    Get the User's currently live lineups.
     """
 
     lineup_model = Lineup
@@ -360,7 +360,7 @@ class UserCurrentAPIView(AbstractLineupAPIView):
         """
         return Lineup.objects.filter(
             user=self.request.user,
-            draft_group__end__gt=timezone.now()
+            draft_group__closed=None
         ).exclude(
             entries__contest_pool=None
         ).order_by(
