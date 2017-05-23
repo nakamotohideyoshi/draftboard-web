@@ -643,7 +643,12 @@ class LineupManager(AbstractSiteUserClass):
 
         #
         # Get the lineup players for a lineup id
-        lineup_players = LineupPlayer.objects.filter(lineup__pk=lineup_id).order_by('idx')
+        lineup_players = LineupPlayer.objects.filter(
+            lineup__pk=lineup_id
+        ).order_by(
+            'idx'
+        ).select_related('draft_group_player__game_team')
+
         #
         # sets the started flag to False if draftgroup has not started
         started = True
