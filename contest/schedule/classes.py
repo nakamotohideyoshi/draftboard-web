@@ -723,6 +723,17 @@ class BlockManager(object):
         self.site_sport_manager = SiteSportManager()
         self.game_model_class = self.site_sport_manager.get_game_class(self.block.site_sport)
 
+    def get_included_games(self):
+        """
+        Based on the block's cutoff and dfsday_end times, get all the sport's games that fall
+        in between the 2 times.
+        :return: 
+        """
+        return self.game_model_class.objects.filter(
+            start__gte=self.cutoff,
+            start__lt=self.block.dfsday_end
+        ).order_by('start')
+
     def create_contest_pools(self):
         """
         to determine the start of the earliest game in the block, we look for
@@ -744,10 +755,7 @@ class BlockManager(object):
         num_contest_pools_created = 0
 
         # determine the start time
-        included_games = self.game_model_class.objects.filter(
-            start__gte=self.cutoff,
-            start__lt=self.block.dfsday_end
-        ).order_by('start')
+        included_games = self.get_included_games()
 
         # we will not check if there are enough games here, and
         # ultimately let the draft group creator raise an exception
