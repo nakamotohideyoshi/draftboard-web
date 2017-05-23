@@ -49,9 +49,7 @@ module.exports = (state = initialState, action = {}) => {
         playerUpdates: action.response.updates.playerUpdates,
         gameUpdates: action.response.updates.gameUpdates,
         // An array containing the values (player.srid) of probable pitchers.
-        probablePitchers: [],
-        // probablePitchers: action.response.player_updates.updates.filter(
-        //   (update) => update.type === 'pp').map((pp) => pp.value),
+        probablePitchers: action.response.updates.probablePitchers,
       };
 
       return newState;
