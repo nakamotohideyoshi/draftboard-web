@@ -145,10 +145,10 @@ const probablePitchersSelector = createSelector(
       if (
         draftGroupId &&
         draftGroupUpdates &&
-        draftGroupUpdates.draftGroups &&
-        draftGroupId in draftGroupUpdates.draftGroups &&
-        draftGroupUpdates.draftGroups[draftGroupId].probablePitchers &&
-        draftGroupUpdates.draftGroups[draftGroupId].probablePitchers.length
+        draftGroupUpdates.sports &&
+        sport in draftGroupUpdates.sports &&
+        draftGroupUpdates.sports[sport].probablePitchers &&
+        draftGroupUpdates.sports[sport].probablePitchers.length
       ) {
         //  Filter out any non-probable pitchers.
         const pp = filter(players, (player) => {
@@ -158,7 +158,7 @@ const probablePitchersSelector = createSelector(
           }
 
           // Filter out any pitchers that are not found in the probablePitchers list.
-          return draftGroupUpdates.draftGroups[draftGroupId].probablePitchers.indexOf(player.player_srid) > -1;
+          return draftGroupUpdates.sports[sport].probablePitchers.indexOf(player.player_srid) > -1;
         });
 
         return pp;
