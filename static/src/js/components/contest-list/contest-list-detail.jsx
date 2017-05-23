@@ -109,7 +109,7 @@ const ContestListDetail = React.createClass({
         nextProps.params.contestId &&
         nextProps.focusedContestInfo.contest.id !== nextProps.params.contestId
       ) {
-      this.props.fetchContestEntrantsIfNeeded(nextProps.focusedContestId);
+      this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
       AppActions.openPane();
       // This is what "monitors" for URL changes.
       // If our current url prop for contestId does not match the focousedContest in the state,
