@@ -1,9 +1,32 @@
-import django.test
 import threading
+from datetime import timedelta, time, datetime
+from random import randint
+
+import django.test
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import connections
+from django.utils import timezone
 from mock import patch
-from prize.classes import CashPrizeStructureCreator
+from rest_framework.test import APIRequestFactory
+from rest_framework.test import force_authenticate
+
+from account.classes import AccountInformation
+from account.models import Information
 from cash.classes import CashTransaction
+# from django.test.utils import override_settings  # for testing celery
+from contest.classes import ContestCreator
+from contest.models import Contest
+from dataden.util.timestamp import DfsDateTimeUtil
+from draftgroup.models import DraftGroup, Player, GameTeam
+from lineup.classes import LineupManager
+from prize.classes import CashPrizeStructureCreator
+from roster.models import RosterSpot, RosterSpotPosition
+from salary.classes import SalaryGenerator  # for testing celery
+from salary.models import SalaryConfig, Pool, TrailingGameWeight, Salary
+from scoring.classes import AbstractScoreSystem
+from scoring.models import ScoreSystem
+from sports.models import SiteSport, Position
 from test.models import (
     PlayerChild,
     TeamChild,
@@ -11,29 +34,7 @@ from test.models import (
     GameChild,
     Season as SeasonChild,
 )
-from django.utils import timezone
-from random import randint, choice
-from sports.models import SiteSport, Position
-from roster.models import RosterSpot, RosterSpotPosition
-from salary.models import SalaryConfig, Pool, TrailingGameWeight, Salary
-from dataden.util.timestamp import DfsDateTimeUtil
-from draftgroup.models import DraftGroup, Player, GameTeam
-from datetime import timedelta, time, datetime
-from salary.classes import SalaryGenerator  # for testing celery
-# from django.test.utils import override_settings  # for testing celery
-from contest.classes import ContestCreator
-from contest.models import Contest
 from ticket.classes import TicketManager
-from rest_framework.test import force_authenticate
-from rest_framework.test import APIRequestFactory
-from django.contrib.contenttypes.models import ContentType
-from lineup.classes import LineupManager
-from scoring.classes import AbstractScoreSystem
-from scoring.models import ScoreSystem
-from django.contrib.auth.models import User
-from account.classes import AccountInformation
-from account.models import Information
-import datetime
 
 
 class ResetDatabaseMixin(object):
@@ -61,7 +62,8 @@ class TestSalaryScoreSystem(AbstractScoreSystem):
     FANTASY_POINTS = 'fantasy_points'
 
     def __init__(self):
-        self.score_system, created = ScoreSystem.objects.get_or_create(sport=self.THE_SPORT, name='salary')
+        self.score_system, created = ScoreSystem.objects.get_or_create(sport=self.THE_SPORT,
+                                                                       name='salary')
 
         #
         # call super last - it will perform validation and ensure proper setup
@@ -100,7 +102,8 @@ class BuildWorldMixin(object):
 
     def create_valid_lineup(self, user):
         players_pos_1 = PlayerChild.objects.filter(position=self.world.position1).distinct('team')
-        players_pos_2 = PlayerChild.objects.filter(position=self.world.position2).order_by('-team').distinct('team')
+        players_pos_2 = PlayerChild.objects.filter(position=self.world.position2).order_by(
+            '-team').distinct('team')
         self.one = players_pos_1[0]
         self.two = players_pos_2[0]
         self.three = players_pos_1[1]
@@ -137,12 +140,15 @@ class BuildWorldMixin(object):
 
 class ForceAuthenticateAndRequestMixin(object):
     def force_authenticate_and_GET(self, user, view_class, url, data=None, **kwargs):
-        return self.force_authenticate_and_request(user, view_class, url, data=data, request_type='get', **kwargs)
+        return self.force_authenticate_and_request(user, view_class, url, data=data,
+                                                   request_type='get', **kwargs)
 
     def force_authenticate_and_POST(self, user, view_class, url, data=None):
-        return self.force_authenticate_and_request(user, view_class, url, data=data, request_type='post')
+        return self.force_authenticate_and_request(user, view_class, url, data=data,
+                                                   request_type='post')
 
-    def force_authenticate_and_request(self, user, view_class, url, data=None, request_type=None, **kwargs):
+    def force_authenticate_and_request(self, user, view_class, url, data=None, request_type=None,
+                                       **kwargs):
         """
         major helper method for testing rest_framework APIs
         so that we dont have to perform prerequisite calls to login
@@ -162,7 +168,8 @@ class ForceAuthenticateAndRequestMixin(object):
         else:
             raise Exception('invalid request_type: %s' % request_type)
         force_authenticate(request, user=user)
-        response = view(request, **kwargs)  # response = view(request, param1='val1') will pass GET args between slashes
+        response = view(request,
+                        **kwargs)  # response = view(request, param1='val1') will pass GET args between slashes
         return response
 
 
@@ -206,7 +213,7 @@ class MasterAbstractTest():
         info.set_fields(fullname='',  # user.first_name + ' ' + user.last_name,
                         address1='1 Draftboard Drive',
                         city='Draft City', state='NH',
-                        dob=datetime.date(1995, 12, 25))
+                        dob=datetime(1995, 12, 25))
         return user
 
     def get_admin_user(self, username='admin'):
@@ -260,7 +267,8 @@ class TestSalaryScoreSystem(AbstractScoreSystem):
         if the_type is None:
             the_type = self.THE_TYPE
 
-        self.score_system, created = ScoreSystem.objects.get_or_create(sport=the_sport, name=the_type)
+        self.score_system, created = ScoreSystem.objects.get_or_create(sport=the_sport,
+                                                                       name=the_type)
 
         #
         # call super last - it will perform validation and ensure proper setup
@@ -375,7 +383,7 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
             # except Exception as e:
             #     exceptions.append(e)
             #     print(str(e))
-                # print(traceback.format_exc())
+            # print(traceback.format_exc())
 
             for conn in connections.all():
                 conn.close()
@@ -393,6 +401,8 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
     def tearDown(self):
         if hasattr(self, 'patcher'):
             self.patcher.stop()
+
+
 # class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
 #     """
 #     WARNING: AbstractTestTransaction PRE-WIPES the test database when it runs!
@@ -442,7 +452,7 @@ def create_site_sports():
             # create it
             site_sport, created = SiteSport.objects.get_or_create(name=sport,
                                                                   current_season=current_season)
-        # print('SiteSport [%s] just created -> %s' % (str(site_sport), str(created)))
+            # print('SiteSport [%s] just created -> %s' % (str(site_sport), str(created)))
 
 
 class BuildWorldForTesting(object):
@@ -537,11 +547,11 @@ class BuildWorldForTesting(object):
         team1 = TeamChild.objects.create(name='test1', srid='test1')
         team2 = TeamChild.objects.create(name='test2', srid='test2')
         team3 = TeamChild.objects.create(name='test3', srid='test3')
-        for i in range(10,20):
+        for i in range(10, 20):
             player = PlayerChild()
-            player.srid = ""+str(i)
-            player.first_name = ""+str(i)
-            player.last_name = ""+str(i)
+            player.srid = "" + str(i)
+            player.first_name = "" + str(i)
+            player.last_name = "" + str(i)
             if i < 14:
                 player.team = team1
             elif i > 13 and i < 17:
@@ -549,7 +559,7 @@ class BuildWorldForTesting(object):
             else:
                 player.team = team3
             player.created = timezone.now()
-            if(i < 15):
+            if (i < 15):
                 player.position = position1
             else:
                 player.position = position2
@@ -561,7 +571,8 @@ class BuildWorldForTesting(object):
 
             d = timezone.now() - timedelta(days=i)
             game = GameChild()
-            game.season, created = SeasonChild.objects.get_or_create(srid='seasonchild-srid', season_year=2015,
+            game.season, created = SeasonChild.objects.get_or_create(srid='seasonchild-srid',
+                                                                     season_year=2015,
                                                                      season_type='reg')
             game.created = d
             game.srid = i
@@ -636,26 +647,9 @@ class BuildWorldForTesting(object):
     def create_contest(self):
         # ensure it exists for testing purposes
         self.create_site_sports()
+        # Create a prize structure
+        self.prize_structure = create_prize_structure()
 
-        self.first = 100.0
-        self.second = 50.0
-        self.third = 25.0
-
-        #
-        # create a simple Rank and Prize Structure
-        self.buyin = 10
-        cps = CashPrizeStructureCreator(name='test')
-        cps.add(1, self.first)
-        cps.add(2, self.second)
-        cps.add(3, self.third)
-        cps.set_buyin(self.buyin)
-        cps.save()
-        # cps.prize_structure.buyin = self.buyin
-        cps.prize_structure.save()
-
-        self.prize_structure = cps.prize_structure
-        self.ranks = cps.ranks
-        #
         # create the Contest
         now = timezone.now()
         start = DfsDateTimeUtil.create(now.date(), time(23, 0))
@@ -683,3 +677,25 @@ class BuildWorldForTesting(object):
         new_contest.status = Contest.SCHEDULED
         new_contest.save()
         return new_contest
+
+
+def create_prize_structure():
+    first = 100.0
+    second = 50.0
+    third = 25.0
+
+    # create a simple Rank and Prize Structure
+    buyin = 10
+    cps = CashPrizeStructureCreator(name='test')
+    cps.add(1, first)
+    cps.add(2, second)
+    cps.add(3, third)
+    cps.set_buyin(buyin)
+    cps.save()
+    # cps.prize_structure.buyin = self.buyin
+    cps.prize_structure.save()
+
+    prize_structure = cps.prize_structure
+    ranks = cps.ranks
+
+    return prize_structure
