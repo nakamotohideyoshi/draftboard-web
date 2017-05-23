@@ -730,7 +730,7 @@ class PlayReducer(Reducer):
         # 'alt_description',        # this one reads better than the 'description' field imo
         'quarter__id',  # not sure if we will want the quarter information or not
         'reference',  # matches sequence from the looks of it
-        'id',  # srid of this play
+        # 'id',  # srid of this play
         # 'type',                   # ex: "pass"
         'sequence',  # order of the play within the game i think
         # 'start_situation__list',  # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
