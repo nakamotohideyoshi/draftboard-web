@@ -1,9 +1,14 @@
 from __future__ import absolute_import
 
-from mysite.celery_app import app
+from logging import getLogger
+
 from django.core.cache import cache
 from django.utils import timezone
+
 import contest.models
+from mysite.celery_app import app
+
+logger = getLogger('draftgroup.tasks')
 
 LOCK_EXPIRE = 60  # Lock expires in 5 minutes
 SHARED_LOCK_NAME = "draftgroup_task__on_game_closed"
@@ -57,6 +62,11 @@ def __on_game_closed(draft_group):
     this method should only be called inside of the lock in on_game_closed()
     """
 
+    logger.info(
+        'A game has closed, checking if contests in draftgroup should also close. %s'
+        % draft_group
+    )
+
     # get all the Games
     b = True  # default
     for g in draft_group.get_games():
@@ -78,7 +88,8 @@ def __on_game_closed(draft_group):
         num_updated = contests.update(status=Contest.COMPLETED)
         from contest.tasks import track_contests
         track_contests.delay(contests)
-        print(str(num_updated), 'contests updated to status[%s]' % Contest.COMPLETED)
+        logger.info('%s contests updated to status[%s]' % (
+            num_updated, Contest.COMPLETED))
 
 
 @app.task(bind=True)

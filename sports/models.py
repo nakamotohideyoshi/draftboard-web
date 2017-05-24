@@ -165,7 +165,7 @@ class Game(DirtyFieldsMixin, models.Model):
     status = models.CharField(max_length=32, null=False)
     prev_status = models.CharField(max_length=32, null=False, default='')
 
-    boxscore_data = models.CharField(max_length=1024 * 8, null=True)
+    boxscore_data = models.CharField(max_length=1024 * 8, null=True, blank=True)
 
     def get_home_at_away_str(self):
         return '%s @ %s' % (str(self.away), str(self.home))
@@ -189,7 +189,7 @@ class Game(DirtyFieldsMixin, models.Model):
         return self.status == self.STATUS_INPROGRESS
 
     def __str__(self):
-        return '<Game> %s | pk: %s | status: %s | start: %s | srid: %s' % (
+        return '<Game %s | pk: %s | status: %s | start: %s | srid: %s>' % (
             self.get_home_at_away_str(), self.pk, self.status, self.start, self.srid)
 
     class Meta:

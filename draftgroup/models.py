@@ -39,6 +39,7 @@ class DraftGroup(models.Model):
 
     category = models.CharField(
         max_length=32,
+        blank=True,
         null=True,
         help_text='currently unused - originally intended as a grouping like "Early", "Late", or '
                   '"Turbo"')
@@ -54,6 +55,13 @@ class DraftGroup(models.Model):
         null=True,
         help_text='if set, this is the time the "final_fantasy_points" for each draftgroup player '
                   'was updated')
+
+    @property
+    def is_active(self):
+        if self.is_started() and self.closed is None:
+            return True
+
+        return False
 
     def get_games(self):
         """
