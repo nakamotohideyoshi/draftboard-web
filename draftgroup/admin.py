@@ -6,12 +6,30 @@ from contest.models import (Contest, Entry)
 
 @admin.register(draftgroup.models.DraftGroup)
 class DraftGroupAdmin(admin.ModelAdmin):
-    list_display = ['start', 'has_started', 'is_active', 'contest_count', 'entry_count', 'id',
+    list_display = ['start', 'status', 'has_started', 'contest_count', 'entry_count', 'id',
                     'sport', 'end', 'num_games', 'closed', 'fantasy_points_finalized', 'created']
     readonly_fields = ('salary_pool', 'start', 'end', 'closed', 'fantasy_points_finalized',
                        'num_games', 'games', 'contests', 'entries')
     search_fields = ('id',)
     list_filter = ('salary_pool__site_sport', 'start', 'end', 'closed')
+
+    @staticmethod
+    def status(obj):
+        # contests in the draftgroup are ongoing.
+        if obj.is_active:
+            return "👀 - Active"
+        # the first contest in the group has not started yet.
+        if not obj.is_active and not obj.is_started():
+            return "🕒 - Scheduled"
+        # There were no contests, or there were contests and fantasy points have been finalized.
+        contest_count = Contest.objects.filter(draft_group=obj).count()
+        if obj.closed and obj.fantasy_points_finalized or contest_count is 0 and obj.closed:
+            return "💰 - Finalized"
+        if obj.closed:
+            # the draftgroup is closed and contests have been paid out.
+            return "❌ - Closed"
+
+        return "❌❌❌❌ - Unknown"
 
     @staticmethod
     def games(obj):
