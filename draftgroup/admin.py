@@ -1,11 +1,57 @@
 from django.contrib import admin
 
 import draftgroup.models
+from contest.models import (Contest, Entry)
 
 
 @admin.register(draftgroup.models.DraftGroup)
 class DraftGroupAdmin(admin.ModelAdmin):
-    list_display = ['created', 'salary_pool', 'start', 'end']
+    list_display = ['start', 'has_started', 'is_active', 'contest_count', 'entry_count', 'id',
+                    'sport', 'end', 'num_games', 'closed', 'fantasy_points_finalized', 'created']
+    readonly_fields = ('salary_pool', 'start', 'end', 'closed', 'fantasy_points_finalized',
+                       'num_games', 'games', 'contests', 'entries')
+    search_fields = ('id',)
+    list_filter = ('salary_pool__site_sport', 'start', 'end', 'closed')
+
+    @staticmethod
+    def games(obj):
+        games = obj.get_games()
+        text = ''
+        for game in games:
+            text += "%s\n" % game
+        return text
+
+    @staticmethod
+    def has_started(obj):
+        return obj.is_started()
+
+    @staticmethod
+    def sport(obj):
+        return obj.salary_pool.site_sport.name
+
+    @staticmethod
+    def contests(obj):
+        contests = Contest.objects.filter(draft_group=obj)
+        text = ''
+        for contest in contests:
+            text += "%s\n" % contest
+        return text
+
+    @staticmethod
+    def entries(obj):
+        entries = Entry.objects.filter(contest_pool__draft_group=obj)
+        text = ''
+        for entry in entries:
+            text += "%s\n\n" % entry
+        return text
+
+    @staticmethod
+    def entry_count(obj):
+        return Entry.objects.filter(contest_pool__draft_group=obj).count()
+
+    @staticmethod
+    def contest_count(obj):
+        return Contest.objects.filter(draft_group=obj).count()
 
 
 @admin.register(draftgroup.models.Player)
@@ -20,9 +66,11 @@ class GameTeamAdmin(admin.ModelAdmin):
 
 @admin.register(draftgroup.models.PlayerUpdate)
 class PlayerUpdateAdmin(admin.ModelAdmin):
-    list_display = ['player', 'sport', 'created', 'category', 'status', 'type', 'headline', 'notes', 'analysis']
+    list_display = ['player', 'sport', 'created', 'category', 'status', 'type', 'headline', 'notes',
+                    'analysis']
     list_filter = ['sport', 'created', 'status', 'category', 'type']
-    search_fields = ['update_id', 'player_srid', 'category', 'type', 'value', 'sport', 'headline','notes', 'analysis']
+    search_fields = ['update_id', 'player_srid', 'category', 'type', 'value', 'sport', 'headline',
+                     'notes', 'analysis']
 
     @staticmethod
     def player(obj):
@@ -83,7 +131,7 @@ class GameUpdateAdmin(admin.ModelAdmin):
 
 @admin.register(draftgroup.models.PlayerStatus)
 class PlayerStatusAdmin(admin.ModelAdmin):
-    list_display = ['player',  'sport', 'status', 'created']
+    list_display = ['player', 'sport', 'status', 'created']
     list_filter = ['sport']
 
     @staticmethod

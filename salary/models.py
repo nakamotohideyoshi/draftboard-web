@@ -172,7 +172,7 @@ class Pool(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return '<Pool> %s: active[%s] : %s : %s' % (
+        return '<Pool id: %s | active: %s | sport: %s | created: %s>' % (
             self.id, self.active, self.site_sport, self.created.strftime('%Y-%m-%d %H:%M'))
 
     class Meta:

@@ -58,7 +58,7 @@ class Game(sports.models.Game):
     away = models.ForeignKey(Team, null=False, related_name='game_awayteam')
     srid_away = models.CharField(max_length=64, null=False,
                                  help_text='away team sportsradar global id')
-    title = models.CharField(max_length=128, null=True)
+    title = models.CharField(max_length=128, null=True, blank=True)
 
     class Meta:
         abstract = False

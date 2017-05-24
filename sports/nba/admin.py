@@ -12,7 +12,7 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nba.models.Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ['id', 'srid', 'status', 'start', 'home', 'away', 'created', 'updated']
+    list_display = sports.admin.GameAdmin.list_display + ['srid', 'status', 'start', 'home', 'away', 'created', 'updated']
     list_filter = sports.admin.GameAdmin.list_filter
     search_fields = sports.admin.GameAdmin.search_fields
     ordering = ['-start']
