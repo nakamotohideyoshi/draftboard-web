@@ -9,7 +9,7 @@ class DraftGroupAdmin(admin.ModelAdmin):
     list_display = ['start', 'status', 'has_started', 'contest_count', 'entry_count', 'id',
                     'sport', 'end', 'num_games', 'closed', 'fantasy_points_finalized', 'created']
     readonly_fields = ('salary_pool', 'start', 'end', 'closed', 'fantasy_points_finalized',
-                       'num_games', 'games', 'contests', 'entries')
+                       'num_games', 'games', 'contests')
     search_fields = ('id',)
     list_filter = ('salary_pool__site_sport', 'start', 'end', 'closed')
 
@@ -52,7 +52,10 @@ class DraftGroupAdmin(admin.ModelAdmin):
         contests = Contest.objects.filter(draft_group=obj)
         text = ''
         for contest in contests:
-            text += "%s\n" % contest
+            text += "\n\n%s" % contest
+            for entry in contest.contest_entries.all().order_by('final_rank'):
+                text += "\n%s - %s entry.id: %s - %s" % (
+                    entry.final_rank, entry.user.username, entry.id, entry.lineup)
         return text
 
     @staticmethod
