@@ -21,11 +21,6 @@ from .models import (
 logger = logging.getLogger('contest.schedule.classes')
 
 
-class ScheduleManager(object):
-    pass
-    # deleted a lot of deprecated code from here
-
-
 class ScheduleDay(object):
     """
     This is a factory that produces SportDays for each type of sport (MlbDay, NhlDay, etc). A SportDay is an object
