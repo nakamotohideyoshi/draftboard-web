@@ -1,4 +1,3 @@
-from raven.contrib.django.raven_compat.models import client
 import os
 import struct
 from collections import (
@@ -15,6 +14,7 @@ from random import Random, shuffle
 
 from django.db.transaction import atomic
 from django.utils import timezone
+from raven.contrib.django.raven_compat.models import client
 
 import draftgroup.models
 import lineup.models
@@ -25,7 +25,6 @@ from contest.models import (
     Entry,
     ClosedContest,
 )
-from contest.refund.classes import RefundManager
 from contest.refund.tasks import refund_unmatched_entry
 from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.classes import DraftGroupManager
@@ -169,16 +168,18 @@ class ContestPoolCreator(object):
         if self.draft_group is None:
             # use the DraftGroupManager class to create (or retrieve a matching) draft group
             draft_group_manager = DraftGroupManager()
-            self.draft_group = draft_group_manager.get_for_site_sport(self.site_sport, self.start,
-                                                                      self.get_end())
+            self.draft_group = draft_group_manager.get_for_site_sport(
+                self.site_sport, self.start, self.get_end())
 
         # now create the ContestPool model instance
-        contest_pool, created = ContestPool.objects.get_or_create(site_sport=self.site_sport,
-                                                                  prize_structure=self.prize_structure,
-                                                                  start=self.start,
-                                                                  end=self.get_end(),
-                                                                  draft_group=self.draft_group,
-                                                                  skill_level=self.skill_level)
+        contest_pool, created = ContestPool.objects.get_or_create(
+            site_sport=self.site_sport,
+            prize_structure=self.prize_structure,
+            start=self.start,
+            end=self.get_end(),
+            draft_group=self.draft_group,
+            skill_level=self.skill_level)
+
         if self.set_name:
             contest_pool.name = self.build_name()
             # save() will get called later
