@@ -1,4 +1,6 @@
 import merge from 'lodash/merge';
+import mergeWith from 'lodash/mergeWith';
+import isArray from 'lodash/isArray';
 import intersection from 'lodash/intersection';
 import map from 'lodash/map';
 import uniq from 'lodash/uniq';
@@ -145,10 +147,14 @@ module.exports = (state = initialState, action = {}) => {
     case actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS: {
       const newEntrants = merge({}, state.entrants);
       newEntrants[action.response.contestId] = action.response.entrants;
-
-      return merge({}, state, {
+      // we use mergeWith cause of merge don't replace array by array
+      return mergeWith({}, state, {
         isFetchingEntrants: false,
         entrants: newEntrants,
+      }, (object, key) => {
+        if (isArray(key)) {
+          return key;
+        }
       });
     }
 

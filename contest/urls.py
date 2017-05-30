@@ -105,10 +105,7 @@ urlpatterns = [
 
     #
     # get the usernames for all users who have lineups in the contest
-    url(
-        r'^registered-users/(?P<contest_id>[0-9]+)/$',
-        cache_page(60 * 24, cache=settings.API_CACHE_NAME)(RegisteredUsersAPIView.as_view())
-    ),
+    url(r'^registered-users/(?P<contest_id>[0-9]+)/$', RegisteredUsersAPIView.as_view()),
 
     #
     # get payouts for a contest
