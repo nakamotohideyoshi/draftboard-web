@@ -39,6 +39,9 @@ class AbstractDraftGroupManager(object):
     after the creation of the DraftGroup.
     """
 
+    class DuplicateTeamInRangeException(Exception):
+        pass
+
     class Salaries(object):
         """
         holds the salary.models.Pool, and a list of the salary.model.Player objects
@@ -95,13 +98,15 @@ class AbstractDraftGroupManager(object):
         # return active players
         return self.Salaries(pool, list(players))
 
-    def get_draft_group(self, draft_group_id):
+    @staticmethod
+    def get_draft_group(draft_group_id):
         """
         raises DraftGroup.DoesNotExist if the draft_group_id specified is not found
         """
         return DraftGroup.objects.get(pk=draft_group_id)
 
-    def create_gameteam(self, draft_group, game, team, alias, start):
+    @staticmethod
+    def create_gameteam(draft_group, game, team, alias, start):
         """
         create and return a new draftgroup.models.GameTeam object
         """
@@ -136,9 +141,6 @@ class DraftGroupManager(AbstractDraftGroupManager):
      group which the Contest was created with.)
 
     """
-
-    class DuplicateTeamInRangeException(Exception):
-        pass
 
     def __init__(self):
         super().__init__()
@@ -277,7 +279,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
             # otherwise, return the most recently created one
             return dgs[0]
 
-    def get_players(self, draft_group):
+    @staticmethod
+    def get_players(draft_group):
         """
         return a list of sports.<sport>.Player models who are in this DraftGroup
 
@@ -435,6 +438,45 @@ class DraftGroupManager(AbstractDraftGroupManager):
         """
         return self.create(contest.site_sport, contest.start, contest.end)
 
+    @staticmethod
+    def find_games_within_time_span(site_sport, start, end):
+        #
+        # we will use the SiteSportManager the model class for player, game
+        ssm = SiteSportManager()
+        game_model = ssm.get_game_class(site_sport)
+        # get all games equal to or greater than start, and less than end.
+        games = game_model.objects.filter(
+            start__gte=start, start__lte=end
+        ).order_by('start')
+
+        if len(games) == 0:
+            err_msg = 'there are ZERO games in [%s until %s]' % (start, end)
+            raise mysite.exceptions.NoGamesInRangeException(err_msg)
+        elif len(games) < 2:
+            raise NotEnoughGamesException()
+
+        #
+        # throw an exception if the specified start time does not coincide with any games
+        if game_model.objects.filter(start=start).count() == 0:
+            raise NoGamesAtStartTimeException()
+
+        # Keep track of teams that are playing today.
+        team_srids = []
+        for game in games:
+            # make sure we do not encounter the same team multiple times!
+            for check_team in [game.away, game.home]:
+                if check_team.srid in team_srids:
+                    logger.warning("Excluding doubleheader game: %s" % game)
+                    # If we find a game that has a team that is already playing today,
+                    # exclude the second game.
+                    games = games.exclude(pk=game.pk)
+
+            # Add the teams to our list of srids.
+            team_srids.append(game.away.srid)
+            team_srids.append(game.home.srid)
+
+        return games
+
     @atomic
     def create(self, site_sport, start, end):
         """
@@ -459,23 +501,7 @@ class DraftGroupManager(AbstractDraftGroupManager):
         logger.info('Creating DraftGroup for sport: %s | start: %s | end: %s' % (
             site_sport, start, end))
 
-        #
-        # we will use the SiteSportManager the model class for player, game
-        ssm = SiteSportManager()
-        game_model = ssm.get_game_class(site_sport)
-
-        # get all games equal to or greater than start, and less than end.
-        games = game_model.objects.filter(start__gte=start, start__lte=end)
-        if len(games) == 0:
-            err_msg = 'there are ZERO games in [%s until %s]' % (start, end)
-            raise mysite.exceptions.NoGamesInRangeException(err_msg)
-        elif len(games) < 2:
-            raise NotEnoughGamesException()
-
-        #
-        # throw an exception if the specified start time does not coincide with any games
-        if game_model.objects.filter(start=start).count() == 0:
-            raise NoGamesAtStartTimeException()
+        games = self.find_games_within_time_span(site_sport, start, end)
 
         # method returns a Salary object from which we can
         #   - get_pool()  - get the salary.models.Pool
@@ -494,7 +520,6 @@ class DraftGroupManager(AbstractDraftGroupManager):
             num_games=0
         )
 
-        #
         # build lists of all the teams, and all the player srids in the draft group
         game_srids = {}
         team_srids = {}
@@ -504,9 +529,6 @@ class DraftGroupManager(AbstractDraftGroupManager):
             # add each game srid as a key, using the game itself as the value
             game_srids[g.srid] = g
 
-            logger.warning(g)
-
-            #
             # make sure we do not encounter the same team multiple times!
             for check_team in [g.away, g.home]:
                 if check_team.srid in team_srids:
@@ -514,7 +536,6 @@ class DraftGroupManager(AbstractDraftGroupManager):
                     err_msg += '  range[ start:%s  end:%s ]' % (str(start), str(end))
                     raise self.DuplicateTeamInRangeException(err_msg)
 
-            #
             # create the GameTeam objects
             gt = self.create_gameteam(draft_group, g.srid, g.away.srid, g.away.alias, g.start)
             game_teams[g.away.srid] = gt
@@ -524,7 +545,6 @@ class DraftGroupManager(AbstractDraftGroupManager):
             team_srids[g.away.srid] = g.start
             team_srids[g.home.srid] = g.start
 
-        #
         # for each salaried player, create their draftgroup.models.Player
         # instance if their team is in the team srids list we generated above
         for p in salary.get_players():
