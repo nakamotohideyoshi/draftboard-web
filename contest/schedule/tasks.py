@@ -53,7 +53,7 @@ def create_scheduled_contest_pools(self, sport):
     :param sport
     :return:
     """
-
+    logger.info('Creating contest pools for sport: %s' % sport)
     lock_expire = 60  # lock expires in X seconds
     lock_name = 'create_scheduled_contest_pools'
 
@@ -79,7 +79,8 @@ def create_scheduled_contest_pools(self, sport):
 
         finally:
             release_lock()
-
+    else:
+        logger.info('task-LOCK exists for this task.')
 
 @app.task(bind=True)
 def send_upcoming_contest_schedule_email(self):
