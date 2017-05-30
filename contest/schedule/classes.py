@@ -479,8 +479,11 @@ class ContestPoolScheduleManager(object):
         attempts to create Contest Pools for the active block (if they havent been created).
         """
         active_block = self.get_active_block()
+        logger.info("active_block: %s" % active_block)
         if active_block.contest_pools_created is False:
             self.create_contest_pools(active_block)
+        else:
+            logger.info('Contest pools have already been created for block: %s' % active_block)
 
     @atomic
     def create_contest_pools(self, block):
@@ -749,6 +752,7 @@ class BlockManager(object):
             start__lt=self.block.dfsday_end
         ).order_by('start')
 
+        logger.info('% included games' % included_games.count())
         # we will not check if there are enough games here, and
         # ultimately let the draft group creator raise an exception
         # if it cant find enough games!
