@@ -33,7 +33,7 @@ def update_injury_feed(self, sport):
             news = rotowire.get_news()
             injuries = rotowire.get_injuries()
             with transaction.atomic():
-                PlayerStatus.objects.filter(sport=sport).update(status='Active')
+                PlayerStatus.objects.filter(sport=sport).delete()
                 for player_update in injuries:
                     try:
                         update_model = player_update_manager.update(player_update)
