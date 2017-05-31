@@ -124,6 +124,8 @@ class BlockGame(models.Model):
     class Meta:
         unique_together = ('block', 'srid')
 
+    def __str__(self):
+        return "<BlockGame id: %s - game: %s>" % (self.id, self.game)
 
 class BlockPrizeStructure(models.Model):
     """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
