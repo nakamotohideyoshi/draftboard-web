@@ -964,7 +964,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     portion_model = None
     pbp_model = None
     pbp_description_model = None
-    #
+    gameboxscore_model = None
+    gameboxscore_period_field = None
     player_stats_model = None  # example: sports.<sport>.models.PlayerStats
     pusher_sport_pbp = None  # example: push.classes.PUSHER_NBA_PBP
     # default 'event' value. ie: { ..., 'event':'event'}
@@ -1197,7 +1198,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         """
         extract player and game srids and return a list
         of any matching PlayerStats models found
-        
+
         :return: <sport>.models.PlayerStats queryset
         """
 
@@ -1221,17 +1222,32 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     def get_game_info(self):
         """
         packages up necessary game info for PBP events. This is mostly used for showing the big
-        play card things at the bottom of the Live section. 
+        play card things at the bottom of the Live section.
         """
+
         # If the subclass has a game_model set (it should!)
         if self.game_model:
             try:
                 # Get the team objects from our cache based on the game srid.
                 teams = TeamNameCache()
                 game = self.game_model.objects.get(srid=self.get_game_srid('game__id'))
+                period = None
+
+                # Find game boxscore so we can link some game info into each pbp event.
+                if self.gameboxscore_model and self.gameboxscore_period_field:
+                    try:
+                        game_boxscore = self.gameboxscore_model.objects.get(
+                            srid_game=self.get_game_srid('game__id'))
+                        # pull out the game period. (quarter, period, whatever) set in the sport's
+                        # parser
+                        period = getattr(game_boxscore, self.gameboxscore_period_field)
+                    except (self.gameboxscore_model.DoesNotExist, IndexError):
+                        logger.warning('no GameBoxscore object found for srid: %s' % (
+                                self.get_game_srid('game__id')))
 
                 # Extract the needed fields and return.
                 return {
+                    'period': period,
                     'away': {
                         'alias': teams.get_team_from_srid(game.srid_away)['alias'],
                         'name': teams.get_team_from_srid(game.srid_away)['name'],

@@ -1,7 +1,8 @@
 import re
 from logging import getLogger
-from raven.contrib.django.raven_compat.models import client
+
 from django.db.transaction import atomic
+from raven.contrib.django.raven_compat.models import client
 
 import dataden.models
 import push.classes
@@ -1088,6 +1089,7 @@ class PbpEventParser(DataDenPbpDescription):
 
     game_model = Game
     gameboxscore_model = GameBoxscore
+    gameboxscore_period_field = 'quarter'
     pbp_model = Pbp
     portion_model = GamePortion
     pbp_description_model = PbpDescription
@@ -1193,24 +1195,17 @@ class PbpEventParser(DataDenPbpDescription):
         srid_players = srid_finder.get_for_field('player')
         player_stats = self.find_player_stats(srid_players)
 
-        # Find boxscore info so we can link some game info into each pbp event.
-        # try:
-        #     game_boxscore = self.gameboxscore_model.objects.get(srid_game=srid_games[0])
-        # except (self.gameboxscore_model.DoesNotExist, IndexError):
-        #     logger.warning('no (or multiple) GameBoxscore object found for srid: %s' % srid_games)
-        #     game_boxscore = {}
-        #
-        # logger.debug('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
-        #     player_stats.count(),
-        #     srid_games, srid_players)
-        # )
+        logger.debug('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
+            player_stats.count(),
+            srid_games, srid_players)
+                     )
 
         # Gather linked player stats.
         player_stats_json = []
         for ps in player_stats:
             stats = ps.to_json()
             # Attach first + last name to the player stats info.
-            stats['first_name']= ps.player.first_name
+            stats['first_name'] = ps.player.first_name
             stats['last_name'] = ps.player.last_name
             player_stats_json.append(stats)
 

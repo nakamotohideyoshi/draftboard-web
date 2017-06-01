@@ -256,6 +256,8 @@ class PbpEventParser(DataDenPbpDescription):  # ADD TO PARSER SWITCH
     player_stats_model = sports.nhl.models.PlayerStats
     pusher_sport_pbp = push.classes.PUSHER_NHL_PBP
     pusher_sport_stats = push.classes.PUSHER_NHL_STATS
+    gameboxscore_model = GameBoxscore
+    gameboxscore_period_field = 'period'
 
     def __init__(self):
         super().__init__()

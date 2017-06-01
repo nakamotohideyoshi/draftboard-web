@@ -1052,11 +1052,6 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        # game = mommy.make(
-        #     GameBoxscore,
-        #     srid_game=play['game__id'],
-        #     quarter='3',
-        # )
 
         player = mommy.make(
             Player,
@@ -1104,11 +1099,6 @@ class TestPlayParser(AbstractTest):
             ''
         )
 
-        # self.assertEqual(
-        #     str(sent_data['game']['period']),
-        #     str(game.quarter)
-        # )
-
         # Ensure home + away scores are in PBP
         self.assertEqual(
             sent_data['pbp']['away_points'],
@@ -1147,6 +1137,13 @@ class TestPlayParser(AbstractTest):
             make_m2m=True,
         )
 
+        # Create a boxscore so we can embed quarter info.
+        game_boxscore = mommy.make(
+            GameBoxscore,
+            srid_game=game.srid,
+            quarter='3',
+        )
+
         # Parse the event
         parser = self.__parse_and_send(self.sack_play, (sport_db + '.' + 'play', parent_api))
         parser.send()
@@ -1160,6 +1157,12 @@ class TestPlayParser(AbstractTest):
         self.assertEqual(
             sent_data['game']['home']['alias'],
             home_team.alias
+        )
+
+        # check that the quarter info is being linked to the parsed pbp
+        self.assertEqual(
+            str(sent_data['game']['period']),
+            str(game_boxscore.quarter)
         )
 
 
