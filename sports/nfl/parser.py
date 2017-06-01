@@ -1092,6 +1092,7 @@ class PlayParser(DataDenPbpDescription):
     field_stats = 'stats'
 
     game_model = Game
+    gameboxscore_model = GameBoxscore
     pbp_model = Pbp
     portion_model = GamePortion
     pbp_description_model = PbpDescription
@@ -1200,6 +1201,13 @@ class PlayParser(DataDenPbpDescription):
             srid_player__in=srid_players
         )
 
+        # Find boxscore info so we can link some game info into each pbp event.
+        try:
+            game_boxscore = self.gameboxscore_model.objects.get(srid_game=srid_games[0])
+        except (self.gameboxscore_model.DoesNotExist, IndexError):
+            logger.warning('no (or multiple) GameBoxscore object found for srid: %s' % srid_games)
+            game_boxscore = {}
+
         logger.info('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
             player_stats.count(),
             srid_games, srid_players)
@@ -1234,10 +1242,21 @@ class PlayParser(DataDenPbpDescription):
         play['end_situation__list']['possession'] = PossessionManager(end_possession).get_data()
         play['end_situation__list']['location'] = LocationManager(end_location).get_data()
 
+        period = None
+        try:
+            # When getting the quarter, convert to an int, default to 0 because that is what
+            # the model field defaults to.
+            period = int(float(getattr(game_boxscore, 'quarter', 0)))
+        except:
+            logger.warning('Unknown NFL quarter value. %s' % getattr(game_boxscore, 'quarter'))
+
         # Attach PBP and linked stats, then return.
         data = {
             self.field_pbp_object: PlayManager(play).get_data(),
             self.field_stats: player_stats_json,
+            self.game_info_field: {
+                'period': period
+            }
         }
 
         # print('get_send_data:', str(data))

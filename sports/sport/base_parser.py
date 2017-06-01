@@ -971,6 +971,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     pusher_sport_stats = None  # example: push.classes.PUSHER_NBA_STATS
     linked_pbp_field = 'pbp'
     linked_stats_field = 'stats'
+    game_info_field = 'game'
 
     manager_class = None
 
@@ -1419,7 +1420,7 @@ class TsxContentParser(AbstractDataDenParseable):
                         ('sport.collection', 'parent_api')
         :return: a 3-tuple in the form:    ( tsxcontent, tsxitems, tsxrefs )
                     'tsxcontest' the the model instance for the content
-                    'tsxitems' is a list of every TsxItem (... ie TsxNews, TsxInjury, or 
+                    'tsxitems' is a list of every TsxItem (... ie TsxNews, TsxInjury, or
                         TsxTransaction objects)
                     'tsxrefs' is a list of every TsxTeam or TsxPlayer for each TsxItem
         """

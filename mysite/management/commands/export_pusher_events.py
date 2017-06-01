@@ -1,5 +1,4 @@
 import ast
-import json
 
 from django.conf import settings
 from django.core.cache import caches
@@ -13,17 +12,17 @@ from sports.parser import DataDenParser
 class Command(BaseCommand):
     """
     NOTE: Make sure you have Celery running before doing this, it won't work if you don't.
-     
+
     Write a text file of all pbp events of a single game. This is used to test out the web
     client frontend debugger thing.
-    
+
     As of now, we only save dataden events for 2 days, so the game must be from the past 2 days
     in order to get any json output.
-    
+
     You can also use this with a replayer dump in order to dump out all of the events we sent
     to Pusher.
-    
-    If you get a JSON file writer error, you probably need to create a `tmp` directory in the 
+
+    If you get a JSON file writer error, you probably need to create a `tmp` directory in the
     project root.
 
     Be careful doing this command twice. it simply appends to the output file, so you'll end
@@ -32,7 +31,7 @@ class Command(BaseCommand):
     Usage:
 
         $> ./manage.py export_pusher_events <sport> <game_srid>
-        
+
     Example:
         python manage.py export_pusher_events nba 79d732e3-c5b2-4a32-9ec7-5267dfc856f2
     """
@@ -78,11 +77,15 @@ class Command(BaseCommand):
             print(
                 'Found %s potential PBP events. (not all of these are matches)' % updates.count())
 
+            game_ids = set([])
+
             for update in updates:
                 # The actual data is stored as a string'd python object. Eval it so we can check
                 # it's game_srid.
                 update_data = ast.literal_eval(update.o)
                 game_id = update_data.get('game__id')
+                game_ids.add(game_id)
+
                 if not game_id:
                     game_id = update_data.get('id')
 
@@ -112,5 +115,10 @@ class Command(BaseCommand):
             #
             # with open(file_path, 'w') as outfile:
             #     json.dump(pbp_list, outfile)
-
             print('Done!')
+
+            print(
+                "\nIf you didn't find any events with this id, maybe try one of these game ids:\n\n"
+            )
+            print(game_ids)
+            print('\n\n')
