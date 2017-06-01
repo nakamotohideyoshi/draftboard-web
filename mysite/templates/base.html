@@ -77,7 +77,7 @@
     replayerTimeDelta: {{ DELTA_NOW }},
     user: {
       id: "{{ user.id }}",
-      isAuthenticated: {{ user.is_authenticated|lower }},
+      isAuthenticated: "{{ user.is_authenticated|lower }}",
       username: "{{ user.username }}",
       is_staff: {{ user.is_staff|lower }},
       pusher_key: "{{ PUSHER_KEY }}",

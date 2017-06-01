@@ -76,7 +76,6 @@ TIME_INPUT_FORMATS = [
 
 MIDDLEWARE_CLASSES = (
     # CSRF token masking
-    'debreach.middleware.CSRFCryptMiddleware',
 
     # GZIP and security protection for it
     'django.middleware.gzip.GZipMiddleware',
@@ -183,8 +182,6 @@ TEMPLATES = [{
             'mysite.context_processors.git_commit_uuid',
             'mysite.context_processors.js_loglevel',
 
-            # testing this here... had to move it in here in django 1.9
-            'debreach.context_processors.csrf',
         ],
         'loaders': [
             ('django.template.loaders.cached.Loader', [
@@ -336,9 +333,12 @@ REST_FRAMEWORK = {
 }
 
 # Use Pipeline for static asset management
-STATICFILES_STORAGE = 'mysite.storage.WhitenoisePipelineStorage'
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
-PIPELINE_JS = {}
+
+STATICFLES_STORAGE = 'mysite.storage.WhitenoisePipelineStorage'
+PIPELINE = {
+    'PIPELINE_JS_COMPRESSOR': 'pipeline.compressors.jsmin.JSMinCompressor',
+    'PIPELINE_JS': {}
+}
 
 # Django-lockdown until launch
 USE_LOCKDOWN = environ.get('USE_LOCKDOWN', 'False') == 'True'

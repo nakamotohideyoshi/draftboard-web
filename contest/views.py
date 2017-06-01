@@ -430,7 +430,7 @@ class RegisteredUsersAPIView(generics.ListAPIView):
         get the registered user information
         """
         return Entry.objects.filter(
-            contest_pool_id=self.kwargs['contest_id']).select_related('lineup__user__username')
+            contest_pool_id=self.kwargs['contest_id']).values('lineup__user__username', 'id')
 
 
 class ContestRanksAPIView(generics.GenericAPIView):

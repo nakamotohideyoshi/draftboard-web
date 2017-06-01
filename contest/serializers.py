@@ -166,7 +166,7 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
 
     def get_username(self, entry):
-        return entry.lineup.user.username
+        return entry['lineup__user__username']
 
     class Meta:
         model = Entry
