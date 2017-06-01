@@ -19,7 +19,7 @@ from sports.nfl.parser import (
 
     SeasonSchedule,
     TeamHierarchy,
-    PlayParser,
+    PbpEventParser,
 
     # reducers, shrinkers, managers
     PlayReducer,
@@ -375,7 +375,7 @@ class TestTeamBoxscoreParser(AbstractTest):
         }
 
         # Parse it!
-        self.__parse_and_send(data, (sport_db + '.' + 'team', parent_api))
+        self.__parse_and_send(data, (sport_db + '.' + 'play', parent_api))
 
 
 class TestGameBoxscoreParser(AbstractTest):
@@ -476,10 +476,59 @@ class TestPlayParser(AbstractTest):
     we will NOT HAVE the PlayerStats objects.
     """
 
+    sack_play = {
+        '_id': 'UID1',
+        'away_points': 0.0,
+        'end_situation__list': {
+            'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+            'yfd': 18.0,
+            'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+            'down': 2.0, 'clock': '9:00'},
+        'alt_description': '(9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).',
+        'play_clock': 6.0,
+        'clock': '9:40',
+        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+        'reference': 315.0,
+        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+        'type': 'pass',
+        'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
+        'home_points': 0.0,
+        'id': 'UID-556b318a-f944-4b37-86dd-4b0dba4d0644',
+        'start_situation__list': {
+            'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+            'yfd': 10.0,
+            'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+            'down': 1.0,
+            'clock': '9:40'},
+        'description': '(9:40) 8-K.Cousins sacked at MIA 34 for -8 yards (97-J.Phillips).',
+        'wall_clock': '2015-09-13T17:09:46+00:00', 'sequence': 315.0,
+        'dd_updated__id': 1464841517401,
+        'statistics__list': {
+            'pass__list': {
+                'sack': 1.0, 'goaltogo': 0.0,
+                'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                'sack_yards': -8.0,
+                'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                'inside_20': 0.0,
+                'confirmed': 'true'},
+            'defense__list': {
+                'sack': 1.0,
+                'tlost': 1.0,
+                'tlost_yards': 8.0,
+                'qb_hit': 1.0,
+                'player': '023af11a-3aa1-4266-b163-31cf6369ef3b',
+                'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+                'sack_yards': -8.0, 'tackle': 1.0,
+                'confirmed': 'true'}
+        },
+        'parent_api__id': 'pbp',
+        'parent_list__id': 'play_by_play__list'
+    }
+
     def setUp(self):
         cache.clear()
         super().setUp()
-        self.parser = PlayParser()
+        self.parser = PbpEventParser()
 
     def __parse_and_send(self, unwrapped_obj, target, tag=None):
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
@@ -499,7 +548,7 @@ class TestPlayParser(AbstractTest):
         #
         # # get the game srid from the 'game__id' field
         # #game_srid = self.parser.get_srids_for_field('game__id')
-        # game_srid = self.parser.get_srid_game('game__id')
+        # game_srid = self.parser.get_game_srid('game__id')
         # print('"game" field srid:', str(game_srid))
         #
         # #
@@ -999,72 +1048,25 @@ class TestPlayParser(AbstractTest):
         Test that player names are being added to the parser output data.
         :return:
         """
-        play = {
-            '_id': 'UID1',
-            'away_points': 0.0,
-            'end_situation__list': {
-                'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-                'yfd': 18.0,
-                'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                'down': 2.0, 'clock': '9:00'},
-            'alt_description': '(9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).',
-            'play_clock': 6.0,
-            'clock': '9:40',
-            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-            'reference': 315.0,
-            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
-            'type': 'pass',
-            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
-            'home_points': 0.0,
-            'id': 'UID-556b318a-f944-4b37-86dd-4b0dba4d0644',
-            'start_situation__list': {
-                'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-                'yfd': 10.0,
-                'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                'down': 1.0,
-                'clock': '9:40'},
-            'description': '(9:40) 8-K.Cousins sacked at MIA 34 for -8 yards (97-J.Phillips).',
-            'wall_clock': '2015-09-13T17:09:46+00:00', 'sequence': 315.0,
-            'dd_updated__id': 1464841517401,
-            'statistics__list': {
-                'pass__list': {
-                    'sack': 1.0, 'goaltogo': 0.0,
-                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                    'sack_yards': -8.0,
-                    'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
-                    'inside_20': 0.0,
-                    'confirmed': 'true'},
-                'defense__list': {
-                    'sack': 1.0,
-                    'tlost': 1.0,
-                    'tlost_yards': 8.0,
-                    'qb_hit': 1.0,
-                    'player': '023af11a-3aa1-4266-b163-31cf6369ef3b',
-                    'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-                    'sack_yards': -8.0, 'tackle': 1.0,
-                    'confirmed': 'true'}
-            },
-            'parent_api__id': 'pbp',
-            'parent_list__id': 'play_by_play__list'
-        }
+
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        game = mommy.make(
-            GameBoxscore,
-            srid_game=play['game__id'],
-            quarter='3',
-        )
+        # game = mommy.make(
+        #     GameBoxscore,
+        #     srid_game=play['game__id'],
+        #     quarter='3',
+        # )
 
         player = mommy.make(
             Player,
-            srid=play['statistics__list']['pass__list']['player'],
+            srid=self.sack_play['statistics__list']['pass__list']['player'],
             make_m2m=True
         )
 
         player_stats = mommy.make(
             PlayerStats,
-            srid_game=play['game__id'],
+            srid_game=self.sack_play['game__id'],
             srid_player=player.srid,
             make_m2m=True,
         )
@@ -1073,10 +1075,10 @@ class TestPlayParser(AbstractTest):
 
         self.assertEqual(
             player_stats.player.srid,
-            play['statistics__list']['pass__list']['player']
+            self.sack_play['statistics__list']['pass__list']['player']
         )
 
-        parser = self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
+        parser = self.__parse_and_send(self.sack_play, (sport_db + '.' + 'play', parent_api))
         parser.send()
         sent_data = parser.get_send_data()
         # for NFL, We can also use `parser.send_data`. None of the others
@@ -1102,9 +1104,62 @@ class TestPlayParser(AbstractTest):
             ''
         )
 
+        # self.assertEqual(
+        #     str(sent_data['game']['period']),
+        #     str(game.quarter)
+        # )
+
+        # Ensure home + away scores are in PBP
         self.assertEqual(
-            str(sent_data['game']['period']),
-            str(game.quarter)
+            sent_data['pbp']['away_points'],
+            self.sack_play['away_points']
+        )
+        self.assertEqual(
+            sent_data['pbp']['home_points'],
+            self.sack_play['home_points']
+        )
+
+        # from pprint import pprint
+        # pprint(sent_data)
+
+    def test_game_info(self):
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+        """
+        Make sure that game info is being added into the 'game' attribute of the pbp. 
+        """
+        # Create some teams and a game.
+        home_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="DEN"
+        )
+        away_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="SLC"
+        )
+        game = mommy.make(
+            sports.nfl.models.Game,
+            srid=self.sack_play['game__id'],
+            srid_home=home_team.srid,
+            home=home_team,
+            srid_away=away_team.srid,
+            away=away_team,
+            make_m2m=True,
+        )
+
+        # Parse the event
+        parser = self.__parse_and_send(self.sack_play, (sport_db + '.' + 'play', parent_api))
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        # ensure the teams were added to the event as it was parsed and sent.
+        self.assertEqual(
+            sent_data['game']['away']['alias'],
+            away_team.alias
+        )
+        self.assertEqual(
+            sent_data['game']['home']['alias'],
+            home_team.alias
         )
 
 

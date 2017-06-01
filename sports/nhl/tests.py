@@ -8,7 +8,7 @@ from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nhl.parser import (
     SeasonSchedule,
     GameSchedule,
-    EventPbp,
+    PbpEventParser,
     TeamHierarchy,
 )
 
@@ -104,7 +104,7 @@ class TestEventPbp(AbstractTest):
     def test_event_pbp_parse(self):
         """
         """
-        event_pbp = EventPbp()
+        event_pbp = PbpEventParser()
         event_pbp.parse(self.oplog_obj)
 
         game_srids = event_pbp.get_srids_for_field(self.game_srid_field)

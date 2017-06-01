@@ -721,9 +721,7 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
 
 class PlayReducer(Reducer):
     remove_fields = [
-        'away_points',
         'wall_clock',
-        'home_points',
         # 'statistics__list',       # this has the passer/rusher / receiver/defense guy
         'parent_api__id',
         '_id',
@@ -1068,7 +1066,7 @@ class LocationManager(Manager):
 #     reducer_class = RushReducer
 #     shrinker_class = RushShrinker
 
-class PlayParser(DataDenPbpDescription):
+class PbpEventParser(DataDenPbpDescription):
     class PlayCache(QuickCache):
         name = 'PlayCache_nflo_pbp'
 
@@ -1087,9 +1085,6 @@ class PlayParser(DataDenPbpDescription):
     class EndLocationCache(QuickCache):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
-
-    field_pbp_object = 'pbp'
-    field_stats = 'stats'
 
     game_model = Game
     gameboxscore_model = GameBoxscore
@@ -1164,10 +1159,10 @@ class PlayParser(DataDenPbpDescription):
         # else:
         return None  # TODO dont return None! raise something... the caller expects a tuple...
 
-    # def get_srid_game(self, fieldname): # returns a string
+    # def get_game_srid(self, fieldname): # returns a string
 
     # def find_player_stats(self, player_srids=None):
-    #     game_srid = self.get_srid_game('game__id')
+    #     game_srid = self.get_game_srid('game__id')
     #     return self.player_stats_model.objects.filter(srid_game=game_srid,
     #                                                   srid_player__in=player_srids)
 
@@ -1196,22 +1191,19 @@ class PlayParser(DataDenPbpDescription):
         srid_finder = SridFinder(play)
         srid_games = srid_finder.get_for_field('game__id')
         srid_players = srid_finder.get_for_field('player')
-        player_stats = self.player_stats_model.objects.filter(
-            srid_game__in=srid_games,
-            srid_player__in=srid_players
-        )
+        player_stats = self.find_player_stats(srid_players)
 
         # Find boxscore info so we can link some game info into each pbp event.
-        try:
-            game_boxscore = self.gameboxscore_model.objects.get(srid_game=srid_games[0])
-        except (self.gameboxscore_model.DoesNotExist, IndexError):
-            logger.warning('no (or multiple) GameBoxscore object found for srid: %s' % srid_games)
-            game_boxscore = {}
-
-        logger.info('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
-            player_stats.count(),
-            srid_games, srid_players)
-        )
+        # try:
+        #     game_boxscore = self.gameboxscore_model.objects.get(srid_game=srid_games[0])
+        # except (self.gameboxscore_model.DoesNotExist, IndexError):
+        #     logger.warning('no (or multiple) GameBoxscore object found for srid: %s' % srid_games)
+        #     game_boxscore = {}
+        #
+        # logger.debug('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
+        #     player_stats.count(),
+        #     srid_games, srid_players)
+        # )
 
         # Gather linked player stats.
         player_stats_json = []
@@ -1242,21 +1234,20 @@ class PlayParser(DataDenPbpDescription):
         play['end_situation__list']['possession'] = PossessionManager(end_possession).get_data()
         play['end_situation__list']['location'] = LocationManager(end_location).get_data()
 
-        period = None
-        try:
-            # When getting the quarter, convert to an int, default to 0 because that is what
-            # the model field defaults to.
-            period = int(float(getattr(game_boxscore, 'quarter', 0)))
-        except:
-            logger.warning('Unknown NFL quarter value. %s' % getattr(game_boxscore, 'quarter'))
+        # period = None
+        # try:
+        #     # When getting the quarter, convert to an int, default to 0 because that is what
+        #     # the model field defaults to.
+        #     period = int(float(getattr(game_boxscore, 'quarter', 0)))
+        # except:
+        #     logger.warning('Unknown NFL quarter value. %s' % getattr(game_boxscore, 'quarter'))
 
         # Attach PBP and linked stats, then return.
         data = {
-            self.field_pbp_object: PlayManager(play).get_data(),
-            self.field_stats: player_stats_json,
-            self.game_info_field: {
-                'period': period
-            }
+
+            'pbp': PlayManager(play).get_data(),
+            'stats': player_stats_json,
+            'game': self.get_game_info(),
         }
 
         # print('get_send_data:', str(data))
@@ -1399,7 +1390,7 @@ class DataDenNfl(AbstractDataDenParser):
                 or self.target == (self.mongo_db_for_sport + '.location', 'pbp') \
                 or self.target == (self.mongo_db_for_sport + '.possession', 'pbp'):
 
-            parser = PlayParser()
+            parser = PbpEventParser()
             parser.parse(obj, self.target)  # will call send() if it can
 
         #
