@@ -1,5 +1,6 @@
 from ast import literal_eval
 
+from django.core.cache import cache
 from django.utils import timezone
 from model_mommy import mommy
 
@@ -9,6 +10,7 @@ from sports.nfl.models import (
     Team,
     Season,
     Game,
+    GameBoxscore,
     PlayerStats,
     Player
 )
@@ -28,7 +30,7 @@ from sports.nfl.parser import (
     ExtraInfo,
 )
 from test.classes import AbstractTest
-from django.core.cache import cache
+
 
 class TeamHierarchyParserTest(AbstractTest):
     def setUp(self):
@@ -995,7 +997,7 @@ class TestPlayParser(AbstractTest):
     def test_player_names(self):
         """
         Test that player names are being added to the parser output data.
-        :return: 
+        :return:
         """
         play = {
             '_id': 'UID1',
@@ -1048,6 +1050,12 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
+        game = mommy.make(
+            GameBoxscore,
+            srid_game=play['game__id'],
+            quarter='3',
+        )
+
         player = mommy.make(
             Player,
             srid=play['statistics__list']['pass__list']['player'],
@@ -1092,6 +1100,11 @@ class TestPlayParser(AbstractTest):
         self.assertNotEqual(
             sent_data['stats'][0]['last_name'],
             ''
+        )
+
+        self.assertEqual(
+            str(sent_data['game']['period']),
+            str(game.quarter)
         )
 
 
