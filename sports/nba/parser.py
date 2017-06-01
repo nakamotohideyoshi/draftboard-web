@@ -454,6 +454,8 @@ class PbpEventParser(DataDenPbpDescription):
     player_stats_model = sports.nba.models.PlayerStats
     pusher_sport_pbp = push.classes.PUSHER_NBA_PBP
     pusher_sport_stats = push.classes.PUSHER_NBA_STATS
+    gameboxscore_model = GameBoxscore
+    gameboxscore_period_field = 'quarter'
 
     def __init__(self):
         super().__init__()
@@ -461,10 +463,10 @@ class PbpEventParser(DataDenPbpDescription):
     def parse(self, obj, target=None):
         """
         Parse the NBA PBP event.
-        
+
         :param obj: an OpLogObject
-        :param target: 
-        :return: 
+        :param target:
+        :return:
         """
         super().parse(obj, target)
 
@@ -515,9 +517,9 @@ class PbpEventParser(DataDenPbpDescription):
     def get_send_data(self):
         """
         Build the linked object from the parts
-        
+
         This gets called in self.send() just before the payload is Pusher'd
-        :return: 
+        :return:
         """
 
         # get the PlayerStats model instances associated with this play
