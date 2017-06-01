@@ -257,19 +257,19 @@ class PlayByPlayCache(UsesCacheKeyPrefix):
     NOTE: this has been disabled because we no longer need the ability for
     clients to go back in time and fetch old events. Leaving here for
     posterity's sake.
-    
-    
+
+
     For the trailing history of pbp objects available.
 
     Stores a short, trailing history, of a particular sports play by play objects,
     so the front end can get a list of these objects to display. Does not contain
     all of the pbp objects for entire games or days by design -- this is meant only
     to keep track of a small window in time behind the actual time.
-    
+
     PPB events can be fetched and dumped to json like this:
 
     pbp_cache = PlayByPlayCache('nba')
-    json.dumps(pbp_cache.get_pbps())    
+    json.dumps(pbp_cache.get_pbps())
     """
 
     KEY = "PlayByPlayCache_"
