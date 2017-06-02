@@ -34,9 +34,9 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         # get the players' swish id
         pid = rotowire_update.get_field(UpdateData.field_player_id)
         name = rotowire_update.get_player_name()
-        # try to get this player using the PlayerLookup (if the model is set)
-        # otherwise falls back on simple name-matching
-        player_srid = self.get_srid_for(pid=pid, name=name)  # TODO catch self.PlayerDoesNotExist
+        # get rotowire sports data id
+        player_srid = rotowire_update.get_srid()
+
         # internally calls super().update(player_srid, *args, **kwargs)
         update_id = rotowire_update.get_update_id()
 
@@ -98,6 +98,7 @@ class UpdateData(object):
 
     field_player = 'Player'
     field_player_id = 'Id'
+    field_player_srid = 'SportsDataId'
 
     field_player_first_name = 'FirstName'  # its the first name
     field_player_last_name = 'LastName'  # its the last name
@@ -164,6 +165,10 @@ class UpdateData(object):
     def get_pid(self):
         """  returns the players id. """
         return self.data.get(self.field_player).get(self.field_player_id)
+
+    def get_srid(self):
+        """  returns the players srid. """
+        return self.data.get(self.field_player).get(self.field_player_srid)
 
     def get_text(self):
         """ returns the news text. """
@@ -305,12 +310,14 @@ class RotoWire(object):
         response_data = self.call_api(url)
         results = response_data.get('Players', {})
         self.updates = []
-        for update_data in results:
+
+        for update_data in filter(lambda x: x.get('SportsDataId'), results):
             data = {}
             data['category'] = 'injury'
             data['sport'] = self.sport
             data['Player'] = {}
             data['Player']['Id'] = update_data.get('Id')
+            data['Player']['SportsDataId'] = update_data.get('SportsDataId')
             data['Player']['FirstName'] = update_data.get('FirstName')
             data['Player']['LastName'] = update_data.get('LastName')
             if self.sport == 'mlb':
@@ -337,7 +344,7 @@ class RotoWire(object):
         # results will be a list of the updates from swish
         results = response_data.get('Updates', {})
         self.updates = []
-        for update_data in results:
+        for update_data in filter(lambda x: x.get('SportsDataId'), results):
             update_data['category'] = 'news'
             update_data['sport'] = self.sport
             self.updates.append(UpdateData(update_data))
