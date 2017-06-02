@@ -137,4 +137,16 @@ urlpatterns = [
         views.FrontendDebugLiveAnimationsTemplateView.as_view(),
         name='debug-live-animations'
     ),
+
+    url(
+        r'^debug/live-animations/(?P<sport>[a-z]+)/$',
+        views.FrontendDebugLiveAnimationsTemplateView.as_view(),
+        name='debug-live-animation-sport'
+    ),
+
+    url(
+        r'^debug/live-animations/(?P<sport>[a-z]+)/plays/(?P<play_id>.+)$',
+        views.FrontendDebugLiveAnimationsTemplateView.as_view(),
+        name='debug-live-animation-play'
+    )
 ]

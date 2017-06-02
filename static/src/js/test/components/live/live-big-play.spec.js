@@ -15,6 +15,10 @@ describe('<LiveBigPlay /> Component', () => {
       eventPlayers: [
         '0e163d44-67a7-4107-9421-5333600166bb',
       ],
+      pbp: {
+        description: 'Jimmy Butler makes two point reverse layup',
+        clock: '9:59',
+      },
       whichSide: 'mine',
       homeScoreStr: 'MIL 50',
       awayScoreStr: 'OKC 56',
@@ -22,6 +26,11 @@ describe('<LiveBigPlay /> Component', () => {
       playerFPChanges: {},
       when: '9:59',
       quarter: 1,
+      game: {
+        away: 'OKC',
+        home: 'MIL',
+      },
+      stats: [],
     },
   };
 

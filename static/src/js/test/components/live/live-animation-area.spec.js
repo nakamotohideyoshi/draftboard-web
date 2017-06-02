@@ -5,7 +5,6 @@ import { mount } from 'enzyme';
 
 import LiveAnimationArea from '../../../components/live/live-animation-area.jsx';
 import LiveMLBStadium from '../../../components/live/mlb/live-mlb-stadium.jsx';
-import LiveNBACourt from '../../../components/live/nba/live-nba-court.jsx';
 
 
 /**
@@ -51,16 +50,5 @@ describe('<LiveAnimationArea /> Component', () => {
     const wrapper = renderComponent(props);
 
     expect(wrapper.find(LiveMLBStadium)).to.have.length(2);
-  });
-
-  it('should render out NBA court if watching NBA lineup', () => {
-    const props = merge({}, defaultTestProps, {
-      watching: {
-        sport: 'nba',
-      },
-    });
-    const wrapper = renderComponent(props);
-
-    expect(wrapper.find(LiveNBACourt)).to.have.length('1');
   });
 });

@@ -1,12 +1,6 @@
 import LiveAnimation from '../LiveAnimation';
 import PassingPlayAnimation from './PassingPlayAnimation';
 import RushingPlayAnimation from './RushingPlayAnimation';
-import log from '../../logging.js';
-
-
-// get custom logger for actions
-const logLib = log.getLogger('lib');
-
 
 /**
  * ...
@@ -26,7 +20,6 @@ export default class NFLLivePlayAnimation extends LiveAnimation {
       return new RushingPlayAnimation();
     }
 
-    logLib.warn('NFLLivePlayAnimation.getAnimation - type not found', recap);
     return null;
   }
 

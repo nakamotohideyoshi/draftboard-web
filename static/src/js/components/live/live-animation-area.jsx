@@ -1,7 +1,6 @@
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
-import LiveNFLField from './nfl/live-nfl-field';
-import LiveNBACourt from './nba/live-nba-court';
+import LiveAnimationStage from './live-animation-stage';
 import {
   clearCurrentEvent,
   shiftOldestEvent,
@@ -20,7 +19,7 @@ export default React.createClass({
   /**
    * Handler for when a venue's animation has completed.
    */
-  nbaAnimationCompleted() {
+  stageAnimationComplete() {
     // show the results, remove the animation
     store.dispatch(showAnimationEventResults(this.props.currentEvent));
 
@@ -69,37 +68,25 @@ export default React.createClass({
    * Renders a NBACourt component.
    * @return {object} LiveNBACourt
    */
-  renderNBACourt() {
+  renderStage(sport) {
+    if (sport === 'mlb') {
+      return this.renderMLBStadiums(this.props);
+    }
+
     return (
-      <LiveNBACourt
-        key="nba-court"
-        onAnimationComplete={() => this.nbaAnimationCompleted()}
+      <LiveAnimationStage
+        key={`${sport}-stage`}
+        sport={sport}
+        onAnimationComplete={() => this.stageAnimationComplete()}
         currentEvent={this.props.currentEvent}
       />
     );
   },
 
-  /**
-   * Renders the venue DOM for a given sport.
-   * @return {object} Sport specific DOM.
-   */
-  renderVenue(sport) {
-    switch (sport) {
-      case 'mlb':
-        return this.renderMLBStadiums(this.props);
-      case 'nba':
-        return this.renderNBACourt();
-      case 'nfl':
-        return <LiveNFLField key="nfl" currentEvent={this.props.currentEvent} />;
-      default:
-        return [];
-    }
-  },
-
   render() {
     return (
       <div className={`live__venue live__venue-${this.props.watching.sport}`}>
-        { this.renderVenue(this.props.watching.sport) }
+        { this.renderStage(this.props.watching.sport) }
       </div>
     );
   },

@@ -561,6 +561,10 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
   logAction.trace('actions.fetchSportsIfNeeded');
 
+  if (window.is_debugging_live_animation) {
+    return;
+  }
+
   try {
     forEach(getState().sports.types, (sport) => {
       dispatch(fetchSportIfNeeded(sport));

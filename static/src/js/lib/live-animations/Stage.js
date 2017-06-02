@@ -86,6 +86,13 @@ export default class Stage {
   }
 
   /**
+   * Returns an array of children on the stage.
+   */
+  children() {
+    return this.el.children;
+  }
+
+  /**
    * Removes the specified child from the field.
    */
   removeChild(node) {

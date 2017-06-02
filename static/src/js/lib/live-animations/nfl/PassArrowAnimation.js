@@ -1,3 +1,4 @@
+import { flipOperator } from '../utils/flipPos';
 import LiveAnimation from '../LiveAnimation';
 import NFLPlayRecapVO from './NFLPlayRecapVO';
 import PassArrow from './graphics/PassArrow';
@@ -45,13 +46,28 @@ export default class PassArrowAnimation extends LiveAnimation {
     return 1.2;
   }
 
+  getStartPos(recap, field) {
+    const isFlipped = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT;
+    return {
+      x: flipOperator(recap.startingYardLine(), '-', 0.04, isFlipped),
+      y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE),
+    };
+  }
+
+  getEndPos(recap, field) {
+    const isFlipped = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT;
+    return {
+      x: flipOperator(this.getReceptionYardLine(recap), '-', 0.04, isFlipped),
+      y: field.getSideOffsetY(recap.side()) - 0.05,
+    };
+  }
+
   play(recap, field) {
-    const arrowStart = field.getYardLine();
-    const arrowEnd = this.getReceptionYardLine(recap);
-    const arrowArc = this.getPassArc(recap);
-    const arrowEndY = field.getSideOffsetY(recap.side());
-    const arrowStartY = field.getSideOffsetY(NFLPlayRecapVO.MIDDLE);
-    const arrow = new PassArrow(field, arrowStart, arrowEnd, arrowStartY, arrowEndY, arrowArc);
+    const startPos = this.getStartPos(recap, field);
+    const endPos = this.getEndPos(recap, field);
+    const arc = this.getPassArc(recap);
+    console.log(startPos);
+    const arrow = new PassArrow(field, startPos.x, endPos.x, startPos.y, endPos.y, arc);
 
     field.addChild(arrow.el, 0, 0, 30);
 

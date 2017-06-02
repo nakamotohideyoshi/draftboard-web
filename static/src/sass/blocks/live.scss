@@ -48,11 +48,10 @@ $block: '.live';
     flex-shrink: 0; // Do not shrink `live__venues`, under any circumstances.
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-around;
     margin: 0 auto;
     width: 70%;
     max-width: 1280px;
-    overflow: hidden;
     background: radial-gradient(ellipse at center, rgba(20, 52, 75, 0.8) 0%, transparent 70%);
     transform: translateZ(0);
     transition: width 600ms cubic-bezier(.65, .47, .35, 1);
@@ -67,15 +66,16 @@ $block: '.live';
   // the `live__venues` div. In the case of NBA, this puts the money-line within
   // the shadow of the NBA court, similarly for NFL and NHL.
   &__venues > .live-standings-pane {
-    width: 95% !important;
-    margin: 0 auto;
-    margin-top: -50px;
+    position: absolute;
+    left: 2.5%;
+    bottom: 7%;
+    width: 95%;
   }
 
   // Scale up the LiveHeader (PMR rings etc.) for REALLY big displays.
   &__venues > .live-header {
     @media (min-height: 1300px) {
-      transform: scale(1.25);
+      transform: scale(1.25) translateY(100px);
     }
   }
 

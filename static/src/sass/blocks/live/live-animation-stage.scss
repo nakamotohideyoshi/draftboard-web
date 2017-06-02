@@ -1,0 +1,130 @@
+@import '../../variables.scss';
+
+//
+// BEM block for React LiveNFLField
+// - this is the court background, then there are LiveNBAPlays within it
+//
+
+$block: '.live-animation-stage';
+$imgDir: '../../../img/blocks/live-animation-stage/';
+
+@keyframes avatarIntro {
+  0% {
+    filter: blur(5px);
+    transform: scale(.75);
+    transform-origin: bottom center;
+    opacity: 0;
+  }
+
+  100% {
+    filter: blur(0);
+    transform: scale(1);
+    transform-origin: bottom center;
+    opacity: 1;
+  }
+}
+
+@keyframes avatarOutro {
+  from {
+    filter: blur(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    filter: blur(5px);
+    transform: translateY(-5px);
+    opacity: 0;
+  }
+}
+
+#{$block} {
+  &--nba {
+    width: 1280px;
+    height: 337px;
+    background: transparent url('#{$imgDir}nba-court.png') no-repeat center top;
+    background-size: 1280px 337px;  // proportioned to what the image size is, 547x2079
+  }
+
+  &--nfl {
+    width: 1326px;
+    height: 337px;
+    background: transparent url('#{$imgDir}nfl-field.png') no-repeat center top;
+    background-size: 1326px 337px;
+  }
+
+  &--nhl {
+    width: 1300px;
+    height: 374px;
+    background: transparent url('#{$imgDir}nhl-rink.png') no-repeat center top;
+    background-size: 1300px 374px;
+  }
+}
+
+#{$block} .avatar--nba {
+  $width: 95px;
+  $height: 129px;
+  width: $width;
+  height: $height;
+  
+  &.trans-in {
+    animation: avatarIntro .25s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+  }
+
+  &.trans-out {
+    animation: avatarOutro .35s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+  }
+
+  .avatar-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    &__shape {
+      fill: rgba(255, 255, 255, .45);
+    }
+  }
+
+  .player-name {
+    position: absolute;
+    top: -38px;
+    left: -50%;
+    width: 200px;
+    color: #fff;
+    font-size: 16px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
+    font-weight: 400;
+    line-height: 19px;
+    text-align: center;
+  }
+
+  .player-headshot {
+    display: block;
+    position: absolute;
+    left: 3px;
+    top: 2px;
+    width: $width - 6px;
+    height: $width - 6px;
+    overflow: hidden;
+    background-color: #0e2539;
+    border-radius: 50%;
+
+    &__container {
+      margin: 5%;
+      width: 90%;
+      height: 90%;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    &__img {
+      display: block;
+      position: relative;
+      left: -12%;
+      top: 11%;
+      width: 124%;
+      height: auto;
+    }
+  }
+}

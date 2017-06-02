@@ -131,6 +131,9 @@ require('components/lobby/lobby-lineup-card-list');
 require('components/draft/draft-lineup-card-list');
 require('components/draft/draft-container');
 
+// Live Debugger
+require('components/live-debugger/live-debugger');
+
 // Live
 require('components/live/live');
 

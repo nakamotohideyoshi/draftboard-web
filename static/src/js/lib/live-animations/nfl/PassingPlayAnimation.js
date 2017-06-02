@@ -1,15 +1,12 @@
-import DownLineAnimation from './DownLineAnimation';
+import YardlineAnimation from './YardlineAnimation';
 import LiveAnimation from '../LiveAnimation';
 import OutroAnimation from './OutroAnimation';
 import PassArrowAnimation from './PassArrowAnimation';
-import ReceptionAnimation from './ReceptionAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
-import QuarterbackAnimation from './QuarterbackAnimation';
-import log from '../../logging.js';
+import PlayerAnimation from './PlayerAnimation';
 
-
-// get custom logger for actions
-const logLib = log.getLogger('lib');
+const COLOR_LINE_OF_SCRIMAGE = '#072ea1';
+const COLOR_DOWN_LINE = '#bdcc1a';
 
 /**
  * Plays a pass play sequence by connecting a QB animation with a
@@ -19,19 +16,14 @@ const logLib = log.getLogger('lib');
 export default class PassingPlayAnimation extends LiveAnimation {
 
   play(recap, field) {
-    logLib.debug('PassingPlayAnimation.play', recap);
-
     const clips = [];
-    clips.push(() => new QuarterbackAnimation().play(recap, field));
+    clips.push(() => new YardlineAnimation().play(recap, field, recap.startingYardLine(), COLOR_LINE_OF_SCRIMAGE));
+    clips.push(() => new PlayerAnimation().play(recap, field, 'quarterback'));
     clips.push(() => new PassArrowAnimation().play(recap, field));
-    clips.push(() => new ReceptionAnimation().play(recap, field));
+    clips.push(() => new PlayerAnimation().play(recap, field, 'reception'));
     clips.push(() => new RushArrowAnimation().play(recap, field));
-    clips.push(() => new DownLineAnimation().play(recap, field));
+    clips.push(() => new YardlineAnimation().play(recap, field, recap.endingYardLine(), COLOR_DOWN_LINE));
     clips.push(() => new OutroAnimation().play(recap, field));
-
-    // TODO: Load all clips fully before playback.
-    // TODO: Ensure the clip can be fully played before playing, or
-    // provide a way of clearing the current animation.
 
     return clips.reduce((p, fn) => p.then(fn), Promise.resolve());
   }
