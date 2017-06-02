@@ -451,7 +451,8 @@ class PlayerStats(models.Model):
         return self.SCORING_FIELDS
 
     def to_json(self):
-        return json.loads(serializers.serialize('json', [self]))[0]  # always only 1
+        # always only 1
+        return json.loads(serializers.serialize('json', [self]))[0]['fields']
 
     def to_score(self):
         return {

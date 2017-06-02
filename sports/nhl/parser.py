@@ -244,11 +244,10 @@ class PeriodPbp(DataDenPbpDescription):  # ADD TO PARSER SWITCH
             pbp_desc.save()
             idx += 1
 
-            # EventPbp will take care of saving the 'description' field
+            # PbpEventParser will take care of saving the 'description' field
 
 
-class EventPbp(DataDenPbpDescription):  # ADD TO PARSER SWITCH
-
+class PbpEventParser(DataDenPbpDescription):  # ADD TO PARSER SWITCH
     game_model = Game
     pbp_model = Pbp
     portion_model = GamePortion
@@ -257,13 +256,15 @@ class EventPbp(DataDenPbpDescription):  # ADD TO PARSER SWITCH
     player_stats_model = sports.nhl.models.PlayerStats
     pusher_sport_pbp = push.classes.PUSHER_NHL_PBP
     pusher_sport_stats = push.classes.PUSHER_NHL_STATS
+    gameboxscore_model = GameBoxscore
+    gameboxscore_period_field = 'period'
 
     def __init__(self):
         super().__init__()
 
     def parse(self, obj, target=None):
         #
-        # dont need to call super for EventPbp - just get the event by srid.
+        # dont need to call super for PbpEventParser - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
         # super().parse( obj, target )
 
@@ -369,7 +370,7 @@ class DataDenNhl(AbstractDataDenParser):
         #
         # nhl.event
         elif self.target == ('nhl.event', 'pbp'):
-            event_pbp = EventPbp()
+            event_pbp = PbpEventParser()
             # push.classes.PbpDataDenPush( push.classes.PUSHER_NHL_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
             event_pbp.parse(obj)
             event_pbp.send()  # pusher the data, links playerstats
@@ -388,7 +389,7 @@ class DataDenNhl(AbstractDataDenParser):
         elif self.target == ('nhl.player', 'stats'):
             PlayerStats().parse(obj)
         #
-        # elif self.target == ('nhl.event','pbp'): EventPbp().parse( obj )
+        # elif self.target == ('nhl.event','pbp'): PbpEventParser().parse( obj )
         #
         #
         elif self.target == ('nhl.injury', 'injuries'):
