@@ -251,35 +251,26 @@ export default class NBAPlayRecapVO {
    */
   players() {
     const stats = this._obj.pbp.statistics__list;
-    const players = [];
 
-    if (!stats) {
-      return players;
-    }
+    return [
+      { stat: 'block__list', player: 'defense' },
+      { stat: 'steal__list', player: 'defense' },
+      { stat: 'rebound__list', player: 'rebound' },
+      { stat: 'fieldgoal__list', player: 'offense' },
+      { stat: 'freethrow__list', player: 'offense' },
+      { stat: 'turnover__list', player: 'offense' },
+    ].filter(
+      list => stats.hasOwnProperty(list.stat) && stats[list.stat].hasOwnProperty('player')
+    ).map(list => {
+      const playerId = stats[list.stat].player;
 
-    if (stats.hasOwnProperty('block__list')) {
-      players.push({ type: 'defense', id: stats.block__list.player });
-    } else if (stats.hasOwnProperty('steal__list')) {
-      players.push({ type: 'defense', id: stats.steal__list.player });
-    }
+      const playerStats = this._obj.stats.filter(stat => (
+        stat.srid_player === playerId
+      ))[0];
 
-    if (stats.hasOwnProperty('rebound__list')) {
-      players.push({ type: 'rebound', id: stats.rebound__list.player });
-    }
+      const playerName = `${playerStats.first_name} ${playerStats.last_name}`;
 
-    if (stats.hasOwnProperty('fieldgoal__list')) {
-      players.push({ type: 'offense', id: stats.fieldgoal__list.player });
-    } else if (stats.hasOwnProperty('freethrow__list')) {
-      players.push({ type: 'offense', id: stats.freethrow__list.player });
-    } else if (stats.hasOwnProperty('turnover__list')) {
-      players.push({ type: 'offense', id: stats.turnover__list.player });
-    }
-
-    return players.map(playerInfo => {
-      const obj = playerInfo;
-      obj.name = this._obj.playerNames[obj.id] || '';
-
-      return obj;
+      return { type: list.player, name: playerName, id: playerId };
     });
   }
 }

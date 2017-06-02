@@ -345,27 +345,11 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
  * @param {string} type The type of call, options are 'stats', 'php', 'boxscore'
  * @param {string} sport [OPTIONAL] For PBP, pass through sport to know how to parse
  */
-export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch, getState) => {
+export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch) => {
   logAction.debug('actions.events.addEventAndStartQueue', gameId, message, type, sport);
 
-  const gameEvent = message;
-  const state = getState();
-  const sports = sportsSelector(state);
-  const game = sports.games[message.gameId];
-
-  if (type === 'pbp' && game) {
-    // add in game information for big plays
-    const homeScore = game.home_score;
-    const awayScore = game.away_score;
-    gameEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
-    gameEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
-    gameEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
-    gameEvent.when = message.pbp.clock;
-    gameEvent.quarter = game.boxscore.quarter;
-  }
-
   return Promise.all([
-    dispatch(pushEvent({ message: gameEvent, sport, type })),
+    dispatch(pushEvent({ message, sport, type })),
   ]).then(
     () => dispatch(shiftOldestEvent(gameId))
   );

@@ -1,3 +1,24 @@
+import _ from 'lodash';
+
+/**
+ * Convert yardline to decimal, used by transposeFieldPosition
+ * @param  {number} yardline  Range of -10 to 110, represents yardline in NFL
+ * @param  {string} direction Direction of drive from user's perspective, options are ['leftToRight', 'rightToLeft']
+ * @return {number}           Range of -0.05 to 1.05
+ */
+function yardlineToDecimal(yardline, driveDirection) {
+  let asDecimal = yardline / 100;
+
+  // inverse if away team
+  if (driveDirection === 'leftToRight') {
+    asDecimal = 1 - asDecimal;
+  }
+
+  if (asDecimal > 1) return 1;  // touchdown
+  if (asDecimal < 0) return 0;  // touchback
+  return asDecimal;
+}
+
 /**
 *  Value object representing a play recap.
 */
@@ -51,14 +72,16 @@ export default class NFLPlayRecapVO {
    * The starting yard line of the play.
    */
   startingYardLine() {
-    return this._obj.yardlineStart;
+    const yardline = _.get(this._obj, 'pbp.start_situation.location.yardline', 0);
+    return yardlineToDecimal(yardline, this.driveDirection());
   }
 
   /**
    * The ending yard line of the play.
    */
   endingYardLine() {
-    return this._obj.yardlineEnd;
+    const yardline = _.get(this._obj, 'pbp.end_situation.location.yardline', 0);
+    return yardlineToDecimal(yardline, this.driveDirection());
   }
 
   /**
@@ -80,7 +103,15 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   playType() {
-    return this._obj.type;
+    return this._obj.pbp.type;
+  }
+
+  /**
+   * The plays description.
+   * @return {string}
+   */
+  playDescription() {
+    return this._obj.pbp.description;
   }
 
   /**
@@ -88,7 +119,7 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   playFormation() {
-    return this._obj.formation;
+    return this._obj.pbp.extra_info.formation;
   }
 
   /**
@@ -150,7 +181,7 @@ export default class NFLPlayRecapVO {
       // format of the yardlineStart property. This makes
       // it easy to determine where a catch occurs by subtracting
       // the yardlineEnd() by the rushDistance().
-      return this._obj.pass.yardsAfterCatch / 100;
+      return yardlineToDecimal(_.get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0));
     } else if (this.isRushingPlay()) {
       return this.totalYards();
     }
@@ -163,12 +194,13 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   side() {
+    let side = null;
     if (this.isPassingPlay()) {
-      return this._obj.pass.side;
+      side = this._obj.pbp.extra_info.pass.side;
     } else if (this.isRushingPlay()) {
-      return this._obj.rush.side;
+      side = this._obj.pbp.extra_info.rush.side;
     }
-    return NFLPlayRecapVO.MIDDLE;
+    return side || NFLPlayRecapVO.MIDDLE;
   }
 
   /**
@@ -177,10 +209,9 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   driveDirection() {
-    if (this._obj.driveDirection === NFLPlayRecapVO.LEFT_TO_RIGHT) {
-      return NFLPlayRecapVO.LEFT_TO_RIGHT;
-    }
-    return NFLPlayRecapVO.RIGHT_TO_LEFT;
+    return this.whichSide() === 'mine' || this.whichSide() === 'both'
+      ? NFLPlayRecapVO.LEFT_TO_RIGHT
+      : NFLPlayRecapVO.RIGHT_TO_LEFT;
   }
 
   /**
@@ -196,7 +227,7 @@ export default class NFLPlayRecapVO {
    * @return {boolean}
    */
   isScramble() {
-    return this.isRushingPlay() && this._obj.rush.scramble;
+    return this.isRushingPlay() && this._obj.pbp.extra_info.rush.scramble;
   }
 
   /**
@@ -204,7 +235,7 @@ export default class NFLPlayRecapVO {
    * @return {boolean}
    */
   isTurnover() {
-    return this.isPassingPlay() && this._obj.pass.intercepted;
+    return this.isPassingPlay() && this._obj.pbp.extra_info.intercepted;
   }
 
   /**
@@ -221,5 +252,30 @@ export default class NFLPlayRecapVO {
    */
   isRushingPlay() {
     return this.playType() === NFLPlayRecapVO.RUSH;
+  }
+
+  /**
+   * Returns an array of info for all players featured in the recap.
+   */
+  players() {
+    const stats = this._obj.pbp.statistics;
+
+    return [
+      { stat: 'pass__list', player: 'quarterback' },
+      { stat: 'receive__list', player: 'receiver' },
+      { stat: 'rush__list', player: 'receiver' },
+    ].filter(
+      list => stats.hasOwnProperty(list.stat) && stats[list.stat].hasOwnProperty('player')
+    ).map(list => {
+      const playerId = stats[list.stat].player;
+
+      const playerStats = this._obj.stats.filter(stat => (
+        stat.srid_player === playerId
+      ))[0];
+
+      const playerName = `${playerStats.first_name} ${playerStats.last_name}`;
+
+      return { type: list.player, name: playerName, id: playerId };
+    });
   }
 }

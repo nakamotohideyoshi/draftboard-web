@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import { humanizeFP } from '../../lib/utils/numbers';
 import cleanDescription from '../../lib/utils/nfl-clean-pbp-description';
@@ -61,20 +60,22 @@ export default React.createClass({
   /**
    * Renders the avatar and points for each featured player.
    */
-  renderPlayersDOM(event) {
-    const players = _.uniq(event.eventPlayers)
-      .map(playerId => {
-        const playerPoints = event.playerFPChanges[playerId];
+  renderPlayersDOM(playerStats) {
+    const players = playerStats.map(player => {
+      const {
+        fp_change: fpChange,
+        srid_player: srPlayerID,
+      } = player;
 
-        return (
-          <li key={playerId} className={`${block}__player`}>
-            <div className={`${block}__player-points`}>
-              {!playerPoints ? '' : humanizeFP(playerPoints, true)}
-            </div>
-            { this.renderPlayerHeadShotImg(playerId) }
-          </li>
-        );
-      });
+      return (
+        <li key={srPlayerID} className={`${block}__player`}>
+          <div className={`${block}__player-points`}>
+            {!fpChange ? '' : humanizeFP(fpChange, true)}
+          </div>
+          { this.renderPlayerHeadShotImg(srPlayerID) }
+        </li>
+      );
+    });
 
     return (
       <ul className={`${block}__players`}>
@@ -84,16 +85,16 @@ export default React.createClass({
   },
 
   render() {
-    const { event } = this.props;
-    const id = `${event.id}-${new Date().getTime()}`;
-    const score = `${event.homeScoreStr} - ${event.awayScoreStr}`;
-    const time = this.formatGameTime(event.quarter, event.when);
+    const { id, pbp, game, stats, sport, quarter } = this.props.event;
+    const key = `${id}-${new Date().getTime()}`;
+    const score = `${game.away.alias} @ ${game.home.alias}`;
+    const time = this.formatGameTime(quarter, pbp.clock);
 
     return (
-      <article key={id} className={`${block} ${block}--${event.sport}`}>
+      <article key={key} className={`${block} ${block}--${sport}`}>
         <div className={`${block}__inner`}>
-          <p className={`${block}__description`}>{cleanDescription(event.description)}</p>
-          {this.renderPlayersDOM(event)}
+          <p className={`${block}__description`}>{cleanDescription(pbp.description)}</p>
+          {this.renderPlayersDOM(stats)}
         </div>
         <footer className={`${block}__footer`}>
           <div className={`${block}__score`}>{score}</div>

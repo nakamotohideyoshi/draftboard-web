@@ -1,123 +1,20 @@
-import { connect } from 'react-redux';
+import _ from 'lodash';
+import { Provider, connect } from 'react-redux';
 import React from 'react';
 import LiveAnimationArea from '../live/live-animation-area';
 import LiveHeader from '../live/live-header';
 import LiveBigPlays from '../live/live-big-plays';
 import LiveStandingsPane from '../live/live-standings-pane';
 import DebugMenu from './debug-menu';
+import store from '../../store';
+import fpoState from './fixtures/state';
+import { addEventAndStartQueue } from '../../actions/events';
+import { Router, Route, browserHistory } from 'react-router';
+import renderComponent from '../../lib/render-component';
+import { syncHistoryWithStore } from 'react-router-redux';
+import { push as routerPush } from 'react-router-redux';
 
 require('../../../sass/blocks/live-debugger.scss');
-
-const stubMyLineup = {
-  id: 2,
-  name: 'My Lineup',
-  fp: 5,
-  isLoading: false,
-  potentialWinnings: 10,
-  rank: 1,
-  timeRemaining: {
-    decimal: 0.91,
-    duration: 50,
-  },
-};
-
-const stubOppLineup = {
-  id: 3,
-  name: 'Opponent Lineup',
-  fp: 20,
-  rank: 2,
-  potentialWinnings: 10,
-  timeRemaining: {
-    decimal: 0.91,
-    duration: 50,
-  },
-  isLoading: false,
-};
-
-const stubOtherLineup = {
-  id: 4,
-  name: 'Other Lineup',
-  fp: 15,
-  rank: 3,
-  potentialWinnings: 10,
-  timeRemaining: {
-    decimal: 0.91,
-    duration: 50,
-  },
-  isLoading: false,
-};
-
-const stubDebugLineup = {
-  id: 5,
-  name: 'Debug Lineup',
-  fp: 50,
-  rank: 4,
-  potentialWinnings: 10,
-  timeRemaining: {
-    decimal: 0.91,
-    duration: 50,
-  },
-  isLoading: false,
-};
-
-const stubContest = {
-  name: 'Debug Contest',
-  potentialWinnings: 10,
-  rank: 2,
-  isLoading: false,
-  hasLineupsUsernames: true,
-  lineups: {
-    [stubMyLineup.id]: stubMyLineup,
-    [stubOppLineup.id]: stubOppLineup,
-    [stubOtherLineup.id]: stubOtherLineup,
-    [stubDebugLineup.id]: stubDebugLineup,
-  },
-  lineupsUsernames: {
-    [stubMyLineup.id]: stubMyLineup.name,
-    [stubOppLineup.id]: stubOppLineup.name,
-    [stubOtherLineup.id]: stubOtherLineup.name,
-    [stubDebugLineup.id]: stubDebugLineup.name,
-  },
-  rankedLineups: [
-    stubMyLineup.id,
-    stubOppLineup.id,
-    stubOtherLineup.id,
-    stubDebugLineup.id,
-  ],
-  prize: {
-    info: {
-      buyin: 1,
-      payout_spots: 3,
-      pk: 0,
-      prize_pool: 0,
-      ranks: [{
-        category: 'cash',
-        rank: 1,
-        value: 1.8,
-      }],
-    },
-  },
-};
-
-const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup, stubDebugLineup];
-
-const stubData = {
-  watching: {
-    sport: 'nba',
-    contestId: 2,
-    myLineupId: stubMyLineup.id,
-    opponentLineupId: 3, // Null if you don't want to see the opponents overall-stats
-  },
-  currentEvent: null,
-  eventsMultipart: {},
-  contest: stubContest,
-  uniqueLineups: {
-    lineups: stubAvailableLineups,
-  },
-  myLineupInfo: stubMyLineup,
-  opponentLineup: stubOppLineup,
-  selectLineup: () => { },
-};
 
 /*
  * Map selectors to the React component
@@ -129,35 +26,74 @@ const mapStateToProps = (state) => ({
   bigEvents: state.events.bigEvents,
 });
 
+export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClass({
 
-export default connect(mapStateToProps)(React.createClass({
   propTypes: {
     currentEvent: React.PropTypes.object,
     bigEvents: React.PropTypes.array,
+    params: React.PropTypes.object,
   },
 
   getInitialState() {
-    return {};
+    return {
+      sport: this.props.params.sport || 'nba',
+      play: this.props.params.play || null,
+    };
   },
 
   componentWillMount() {
     window.is_debugging_live_animation = true;
   },
 
+  componentDidMount() {
+    if (this.props.params.play !== null) {
+      window.pbpQueue.gotoPBPById(this.props.params.play);
+    }
+  },
+
+  onSportUpdated(sport) {
+    if (this.state.sport !== sport) {
+      store.dispatch(routerPush(`/debug/live-animations/${sport}/`));
+      this.setState({ sport });
+    }
+  },
+
+  onPBPUpdated(message) {
+    if (!message) {
+      return;
+    }
+
+    const eventType = 'pbp';
+    const sport = message.sport;
+    const gameId = message.gameId;
+    const messageId = message.id;
+    const gameEvent = _.merge(message, { id: new Date().getTime() });
+
+    store.dispatch(routerPush(`/debug/live-animations/${sport}/plays/${messageId}/`));
+    store.dispatch(addEventAndStartQueue(gameId, gameEvent, eventType, sport));
+  },
+
   render() {
-    const { eventsMultipart, watching, contest } = stubData;
+    const { eventsMultipart, watching, contest } = fpoState;
     const { currentEvent, bigEvents } = this.props;
+
+    watching.sport = this.state.sport;
 
     return (
       <div className="live">
-        <DebugMenu />
+        <DebugMenu
+          sport={this.state.sport}
+          play={this.state.play}
+          onSportUpdated={(sport) => this.onSportUpdated(sport)}
+          onPBPUpdated={(pbp) => this.onPBPUpdated(pbp)}
+        />
         <section className="live__venues">
           <LiveHeader
             {...{ contest, currentEvent, watching }}
-            lineups={stubData.uniqueLineups.lineups}
-            myLineup={stubData.myLineupInfo}
-            opponentLineup={stubData.opponentLineup}
-            selectLineup={stubData.selectLineup}
+            lineups={fpoState.uniqueLineups.lineups}
+            myLineup={fpoState.myLineupInfo}
+            opponentLineup={fpoState.opponentLineup}
+            selectLineup={fpoState.selectLineup}
           />
           <LiveAnimationArea {...{ currentEvent, eventsMultipart, watching }} />
           <LiveStandingsPane {...{ contest, watching }} />
@@ -167,3 +103,17 @@ export default connect(mapStateToProps)(React.createClass({
     );
   },
 }));
+
+// create an enhanced history that syncs navigation events with the store
+const history = syncHistoryWithStore(browserHistory, store);
+
+// url routing via react-router
+renderComponent(
+  <Provider store={store}>
+    <Router history={history}>
+      <Route path="debug/live-animations(/:sport)" component={DebugLiveAnimationsPage} />
+      <Route path="debug/live-animations/:sport/plays/:play" component={DebugLiveAnimationsPage} />
+    </Router>
+  </Provider>,
+  '#cmp-live-debugger'
+);

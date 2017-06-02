@@ -1,10 +1,10 @@
 export default class YardLineMarker {
-  constructor(field, yardLine) {
+  constructor(field, yardLine, color = '#bdcc1a') {
     const points = this.getPoints(field, yardLine);
 
     this.marker = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     this.marker.setAttribute('d', this.describeRect(points));
-    this.marker.setAttribute('style', 'fill:#bdcc1a; fill-opacity:0.65');
+    this.marker.setAttribute('style', `fill:${color}; fill-opacity:0.65`);
 
     this.el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.el.setAttribute('width', field.getWidth());

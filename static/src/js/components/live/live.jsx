@@ -1,4 +1,3 @@
-import DebugLiveAnimationsPage from '../live-debugger/live-debugger';
 import LiveAnimationArea from './live-animation-area';
 import LiveChooseLineup from './live-choose-lineup';
 import LiveBigPlays from './live-big-plays';
@@ -380,7 +379,6 @@ renderComponent(
         path="/live/:sport/lineups/:myLineupId/contests/:contestId/opponents/:opponentLineupId"
         component={LiveConnected}
       />
-      <Route path="debug/live-animations" component={DebugLiveAnimationsPage} />
     </Router>
   </Provider>,
   '#cmp-live'
