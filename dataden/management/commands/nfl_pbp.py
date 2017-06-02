@@ -8,7 +8,7 @@ from dataden.watcher import (
     OpLogObjWrapper,
 )
 from sports.nfl.parser import (
-    PlayParser,
+    PbpEventParser,
 )
 
 class Command(BaseCommand):
@@ -152,7 +152,7 @@ class Command(BaseCommand):
 
     def parse_and_send(self, unwrapped_obj, target, tag=None):
         # create a new parser instance
-        self.parser = PlayParser()
+        self.parser = PbpEventParser()
 
         #
         parts = target[0].split('.')
