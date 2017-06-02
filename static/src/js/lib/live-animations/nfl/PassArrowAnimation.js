@@ -16,7 +16,7 @@ export default class PassArrowAnimation extends LiveAnimation {
     // inside of the PassArrow class.)
     const maxArc = 240;
     const minArc = 5;
-    return Math.max(minArc, Math.min(maxArc, maxArc * recap.passDistance()));
+    return Math.max(minArc, Math.min(maxArc, maxArc * recap.passingYards()));
   }
 
   /**
@@ -25,10 +25,10 @@ export default class PassArrowAnimation extends LiveAnimation {
    */
   getReceptionYardLine(recap) {
     if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
-      return recap.startingYardLine() + recap.passDistance();
+      return recap.startingYardLine() + recap.passingYards();
     }
 
-    return recap.startingYardLine() - recap.passDistance();
+    return recap.startingYardLine() - recap.passingYards();
   }
 
   /**
@@ -37,9 +37,9 @@ export default class PassArrowAnimation extends LiveAnimation {
    * @return {number}
    */
   getPassDuration(recap) {
-    if (recap.passDistance() <= 0.2) {
+    if (recap.passingYards() <= 0.2) {
       return 0.25;
-    } else if (recap.passDistance() <= 0.4) {
+    } else if (recap.passingYards() <= 0.4) {
       return 0.8;
     }
 
@@ -66,7 +66,6 @@ export default class PassArrowAnimation extends LiveAnimation {
     const startPos = this.getStartPos(recap, field);
     const endPos = this.getEndPos(recap, field);
     const arc = this.getPassArc(recap);
-    console.log(startPos);
     const arrow = new PassArrow(field, startPos.x, endPos.x, startPos.y, endPos.y, arc);
 
     field.addChild(arrow.el, 0, 0, 30);

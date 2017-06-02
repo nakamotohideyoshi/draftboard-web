@@ -53,14 +53,9 @@ export default React.createClass({
 
     const animation = new LiveAnimationFactory();
     animation.play(this.props.currentEvent, this.refs.stage)
-    .catch(error => {
-      console.log('-------------');
-      console.log(error);
-      console.log('-------------');
-    })
-    // .catch(error => Raven.captureMessage('Live animation failed', {
-    //   extra: { message: error.message, currentEvent: this.props.currentEvent },
-    // }))
+    .catch(error => Raven.captureMessage('Live animation failed', {
+      extra: { message: error.message, currentEvent: this.props.currentEvent },
+    }))
     .then(() => this.props.onAnimationComplete());
   },
 

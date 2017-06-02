@@ -15,10 +15,10 @@ export default class RushArrowAnimation extends LiveAnimation {
     const offsetX = 0.02;
 
     if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
-      return recap.startingYardLine() + recap.passDistance() + offsetX;
+      return recap.startingYardLine() + recap.passingYards() + offsetX;
     }
 
-    return recap.startingYardLine() - recap.passDistance() - offsetX;
+    return recap.startingYardLine() - recap.passingYards() - offsetX;
   }
 
   /**
@@ -35,9 +35,9 @@ export default class RushArrowAnimation extends LiveAnimation {
    * @return {number}
    */
   getRushDuration(recap) {
-    if (recap.rushDistance() <= 0.2) {
+    if (recap.rushingYards() <= 0.2) {
       return 0.5;
-    } else if (recap.rushDistance() <= 0.4) {
+    } else if (recap.rushingYards() <= 0.4) {
       return 1;
     }
 
@@ -47,7 +47,7 @@ export default class RushArrowAnimation extends LiveAnimation {
   play(recap, field) {
     // Only show the rush arrow when there is visually enough room for
     // the mimimum length of the arrow (3 yards).
-    if (recap.isTurnover() || recap.rushDistance() <= 0.03) {
+    if (recap.isTurnover() || recap.rushingYards() <= 0.03) {
       return Promise.resolve();
     }
 

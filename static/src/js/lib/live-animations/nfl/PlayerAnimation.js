@@ -22,8 +22,8 @@ export default class PlayerAnimation extends LiveAnimation {
 
     if (type === 'reception') {
       return recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
-        ? recap.startingYardLine() + recap.passDistance()
-        : recap.startingYardLine() - recap.passDistance();
+        ? recap.startingYardLine() + recap.passingYards()
+        : recap.startingYardLine() - recap.passingYards();
     }
 
     return 0;
