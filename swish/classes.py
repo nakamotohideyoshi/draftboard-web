@@ -36,11 +36,7 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         name = rotowire_update.get_player_name()
         # get rotowire sports data id
         player_srid = rotowire_update.get_srid()
-        # some times it's empty so use old code
-        if not player_srid:
-            # try to get this player using the PlayerLookup (if the model is set)
-            # otherwise falls back on simple name-matching
-            player_srid = self.get_srid_for(pid=pid, name=name)  # TODO catch self.PlayerDoesNotExist
+
         # internally calls super().update(player_srid, *args, **kwargs)
         update_id = rotowire_update.get_update_id()
 
@@ -315,7 +311,7 @@ class RotoWire(object):
         results = response_data.get('Players', {})
         self.updates = []
 
-        for update_data in results:
+        for update_data in filter(lambda x: x.get('SportsDataId'), results):
             data = {}
             data['category'] = 'injury'
             data['sport'] = self.sport
@@ -348,7 +344,7 @@ class RotoWire(object):
         # results will be a list of the updates from swish
         results = response_data.get('Updates', {})
         self.updates = []
-        for update_data in results:
+        for update_data in filter(lambda x: x.get('SportsDataId'), results):
             update_data['category'] = 'news'
             update_data['sport'] = self.sport
             self.updates.append(UpdateData(update_data))
