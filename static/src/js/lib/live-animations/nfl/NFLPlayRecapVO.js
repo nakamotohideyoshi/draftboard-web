@@ -1,22 +1,8 @@
 import _ from 'lodash';
+import { flipOperator } from '../utils/flipPos';
 
-/**
- * Convert yardline to decimal, used by transposeFieldPosition
- * @param  {number} yardline  Range of -10 to 110, represents yardline in NFL
- * @param  {string} direction Direction of drive from user's perspective, options are ['leftToRight', 'rightToLeft']
- * @return {number}           Range of -0.05 to 1.05
- */
-function yardlineToDecimal(yardline, driveDirection) {
-  let asDecimal = yardline / 100;
-
-  // inverse if away team
-  if (driveDirection === 'leftToRight') {
-    asDecimal = 1 - asDecimal;
-  }
-
-  if (asDecimal > 1) return 1;  // touchdown
-  if (asDecimal < 0) return 0;  // touchback
-  return asDecimal;
+function yardlineToDecimal(yardline) {
+  return Math.min(1, Math.max(0, yardline / 100));
 }
 
 /**
@@ -72,23 +58,52 @@ export default class NFLPlayRecapVO {
    * The starting yard line of the play.
    */
   startingYardLine() {
-    const yardline = _.get(this._obj, 'pbp.start_situation.location.yardline', 0);
-    return yardlineToDecimal(yardline, this.driveDirection());
+    let yardline = _.get(this._obj, 'pbp.start_situation.location.yardline', 0);
+
+    if (this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT) {
+      yardline = 100 - yardline;
+    }
+    return yardlineToDecimal(yardline);
   }
 
   /**
    * The ending yard line of the play.
    */
   endingYardLine() {
-    const yardline = _.get(this._obj, 'pbp.end_situation.location.yardline', 0);
-    return yardlineToDecimal(yardline, this.driveDirection());
+    // Calculate the endingYardLine based on the total passing & rushing yards
+    // accrued during the play to ensure that plays that cross the 50 yardline
+    // are properly displayed.
+    const isFlipped = this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT;
+    return flipOperator(this.startingYardLine(), '+', this.totalYards(), isFlipped);
+  }
+
+  /**
+   * The distance of the pass in yards.
+   * @return {number}
+   */
+  passingYards() {
+    const yards = _.get(this._obj, 'pbp.statistics.pass__list.att_yards', 0);
+    return yardlineToDecimal(yards);
+  }
+
+  /**
+   * The distance the ball was carried. For passing plays this will
+   * be the distance the ball was carried after the catch.
+   * @return {number}
+   */
+  rushingYards() {
+    const yards = this.isPassingPlay()
+    ? _.get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0)
+    : _.get(this._obj, 'pbp.statistics.rush__list.yards', 0);
+
+    return yardlineToDecimal(yards);
   }
 
   /**
    * The total yards of the play.
    */
   totalYards() {
-    return Math.abs(this.endingYardLine() - this.startingYardLine());
+    return this.passingYards() + this.rushingYards();
   }
 
   /**
@@ -144,48 +159,10 @@ export default class NFLPlayRecapVO {
   passType() {
     if (!this.isPassingPlay()) {
       return null;
-    } else if (this.passDistance() > 0.2) {
+    } else if (this.passingYards() > 0.2) {
       return NFLPlayRecapVO.PASS_DEEP;
     }
     return NFLPlayRecapVO.PASS;
-  }
-
-  /**
-   * The distance of the pass in yards.
-   * @return {number}
-   */
-  passDistance() {
-    if (!this.isPassingPlay()) {
-      return 0;
-    }
-
-    if (this.isTurnover()) {
-      // Return the distance the defensmen would have intercepted
-      // the ball at, before running backwards.
-      return Math.abs(this.totalYards() + this.rushDistance());
-    }
-
-    // The passing distance is the forward progress minus any
-    // additional rushing distance.
-    return Math.abs(this.totalYards() - this.rushDistance());
-  }
-
-  /**
-   * The distance the ball was carried. For passing plays this will
-   * be the distance the ball was carried after the catch.
-   * @return {number}
-   */
-  rushDistance() {
-    if (this.isPassingPlay()) {
-      // Convert the yardsAfterCatch to a float that matches the
-      // format of the yardlineStart property. This makes
-      // it easy to determine where a catch occurs by subtracting
-      // the yardlineEnd() by the rushDistance().
-      return yardlineToDecimal(_.get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0));
-    } else if (this.isRushingPlay()) {
-      return this.totalYards();
-    }
-    return 0;
   }
 
   /**
