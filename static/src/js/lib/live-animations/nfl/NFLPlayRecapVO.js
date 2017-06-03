@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { flipOperator } from '../utils/flipPos';
 
 function yardlineToDecimal(yardline) {
-  return Math.min(1, Math.max(0, yardline / 100));
+  return yardline / 100;
 }
 
 /**
@@ -59,10 +59,13 @@ export default class NFLPlayRecapVO {
    */
   startingYardLine() {
     let yardline = _.get(this._obj, 'pbp.start_situation.location.yardline', 0);
+    const possession = this._obj.pbp.start_situation.possession.alias;
+    const endzone = this._obj.pbp.start_situation.location.alias;
 
-    if (this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT) {
+    if (endzone !== possession || this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT) {
       yardline = 100 - yardline;
     }
+
     return yardlineToDecimal(yardline);
   }
 
