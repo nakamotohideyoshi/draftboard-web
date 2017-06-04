@@ -60,9 +60,12 @@ export default class NFLPlayRecapVO {
   startingYardLine() {
     let yardline = _.get(this._obj, 'pbp.start_situation.location.yardline', 0);
     const possession = this._obj.pbp.start_situation.possession.alias;
-    const endzone = this._obj.pbp.start_situation.location.alias;
+    const sideOfField = this._obj.pbp.start_situation.location.alias;
+    const isGoingRightToLeft = this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT;
 
-    if (endzone !== possession || this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT) {
+    if (sideOfField !== possession && !isGoingRightToLeft) {
+      yardline = 100 - yardline;
+    } else if (sideOfField === possession && isGoingRightToLeft) {
       yardline = 100 - yardline;
     }
 
