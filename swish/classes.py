@@ -31,9 +31,6 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
 
         :param swish_update:
         """
-        # get the players' swish id
-        pid = rotowire_update.get_field(UpdateData.field_player_id)
-        name = rotowire_update.get_player_name()
         # get rotowire sports data id
         player_srid = rotowire_update.get_srid()
 
@@ -313,6 +310,7 @@ class RotoWire(object):
 
         for update_data in filter(lambda x: x.get('SportsDataId'), results):
             data = {}
+            data['Id'] = update_data.get('Id')
             data['category'] = 'injury'
             data['sport'] = self.sport
             data['Player'] = {}
@@ -344,7 +342,7 @@ class RotoWire(object):
         # results will be a list of the updates from swish
         results = response_data.get('Updates', {})
         self.updates = []
-        for update_data in filter(lambda x: x.get('SportsDataId'), results):
+        for update_data in filter(lambda x: x.get('Player').get('SportsDataId'), results):
             update_data['category'] = 'news'
             update_data['sport'] = self.sport
             self.updates.append(UpdateData(update_data))
