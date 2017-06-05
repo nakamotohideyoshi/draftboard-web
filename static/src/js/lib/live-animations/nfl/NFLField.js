@@ -69,21 +69,18 @@ export default class NFLField extends Stage {
 
     const fieldBottomWidth = field.bottomRight.x - field.bottomLeft.x;
 
-    // Clamp the yardline to avoid going out of bounds.
-    const targetYardLine = Math.max(0, Math.min(1, yardLine));
-
     // flip the Y offset so the interpolated point's progress is
     // determined top to bottom, with zero being the top of the field
     // and one being the bottom of the field.
     const targetOffsetY = 1 - offsetY;
 
     const yardLineTop = {
-      x: field.topLeft.x + fieldTopWidth * targetYardLine,
+      x: field.topLeft.x + fieldTopWidth * yardLine,
       y: field.topLeft.y,
     };
 
     const yardLineBottom = {
-      x: field.bottomLeft.x + fieldBottomWidth * targetYardLine,
+      x: field.bottomLeft.x + fieldBottomWidth * yardLine,
       y: field.bottomLeft.y,
     };
 

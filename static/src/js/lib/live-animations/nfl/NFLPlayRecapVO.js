@@ -181,7 +181,7 @@ export default class NFLPlayRecapVO {
     if (this.isPassingPlay()) {
       side = this._obj.pbp.extra_info.pass.side;
     } else if (this.isRushingPlay()) {
-      side = this._obj.pbp.extra_info.rush.side;
+      side = NFLPlayRecapVO.MIDDLE;
     }
     return side || NFLPlayRecapVO.MIDDLE;
   }
@@ -195,6 +195,20 @@ export default class NFLPlayRecapVO {
     return this.whichSide() === 'mine' || this.whichSide() === 'both'
       ? NFLPlayRecapVO.LEFT_TO_RIGHT
       : NFLPlayRecapVO.RIGHT_TO_LEFT;
+  }
+
+  /**
+   * Returns true if the play is an incomplete pass.
+   */
+  isIncompletePass() {
+    return this.isPassingPlay() && _.get(this._obj, 'pbp.statistics.pass__list.complete', 0) === 0;
+  }
+
+  /**
+   * Returns true if the play resulted in a touchdown.
+   */
+  isTouchdown() {
+    return _.get(this._obj, 'pbp.extra_info.touchdown', false) === true;
   }
 
   /**
