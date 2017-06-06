@@ -287,8 +287,8 @@ export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
   logAction.debug('actions.updatePlayerStats', sport, message);
 
   const state = getState();
-  const playerId = message.fields.player_id;
-  const playerSrid = message.fields.srid_player;
+  const playerId = message.player_id;
+  const playerSrid = message.srid_player;
 
   let draftGroupId = null;
 
@@ -298,7 +298,7 @@ export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
     const liveDraftGroup = state.liveDraftGroups[currentDraftGroupId];
     if (
       liveDraftGroup.sport === sport &&
-      message.fields.player_id in liveDraftGroup.playersStats) {
+      message.player_id in liveDraftGroup.playersStats) {
       draftGroupId = currentDraftGroupId;
     }
   });
@@ -316,7 +316,7 @@ export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
 
     dispatch(updateLivePlayersStats(
       playerSrid,
-      message.fields
+      message
     ));
   }
 
@@ -324,6 +324,6 @@ export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
     id: draftGroupId,
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
     playerId,
-    fp: message.fields.fantasy_points,
+    fp: message.fantasy_points,
   });
 };

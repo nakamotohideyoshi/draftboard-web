@@ -24,7 +24,7 @@ const logAction = log.getLogger('action');
 export const onPlayerStatsReceived = (message, sport, relevantGames) => (dispatch, getState) => {
   logAction.debug('actions.onPlayerStatsReceived', message);
 
-  const gameId = message.fields.srid_game;
+  const gameId = message.srid_game;
 
   if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
 

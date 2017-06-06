@@ -15,8 +15,6 @@ module.exports = {
   },
 
   module: {
-    // https://github.com/braintree/braintree-web/issues/52
-    noParse: [/braintree-web/],
     loaders: [
       // jsx loader - to convert jsx to native js.
       // Check .babelrc for more config.
