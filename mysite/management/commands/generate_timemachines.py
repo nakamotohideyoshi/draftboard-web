@@ -41,11 +41,14 @@ class Command(BaseCommand):
         start = parser.parse(values[0]).replace(tzinfo=utc) + relativedelta(hours=+10)
         end = parser.parse(values[1]).replace(tzinfo=utc) + relativedelta(hours=+10)
 
+        print('\nSearching for DraftGroups between %s and %s' % (start, end))
+
         dgs = DraftGroup.objects.filter( start__gte=start, end__lte=end ).order_by('start')
 
-        # print(dgs)
+        print("%s DraftGroups found" % dgs.count())
 
         for dg in dgs:
+            print('Creating TimeMachine for draftgroup: %s' % dg)
             tm = TimeMachine.objects.create(
                 replay='Replay for %s' % dg,
                 start=dg.start + relativedelta(minutes=-5),
@@ -56,4 +59,4 @@ class Command(BaseCommand):
             )
             tm.save()
 
-            print('TimeMachine #%s for DraftGroup #%s created' % (tm.id, dg.id))
+            print('TimeMachine #%s created for DraftGroup #%s' % (tm.id, dg))

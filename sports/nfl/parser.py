@@ -456,15 +456,13 @@ class GameBoxscoreParser(AbstractDataDenParseable):
         try:
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            logger.error('Not creating GameBoxscore - Team does not exist: %s' % srid_home)
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            # print( str(o) )
-            # print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            logger.error('Not creating GameBoxscore - Team does not exist: %s' % srid_away)
             return
 
         try:
