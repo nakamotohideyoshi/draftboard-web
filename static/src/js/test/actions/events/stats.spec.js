@@ -56,9 +56,7 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
   it('should update player stats if player is not in a game that involves a player in our lineup', () => {
     // key here is that srid_game value `game2` is NOT in relevantGamesPlayers above
     const message = {
-      fields: {
-        srid_game: 'game2',
-      },
+      srid_game: 'game2',
     };
     assert.equal(
       store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', relevantGames)),
@@ -69,9 +67,7 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
   it('should add event if player is in one of the watched lineups', () => {
     // key here is that srid_game value `game1` is THE SAME AS `game1` in relevantGames above
     const message = {
-      fields: {
-        srid_game: 'game1',
-      },
+      srid_game: 'game1',
     };
     assert.equal(
       store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', relevantGames)),
