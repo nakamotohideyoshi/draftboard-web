@@ -30,7 +30,11 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 500
 
-DEFAULT_FROM_EMAIL = 'support+staging@draftboard.com'
+DEFAULT_FROM_EMAIL = 'support+DELOREAN@draftboard.com'
+SITE_ADMIN_EMAIL = ['devs@draftboard.com']
+FLAGGED_IDENTITY_EMAIL_RECIPIENTS = []
+INACTIVE_USERS_EMAILS = []
+
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -106,10 +110,6 @@ DISABLE_REPLAYER_UPDATE_RECORDING = True
 
 # Allow time travel on delorean server!
 DATETIME_DELTA_ENABLE = True
-
-# Inactive users
-INACTIVE_USERS_EMAILS = []
-
 
 MIDDLEWARE_CLASSES += (
     'account.middleware.access_subdomains.AccessSubdomainsMiddleware',

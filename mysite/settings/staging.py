@@ -6,7 +6,6 @@ from urllib import parse
 # Constant for determining environment
 DOMAIN = 'staging.draftboard.com'
 ALLOWED_HOSTS = [DOMAIN, 'draftboard-staging.herokuapp.com']
-SITE_ADMIN_EMAIL = ['zach@draftboard.com']
 
 
 # Testing mode off
@@ -28,7 +27,10 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 500
 
-DEFAULT_FROM_EMAIL = 'support+staging@draftboard.com'
+DEFAULT_FROM_EMAIL = 'support+STAGING@draftboard.com'
+SITE_ADMIN_EMAIL = ['devs@draftboard.com']
+FLAGGED_IDENTITY_EMAIL_RECIPIENTS = []
+INACTIVE_USERS_EMAILS = []
 
 # SSL - we redirect all traffic to HTTPS at domain level, no need at application level
 SESSION_COOKIE_SECURE = True
@@ -93,13 +95,6 @@ VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 
 # Don't allow time travel on staging!
 DATETIME_DELTA_ENABLE = False
-
-# Inactive users
-INACTIVE_USERS_EMAILS = [
-    'pedro@runitonce.com',
-    'dan@runitonce.com',
-]
-
 
 MIDDLEWARE_CLASSES += (
     'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
