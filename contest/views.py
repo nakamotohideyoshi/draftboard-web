@@ -1,12 +1,10 @@
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from debreach.decorators import random_comment_exempt
-from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.views.generic import View
-from django.views.generic.edit import CreateView, UpdateView
 from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
 from rest_framework import status
@@ -38,7 +36,6 @@ from contest.classes import (
 from contest.exceptions import (
     ContestMaxEntriesReachedException,
 )
-from contest.forms import ContestForm, ContestFormAdd
 from contest.models import (
     Contest,
     ContestPool,
@@ -46,7 +43,6 @@ from contest.models import (
     CurrentContest,
     LiveContest,
     CurrentEntry,
-    HistoryEntry,
     ClosedEntry,
     LobbyContestPool,
     UpcomingContestPool,
@@ -66,34 +62,16 @@ from contest.serializers import (
     EntryResultSerializer,
     RemoveAndRefundEntrySerializer,
     UserLineupHistorySerializer,
-    # PlayHistoryLineupSerializer,
     RankedEntrySerializer,
     ContestPoolSerializer,
 )
 from lineup.models import Lineup
 from lineup.tasks import edit_entry
 from mysite.celery_app import TaskHelper
+from ticket.exceptions import UserDoesNotHaveTicketException
 from util.dfsdate import DfsDate
 
 logger = logging.getLogger('contest.views')
-
-
-# test the generic add view
-
-
-class ContestCreate(CreateView):
-    model = Contest
-    form_class = ContestFormAdd
-    # fields      = ['name','ends_tonight','start']
-
-
-# testing the generic edit view
-
-
-class ContestUpdate(UpdateView):
-    model = Contest
-    form_class = ContestForm
-    # fields      = ['name','start']
 
 
 class SingleContestAPIView(generics.GenericAPIView):
@@ -530,6 +508,8 @@ class EnterLineupAPIView(generics.CreateAPIView):
                 {"detail": "You do not have the necessary funds for this action."})
         except ContestMaxEntriesReachedException as e:
             raise ValidationError({"detail": "%s" % e})
+        except UserDoesNotHaveTicketException:
+            raise ValidationError({"detail": "You do not have the necessary funds."})
         except Exception as e:
             logger.error("EnterLineupAPIView: %s" % str(e))
             client.captureException()

@@ -2,7 +2,6 @@ from django.conf import settings
 from django.conf.urls import url
 from django.views.decorators.cache import cache_page
 
-from contest.views import ContestCreate, ContestUpdate
 from contest.views import (
     LobbyAPIView,
     AllLineupsView,
@@ -26,12 +25,6 @@ from contest.views import (
 )
 
 urlpatterns = [
-    url(r'^add/$', ContestCreate.as_view(), name='contest_add'),
-
-    url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
-    # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
-    # (r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
-
     #
     # "buyin" api - ie: enter a lineup into a contest.
     # This endpoint returns a task id which should
