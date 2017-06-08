@@ -1,7 +1,6 @@
 import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
-import LineupCard from '../lineup/lineup-card.jsx';
 import DraftNewLineupCard from './draft-new-lineup-card.jsx';
 import renderComponent from '../../lib/render-component';
 import * as AppActions from '../../stores/app-state-store.js';
@@ -9,9 +8,6 @@ import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by
 import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
   from '../../actions/upcoming-lineup-actions.js';
-import map from 'lodash/map';
-import filter from 'lodash/filter';
-import get from 'lodash/get';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 
@@ -136,29 +132,6 @@ const DraftLineupCardList = React.createClass({
 
 
   render() {
-    // If we are currently editing a lineup, filter that one out from the list so it doesn't
-    // get displayed.
-    const visibleLineups = filter(
-      // Cast them both as strings since the the url param is a string. If not editing, the lineupId
-      // is not available, so set a default value.
-      this.props.lineups, (lineup) =>
-        lineup.id.toString() !== get(this.props.params, 'lineupId', 'not-editing').toString()
-    );
-
-    const lineups = map(visibleLineups, (lineup) => {
-      const refName = `lineup-${lineup.id}`;
-      return (
-        <LineupCard
-          key={lineup.id}
-          lineup={lineup}
-          isActive={false}
-          ref={refName}
-          onCardClick={this.handleCardClick}
-          hoverText="Import Lineup"
-        />
-      );
-    }, this);
-
     return (
       <div>
         <DraftNewLineupCard
@@ -176,8 +149,6 @@ const DraftLineupCardList = React.createClass({
           handlePlayerClick={this.handlePlayerClick}
           sport={this.props.sport}
         />
-
-        {lineups}
       </div>
     );
   },

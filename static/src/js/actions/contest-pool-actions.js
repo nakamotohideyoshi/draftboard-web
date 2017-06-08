@@ -295,7 +295,7 @@ export function enterContest(contestPoolId, lineupId) {
       }
 
       // If the request was a success, parse the (hopefully) json from the response body.
-      return response.json().then(json => ({ json, response }));
+      return response.json();
     }).then((json) => {
       // Because the user just entered a contest, their cash balance should be different.
       dispatch(fetchCashBalanceIfNeeded());
@@ -324,7 +324,7 @@ export function enterContest(contestPoolId, lineupId) {
         // Display a success message to the user.
         dispatch(addMessage({
           level: 'success',
-          header: 'Your lineup has been entered.',
+          header: json.detail,
           ttl: 2000,
         }));
 

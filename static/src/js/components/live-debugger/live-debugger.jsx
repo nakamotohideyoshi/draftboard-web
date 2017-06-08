@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import merge from 'lodash/merge';
 import { Provider, connect } from 'react-redux';
 import React from 'react';
 import LiveAnimationArea from '../live/live-animation-area';
@@ -67,7 +67,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClas
     const sport = message.sport;
     const gameId = message.gameId;
     const messageId = message.id;
-    const gameEvent = _.merge(message, { id: new Date().getTime() });
+    const gameEvent = merge(message, { id: new Date().getTime() });
 
     store.dispatch(routerPush(`/debug/live-animations/${sport}/plays/${messageId}/`));
     store.dispatch(addEventAndStartQueue(gameId, gameEvent, eventType, sport));

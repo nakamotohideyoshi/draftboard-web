@@ -1,32 +1,24 @@
-#
-# contest/buyin/tests.py
+from datetime import timedelta
 
 from rest_framework.test import APITestCase
-from test.classes import AbstractTest
-from salary.dummy import Dummy
-from prize.classes import CashPrizeStructureCreator
-from ticket.classes import TicketManager
-from django.utils import timezone
-from datetime import timedelta
-from datetime import time
-from dataden.util.timestamp import DfsDateTimeUtil
-from ..classes import ContestCreator, ContestPoolCreator
-from ..models import Contest
-from .classes import BuyinManager
-from contest.views import EnterLineupAPIView
-from sports.classes import SiteSportManager
+
+import mysite.exceptions
 from cash.classes import CashTransaction
 from contest import exceptions
-import mysite.exceptions
-from lineup.models import Lineup
-from ticket.models import TicketAmount
 from draftgroup.models import DraftGroup
 from lineup.exceptions import LineupDoesNotMatchUser
-from .tasks import buyin_task
-from django.test.utils import override_settings
+from lineup.models import Lineup
+from prize.classes import CashPrizeStructureCreator
+from salary.dummy import Dummy
+from sports.classes import SiteSportManager
+from test.classes import AbstractTest
 from test.classes import BuildWorldMixin, ForceAuthenticateAndRequestMixin
-from rest_framework import status
-from rest_framework.response import Response
+from ticket.classes import TicketManager
+from ticket.models import TicketAmount
+from .classes import BuyinManager
+from ..classes import ContestCreator, ContestPoolCreator
+from ..models import Contest
+
 
 # class BuyinTest(AbstractTest):
 
@@ -110,7 +102,7 @@ class BuyinTest(AbstractTest):
             self.sport,
             self.prize_structure,
             start,
-            (end-start).seconds*60,
+            (end - start).seconds * 60,
             self.draft_group2
         ).get_or_create()
         self.contest = cc.create()
@@ -227,6 +219,7 @@ class BuyinTest(AbstractTest):
         self.assertRaises(exceptions.ContestMaxEntriesReachedException,
                           lambda: bm.buyin(self.contest_pool))
 
+
 # class BuyinRaceTest(AbstractTest):
 #
 #     def setUp(self):
@@ -333,6 +326,6 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
         # create a valid lineup
         self.lineup = self.create_valid_lineup(self.user)
 
-    # @override_settings(TEST_RUNNER=BuyinTest.CELERY_TEST_RUNNER,
-    #                    CELERY_ALWAYS_EAGER=True,
-    #                    CELERYD_CONCURRENCY=1)
+        # @override_settings(TEST_RUNNER=BuyinTest.CELERY_TEST_RUNNER,
+        #                    CELERY_ALWAYS_EAGER=True,
+        #                    CELERYD_CONCURRENCY=1)

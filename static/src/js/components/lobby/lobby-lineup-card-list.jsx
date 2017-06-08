@@ -174,20 +174,8 @@ const LineupCardList = React.createClass({
 
   getCreateLineupAd() {
     if (this.props.lineups.length > 0) {
-      return (
-        <div
-          className="cmp-lineup-card cmp-lineup-card--collapsed cmp-lineup-card--create-collapsed"
-        >
-          <header className="cmp-lineup-card__header">
-            <SelectDraftGroupButton
-              draftGroupInfo={this.props.draftGroupInfo}
-              focusedSport={this.props.focusedSport}
-              onClick={this.props.openDraftGroupSelectionModal}
-              classNames="cmp-lineup-card__title"
-            />
-          </header>
-        </div>
-      );
+      // If the user already has a lineup for this sport, don't show a create button.
+      return '';
     }
 
     return (

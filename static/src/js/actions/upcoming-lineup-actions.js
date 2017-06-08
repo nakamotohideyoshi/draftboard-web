@@ -8,7 +8,6 @@ import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
 import uniqWith from 'lodash/uniqWith';
 import { validateLineup } from '../lib/lineup.js';
-import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
 import { deleteLineupDraft } from '../lib/lineup-drafts';
 
@@ -253,12 +252,6 @@ export function saveLineupEdit(lineup, title, lineupId) {
       .send(postData)
       .end((err, res) => {
         if (err) {
-          dispatch(addMessage({
-            header: 'Unable to edit lineup',
-            content: res.text,
-            level: 'warning',
-            id: 'lineupEdit',
-          }));
           log.error(res);
           dispatch({
             type: actionTypes.SAVE_LINEUP_EDIT_FAIL,

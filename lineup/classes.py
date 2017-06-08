@@ -1,13 +1,14 @@
 import random
 from collections import Counter
 from logging import getLogger
-from draftgroup.utils import get_draftgroup_player_from_sport_player
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.transaction import atomic
 from django.utils import timezone
 
 from contest.models import Contest, Entry
 from draftgroup.models import DraftGroup, Player
+from draftgroup.utils import get_draftgroup_player_from_sport_player
 from mysite.classes import AbstractSiteUserClass
 from roster.classes import RosterManager
 from sports.classes import SiteSportManager
@@ -21,12 +22,12 @@ from .exceptions import (
     LineupUnchangedException,
     CreateLineupExpiredDraftgroupException,
     NotEnoughTeamsException,
+    DraftgroupLineupLimitExceeded
 )
 from .models import (
     Lineup,
     Player as LineupPlayer,
 )
-from draftgroup.models import Player as DraftgroupPlayer
 
 logger = getLogger('lineup.classes')
 
@@ -118,7 +119,9 @@ class LineupManager(AbstractSiteUserClass):
         :returns lineup: an instance of :class:`lineup.models.Lineup` model
         """
         self.validate_arguments(player_ids=player_ids, draftgroup=draftgroup)
-
+        # Make sure the user hasn't gone over their per-sport lineup limit.
+        # (currently you can only have 1 lineup per draftgroup)
+        self.__validate_draftgroup_lineup_limit(draftgroup=draftgroup, user=self.user)
         #
         # Throw an exception if the draftgroup is expired
         if draftgroup.start < timezone.now():
@@ -183,7 +186,8 @@ class LineupManager(AbstractSiteUserClass):
     def set_lineup_nickname(self, lineup, players, draftgroup):
         players_with_nicknames, user_lineup_nicknames = self.get_players_with_nicknames(players,
                                                                                         draftgroup)
-        lineup_name = ''
+        # Default lineup name - if one cannot be assigned from lpayer nicknames
+        lineup_name = 'My %s Lineup' % lineup.sport.upper()
         if players_with_nicknames:
             random_player_nickname = random.choice(players_with_nicknames).lineup_nickname
             i = 1
@@ -380,12 +384,21 @@ class LineupManager(AbstractSiteUserClass):
 
         for player in removed_players:
             if (
-                    player.lineup_nickname != '' and player.lineup_nickname in lineup.name) or lineup.name == '':
-                lineup.name = self.set_lineup_nickname(lineup, new_lineup_players, lineup.draft_group)
+                (player.lineup_nickname != '' and player.lineup_nickname in lineup.name)
+                or lineup.name == ''
+            ):
+                lineup.name = self.set_lineup_nickname(
+                    lineup, new_lineup_players, lineup.draft_group)
                 lineup.save()
 
         logger.info('action: lineup edited | lineup: %s' % lineup)
         self.__merge_lineups(lineup)
+
+    @staticmethod
+    def __validate_draftgroup_lineup_limit(draftgroup, user):
+        draftgroup_lineups = Lineup.objects.filter(user=user, draft_group=draftgroup).count()
+        if draftgroup_lineups > 0:
+            raise DraftgroupLineupLimitExceeded()
 
     def __validate_lineup(self, players, draftgroup, roster_manager):
         """

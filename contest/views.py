@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import timedelta
-
+from contest.buyin.classes import BuyinManager
 from debreach.decorators import random_comment_exempt
 from django.http import HttpResponse
 from django.views.generic import View
@@ -28,7 +28,6 @@ from account.permissions import (
 from account.tasks import send_entry_alert_email
 from account.utils import create_user_log
 from cash.exceptions import OverdraftException
-from contest.buyin.tasks import buyin_task
 from contest.classes import (
     ContestLineupManager,
     SkillLevelManager,
@@ -500,9 +499,8 @@ class EnterLineupAPIView(generics.CreateAPIView):
             pass
 
         try:
-            # get() blocks the view from returning until the task completes its work
-            task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
-            task_result.get()
+            bm = BuyinManager(request.user)
+            buyin_result = bm.buyin(contest_pool=contest_pool, lineup=lineup)
         except OverdraftException:
             raise ValidationError(
                 {"detail": "You do not have the necessary funds for this action."})
@@ -514,11 +512,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
             logger.error("EnterLineupAPIView: %s" % str(e))
             client.captureException()
             raise APIException({"detail": "Unable to enter contest."})
-
-        task_helper = TaskHelper(buyin_task, task_result.id)
-        data = task_helper.get_data()
-        # dont break what was there by adding this extra field
-        data['buyin_task_id'] = task_result.id
 
         # Create a user log entry.
         create_user_log(
@@ -532,7 +525,8 @@ class EnterLineupAPIView(generics.CreateAPIView):
             }
         )
 
-        return Response(data, status=status.HTTP_200_OK)
+        serializer = self.serializer_class(buyin_result)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EntryResultAPIView(generics.RetrieveAPIView):

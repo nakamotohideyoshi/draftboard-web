@@ -39,6 +39,7 @@ function mapStateToProps(state) {
     teams: state.sports,
     lineupsInfo: upcomingLineupsInfo(state),
     entrySkillLevels: entrySkillLevelsSelector(state),
+    user: state.user,
   };
 }
 
@@ -85,11 +86,13 @@ const ContestListDetail = React.createClass({
     lineupsInfo: React.PropTypes.object,
     routerPush: React.PropTypes.func,
     entrySkillLevels: React.PropTypes.object.isRequired,
+    user: React.PropTypes.object,
   },
 
   getInitialState() {
     return {
-      activeTab: 'my_entries',
+      // Default tab
+      activeTab: 'entries',
     };
   },
 
@@ -150,19 +153,20 @@ const ContestListDetail = React.createClass({
         return 'No boxscore info';
       }
 
-      case 'my_entries': {
-        return (
-          <EntryList
-            entries={this.props.focusedContestInfo.contest.entryInfo}
-            contestPoolInfo={this.props.focusedContestInfo}
-            removeContestPoolEntry={this.props.removeContestPoolEntry}
-          />
-        );
-      }
-
       case 'entries':
         return (
-          <EntrantList entrants={this.props.focusedContestInfo.entrants} />
+          <div>
+            <EntryList
+              entries={this.props.focusedContestInfo.contest.entryInfo}
+              contestPoolInfo={this.props.focusedContestInfo}
+              removeContestPoolEntry={this.props.removeContestPoolEntry}
+            />
+
+            <EntrantList
+              entrants={this.props.focusedContestInfo.entrants}
+              excludeUsernames={[this.props.user.username]}
+            />
+          </div>
         );
 
       case 'scoring': {
@@ -182,7 +186,6 @@ const ContestListDetail = React.createClass({
   // the hassle right now.
   getTabNav() {
     const tabs = [
-      { title: 'My Entries', tab: 'my_entries' },
       { title: 'Entries', tab: 'entries' },
       { title: 'Prizes', tab: 'prizes' },
       { title: 'Games', tab: 'games' },
@@ -210,20 +213,6 @@ const ContestListDetail = React.createClass({
 
 
   getEnterContestButton() {
-    let enteredText = 'Enter Again';
-    const focusedLineup = this.props.focusedLineup;
-    const lineupsInfo = this.props.lineupsInfo;
-
-    if (focusedLineup) {
-      const focusedLineupName = this.props.focusedLineup.name;
-
-      if (lineupsInfo[focusedLineup.id].contestPoolEntries[this.props.focusedContestId]) {
-        enteredText = `Enter '${focusedLineupName}' Again`;
-      } else {
-        enteredText = `Enter '${focusedLineupName}'`;
-      }
-    }
-
     return (
       <EnterContestButton
         lineup={this.props.focusedLineup}
@@ -237,7 +226,7 @@ const ContestListDetail = React.createClass({
           started: 'Contest Has Started',
           enter: 'Enter Contest',
           entering: 'Entering...',
-          entered: enteredText,
+          entered: 'Enter Again',
           maxEntered: 'Max Entries Reached',
         }}
         buttonClasses= {{

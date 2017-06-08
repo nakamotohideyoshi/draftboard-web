@@ -36,12 +36,6 @@ const EntryList = React.createClass({
 
 
   render() {
-    if (!Object.keys(this.props.entries).length) {
-      return (
-        <div>The selected lineup has no entries in this contest.</div>
-      );
-    }
-
     return (
       <div className="cmp-entry-list">
         <table className="table">
@@ -50,7 +44,7 @@ const EntryList = React.createClass({
               <th
                 className="title"
                 colSpan="2"
-              >Multi-Entries</th>
+              >My Entries</th>
             </tr>
           </thead>
           <tbody>

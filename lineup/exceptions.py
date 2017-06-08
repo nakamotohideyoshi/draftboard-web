@@ -83,3 +83,9 @@ class NotEnoughTeamsException(Exception):
     def __init__(self):
         super().__init__(
             "Lineup must consist of players from at least three different teams.")
+
+
+class DraftgroupLineupLimitExceeded(Exception):
+
+    def __init__(self):
+        super().__init__("You cannot create any more lineups for this sport.")

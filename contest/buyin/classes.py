@@ -151,6 +151,7 @@ class BuyinManager(AbstractSiteUserClass):
         #
         # pusher contest updates because entries were changed
         ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
+        return entry
 
     def lineup_contest(self, contest_pool, lineup=None):
         """
