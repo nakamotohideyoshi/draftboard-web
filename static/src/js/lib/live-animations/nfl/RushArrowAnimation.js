@@ -10,15 +10,11 @@ export default class RushArrowAnimation extends LiveAnimation {
    * @return {number}
    */
   getRushStartingYardLine(recap) {
-    // Define a slight offset to help move the arrow just forward
-    // of the previous animation.
-    const offsetX = 0.02;
+    const yards = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
+    ? recap.startingYardLine() + recap.passingYards()
+    : recap.startingYardLine() - recap.passingYards();
 
-    if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
-      return recap.startingYardLine() + recap.passingYards() + offsetX;
-    }
-
-    return recap.startingYardLine() - recap.passingYards() - offsetX;
+    return yards;
   }
 
   /**
@@ -39,15 +35,26 @@ export default class RushArrowAnimation extends LiveAnimation {
       return 0.5;
     } else if (recap.rushingYards() <= 0.4) {
       return 1;
+    } else if (recap.rushingYards() > 1) {
+      return 2;
     }
 
     return 1.5;
   }
 
   play(recap, field) {
-    // Only show the rush arrow when there is visually enough room for
-    // the mimimum length of the arrow (3 yards).
-    if (recap.isTurnover() || recap.rushingYards() <= 0.03) {
+    // Short handoffs do not get an arrow.
+    if (recap.qbAction() === NFLPlayRecapVO.HANDOFF_SHORT) {
+      return Promise.resolve();
+    }
+
+    // You need at least 2 yards to successfully draw the arrow.
+    if (recap.rushingYards() < 0.02) {
+      return Promise.resolve();
+    }
+
+    // Do not show the arrow during a turn-over, it would be confusing.
+    if (recap.isTurnover()) {
       return Promise.resolve();
     }
 
