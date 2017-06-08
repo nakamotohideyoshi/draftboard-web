@@ -53,7 +53,7 @@ describe('<LineupCardList /> Component', () => {
 
   it('should show a lineup creation CTA if no lineups are present.', () => {
     // should be showing a collapsed version since we have lineups by default.
-    expect(wrapper.find('.cmp-lineup-card--create-collapsed')).to.have.length(1);
+    expect(wrapper.find('.cmp-lineup-card--create-collapsed')).to.have.length(0);
     expect(wrapper.find('.cmp-lineup-card--create')).to.have.length(0);
     wrapper.setProps({ lineups: [] });
     expect(wrapper.find('.cmp-lineup-card--create-collapsed')).to.have.length(0);

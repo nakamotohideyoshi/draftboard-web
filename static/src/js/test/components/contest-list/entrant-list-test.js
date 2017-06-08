@@ -39,7 +39,7 @@ describe('<EntrantList /> Component', () => {
 
   it('should show an empty element if no entrants are provided.', () => {
     wrapper = renderComponent({});
-    expect(wrapper.find('.cmp-entrant-list')).to.have.length(0);
+    expect(wrapper.find('.cmp-entrant-list tr')).to.have.length(0);
     expect(wrapper.text()).to.equal('');
   });
 });

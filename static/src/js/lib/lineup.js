@@ -1,6 +1,3 @@
-import uniq from 'lodash/uniq';
-
-
 // Roster templates used for empty lineup cards and lineup validation.
 export const rosterTemplates = {
   nfl: [
@@ -58,8 +55,8 @@ export const salaryCaps = {
 
 /**
  * When saving a lineup, run through various validations.
- * @param  {array} lineup A list of players.
- * @return {array}        A list of errors.
+ * @param  {Array} lineup A list of players.
+ * @return {Array}        A list of errors.
  */
 export function validateLineup(lineup) {
   const errors = [];
@@ -70,13 +67,6 @@ export function validateLineup(lineup) {
       // Immediately exit because a missing player can break subsequent validation.
       return errors;
     }
-  }
-
-  // Must have players from 3 different teams.
-  const lineupTeams = lineup.map((slot) => slot.player.team_srid);
-  const uniqueTeams = uniq(lineupTeams);
-  if (uniqueTeams.length < 3) {
-    errors.push('Your lineup must contain players from at least 3 different teams.');
   }
 
   // Return any errors we've found.

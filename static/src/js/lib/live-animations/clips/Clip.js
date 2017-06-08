@@ -102,9 +102,9 @@ export default class Clip {
     this._curFrame = 1;
     this.debug();
     const fileUri = this.getFile(file);
-    return this.sprite.load(fileUri, this.frameWidth, this.frameHeight).then(() => {
-      this._el.appendChild(this.sprite.getElement());
-    });
+    return this.sprite.load(fileUri, this.frameWidth, this.frameHeight).then(
+      () => this._el.appendChild(this.sprite.getElement())
+    );
   }
 
   /**

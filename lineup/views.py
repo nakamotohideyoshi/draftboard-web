@@ -34,6 +34,7 @@ from lineup.exceptions import (
     EditLineupInProgressException,
     LineupUnchangedException,
     CreateLineupExpiredDraftgroupException,
+    DraftgroupLineupLimitExceeded,
 )
 from lineup.models import Lineup, Player
 from lineup.serializers import (
@@ -101,8 +102,9 @@ class CreateLineupAPIView(generics.CreateAPIView):
                 EditLineupInProgressException,
                 LineupUnchangedException,
                 CreateLineupExpiredDraftgroupException,
+                DraftgroupLineupLimitExceeded,
         ) as e:
-            logger.error("%s | user: %s" % (e, self.request.user))
+            logger.warning("%s | user: %s" % (e, self.request.user))
             raise ValidationError({'detail': e})
         # Catch everything else and log.
         except Exception as e:

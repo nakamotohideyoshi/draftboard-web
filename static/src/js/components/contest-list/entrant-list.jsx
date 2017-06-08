@@ -9,6 +9,14 @@ const EntrantList = React.createClass({
 
   propTypes: {
     entrants: React.PropTypes.array,
+    excludeUsernames: React.PropTypes.array,
+  },
+
+
+  getDefaultProps() {
+    return {
+      excludeUsernames: [],
+    };
   },
 
 
@@ -18,11 +26,13 @@ const EntrantList = React.createClass({
     forEach(entrants, (entrant, key) => {
       // Add the key index in case of username collisions on the react key prop.
       // without this we cannot render the same username twice.
-      entrantList.push(
-        <tr key={`${entrant.username}--${key}`}>
-          <td className="username">{entrant.username}</td>
-        </tr>
-      );
+      if (this.props.excludeUsernames.indexOf(entrant.username) < 0) {
+        entrantList.push(
+          <tr key={`${entrant.username}--${key}`}>
+            <td className="username">{entrant.username}</td>
+          </tr>
+        );
+      }
     });
 
     return entrantList;
@@ -32,7 +42,7 @@ const EntrantList = React.createClass({
   render() {
     if (!this.props.entrants) {
       return (
-        <div></div>
+        <div className="cmp-entrant-list"></div>
       );
     }
 
@@ -41,7 +51,7 @@ const EntrantList = React.createClass({
         <table className="table">
           <thead>
             <tr>
-              <th className="place">User</th>
+              <th className="place">Other User Entries</th>
             </tr>
           </thead>
           <tbody>

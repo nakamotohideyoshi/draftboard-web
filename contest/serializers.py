@@ -173,9 +173,16 @@ class RegisteredUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username')
 
 
-class EnterLineupSerializer(serializers.Serializer):
-    contest = serializers.IntegerField()
-    lineup = serializers.IntegerField()
+class EnterLineupSerializer(serializers.ModelSerializer):
+    detail = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_detail(entry):
+        return "You entered \"%s\" into the %s!" % (entry.lineup.name, entry.contest_pool.name)
+
+    class Meta:
+        model = Entry
+        fields = ('id', 'contest_pool', 'lineup', 'detail')
 
 
 class EnterLineupStatusSerializer(serializers.Serializer):

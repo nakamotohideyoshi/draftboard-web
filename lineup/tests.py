@@ -1,6 +1,3 @@
-#
-# lineup/tests.py
-
 from datetime import timedelta
 
 from django.contrib.contenttypes.models import ContentType
@@ -20,7 +17,7 @@ from test.classes import AbstractTest
 from test.classes import BuildWorldForTesting
 from test.models import PlayerChild
 from .classes import LineupManager
-from .models import Lineup, Player as LineupPlayer
+from .models import Player as LineupPlayer
 from .tasks import edit_lineup, edit_entry
 
 
@@ -270,60 +267,65 @@ class LineupTest(AbstractTest, BuildWorldMixin):
 
         self.assertEquals(entry.lineup.pk, self.lineup.pk)
 
-    def test_merge_lineups_create(self):
-        self.create_valid_lineup()
+    """
+    Disabled because we've changed to 1 lineup per draftgroup, this means there cna be no lineup
+    merging.
+    """
 
-        team = [self.one.pk, self.two.pk, self.three.pk]
-        entry = Entry()
-        entry.lineup = self.lineup
-        entry.contest = self.world.contest
-        entry.user = self.user
-        entry.save()
+    # def test_merge_lineups_create(self):
+    #     self.create_valid_lineup()
+    #
+    #     team = [self.one.pk, self.two.pk, self.three.pk]
+    #     entry = Entry()
+    #     entry.lineup = self.lineup
+    #     entry.contest = self.world.contest
+    #     entry.user = self.user
+    #     entry.save()
+    #
+    #     entry2 = Entry()
+    #     entry2.lineup = self.lineup
+    #     entry2.contest = self.world.contest
+    #     entry2.user = self.user
+    #     entry2.save()
+    #
+    #     new_lineup = self.lm.create_lineup(team, self.draftgroup)
+    #     entry.refresh_from_db()
+    #     entry2.refresh_from_db()
+    #
+    #     self.assertEquals(entry.lineup.pk, new_lineup.pk)
+    #     self.assertEquals(entry2.lineup.pk, new_lineup.pk)
+    #
+    #     self.assertRaises(Lineup.DoesNotExist,
+    #                       lambda: Lineup.objects.get(pk=self.lineup.pk))
 
-        entry2 = Entry()
-        entry2.lineup = self.lineup
-        entry2.contest = self.world.contest
-        entry2.user = self.user
-        entry2.save()
-
-        new_lineup = self.lm.create_lineup(team, self.draftgroup)
-        entry.refresh_from_db()
-        entry2.refresh_from_db()
-
-        self.assertEquals(entry.lineup.pk, new_lineup.pk)
-        self.assertEquals(entry2.lineup.pk, new_lineup.pk)
-
-        self.assertRaises(Lineup.DoesNotExist,
-                          lambda: Lineup.objects.get(pk=self.lineup.pk))
-
-    def test_merge_lineups_edit(self):
-        self.create_valid_lineup()
-
-        team = [self.one.pk, self.two.pk, self.four.pk]
-        new_lineup = self.lm.create_lineup(team, self.draftgroup)
-        self.assertNotEquals(self.lineup.pk, new_lineup.pk)
-
-        team = [self.one.pk, self.two.pk, self.three.pk]
-
-        entry = Entry()
-        entry.lineup = self.lineup
-        entry.contest = self.world.contest
-        entry.user = self.user
-        entry.save()
-
-        entry2 = Entry()
-        entry2.lineup = new_lineup
-        entry2.contest = self.world.contest
-        entry2.user = self.user
-        entry2.save()
-
-        self.lm.edit_lineup(team, entry2.lineup)
-        entry.refresh_from_db()
-
-        self.assertEquals(entry.lineup.pk, new_lineup.pk)
-
-        self.assertRaises(Lineup.DoesNotExist,
-                          lambda: Lineup.objects.get(pk=self.lineup.pk))
+    # def test_merge_lineups_edit(self):
+    #     self.create_valid_lineup()
+    #
+    #     team = [self.one.pk, self.two.pk, self.four.pk]
+    #     new_lineup = self.lm.create_lineup(team, self.draftgroup)
+    #     self.assertNotEquals(self.lineup.pk, new_lineup.pk)
+    #
+    #     team = [self.one.pk, self.two.pk, self.three.pk]
+    #
+    #     entry = Entry()
+    #     entry.lineup = self.lineup
+    #     entry.contest = self.world.contest
+    #     entry.user = self.user
+    #     entry.save()
+    #
+    #     entry2 = Entry()
+    #     entry2.lineup = new_lineup
+    #     entry2.contest = self.world.contest
+    #     entry2.user = self.user
+    #     entry2.save()
+    #
+    #     self.lm.edit_lineup(team, entry2.lineup)
+    #     entry.refresh_from_db()
+    #
+    #     self.assertEquals(entry.lineup.pk, new_lineup.pk)
+    #
+    #     self.assertRaises(Lineup.DoesNotExist,
+    #                       lambda: Lineup.objects.get(pk=self.lineup.pk))
 
     def test_get_lineup_from_id(self):
         self.create_valid_lineup()
@@ -348,6 +350,15 @@ class LineupTest(AbstractTest, BuildWorldMixin):
         data = lm.get_lineup_from_id(self.lineup.pk, self.world.contest)
         for player_obj_arr in data:
             self.assertEquals(player_obj_arr['started'], True)
+
+    def test_two_lineups_in_draftgroup(self):
+        lm = LineupManager(self.user)
+        team = [self.one.pk, self.two.pk, self.four.pk]
+        lineup_1 = lm.create_lineup(team, self.draftgroup)
+
+        self.assertRaises(
+            lineup.exceptions.DraftgroupLineupLimitExceeded,
+            lambda: lm.create_lineup(team, self.draftgroup))
 
 
 class LineupConcurrentTest(AbstractTest, BuildWorldMixin):
