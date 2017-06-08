@@ -8,6 +8,8 @@ import { clip as qbDefaultPassRight } from '../clips/nfl/qb-default-pass-right';
 import { clip as qbDefaultScramble } from '../clips/nfl/qb-default-scramble';
 import { clip as qbShotgunHandoffLeft } from '../clips/nfl/qb-shotgun-handoff-left';
 import { clip as qbShotgunHandoffRight } from '../clips/nfl/qb-shotgun-handoff-right';
+import { clip as qbShotgunHandoffShortLeft } from '../clips/nfl/qb-shotgun-handoff-short-left';
+import { clip as qbShotgunHandoffShortRight } from '../clips/nfl/qb-shotgun-handoff-short-right';
 import { clip as qbShotgunPassLeft } from '../clips/nfl/qb-shotgun-pass-left';
 import { clip as qbShotgunPassMiddle } from '../clips/nfl/qb-shotgun-pass-middle';
 import { clip as qbShotgunPassRight } from '../clips/nfl/qb-shotgun-pass-right';
@@ -30,6 +32,9 @@ const plays = {
   qb_shotgun_handoff_left: qbShotgunHandoffLeft,
   qb_shotgun_handoff_middle: qbShotgunHandoffRight,
   qb_shotgun_handoff_right: qbShotgunHandoffRight,
+  qb_shotgun_handoff_short_left: qbShotgunHandoffShortLeft,
+  qb_shotgun_handoff_short_middle: qbShotgunHandoffShortRight,
+  qb_shotgun_handoff_short_right: qbShotgunHandoffShortRight,
   qb_shotgun_pass_left: qbShotgunPassLeft,
   qb_shotgun_pass_middle: qbShotgunPassMiddle,
   qb_shotgun_pass_right: qbShotgunPassRight,
@@ -42,6 +47,9 @@ const plays = {
   qb_default_handoff_left: qbDefaultHandoffLeft,
   qb_default_handoff_middle: qbDefaultHandoffLeft,
   qb_default_handoff_right: qbDefaultHandoffRight,
+  qb_default_handoff_short_left: qbDefaultHandoffLeft,
+  qb_default_handoff_short_middle: qbDefaultHandoffLeft,
+  qb_default_handoff_short_right: qbDefaultHandoffRight,
   qb_default_pass_left: qbDefaultPassLeft,
   qb_default_pass_middle: qbDefaultPassMiddle,
   qb_default_pass_right: qbDefaultPassRight,
