@@ -10,6 +10,7 @@ class PromotionAdmin(admin.ModelAdmin):
 
     list_display = ['enabled','code','first_deposit_only','description',
                     'expires','max_bonuscash','fpp_per_bonus_dollar','admin_notes']
+    list_display_links = ['code']
     list_editable = ['enabled','description','admin_notes']
 
 @admin.register(PromoCode)

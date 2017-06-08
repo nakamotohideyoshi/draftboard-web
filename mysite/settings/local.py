@@ -96,3 +96,4 @@ RAVEN_CONFIG = {
 
 # Who will recieve flagged identity emails. (this can be empty)
 FLAGGED_IDENTITY_EMAIL_RECIPIENTS = []
+ALLOWED_HOSTS = ['*']

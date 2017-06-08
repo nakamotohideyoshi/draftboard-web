@@ -572,7 +572,7 @@ class Pbp(models.Model):
     game_id = models.PositiveIntegerField()
     game = GenericForeignKey('game_type', 'game_id')
 
-    descriptions = GenericRelation(PbpDescription,
+    descriptions = GenericRelation('PbpDescription',
                                    content_type_field='pbp_type',
                                    object_id_field='pbp_id')
 
