@@ -50,6 +50,10 @@ export default class NFLPlayRecapVO {
     return 'handoff';
   }
 
+  static get HANDOFF_SHORT() {
+    return 'handoff_short';
+  }
+
   static get PASS_DEEP() {
     return 'pass_deep';
   }
@@ -150,11 +154,22 @@ export default class NFLPlayRecapVO {
   qbAction() {
     if (this.isScramble()) {
       return NFLPlayRecapVO.SCAMBLE;
-    } else if (this.isHandOff()) {
-      return NFLPlayRecapVO.HANDOFF;
-    } else if (this.isPassingPlay()) {
+    }
+
+    if (this.isPassingPlay()) {
       return this.passType();
     }
+
+    if (this.isHandOff()) {
+      if (this.totalYards() === 0) {
+        return NFLPlayRecapVO.HANDOFF;
+      } else if (this.totalYards() < 0.03) {
+        return NFLPlayRecapVO.HANDOFF_SHORT;
+      }
+
+      return NFLPlayRecapVO.HANDOFF;
+    }
+
     return null;
   }
 

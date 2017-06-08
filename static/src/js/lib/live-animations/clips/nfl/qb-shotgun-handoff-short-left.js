@@ -1,7 +1,7 @@
 export const clip = {
   frame_width: 190,
   frame_height: 120,
-  length: 90,
+  length: 92,
   registration_x: 142,
   registration_y: 68,
   avatars: [
