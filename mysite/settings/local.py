@@ -24,6 +24,8 @@ INSTALLED_APPS = ('test_without_migrations',) + INSTALLED_APPS
 git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
 db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
 
+DEFAULT_FROM_EMAIL = 'support+LOCAL@draftboard.com'
+
 # This will dump the raw postgres db:
 # $> sudo -u postgres pg_dump -Fc --no-acl --no-owner dfs_master > dfs_exported.dump
 DATABASES = {
