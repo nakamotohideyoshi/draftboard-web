@@ -4,6 +4,7 @@ from datetime import timedelta
 from html import escape
 from logging import getLogger
 
+from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -23,8 +24,6 @@ from rakepaid.classes import LoyaltyStatusManager
 from util.slack import WebhookContestInfo
 
 logger = getLogger('contests.tasks')
-HIGH_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
-LOW_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
 
 #
 # very important/required notify email list
@@ -56,16 +55,16 @@ def spawn_contest_pool_contests(self):
         try:
             contest_pools = LiveContestPool.objects.all()
             for cp in contest_pools:
-                msg = "🏁 Attempting to spawn contests from ContestPool: ```%s```" % cp
-                logger.info(msg)
-                slack.send(msg)
+                slack_msg = "🏁 Attempting to spawn contests from ContestPool: ```%s```" % cp
+                logger.info(slack_msg)
+                slack.send(slack_msg)
                 cpf = ContestPoolFiller(cp)
                 # create all its Contests using FairMatch
                 new_contests = cpf.fair_match()
                 for new_contest in new_contests:
-                    msg = "> 🐥 Spawned ```%s```" % new_contest
-                    logger.info(msg)
-                    slack.send(msg)
+                    slack_msg = "> 🐥 Spawned ```%s```" % new_contest
+                    logger.info(slack_msg)
+                    slack.send(slack_msg)
         finally:
             release_lock()
 
@@ -149,7 +148,7 @@ def notify_admin_draft_groups_not_completed(self, hours=5, *args, **kwargs):
     slack.send(msg_str)
     send_mail("Alert! Draft Groups (Live Games) Running late (!?)",
               msg_str,
-              HIGH_PRIORITY_FROM_EMAIL,
+              settings.DEFAULT_FROM_EMAIL,
               HIGH_PRIORITY_EMAILS)
 
 
@@ -178,7 +177,7 @@ def notify_admin_contests_not_paid(self, *args, **kwargs):
         slack.send("Alert! Contest Payout time! %s" % msg_str)
         send_mail("Alert! Contest Payout time!",
                   msg_str,
-                  HIGH_PRIORITY_FROM_EMAIL,
+                  settings.DEFAULT_FROM_EMAIL,
                   HIGH_PRIORITY_EMAILS)
 
 
@@ -210,7 +209,7 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
             subject="Contest Auto Payout Time!",
             message=msg_str,
             html_message=msg_str,
-            from_email=HIGH_PRIORITY_FROM_EMAIL,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=HIGH_PRIORITY_EMAILS,
         )
 
@@ -245,4 +244,3 @@ def track_contests(contests):
                 data['Money Won'] = payment.amount
                 data['Place'] = payment.rank
             track_contest_end(user.username, data)
-

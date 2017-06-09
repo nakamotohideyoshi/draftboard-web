@@ -1,24 +1,20 @@
 from __future__ import absolute_import
+
 from django.conf import settings
 from django.core.cache import cache
-from mysite.celery_app import app
 from django.core.mail import send_mail
-from cash.withdraw.models import PayPalWithdraw
 
+from cash.withdraw.models import PayPalWithdraw
+from mysite.celery_app import app
 
 # emails to receive Withdraw request emails
-FROM_EMAIL = 'admin@draftboard.com'
 EMAILS = [
     'devs@draftboard.com',
     'manager@draftboard.com',
-    'pedro@draftboard.com',
 ]
 
 LOCK_EXPIRE = 60  # lock expires in this many seconds
 SHARED_LOCK_NAME = 'withdraw_request_emails'
-
-LOCK_EXPIRE = 60  # lock expires in this many seconds
-SHARED_LOCK_NAME = 'spawn_contest_pool_contests'
 
 
 @app.task(bind=True)
@@ -39,7 +35,7 @@ def notify_recent_withdraws(self):
         try:
             subject = 'Draftboard has %s Pending Withdraws.' % (withdraws.count())
             body = 'heres the link: %s/admin/withdraw/paypalwithdraw/' % settings.DOMAIN
-            send_mail(subject, body, FROM_EMAIL, EMAILS)
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, EMAILS)
 
         finally:
             release_lock()

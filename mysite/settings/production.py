@@ -92,8 +92,8 @@ DATETIME_DELTA_ENABLE = False
 
 # Inactive users
 INACTIVE_USERS_EMAILS = [
-    'pedro@runitonce.com',
-    'dan@runitonce.com',
+    'devs@draftboard.com',
+    'dan@draftboard.com',
 ]
 
 # Trulioo creds

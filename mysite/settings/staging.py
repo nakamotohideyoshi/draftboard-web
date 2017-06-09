@@ -1,7 +1,6 @@
 # settings.py for 'draftboard-staging' heroku app
 from .base import *
 from dj_database_url import config as heroku_db_config
-from urllib import parse
 
 # Constant for determining environment
 DOMAIN = 'staging.draftboard.com'
