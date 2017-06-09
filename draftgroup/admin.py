@@ -6,12 +6,13 @@ from contest.models import (Contest, Entry)
 
 @admin.register(draftgroup.models.DraftGroup)
 class DraftGroupAdmin(admin.ModelAdmin):
-    list_display = ['start', 'status', 'has_started', 'contest_count', 'entry_count', 'id',
-                    'sport', 'end', 'num_games', 'closed', 'fantasy_points_finalized', 'created']
+    list_display = ['start', 'sport', 'status', 'has_started', 'contest_count', 'entry_count', 'id',
+                    'end', 'num_games', 'closed', 'fantasy_points_finalized', 'created']
     readonly_fields = ('salary_pool', 'start', 'end', 'closed', 'fantasy_points_finalized',
                        'num_games', 'games', 'contests')
     search_fields = ('id',)
     list_filter = ('salary_pool__site_sport', 'start', 'end', 'closed')
+    ordering = ('-end',)
 
     @staticmethod
     def status(obj):
