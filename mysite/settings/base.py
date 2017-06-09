@@ -98,6 +98,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_celery_beat',
@@ -332,8 +333,8 @@ REST_FRAMEWORK = {
 }
 
 # Use Pipeline for static asset management
+STATICFILES_STORAGE = 'mysite.storage.WhitenoisePipelineStorage'
 
-STATICFLES_STORAGE = 'mysite.storage.WhitenoisePipelineStorage'
 PIPELINE = {
     'PIPELINE_JS_COMPRESSOR': 'pipeline.compressors.jsmin.JSMinCompressor',
     'PIPELINE_JS': {}
