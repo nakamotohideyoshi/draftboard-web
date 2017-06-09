@@ -6,6 +6,8 @@ from dj_database_url import config as heroku_db_config
 DOMAIN = 'staging.draftboard.com'
 ALLOWED_HOSTS = [DOMAIN, 'draftboard-staging.herokuapp.com']
 
+ENVIRONMENT_NAME = "STAGING"
+ENVIRONMENT_COLOR = "#9ea548"
 
 # Testing mode off
 DEBUG = False

@@ -12,6 +12,9 @@ SITE = 'www.draftboard.com'
 ALLOWED_HOSTS = ['.draftboard.com', '*.draftboard.com']
 INTERNAL_IPS = ()
 
+ENVIRONMENT_NAME = "Probably Local"
+ENVIRONMENT_COLOR = "#a505a4"
+
 # Folder locations
 PROJECT_ROOT = Path(__file__).ancestor(3)
 STATIC_ROOT = PROJECT_ROOT.child('collected_static')
@@ -181,6 +184,7 @@ TEMPLATES = [{
             'mysite.context_processors.player_images_url',
             'mysite.context_processors.git_commit_uuid',
             'mysite.context_processors.js_loglevel',
+            'mysite.context_processors.from_settings',
 
         ],
         'loaders': [

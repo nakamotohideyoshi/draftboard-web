@@ -6,6 +6,9 @@ from urllib import parse
 DOMAIN = 'www.draftboard.com'
 ALLOWED_HOSTS = [DOMAIN, 'draftboard-prod.herokuapp.com']
 
+ENVIRONMENT_NAME = "PRODUCTION"
+ENVIRONMENT_COLOR = "#a53a49"
+
 # Testing mode off for production
 DEBUG = False
 

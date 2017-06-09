@@ -47,3 +47,11 @@ def git_commit_uuid(request):
 # returns level of the client logging
 def js_loglevel(request):
     return {'JS_LOGLEVEL': cache.get('js_loglevel', '')}
+
+
+def from_settings(request):
+    # Used to show environment banners in admin section.
+    return {
+        'ENVIRONMENT_NAME': settings.ENVIRONMENT_NAME,
+        'ENVIRONMENT_COLOR': settings.ENVIRONMENT_COLOR,
+    }
