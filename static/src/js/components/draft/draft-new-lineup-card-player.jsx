@@ -34,8 +34,6 @@ const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
  */
 const DraftNewLineupCardPlayer = (props) => {
   if (props.player.player) {
-    const names = props.player.player.name.split(' ');
-
     return (
       <li className="cmp-lineup-card__player occupied" key={props.player.idx}>
         <span className="cmp-lineup-card__position">{props.player.name}</span>
@@ -55,7 +53,7 @@ const DraftNewLineupCardPlayer = (props) => {
           onClick={props.onPlayerClick.bind(null, props.player.player.player_id)}
         >
           <span className="name">
-            {names[0][0]}. {names[names.length - 1]}
+            {props.player.player.name}
           </span>
 
           <span className="game">
