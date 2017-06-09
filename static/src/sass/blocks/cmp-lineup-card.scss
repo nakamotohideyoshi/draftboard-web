@@ -26,6 +26,7 @@ category: Lineup
   position: relative;
   transition: opacity .25s, box-shadow .25s;
   will-change: opacity, box-shadow;
+  overflow: hidden;
 
   .players {
     list-style: none;
@@ -587,16 +588,29 @@ category: Lineup
       padding: 5px;
       vertical-align: top;
       font-size: 12px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
 
-      .name:hover {
-        cursor: pointer;
-        text-decoration: underline;
+      .name {
+        display: inline-block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        width: 120px;
+
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
       }
 
-      .salary {
+      .game {
         color: #9c9faf;
         display: block;
         font-size: 9px;
+      }
+
+      .players-team {
+        font-weight: 700;
       }
     }
 
