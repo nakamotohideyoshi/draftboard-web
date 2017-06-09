@@ -10,6 +10,8 @@ from .base import *
 DOMAIN = 'delorean.draftboard.com'
 ALLOWED_HOSTS = [DOMAIN]
 
+ENVIRONMENT_NAME = "DELOREAN"
+ENVIRONMENT_COLOR = "#2da580"
 
 # Testing mode off for production
 DEBUG = False

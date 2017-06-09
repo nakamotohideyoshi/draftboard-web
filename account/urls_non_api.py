@@ -1,6 +1,5 @@
 from django.conf.urls import include
 from django.conf.urls import url
-from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 from account.views import (
@@ -21,7 +20,6 @@ urlpatterns = [
         auth_views.password_reset_confirm, name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
     url(r'^register/', RegisterView.as_view(), name='register'),
-    url(r'^admin/', include(admin.site.urls)),
 
     # frontend templates, will eventually be separated out
     url(r'', include('frontend.urls', namespace='frontend')),

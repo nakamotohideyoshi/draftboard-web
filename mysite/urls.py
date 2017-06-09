@@ -48,6 +48,8 @@ urlpatterns = [
 
     # All non-API urls. (these serve up html templates)
     url(r'^', include('account.urls_non_api')),
+    # Admin
+    url(r'^thinking_face/', admin.site.urls, name="admin"),
 ]
 
 if settings.DEBUG:
