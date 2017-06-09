@@ -154,7 +154,7 @@ class TestAdminPanelBonusCashDeposit(AbstractTest):
     def setUp(self):
         super().setUp()
         self.user   = self.get_admin_user()
-        self.url    = '/admin/bonuscash/adminbonuscashdeposit/add/' # you can determine the url from the actual admin panel
+        self.url    = '/thinking_face/bonuscash/adminbonuscashdeposit/add/' # you can determine the url from the actual admin panel
         self.client = Client()
         if not self.client.login( username=self.user.username, password=self.get_password() ):
             #
