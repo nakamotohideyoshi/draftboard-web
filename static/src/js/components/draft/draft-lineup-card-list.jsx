@@ -1,16 +1,16 @@
 import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
-import DraftNewLineupCard from './draft-new-lineup-card.jsx';
+import DraftNewLineupCard from './draft-new-lineup-card';
 import renderComponent from '../../lib/render-component';
-import * as AppActions from '../../stores/app-state-store.js';
-import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by-draftgroup.js';
-import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
+import * as AppActions from '../../stores/app-state-store';
+import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by-draftgroup';
+import { setFocusedPlayer } from '../../actions/draft-group-players-actions';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
-  from '../../actions/upcoming-lineup-actions.js';
+  from '../../actions/upcoming-lineup-actions';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
-
+import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-info-selector';
 
 /*
  * Map selectors to the React component
@@ -24,6 +24,7 @@ function mapStateToProps(state) {
     newLineup: state.createLineup,
     sport: state.draftGroupPlayers.sport,
     draftGroupId: state.draftGroupPlayers.id,
+    draftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
   };
 }
 
@@ -65,6 +66,7 @@ const DraftLineupCardList = React.createClass({
     importLineup: React.PropTypes.func,
     params: React.PropTypes.object,
     setFocusedPlayer: React.PropTypes.func,
+    draftGroupBoxScores: React.PropTypes.object,
   },
 
 
@@ -148,6 +150,7 @@ const DraftLineupCardList = React.createClass({
           saveLineup={this.handleSaveLineup}
           handlePlayerClick={this.handlePlayerClick}
           sport={this.props.sport}
+          draftGroupBoxScores={this.props.draftGroupBoxScores}
         />
       </div>
     );

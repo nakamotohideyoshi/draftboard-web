@@ -5,7 +5,7 @@ import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
 import classnames from 'classnames';
 
-const defaultLineupTitle = 'New Lineup';
+const defaultLineupTitle = 'My Lineup';
 
 
 /**
@@ -26,6 +26,7 @@ const DraftNewLineupCard = React.createClass({
     saveLineup: React.PropTypes.func.isRequired,
     handlePlayerClick: React.PropTypes.func,
     lineupCanBeSaved: React.PropTypes.bool,
+    draftGroupBoxScores: React.PropTypes.object,
   },
 
 
@@ -142,6 +143,7 @@ const DraftNewLineupCard = React.createClass({
           removePlayer={self.props.removePlayer}
           onPlayerClick={self.props.handlePlayerClick}
           playerImagesBaseUrl={playerImagesBaseUrl}
+          draftGroupBoxScores={this.props.draftGroupBoxScores}
         />
       )
     );
@@ -179,13 +181,13 @@ const DraftNewLineupCard = React.createClass({
           <div
             className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
           >
-            <span className="cmp-lineup-card__footer-title">Rem. Salary</span>
+            <span className="cmp-lineup-card__footer-title">Remaining Salary</span>
             ${this.props.remainingSalary.toLocaleString('en')}
           </div>
           <div
             className={`cmp-lineup-card__countdown cmp-lineup-card__footer-section ${avgRemainingPlayerSalaryClasses}`}
           >
-            <span className="cmp-lineup-card__footer-title">Avg. Salary Rem.</span>
+            <span className="cmp-lineup-card__footer-title">Avg / Player</span>
             ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
           </div>
         </footer>

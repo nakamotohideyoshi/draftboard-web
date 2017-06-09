@@ -1,6 +1,32 @@
 /* eslint no-param-reassign: 0 */
 import React from 'react';
-import { roundUpToDecimalPlace } from '../../lib/utils.js';
+import moment from 'moment';
+
+
+const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
+  const formatTeam = (playerTeam, team) => {
+    let classname = '';
+    if (playerTeam === team.srid) {
+      classname = 'players-team';
+    }
+
+    return <span className={classname}>{team.alias}</span>;
+  };
+
+
+  if (gameSrid in draftGroupBoxScores) {
+    const game = draftGroupBoxScores[gameSrid];
+
+    return (
+      <div>
+        {formatTeam(playerTeamSrid, game.awayTeam)} @&nbsp;
+        {formatTeam(playerTeamSrid, game.homeTeam)}&nbsp;
+        {moment(game.start, moment.ISO_8601).format('h:mma')}
+      </div>
+    );
+  }
+  return '';
+};
 
 
 /**
@@ -30,9 +56,15 @@ const DraftNewLineupCardPlayer = (props) => {
         >
           <span className="name">
             {names[0][0]}. {names[names.length - 1]}
-            <span className="cmp-lineup-card__team">- {props.player.player.team_alias}</span>
           </span>
-          <span className="salary">{roundUpToDecimalPlace(props.player.player.fppg, 1)} Avg</span>
+
+          <span className="game">
+            {getFormattedGame(
+              props.player.player.game_srid,
+              props.player.player.team_srid,
+              props.draftGroupBoxScores
+            )}
+            </span>
         </span>
 
         <span className="cmp-lineup-card__average">
@@ -73,6 +105,7 @@ const DraftNewLineupCardPlayer = (props) => {
   );
 };
 
+
 DraftNewLineupCardPlayer.propTypes = {
   // A player row object.
   player: React.PropTypes.object.isRequired,
@@ -80,6 +113,7 @@ DraftNewLineupCardPlayer.propTypes = {
   // What happens when the delete button is clicked.
   removePlayer: React.PropTypes.func.isRequired,
   onPlayerClick: React.PropTypes.func,
+  draftGroupBoxScores: React.PropTypes.object,
 };
 
 module.exports = DraftNewLineupCardPlayer;
