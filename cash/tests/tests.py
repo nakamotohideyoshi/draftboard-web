@@ -211,7 +211,7 @@ class AdminPanelCashDeposit(AbstractTest):
     """
 
     c       = Client()
-    url     = '/admin/cash/admincashdeposit/add/'
+    url     = '/thinking_face/cash/admincashdeposit/add/'
     user_data = {
         'username'      : 'admin',      # subclasses should set the username here
         'password'      : 'password',      # subclasses should set the password here
@@ -270,7 +270,7 @@ class AdminPanelCashDeposit(AbstractTest):
         print('users: ', str(len(users)))
         for u in users:
             print( u )
-            
+
         self.assertEquals( admin.username, 'admin')
 
 
@@ -339,7 +339,7 @@ class AdminPanelCashWithdrawal(AbstractTest):
     """
 
     c       = Client()
-    url     = '/admin/cash/admincashwithdrawal/add/'
+    url     = '/thinking_face/cash/admincashwithdrawal/add/'
     amount = 1.00
 
     def setUp(self):
