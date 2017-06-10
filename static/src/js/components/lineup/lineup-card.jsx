@@ -121,11 +121,13 @@ const LineupCard = React.createClass({
      */
     const flippedClass = this.state.flipped ? 'flipped' : '';
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.lineup.sport}`;
+
     const players = this.props.lineup.players.map((player) => (
       <LineupCardPlayer
         player={player}
         key={player.player_id}
         playerImagesBaseUrl={playerImagesBaseUrl}
+        draftGroupInfo={this.props.draftGroupInfo}
       />
     ));
 

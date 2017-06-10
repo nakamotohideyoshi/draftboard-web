@@ -20,7 +20,7 @@ import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
 import SelectDraftGroupButton from './select-draft-group-button';
 import '../contest-list/contest-list-sport-filter';
 import { removeParamFromURL } from '../../lib/utils';
-
+import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions.js';
 const { Provider, connect } = ReactRedux;
 
 
@@ -33,6 +33,7 @@ function mapStateToProps(state) {
   return {
     draftGroupInfo: draftGroupInfoSelector(state),
     draftGroupSelectionModalIsOpen: state.upcomingDraftGroups.draftGroupSelectionModalIsOpen,
+    draftGroupBoxScores: state.upcomingDraftGroups.boxScores,
     focusedContestInfo: focusedContestInfoSelector(state),
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     focusedSport: state.contestPools.filters.sportFilter.match,
@@ -51,6 +52,8 @@ function mapDispatchToProps(dispatch) {
   return {
     closeDraftGroupSelectionModal: () => dispatch(closeDraftGroupSelectionModal()),
     fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(
+      fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId)),
     lineupHovered: (lineupId) => dispatch(lineupHovered(lineupId)),
     openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal()),
@@ -82,6 +85,7 @@ const LineupCardList = React.createClass({
     queryLineup: React.PropTypes.string,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
     routerPush: React.PropTypes.func,
+    fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
   },
 
   getDefaultProps() {
@@ -122,6 +126,14 @@ const LineupCardList = React.createClass({
     // collapsed.
     if (this.props.focusedLineupId !== prevProps.focusedLineupId) {
       this.scrollToCard(this.props.focusedLineupId);
+    }
+
+    //  If we get new draftgroups in our selector, make sure we have the boxscores for them.
+    // The boxscores are used to show team info on LineupCardPlayer components.
+    if (this.props.draftGroupInfo.draftGroups !== prevProps.draftGroupInfo.draftGroups) {
+      this.props.draftGroupInfo.draftGroups.forEach((draftGroup) => {
+        this.props.fetchDraftGroupBoxScoresIfNeeded(draftGroup.pk);
+      });
     }
   },
 

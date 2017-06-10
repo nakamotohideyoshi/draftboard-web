@@ -4,12 +4,13 @@ import filter from 'lodash/filter';
 import mapValues from 'lodash/mapValues';
 import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
+import forEach from 'lodash/forEach';
 
 
 // Input Selectors
 const draftGroupsFilterSelector = (state) => state.upcomingDraftGroups.draftGroups;
 const contestsFilterSelector = (state) => state.contestPools.allContests;
-
+const draftGroupBoxScoresSelector = (state) => state.upcomingDraftGroups.boxScores;
 
 /**
  * A memoized selector that finds derived data from the list of upcoming contests and upcoming
@@ -35,8 +36,8 @@ const contestsFilterSelector = (state) => state.contestPools.allContests;
  }
 */
 export const draftGroupInfoSelector = createSelector(
-  [draftGroupsFilterSelector, contestsFilterSelector],
-  (draftGroups, contests) => {
+  [draftGroupsFilterSelector, contestsFilterSelector, draftGroupBoxScoresSelector],
+  (draftGroups, contests, draftGroupBoxScores) => {
     //  Get a group listing of each sport with counts.
     const sportContestCounts = countBy(contests, (contest) => contest.sport);
     const sportDraftGroupCounts = countBy(draftGroups, (draftGroup) => draftGroup.sport);
@@ -49,11 +50,17 @@ export const draftGroupInfoSelector = createSelector(
     // Sort the draftgroups by start time.
     draftGrupsExtra = sortBy(draftGrupsExtra, 'start');
 
-    return {
+    const data = Object.assign({}, {
       sportContestCounts,
       draftGroups: draftGrupsExtra,
       sportDraftGroupCounts,
-    };
+    });
+    /* eslint-disable no-param-reassign */
+    forEach(data.draftGroups, group => {
+      group.boxScores = draftGroupBoxScores[group.pk];
+    });
+    /* eslint-enable no-param-reassign */
+    return data;
   }
 );
 

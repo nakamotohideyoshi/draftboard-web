@@ -1,7 +1,43 @@
 /* eslint no-param-reassign: 0 */
 import React from 'react';
 import { humanizeFP } from '../../lib/utils/numbers';
+import moment from 'moment';
+import find from 'lodash/find';
 
+
+const getFormattedGame = (playerTeamSrid, boxScores) => {
+  const playerIsHome = find(boxScores, {
+    srid_home: playerTeamSrid,
+  });
+
+  const playerIsAway = find(boxScores, {
+    srid_away: playerTeamSrid,
+  });
+
+  const game = playerIsHome || playerIsAway;
+
+  const formatTeam = (playerTeam, teamSrid, teamName) => {
+    let classname = '';
+    if (playerTeam === teamSrid) {
+      classname = 'players-team';
+    }
+
+    return <span className={classname}>{teamName}</span>;
+  };
+
+  if (game) {
+    // Return the formatted info
+    return (
+      <div>
+        {formatTeam(playerTeamSrid, game.srid_away, game.away_team)} @&nbsp;
+        {formatTeam(playerTeamSrid, game.srid_home, game.home_team)}&nbsp;
+        {moment(game.start, moment.ISO_8601).format('h:mma')}
+      </div>
+    );
+  }
+
+  return '';
+};
 
 /**
  * A player row to be placed in a lineup card.
@@ -20,11 +56,10 @@ const LineupCardPlayer = (props) => (
         height="35px"
       />
     </span>
-    <span className="cmp-lineup-card__name">
-      {props.player.player_meta.first_name[0]}.
-      {props.player.player_meta.last_name}
-      <span className="cmp-lineup-card__team">
-        - {props.player.player_meta.team.alias}
+    <span className="cmp-lineup-card__name-game">
+      <span className="name">{props.player.player_meta.first_name} {props.player.player_meta.last_name}</span>
+      <span className="game">
+        {getFormattedGame(props.player.player_meta.team.srid, props.draftGroupInfo.boxScores)}
       </span>
     </span>
     <span className="cmp-lineup-card__average"><span className="text">{ humanizeFP(props.player.fppg) }</span></span>
@@ -34,6 +69,7 @@ const LineupCardPlayer = (props) => (
 LineupCardPlayer.propTypes = {
   player: React.PropTypes.object.isRequired,
   playerImagesBaseUrl: React.PropTypes.string.isRequired,
+  draftGroupInfo: React.PropTypes.object.isRequired,
 };
 
 module.exports = LineupCardPlayer;

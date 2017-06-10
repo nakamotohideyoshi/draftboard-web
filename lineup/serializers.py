@@ -18,7 +18,7 @@ from sports.serializers import PlayerSerializer
 
 
 class AbstractTeamSerializer:
-    FIELDS = ('id', 'alias', 'market', 'name')
+    FIELDS = ('id', 'alias', 'market', 'name', 'srid')
 
 
 class AbstractPlayerSerializer:

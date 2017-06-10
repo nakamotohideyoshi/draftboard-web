@@ -1,9 +1,9 @@
-#
-# sports/serializers.py
-
-from .models import Player, PlayerStats, PbpDescription, GameBoxscore, Injury
-from rest_framework import serializers
 from ast import literal_eval
+
+from rest_framework import serializers
+
+from .models import PlayerStats, PbpDescription, GameBoxscore
+
 
 # class PlayerSerializer(serializers.ModelSerializer):
 #
@@ -16,7 +16,23 @@ class GameSerializer(serializers.ModelSerializer):
     """
     parent Game object serializer with common fields
     """
-    PARENT_FIELDS = ('srid','start','status','boxscore')
+    home_team = serializers.SerializerMethodField()
+    away_team = serializers.SerializerMethodField()
+
+    def get_home_team(self, game):
+        return self.get_team_name_from_srid(game.srid_home)
+
+    def get_away_team(self, game):
+        return self.get_team_name_from_srid(game.srid_away)
+
+    @staticmethod
+    def get_team_name_from_srid(srid):
+        from sports.classes import TeamNameCache
+        tnc = TeamNameCache()
+        return tnc.get_team_from_srid(srid).get('alias', 'not found')
+
+    PARENT_FIELDS = ('srid', 'start', 'status', 'boxscore', 'home_team', 'away_team')
+
 
 class BoxscoreSerializer(serializers.ModelSerializer):
     """
@@ -39,52 +55,67 @@ class BoxscoreSerializer(serializers.ModelSerializer):
         if json_str is None or json_str == '':
             return None
         else:
-            return literal_eval( json_str )
+            return literal_eval(json_str)
 
     home_scoring_data = serializers.SerializerMethodField()
-    def get_home_scoring_data(self, boxscore):
-        return self.__get_dict( boxscore.home_scoring_json )
-
     away_scoring_data = serializers.SerializerMethodField()
+    home_team = serializers.SerializerMethodField()
+    away_team = serializers.SerializerMethodField()
+
+    def get_home_scoring_data(self, boxscore):
+        return self.__get_dict(boxscore.home_scoring_json)
+
     def get_away_scoring_data(self, boxscore):
-        return self.__get_dict( boxscore.away_scoring_json )
+        return self.__get_dict(boxscore.away_scoring_json)
+
+    def get_home_team(self, game):
+        return self.get_team_name_from_srid(game.srid_home)
+
+    def get_away_team(self, game):
+        return self.get_team_name_from_srid(game.srid_away)
+
+    @staticmethod
+    def get_team_name_from_srid(srid):
+        from sports.classes import TeamNameCache
+        tnc = TeamNameCache()
+        return tnc.get_team_from_srid(srid).get('alias', 'not found')
 
     PARENT_FIELDS = ('srid_game',
-                     'srid_home','srid_away',
-                     'home_score','away_score',
+                     'home_team', 'away_team',
+                     'srid_home', 'srid_away',
+                     'home_score', 'away_score',
                      # 'status', # remove because we want to start using only the Game.status!
-                     'attendance','coverage',
-                     'home_scoring_data','away_scoring_data')
+                     'attendance', 'coverage',
+                     'home_scoring_data', 'away_scoring_data')
+
 
 class GameBoxscoreSerializer(serializers.ModelSerializer):
-
     class Meta:
-
         model = GameBoxscore
-        fields = ('home_id','away_id','title',
-                  'home_score','away_score',
-                  'home_scoring_json','away_scoring_json',
+        fields = ('home_id', 'away_id', 'title',
+                  'home_score', 'away_score',
+                  'home_scoring_json', 'away_scoring_json',
                   'attendance')
 
+
 class PbpDescriptionSerializer(serializers.ModelSerializer):
-
     class Meta:
-
         model = PbpDescription
-        fields = ('created','pbp_id', 'idx', 'description')
+        fields = ('created', 'pbp_id', 'idx', 'description')
+
 
 class PlayerStatsSerializer(serializers.ModelSerializer):
-
     class Meta:
-
         model = PlayerStats
-        fields = ('game_id', 'player_id','fantasy_points','updated')
+        fields = ('game_id', 'player_id', 'fantasy_points', 'updated')
+
 
 class InjurySerializer(serializers.ModelSerializer):
     """
     extended by the specific sport
     """
-    PARENT_FIELDS = ('iid','player_id','status','description','created')
+    PARENT_FIELDS = ('iid', 'player_id', 'status', 'description', 'created')
+
 
 class FantasyPointsSerializer(serializers.Serializer):
     """
@@ -92,13 +123,14 @@ class FantasyPointsSerializer(serializers.Serializer):
     """
     pass
 
+
 class PlayerHistorySerializer(serializers.Serializer):
     """
     extended by the specific sport
     """
     # we will get an array of games
     games = serializers.ListField(
-        #source='fp',
+        # source='fp',
         child=serializers.CharField(),
         help_text="This is an ARRAY of STRING game srid(s)"
     )
@@ -131,16 +163,18 @@ class PlayerHistorySerializer(serializers.Serializer):
     # on the PlayerStats models
     avg_fp = serializers.FloatField()
     fp = serializers.ListField(
-        #source='fp',
+        # source='fp',
         child=serializers.FloatField(),
         help_text="This is an ARRAY of FLOAT fantasy points  of each game referenced by the srid in games at the same index"
     )
+
 
 class TeamSerializer(serializers.ModelSerializer):
     """
     parent TeamSerializer fields that are in every sports.models.Team object
     """
-    PARENT_FIELDS = ('id','srid','name','alias')
+    PARENT_FIELDS = ('id', 'srid', 'name', 'alias')
+
 
 class PlayerSerializer(serializers.ModelSerializer):
     """
@@ -150,39 +184,40 @@ class PlayerSerializer(serializers.ModelSerializer):
     child classes can inherit this class in their specific sport.
     ie: sports.nba.serializers.Player, sports.nhl.serializers.Player, etc...
     """
-    PARENT_FIELDS = ('id','srid','first_name','last_name')
+    PARENT_FIELDS = ('id', 'srid', 'first_name', 'last_name')
+
 
 class TsxItemSerializer(serializers.ModelSerializer):
+    PARENT_FIELDS = ('srid', 'pcid', 'content_published', 'title',
+                     'byline', 'dateline', 'credit', 'content')
 
-    PARENT_FIELDS = ('srid','pcid','content_published','title',
-                     'byline','dateline','credit','content')
 
 class TsxNewsSerializer(serializers.ModelSerializer):
+    PARENT_FIELDS = ('title', 'dateline')
 
-    PARENT_FIELDS = ('title','dateline')
 
 class TsxPlayerSerializer(serializers.ModelSerializer):
+    PARENT_FIELDS = ('name', 'sportsdataid', 'sportradarid')
 
-    PARENT_FIELDS = ('name','sportsdataid','sportradarid')
 
 class PlayerNewsSerializer(serializers.ModelSerializer):
-
-    PARENT_FIELDS = ('id','news')
+    PARENT_FIELDS = ('id', 'news')
 
     # maximum trailing news items to return
     limit_news_items = 5
 
     # child classes must override these to the sport's
     # own TsxPlayer model
-    tsxplayer_class         = None
-    tsxplayer_serializer    = None
+    tsxplayer_class = None
+    tsxplayer_serializer = None
 
     news = serializers.SerializerMethodField()
+
     def get_news(self, player):
         # dt_from = timezone.now() - timedelta(days=30) # start from 30 days ago
         # query_set = TsxPlayer.objects.filter(player=player,
         #                 content_published__gte=dt_from).select_related('player')
 
         query_set = self.tsxplayer_class.objects.filter(player=player) \
-                            .select_related('player')[:self.limit_news_items]
-        return self.tsxplayer_serializer( query_set, many=True ).data
+                        .select_related('player')[:self.limit_news_items]
+        return self.tsxplayer_serializer(query_set, many=True).data
