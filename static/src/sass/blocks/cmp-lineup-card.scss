@@ -149,7 +149,7 @@ category: Lineup
       }
 
       display: table-cell;
-      padding: 10px 5px;
+      padding: 5px 5px;
     }
   }
 
@@ -179,6 +179,7 @@ category: Lineup
     }
   }
 
+  &__game,
   &__name,
   &__salary,
   &__average,
@@ -188,11 +189,54 @@ category: Lineup
 
   &__name {
     font-size: 12px;
-    width: 100%;
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 120px;
   }
 
-  &__team {
+  &__game {
     color: #9c9faf;
+    font-size: 9px;
+    margin: 0;
+    padding: 0;
+
+    .players-team {
+      font-weight: 700;
+    }
+  }
+
+  &__name-game {
+    width: 100%;
+    padding: 5px;
+    vertical-align: top;
+    font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    .name {
+      display: inline-block;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      width: 120px;
+      line-height: 1em;
+
+      &:hover {
+        cursor: pointer;
+        text-decoration: underline;
+      }
+    }
+
+    .game {
+      color: #9c9faf;
+      display: block;
+      font-size: 9px;
+      line-height: 1em;
+    }
+
+    .players-team {
+      font-weight: 700;
+    }
   }
 
   &__salary,
@@ -275,103 +319,103 @@ category: Lineup
   /**
    * Collapsed Card
    */
-  &--collapsed {
-    background: #3a414d;
-    color: #ffffff;
-    cursor: pointer;
-    position: relative;
-
-    .cmp-lineup-card__header {
-      padding: 15px;
-    }
-
-
-    .cmp-lineup-card__title {
-      display: block;
-    }
-
-    // Select CTA.
-    .cmp-lineup-card__select {
-      background-color: rgba(95, 99, 116, .95);
-      font-size: 10px;
-      height: 100%;
-      left: 0;
-      opacity: 0;
-      position: absolute;
-      text-align: center;
-      text-transform: uppercase;
-      top: 0;
-      transition: none;
-      visibility: hidden;
-      width: 100%;
-
-      h4 {
-        padding-top: 20px;
-      }
-    }
-
-    &:hover {
-      // Show select CTA on hover.
-      .cmp-lineup-card__select {
-        transition: opacity 0.1s ease-in-out;
-        opacity: 1;
-        visibility: visible;
-      }
-    }
-  }
+  //&--collapsed {
+  //  background: #3a414d;
+  //  color: #ffffff;
+  //  cursor: pointer;
+  //  position: relative;
+  //
+  //  .cmp-lineup-card__header {
+  //    padding: 15px;
+  //  }
+  //
+  //
+  //  .cmp-lineup-card__title {
+  //    display: block;
+  //  }
+  //
+  //  // Select CTA.
+  //  .cmp-lineup-card__select {
+  //    background-color: rgba(95, 99, 116, .95);
+  //    font-size: 10px;
+  //    height: 100%;
+  //    left: 0;
+  //    opacity: 0;
+  //    position: absolute;
+  //    text-align: center;
+  //    text-transform: uppercase;
+  //    top: 0;
+  //    transition: none;
+  //    visibility: hidden;
+  //    width: 100%;
+  //
+  //    h4 {
+  //      padding-top: 20px;
+  //    }
+  //  }
+  //
+  //  &:hover {
+  //    // Show select CTA on hover.
+  //    .cmp-lineup-card__select {
+  //      transition: opacity 0.1s ease-in-out;
+  //      opacity: 1;
+  //      visibility: visible;
+  //    }
+  //  }
+  //}
 
   // Create CTA - collapsed version.
-  &--create-collapsed {
-    cursor: pointer;
-    position: relative;
-    transition: background-color 0.1s ease-in-out;
-
-    &:hover {
-      background-color: rgba(95, 99, 116, .95);
-
-      a {
-        text-decoration: none;
-      }
-    }
-
-    .cmp-lineup-card__header {
-      padding: 0;
-    }
-
-    .cmp-lineup-card__title {
-      color: #fff;
-      padding: 15px;
-    }
-
-    .right {
-      display: none;
-    }
-
-    .cmp-lineup-card__title {
-      background-size: 13px auto;
-      // padding-left: 25px;
-
-      &:before {
-        background: url('../img/blocks/lobby/btn-plus.png') no-repeat;
-        background-size: 14px auto;
-        content: ' ';
-        display: inline-block;
-        height: 14px;
-        margin: 0 10px 0 0;
-        padding: 0;
-        opacity: .75;
-        position: relative;
-        top: 2px;
-        width: 14px;
-      }
-    }
-
-    .cmp-lineup-card__plus {
-      font-size: 28px;
-      font-weight: 100;
-      top: 6px;
-    }
-  }
+  //&--create-collapsed {
+  //  cursor: pointer;
+  //  position: relative;
+  //  transition: background-color 0.1s ease-in-out;
+  //
+  //  &:hover {
+  //    background-color: rgba(95, 99, 116, .95);
+  //
+  //    a {
+  //      text-decoration: none;
+  //    }
+  //  }
+  //
+  //  .cmp-lineup-card__header {
+  //    padding: 0;
+  //  }
+  //
+  //  .cmp-lineup-card__title {
+  //    color: #fff;
+  //    padding: 15px;
+  //  }
+  //
+  //  .right {
+  //    display: none;
+  //  }
+  //
+  //  .cmp-lineup-card__title {
+  //    background-size: 13px auto;
+  //    // padding-left: 25px;
+  //
+  //    &:before {
+  //      background: url('../img/blocks/lobby/btn-plus.png') no-repeat;
+  //      background-size: 14px auto;
+  //      content: ' ';
+  //      display: inline-block;
+  //      height: 14px;
+  //      margin: 0 10px 0 0;
+  //      padding: 0;
+  //      opacity: .75;
+  //      position: relative;
+  //      top: 2px;
+  //      width: 14px;
+  //    }
+  //  }
+  //
+  //  .cmp-lineup-card__plus {
+  //    font-size: 28px;
+  //    font-weight: 100;
+  //    top: 6px;
+  //  }
+  //}
 
   // Expanded CTA version.
   &--create {
@@ -581,37 +625,6 @@ category: Lineup
 
     &__average {
       padding-right: 15px !important;
-    }
-
-    &__name-salary {
-      width: 100%;
-      padding: 5px;
-      vertical-align: top;
-      font-size: 12px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-
-      .name {
-        display: inline-block;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        width: 120px;
-
-        &:hover {
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
-
-      .game {
-        color: #9c9faf;
-        display: block;
-        font-size: 9px;
-      }
-
-      .players-team {
-        font-weight: 700;
-      }
     }
 
     &__team {

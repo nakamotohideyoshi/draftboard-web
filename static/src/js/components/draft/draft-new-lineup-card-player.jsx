@@ -49,7 +49,7 @@ const DraftNewLineupCardPlayer = (props) => {
           />
         </span>
         <span
-          className="cmp-lineup-card__name-salary"
+          className="cmp-lineup-card__name-game"
           onClick={props.onPlayerClick.bind(null, props.player.player.player_id)}
         >
           <span className="name">
