@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import timedelta
-from contest.buyin.classes import BuyinManager
+
 from debreach.decorators import random_comment_exempt
 from django.http import HttpResponse
 from django.views.generic import View
@@ -28,12 +28,14 @@ from account.permissions import (
 from account.tasks import send_entry_alert_email
 from account.utils import create_user_log
 from cash.exceptions import OverdraftException
+from contest.buyin.classes import BuyinManager
 from contest.classes import (
     ContestLineupManager,
     SkillLevelManager,
 )
 from contest.exceptions import (
     ContestMaxEntriesReachedException,
+    ContestCanNotBeRefunded
 )
 from contest.models import (
     Contest,
@@ -49,7 +51,11 @@ from contest.models import (
 from contest.payout.models import (
     Payout,
 )
-from contest.refund.tasks import unregister_entry_task
+from contest.refund.classes import RefundManager
+from contest.refund.exceptions import (
+    EntryCanNotBeUnregisteredException,
+    UnmatchedEntryIsInContest,
+)
 from contest.serializers import (
     ContestSerializer,
     UpcomingEntrySerializer,
@@ -624,12 +630,17 @@ class RemoveAndRefundEntryAPIView(APIView):
         if entry.contest_pool not in UpcomingContestPool.objects.all():
             raise APIException('You may not unregister at this time.')
 
-        #
-        # execute the unregister task (non-blocking) and return the task_id
-        task_result = unregister_entry_task.delay(entry)
-        # get() blocks the view from returning until the task finishes
-        task_result.get()
-        task_helper = TaskHelper(unregister_entry_task, task_result.id)
+        # Attempt to deregister entry. Throw errors back through the API.
+        try:
+            rm = RefundManager()
+            rm.remove_and_refund_entry(entry)
+        except(EntryCanNotBeUnregisteredException,
+               UnmatchedEntryIsInContest, ContestCanNotBeRefunded) as e:
+            raise ValidationError({'detail': e})
+        except Exception as e:
+            logger.error("RemoveAndRefundEntryAPIView: %s" % str(e))
+            client.captureException()
+            raise APIException({"detail": "Unable to deregister from contest."})
 
         create_user_log(
             request=request,
@@ -641,7 +652,7 @@ class RemoveAndRefundEntryAPIView(APIView):
             }
         )
 
-        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
+        return Response({"status": "SUCCESS"}, status=status.HTTP_200_OK)
 
 
 class UserPlayHistoryAPIView(APIView):
