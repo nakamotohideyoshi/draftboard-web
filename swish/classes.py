@@ -211,7 +211,14 @@ class RotoWire(object):
     # range(1, 15) but for some reason here no 12 didn't find any description in docs
     NBA = 'nba'
     MLB = 'mlb'
-    SPORTS = {NBA: 'Basketball', MLB: 'Baseball'}
+    NHL = 'nhl'
+    NFL = 'nfl'
+    SPORTS = {
+        NBA: 'Basketball',
+        MLB: 'Baseball',
+        NFL: 'Football',
+        NHL: 'Hockey',
+    }
 
     statuses = [
         (STARTING, 'starting'),
@@ -235,6 +242,7 @@ class RotoWire(object):
     api_base_url = 'http://api.rotowire.com'
     api_injuries = 'Injuries.php'
     api_news = 'News.php'
+    api_players = 'Players.php'
     # api_projections_game = '/players/fantasy'
     # api_projections_season = '/players/fantasy/remaining'  # exists also: '/players/fantasy/season'
     # api_player_status = '/players/status'
@@ -349,6 +357,21 @@ class RotoWire(object):
 
         logger.info('%s UpdateData(s)' % len(self.updates))
         return self.updates
+
+    def get_players(self):
+        url = '{}/{}/{}/{}?key={}&format=json'.format(
+            self.api_base_url,
+            self.SPORTS.get(self.sport),
+            self.sport,
+            self.api_players,
+            self.api_key
+        )
+        response_data = self.call_api(url)
+        # free players
+        players_data = response_data.get('FreeAgents', [])
+        # add players
+        [players_data.extend(x.get('Players')) for x in response_data.get('Teams', [])]
+        return players_data
 
 
 class SwishAnalytics(object):
