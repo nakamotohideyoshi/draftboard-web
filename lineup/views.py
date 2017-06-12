@@ -115,6 +115,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
         # Log event to user log
         create_user_log(
             request=request,
+            user=request.user,
             type=_account_const.CONTEST,
             action=_account_const.LINEUP_CREATED,
             metadata={
