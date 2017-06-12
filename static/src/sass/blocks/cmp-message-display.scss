@@ -129,13 +129,11 @@ html.section-logged-out-account .cmp-message-display {
 }
 
 .message-transition-leave {
-  opacity: 1;
+  opacity: 0;
+  transition: opacity 350ms ease-out;
 }
 
-.message-transition-leave.message-transition-leave-active {
-  opacity: 0.01;
-  transition: opacity 100ms ease-in;
-}
+.message-transition-leave.message-transition-leave-active {}
 
 
 // Custom image override for site welcome message.
