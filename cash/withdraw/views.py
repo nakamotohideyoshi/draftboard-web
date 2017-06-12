@@ -81,6 +81,7 @@ class PayPalWithdrawAPIView(APIView):
             raise serializers.ValidationError({'amount': ['Cashout amount is out of range.']})
 
         create_user_log(
+            user=request.user,
             request=request,
             type=_account_const.FUNDS,
             action=_account_const.WITHDRAWAL_PAYPAL,
