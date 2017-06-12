@@ -281,6 +281,7 @@ class EditLineupAPIView(generics.CreateAPIView):
             request=request,
             type=_account_const.CONTEST,
             action=_account_const.LINEUP_EDIT,
+            user=request.user,
             metadata={
                 'detail': 'Lineup was edited.',
                 'lineup_id': lineup.id,

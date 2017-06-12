@@ -63,7 +63,6 @@ from contest.serializers import (
     RegisteredUserSerializer,
     EnterLineupSerializer,
     PayoutSerializer,
-    EditEntryLineupSerializer,
     EntryResultSerializer,
     RemoveAndRefundEntrySerializer,
     UserLineupHistorySerializer,
@@ -71,8 +70,6 @@ from contest.serializers import (
     ContestPoolSerializer,
 )
 from lineup.models import Lineup
-from lineup.tasks import edit_entry
-from mysite.celery_app import TaskHelper
 from ticket.exceptions import UserDoesNotHaveTicketException
 from util.dfsdate import DfsDate
 
@@ -522,6 +519,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
         # Create a user log entry.
         create_user_log(
             request=request,
+            user=request.user,
             type=_account_const.CONTEST,
             action=_account_const.CONTEST_ENTERED,
             metadata={
@@ -569,39 +567,6 @@ class PayoutsAPIView(generics.ListAPIView):
         return Payout.objects.filter(entry__contest__pk=contest_id).order_by('rank')
 
 
-class EditEntryLineupAPIView(APIView):
-    """
-    edit an existing lineup in a contest
-    """
-    permission_classes = (IsAuthenticated,)
-    serializer_class = EditEntryLineupSerializer
-
-    def post(self, request, format=None):
-        entry_id = request.data.get('entry')
-        players = request.data.get('players', [])
-        # name = request.data.get('name', '')
-
-        #
-        # validate the parameters passed in here.
-        if players is None:
-            raise APIException('you must supply the list of Player ids.')
-
-        if entry_id is None:
-            raise APIException('you must supply the Entry id')
-
-        try:
-            entry = Entry.objects.get(pk=entry_id, user=request.user)
-        except Entry.DoesNotExist:
-            raise APIException('invalid Entry id')
-
-        # execute task
-        task_result = edit_entry.delay(request.user, players, entry)
-        # get() blocks the view until the task completes its work
-        task_result.get()
-        task_helper = TaskHelper(edit_entry, task_result.id)
-        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
-
-
 class RemoveAndRefundEntryAPIView(APIView):
     """
     removes a contest Entry and refunds the user.
@@ -646,6 +611,7 @@ class RemoveAndRefundEntryAPIView(APIView):
             request=request,
             type=_account_const.CONTEST,
             action=_account_const.CONTEST_DEREGISTERED,
+            user=user,
             metadata={
                 'detail': 'Contest entry was deregistered.',
                 'entry': entry_id,

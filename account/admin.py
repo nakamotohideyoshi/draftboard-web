@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from account.models import Information, EmailNotification, UserLog, Identity
-from cash.admin import CashBalanceAdminInline, CashTransactionDetailAdminInline
+from cash.admin import CashBalanceAdminInline
 from .utils import reset_user_password_email
 
 
@@ -67,5 +67,4 @@ class UserLogAdmin(admin.ModelAdmin):
     list_display = ['user', 'ip', 'type', 'action', 'timestamp']
     search_fields = ['ip', 'user__username']
     list_filter = ['timestamp', 'type']
-
-
+    readonly_fields = ['user', 'ip', 'type', 'action', 'timestamp', 'metadata']
