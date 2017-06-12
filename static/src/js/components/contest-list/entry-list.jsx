@@ -12,14 +12,26 @@ const EntryList = React.createClass({
     entries: React.PropTypes.array.isRequired,
     contestPoolInfo: React.PropTypes.object.isRequired,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
+    user: React.PropTypes.object,
   },
 
 
   getEntryList() {
-    const entryList = this.props.entries.map((entry) => (
+    const entryList = this.props.entries.map((entry) => {
+      let icon = '';
+      if (entry === this.props.entries[0]) {
+        icon = (
+          <span
+            className="icon-guaranteed"
+            title="Your first entry is guaranteed to be placed in a contest. Subsequent
+            entries are not guaranteed. Any entries not placed in contests will be refunded."
+          ></span>);
+      }
+
+      return (
         <tr key={`entry-${entry.id}`}>
           <td className="contest-entry">
-            <div className="lineup-name">{entry.lineup_name || 'Untitled Lineup'}</div>
+            <div className="lineup-name">{this.props.user.username || 'Your Lineup'} {icon} </div>
           </td>
           <td>
             <UnregisterEntryButton
@@ -28,8 +40,8 @@ const EntryList = React.createClass({
             />
           </td>
         </tr>
-      )
-    );
+      );
+    });
 
     return entryList;
   },
@@ -44,7 +56,7 @@ const EntryList = React.createClass({
               <th
                 className="title"
                 colSpan="2"
-              >My Entries</th>
+              >Entries</th>
             </tr>
           </thead>
           <tbody>
