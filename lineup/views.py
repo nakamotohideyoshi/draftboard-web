@@ -389,7 +389,11 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
         return Lineup.objects.filter(
             user=self.request.user,
             draft_group__start__gt=timezone.now()
-        ).order_by('-updated')
+        ).order_by(
+            '-updated'
+        ).prefetch_related(
+            'players__draft_group_player__salary_player'
+        )
 
 
 class UserLiveAPIView(AbstractLineupAPIView):
