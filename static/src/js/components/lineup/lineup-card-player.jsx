@@ -1,6 +1,5 @@
 /* eslint no-param-reassign: 0 */
 import React from 'react';
-import { humanizeFP } from '../../lib/utils/numbers';
 import moment from 'moment';
 import find from 'lodash/find';
 
@@ -62,7 +61,9 @@ const LineupCardPlayer = (props) => (
         {getFormattedGame(props.player.player_meta.team.srid, props.draftGroupInfo.boxScores)}
       </span>
     </span>
-    <span className="cmp-lineup-card__average"><span className="text">{ humanizeFP(props.player.fppg) }</span></span>
+    <span className="cmp-lineup-card__average">
+      <span className="text">${ props.player.salary.toLocaleString('en') }</span>
+    </span>
   </li>
 );
 
