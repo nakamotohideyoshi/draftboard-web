@@ -8,7 +8,7 @@ TYPES = (
     (LOCATION_VERIFY, 'Location verification'),
     (CONTEST, 'Contest actions'),
     (FUNDS, 'User funds actions'),
-    (AUTHENTICATION, 'User authenntication'),
+    (AUTHENTICATION, 'User authentication'),
 )
 
 

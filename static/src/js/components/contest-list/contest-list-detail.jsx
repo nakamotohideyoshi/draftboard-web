@@ -160,6 +160,7 @@ const ContestListDetail = React.createClass({
               entries={this.props.focusedContestInfo.contest.entryInfo}
               contestPoolInfo={this.props.focusedContestInfo}
               removeContestPoolEntry={this.props.removeContestPoolEntry}
+              user={this.props.user}
             />
 
             <EntrantList
@@ -277,8 +278,7 @@ const ContestListDetail = React.createClass({
                   <div>
                     <span className="info-title">Entries</span>
                     <div>
-                      {this.props.focusedContestInfo.contest.current_entries} /&nbsp;
-                      {this.props.focusedContestInfo.contest.max_entries}
+                      {this.props.focusedContestInfo.contest.current_entries}
                     </div>
                   </div>
                   <div>

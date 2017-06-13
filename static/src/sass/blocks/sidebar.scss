@@ -34,7 +34,8 @@
   .sidebar-inner {
     overflow: auto;
     height: 100%;
-    transform: translateZ(0); // To prevent repaint on scroll.
+    // Disabled because it gets goofy with the opacity of webp images.
+    //transform: translateZ(0); // To prevent repaint on scroll.
   }
 
   .sidebar-content {

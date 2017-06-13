@@ -24,8 +24,6 @@ category: Lineup
   margin: 0 auto 10px;
   max-width: 290px;
   position: relative;
-  transition: opacity .25s, box-shadow .25s;
-  will-change: opacity, box-shadow;
   overflow: hidden;
 
   .players {
@@ -42,11 +40,16 @@ category: Lineup
     display: table-row;
     list-style: none;
     margin: 0;
+
+    > span {
+      vertical-align: middle;
+    }
   }
 
   &__header {
     position: relative;
     padding: 25px 15px 5px;
+    min-height: 55px;
   }
 
   &__title {
@@ -530,7 +533,6 @@ category: Lineup
 
     &__player > span {
       padding: 5px;
-      vertical-align: middle;
 
       &:first-child {
         padding-left: 15px;
@@ -633,21 +635,15 @@ category: Lineup
 
   }
 
-  // Footer section - create card.
-  .cmp-lineup-card__footer {
-    padding: 0;
-  }
-
   .cmp-lineup-card__footer-section {
-      display: inline-block;
-      width: 50%;
-      text-align: center;
-      font-size: 18px;
-      font-family: $font-oswald;
-
-      &:first-child {
-        border-right: 1px solid #ebedf2;
-      }
+      //display: inline-block;
+      //width: 50%;
+      //font-size: 18px;
+      //font-family: $font-oswald;
+      //
+      //&:first-child {
+      //  border-right: 1px solid #ebedf2;
+      //}
 
       &.negative {
         color: $primary-red;
