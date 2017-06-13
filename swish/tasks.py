@@ -70,6 +70,11 @@ def update_injury_feed(self, sport):
 
 @app.task(bind=True)
 def update_lookups(self, sport):
+    """
+    Rotowire provides us with a service that matches sportsradar SRIDs with stats.com's StatsGlobalId 
+    so that we don't have to do linking manually. This task will call that service and create 
+    PlayerLookup objects.
+    """
     rotowire = RotoWire(sport)
     players_data = rotowire.get_players()
     players_not_found = []
@@ -79,14 +84,12 @@ def update_lookups(self, sport):
             site_sport = site_sport_manager.get_site_sport(sport)
             player_model_class = site_sport_manager.get_player_class(site_sport)
             try:
-                print(p.get('StatsGlobalId'))
                 lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'), sport=sport.upper())
                 if not lookup.player_id:
                     lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
                     lookup.player_type = ContentType.objects.get_for_model(player_model_class)
                     lookup.save()
             except PlayerLookup.DoesNotExist:
-                print(p.get('SportsDataId'))
                 try:
                     pid = player_model_class.objects.get(srid=p.get('SportsDataId')).id
                     PlayerLookup.objects.create(
