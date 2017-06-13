@@ -49,11 +49,6 @@ const EntrantList = React.createClass({
     return (
       <div className="cmp-entrant-list">
         <table className="table">
-          <thead>
-            <tr>
-              <th className="place">Other User Entries</th>
-            </tr>
-          </thead>
           <tbody>
             {this.getEntrantList(this.props.entrants)}
           </tbody>

@@ -72,13 +72,6 @@ def verify_user_identity(first, last, birth_day, birth_month, birth_year, postal
     # If the identity is already claimed, log and return errror message.
     if existing_identities:
         logger.warning("IDENTITY_VERIFICATION_EXISTS")
-        create_user_log(
-            request=None,
-            type=_account_const.AUTHENTICATION,
-            action=_account_const.IDENTITY_VERIFICATION_EXISTS,
-            metadata={'detail': """User attampted to claim an identity that already exists in
-                        our database.""", }
-        )
         raise ValidationError({
             "detail": "Unable to verify your identity. Please contact support@draftboard.com"})
 
@@ -108,15 +101,6 @@ def verify_user_identity(first, last, birth_day, birth_month, birth_year, postal
 
     if verified is False:
         logger.warning('IDENTITY_VERIFICATION_FAILED - no match found.')
-        # Create a user log for the failed attempt.
-        create_user_log(
-            request=None,
-            type=_account_const.AUTHENTICATION,
-            action=_account_const.IDENTITY_VERIFICATION_FAILED,
-            metadata={
-                'detail': 'No identity match was found for provided info.',
-            }
-        )
 
         raise ValidationError(
             'User verification was unsuccessful. Please contact support@draftboard.com')

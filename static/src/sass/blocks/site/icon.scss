@@ -11,6 +11,7 @@
   display: inline-block;
   font-family: $font-open-sans;
   font-size: 9px;
+  font-weight: normal;
   height: 13px;
   text-align: center;
   text-transform: uppercase;
@@ -19,6 +20,25 @@
 
   &:after {
     content: "F";
+    vertical-align: top;
+  }
+}
+
+.icon-guaranteed {
+  background: #26c661;
+  color: #fff;
+  display: inline-block;
+  font-family: $font-open-sans;
+  font-size: 9px;
+  font-weight: normal;
+  height: 13px;
+  text-align: center;
+  text-transform: uppercase;
+  vertical-align: middle;
+  width: 13px;
+
+  &:after {
+    content: "G";
     vertical-align: top;
   }
 }

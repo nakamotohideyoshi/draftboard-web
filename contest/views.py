@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import timedelta
-from contest.buyin.classes import BuyinManager
+
 from debreach.decorators import random_comment_exempt
 from django.http import HttpResponse
 from django.views.generic import View
@@ -28,12 +28,14 @@ from account.permissions import (
 from account.tasks import send_entry_alert_email
 from account.utils import create_user_log
 from cash.exceptions import OverdraftException
+from contest.buyin.classes import BuyinManager
 from contest.classes import (
     ContestLineupManager,
     SkillLevelManager,
 )
 from contest.exceptions import (
     ContestMaxEntriesReachedException,
+    ContestCanNotBeRefunded
 )
 from contest.models import (
     Contest,
@@ -49,7 +51,11 @@ from contest.models import (
 from contest.payout.models import (
     Payout,
 )
-from contest.refund.tasks import unregister_entry_task
+from contest.refund.classes import RefundManager
+from contest.refund.exceptions import (
+    EntryCanNotBeUnregisteredException,
+    UnmatchedEntryIsInContest,
+)
 from contest.serializers import (
     ContestSerializer,
     UpcomingEntrySerializer,
@@ -57,7 +63,6 @@ from contest.serializers import (
     RegisteredUserSerializer,
     EnterLineupSerializer,
     PayoutSerializer,
-    EditEntryLineupSerializer,
     EntryResultSerializer,
     RemoveAndRefundEntrySerializer,
     UserLineupHistorySerializer,
@@ -65,8 +70,6 @@ from contest.serializers import (
     ContestPoolSerializer,
 )
 from lineup.models import Lineup
-from lineup.tasks import edit_entry
-from mysite.celery_app import TaskHelper
 from ticket.exceptions import UserDoesNotHaveTicketException
 from util.dfsdate import DfsDate
 
@@ -516,6 +519,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
         # Create a user log entry.
         create_user_log(
             request=request,
+            user=request.user,
             type=_account_const.CONTEST,
             action=_account_const.CONTEST_ENTERED,
             metadata={
@@ -563,39 +567,6 @@ class PayoutsAPIView(generics.ListAPIView):
         return Payout.objects.filter(entry__contest__pk=contest_id).order_by('rank')
 
 
-class EditEntryLineupAPIView(APIView):
-    """
-    edit an existing lineup in a contest
-    """
-    permission_classes = (IsAuthenticated,)
-    serializer_class = EditEntryLineupSerializer
-
-    def post(self, request, format=None):
-        entry_id = request.data.get('entry')
-        players = request.data.get('players', [])
-        # name = request.data.get('name', '')
-
-        #
-        # validate the parameters passed in here.
-        if players is None:
-            raise APIException('you must supply the list of Player ids.')
-
-        if entry_id is None:
-            raise APIException('you must supply the Entry id')
-
-        try:
-            entry = Entry.objects.get(pk=entry_id, user=request.user)
-        except Entry.DoesNotExist:
-            raise APIException('invalid Entry id')
-
-        # execute task
-        task_result = edit_entry.delay(request.user, players, entry)
-        # get() blocks the view until the task completes its work
-        task_result.get()
-        task_helper = TaskHelper(edit_entry, task_result.id)
-        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
-
-
 class RemoveAndRefundEntryAPIView(APIView):
     """
     removes a contest Entry and refunds the user.
@@ -624,24 +595,30 @@ class RemoveAndRefundEntryAPIView(APIView):
         if entry.contest_pool not in UpcomingContestPool.objects.all():
             raise APIException('You may not unregister at this time.')
 
-        #
-        # execute the unregister task (non-blocking) and return the task_id
-        task_result = unregister_entry_task.delay(entry)
-        # get() blocks the view from returning until the task finishes
-        task_result.get()
-        task_helper = TaskHelper(unregister_entry_task, task_result.id)
+        # Attempt to deregister entry. Throw errors back through the API.
+        try:
+            rm = RefundManager()
+            rm.remove_and_refund_entry(entry)
+        except(EntryCanNotBeUnregisteredException,
+               UnmatchedEntryIsInContest, ContestCanNotBeRefunded) as e:
+            raise ValidationError({'detail': e})
+        except Exception as e:
+            logger.error("RemoveAndRefundEntryAPIView: %s" % str(e))
+            client.captureException()
+            raise APIException({"detail": "Unable to deregister from contest."})
 
         create_user_log(
             request=request,
             type=_account_const.CONTEST,
             action=_account_const.CONTEST_DEREGISTERED,
+            user=user,
             metadata={
                 'detail': 'Contest entry was deregistered.',
                 'entry': entry_id,
             }
         )
 
-        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
+        return Response({"status": "SUCCESS"}, status=status.HTTP_200_OK)
 
 
 class UserPlayHistoryAPIView(APIView):

@@ -138,12 +138,33 @@
 
 
 // Lower section entry list.
-.cmp-entry-list {
+.cmp-entry-list,
+.cmp-entrant-list {
   ul {
     column-count: 1;
   }
 
+  .lineup-name,
+  .username {
+    display: inline-block;
+    font-weight: 700;
+
+    .icon-guaranteed {
+      margin-left: 5px;
+    }
+  }
+
+  table {
+    margin-bottom: 0 !important;
+  }
+
   .button {
     min-width: 13em;
+  }
+}
+
+.cmp-entrant-list {
+  td {
+    padding: 15px 10px;
   }
 }

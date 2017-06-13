@@ -115,6 +115,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
         # Log event to user log
         create_user_log(
             request=request,
+            user=request.user,
             type=_account_const.CONTEST,
             action=_account_const.LINEUP_CREATED,
             metadata={
@@ -281,6 +282,7 @@ class EditLineupAPIView(generics.CreateAPIView):
             request=request,
             type=_account_const.CONTEST,
             action=_account_const.LINEUP_EDIT,
+            user=request.user,
             metadata={
                 'detail': 'Lineup was edited.',
                 'lineup_id': lineup.id,
@@ -388,7 +390,11 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
         return Lineup.objects.filter(
             user=self.request.user,
             draft_group__start__gt=timezone.now()
-        ).order_by('-updated')
+        ).order_by(
+            '-updated'
+        ).prefetch_related(
+            'players__draft_group_player__salary_player'
+        )
 
 
 class UserLiveAPIView(AbstractLineupAPIView):

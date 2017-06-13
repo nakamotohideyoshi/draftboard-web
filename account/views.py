@@ -860,6 +860,7 @@ class VZeroDepositView(APIView):
                 Error adding funds to draftboard account. Please contact admin@draftboard.com"""})
 
         create_user_log(
+            user=request.user,
             request=request,
             type=_account_const.FUNDS,
             action=_account_const.DEPOSIT,
