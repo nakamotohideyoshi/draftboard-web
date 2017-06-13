@@ -1,9 +1,12 @@
 from __future__ import absolute_import
-from django.core.cache import cache
 
+from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+import sports.classes
 from draftgroup.classes import AbstractUpdateManager
 from mysite.celery_app import app
 from draftgroup.models import PlayerUpdate, PlayerStatus
+from statscom.models import PlayerLookup
 from swish.classes import (
     PlayerUpdateManager,
     SwishAnalytics,
@@ -63,3 +66,38 @@ def update_injury_feed(self, sport):
                     logger.warning('%s | rotowire player not found: %s' % (sport, player))
         finally:
             release_lock()
+
+
+@app.task(bind=True)
+def update_lookups(self, sport):
+    rotowire = RotoWire(sport)
+    players_data = rotowire.get_players()
+    players_not_found = []
+    for p in players_data:
+        if p.get('StatsGlobalId'):
+            site_sport_manager = sports.classes.SiteSportManager()
+            site_sport = site_sport_manager.get_site_sport(sport)
+            player_model_class = site_sport_manager.get_player_class(site_sport)
+            try:
+                print(p.get('StatsGlobalId'))
+                lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'), sport=sport.upper())
+                if not lookup.player_id:
+                    lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
+                    lookup.player_type = ContentType.objects.get_for_model(player_model_class)
+                    lookup.save()
+            except PlayerLookup.DoesNotExist:
+                print(p.get('SportsDataId'))
+                try:
+                    pid = player_model_class.objects.get(srid=p.get('SportsDataId')).id
+                    PlayerLookup.objects.create(
+                        sport=sport.upper(),
+                        player_type=ContentType.objects.get_for_model(player_model_class),
+                        player_id=pid,
+                        pid=p.get('StatsGlobalId'),
+                        first_name=p.get('StatsGlobalId'),
+                        last_name=p.get('StatsGlobalId')
+                    )
+                except player_model_class.DoesNotExist:
+                    players_not_found.append(p)
+    for player in players_not_found:
+        logger.warning('%s | player not found: %s %s' % (sport, player.get('FirstName'), player.get('LastName')))

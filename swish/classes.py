@@ -371,7 +371,7 @@ class RotoWire(object):
         players_data = response_data.get('FreeAgents', [])
         # add players
         [players_data.extend(x.get('Players')) for x in response_data.get('Teams', [])]
-        return players_data
+        return filter(lambda x: x.get('SportsDataId'), players_data)
 
 
 class SwishAnalytics(object):
