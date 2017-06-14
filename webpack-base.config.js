@@ -55,11 +55,10 @@ module.exports = {
       // },
       // Don't do any of that base64'ing up there ^. Just load all assets normally.
       {
-        test: /\.(jpe?g|png|svg)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[hash].[ext]',
-        },
+        test: /\.(jpe?g|png|svg|gif)$/,
+        loaders: [
+          'file-loader?name=img/[name].[hash:7].[ext]',
+        ],
       },
       {
         test: /\.json$/,
