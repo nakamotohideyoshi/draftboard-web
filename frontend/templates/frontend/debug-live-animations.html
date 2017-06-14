@@ -4,7 +4,15 @@
 
 {% block html_class %}section-live section-live-debugger{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/live-debugger-app.css' %}">
+{% endblock extra_css %}
+
 {% block content_container %}
   {% include 'frontend/partials/nav-scoreboard.html' %}
   <section id="cmp-live-debugger"></section>
 {% endblock content_container %}
+
+{% block js_app %}
+<script type="text/javascript" src="{% static 'js/live-debugger-app.js' %}"></script>
+{% endblock js_app %}
