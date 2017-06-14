@@ -43,15 +43,23 @@ module.exports = {
         exclude: /node_modules/,
       },
       // Images under 8KB made inline base64
+      // {
+      //   test: /\.(png|jpe?g|gif)$/,
+      //   loader: 'url-loader?name=img/[name]-[sha512:hash7].[ext]',
+      // },
+      // {
+      //   test: /\.(svg)$/i,
+      //   loaders: [
+      //     'file-loader?name=img/[name]-[sha512:hash:base64:7].[ext]',
+      //   ],
+      // },
+      // Don't do any of that base64'ing up there ^. Just load all assets normally.
       {
-        test: /\.(png|jpe?g|gif)$/,
-        loader: 'url-loader?name=img/[name]-[sha512:hash:base64:7].[ext]&limit=8192',
-      },
-      {
-        test: /\.(svg)$/i,
-        loaders: [
-          'file-loader?name=img/[name]-[sha512:hash:base64:7].[ext]',
-        ],
+        test: /\.(jpe?g|png|svg)$/,
+        loader: 'file-loader',
+        options: {
+          name: '[path][name].[hash].[ext]',
+        },
       },
       {
         test: /\.json$/,
