@@ -920,8 +920,18 @@ class RegisterAccountAPIView(APIView):
     register_user_serializer_class = RegisterUserSerializer
 
     def post(self, request):
+        signup_anyway = request.data.get('signup_anyway')
+        if not signup_anyway:
+            return Response(data={
+                "title": "LOCATION UNAVAILABLE",
+                "message": "Looks like you’re in <barred state>, a state we do not currently operate in.  "
+                           "You can still sign up for an account and create a lineup, but you will be unable"
+                           " to deposit or enter contests while in <barred state>.  ",
+                "verification_modal": True}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(data={"status": "ok"}, status=status.HTTP_200_OK)
         # use the serializer to validate the arguments
-        trulioo_serializer = self.trulioo_serializer_class(data=self.request.data)
+        trulioo_serializer = self.trulioo_serializer_class(data=request.data)
         trulioo_serializer.is_valid(raise_exception=True)
         logger.debug(trulioo_serializer.validated_data)
         # Grab the data out of the serializer. it will be validated and whitespace-trimmed.
