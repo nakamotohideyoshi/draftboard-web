@@ -928,8 +928,7 @@ class RegisterAccountAPIView(APIView):
                            "You can still sign up for an account and create a lineup, but you will be unable"
                            " to deposit or enter contests while in <barred state>.  ",
                 "verification_modal": True}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(data={"status": "ok"}, status=status.HTTP_200_OK)
+
         # use the serializer to validate the arguments
         trulioo_serializer = self.trulioo_serializer_class(data=request.data)
         trulioo_serializer.is_valid(raise_exception=True)
