@@ -20,9 +20,10 @@ const { API_DOMAIN = '' } = process.env;
  * @param email
  * @param username
  * @param password
+ * @param signupAnyway
  */
 export const registerUser = (first, last, birthDay, birthMonth, birthYear, postalCode, email,
-      username, password) =>
+      username, password, signupAnyway) =>
   fetch(`${API_DOMAIN}/api/account/register/`, {
     credentials: 'same-origin',
     method: 'POST',
@@ -41,6 +42,7 @@ export const registerUser = (first, last, birthDay, birthMonth, birthYear, posta
       birth_month: birthMonth,
       birth_year: birthYear,
       postal_code: postalCode,
+      signup_anyway: signupAnyway,
     }),
   }).then(response => {
     // First, reject a response that isn't in the 200 range.
