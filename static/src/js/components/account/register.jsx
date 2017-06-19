@@ -3,6 +3,7 @@ import { querystring } from '../../lib/utils';
 import merge from 'lodash/merge';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
+import RegisterConfirmModal from './register-confirm-modal';
 import { registerUser } from '../../actions/user/register';
 import {
   isListOfErrors,
@@ -41,6 +42,9 @@ export const Register = React.createClass({
       ],
       fields: {},
       nonFieldErrors: [],
+
+      errors: {},
+      signup_anyway: false,
     };
 
     state.fieldNames.forEach(name => {
@@ -65,7 +69,7 @@ export const Register = React.createClass({
   },
 
   handleSubmit(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     // prevent thrash clicking
     if (this.state.isSubmitting) return false;
     this.resetErrors();
@@ -80,7 +84,8 @@ export const Register = React.createClass({
       this.refs.postal_code.value.toString(),
       this.refs.email.value.toString(),
       this.refs.username.value.toString(),
-      this.refs.password.value.toString()
+      this.refs.password.value.toString(),
+      this.state.signup_anyway
     // if no redirect and we get here, then use the errors
     ).then(
       // only redirect if success is true, otherwise is error that got caught in action
@@ -97,6 +102,11 @@ export const Register = React.createClass({
       errors => {
         logComponent.info('Register.handleSubmit error', errors);
 
+        // clear old errors
+        this.setState({
+          errors: {},
+        });
+
         // if string, then was already taken care of by handleError
         if (isRawTextError({ body: errors })) return false;
 
@@ -111,21 +121,35 @@ export const Register = React.createClass({
         this.setState({
           errors,
           isSubmitting: false,
+        }, () => {
+          const newState = merge({}, this.state);
+
+          Object.keys(errors).forEach(field => {
+            if (!(field in newState.fields)) return false;
+
+            newState.fields[field].error = errors[field][0] || null;
+            logComponent.warn(errors[field][0]);
+          });
+
+          newState.isSubmitting = false;
+          this.setState(newState);
         });
-
-        const newState = merge({}, this.state);
-
-        Object.keys(errors).forEach(field => {
-          if (!(field in newState.fields)) return false;
-
-          newState.fields[field].error = errors[field][0] || null;
-          logComponent.warn(errors[field][0]);
-        });
-
-        newState.isSubmitting = false;
-        this.setState(newState);
       }
     );
+  },
+
+  // When the user clicks the 'SIGN UP' button.
+  handleModalConfirmEntry() {
+    // Hide modal
+    this.setState({
+      signup_anyway: true,
+      errors: {},
+    }, this.handleSubmit); // Send req again
+  },
+
+  // When the user clicks the 'NO THANKS' button.
+  handleModalCancelEntry() {
+    window.location.href = '/'; // Redirect to main page
   },
 
 
@@ -298,6 +322,16 @@ export const Register = React.createClass({
 
         <div className="account__left__content__form__input-layout">
           <input type="submit" value="Create account" className={submitClasses} />
+
+          <RegisterConfirmModal
+            isOpen={this.state.errors.verification_modal}
+            confirmEntry={this.handleModalConfirmEntry}
+            cancelEntry={this.handleModalCancelEntry}
+            titleText={this.state.errors.title}
+          >
+            {this.state.errors.message}
+          </RegisterConfirmModal>
+
           <span className="arrow" />
           <p>Clicking "Confirm" is an agreement to our <a href="/terms-conditions/" target="_blank">
             Terms of Use</a> and <a href="/privacy-policy/" target="_blank">Privacy Policy</a></p>
