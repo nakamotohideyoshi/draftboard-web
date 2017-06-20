@@ -304,10 +304,9 @@ class Stats(object):
         try:
             logger.debug('find_player_in_lookup_table %s %s' % (first_name, last_name))
             player_lookup = PlayerLookup.objects.get(
-                first_name=first_name, last_name=last_name, pid=pid)
-            if player_lookup.sport is not self.sport.upper():
-                player_lookup.sport = self.sport.upper()
-                player_lookup.save()
+                pid=pid,
+                sport=self.sport.upper()
+            )
             return player_lookup.player  # may return None if admin has not set it yet
 
         except PlayerLookup.DoesNotExist:
