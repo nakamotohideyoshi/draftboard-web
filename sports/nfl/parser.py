@@ -1169,7 +1169,6 @@ class PbpEventParser(DataDenPbpDescription):
     #                                                   srid_player__in=player_srids)
 
     def add_fp_value(self, pbp):
-        logger.info('add_fp_value')
         """
         Determine the value of XXX___list pbp['statistic']s and add an 'fp_value' field to
         each one.
