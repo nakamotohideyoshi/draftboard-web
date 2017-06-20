@@ -974,6 +974,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     linked_pbp_field = 'pbp'
     linked_stats_field = 'stats'
     game_info_field = 'game'
+    score_system_class = None
 
     manager_class = None
 
@@ -1082,6 +1083,13 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             # print( '... does not exist!')
             pbp_desc = None
         return pbp_desc
+
+    def add_fp_value(self, pbp_statistics):
+        """
+        Add the fantasy point value of the pbp event 'statistics' lists.
+        """
+        logger.warning('No add_fp_value method implemented - %s' % self.name)
+        return pbp_statistics
 
     def parse(self, obj, target=None):
         """
