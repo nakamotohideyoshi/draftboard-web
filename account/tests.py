@@ -293,11 +293,11 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
 
         # Make sure the blocked country request fails.
         checker = CheckUserAccess(blocked_country_request)
-        self.assertFalse(checker.check_location_country[0])
+        self.assertFalse(checker.check_location_country()[0])
 
         # Make sure the blocked state request fails.
         checker = CheckUserAccess(blocked_request)
-        self.assertFalse(checker.check_location_state[0])
+        self.assertFalse(checker.check_location_state()[0])
 
     def test_checker_ok(self):
         # A valid request
@@ -306,8 +306,8 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
 
         # Make sure a valid request passes.
         checker = CheckUserAccess(valid_request)
-        self.assertTrue(checker.check_location_country[0])
-        self.assertTrue(checker.check_location_state[0])
+        self.assertTrue(checker.check_location_country()[0])
+        self.assertTrue(checker.check_location_state()[0])
         self.assertTrue(checker.check_for_vpn()[0])
 
     def test_check_invalid_location_age(self):

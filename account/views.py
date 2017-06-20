@@ -66,7 +66,7 @@ from account.serializers import (
     TruliooVerifyUserSerializer,
     UserLimitsSerializer
 )
-from account.utils import create_user_log
+from account.utils import create_user_log, CheckUserAccess, MODAL_MESSAGES
 from cash.classes import (
     CashTransaction,
 )
@@ -920,14 +920,19 @@ class RegisterAccountAPIView(APIView):
     register_user_serializer_class = RegisterUserSerializer
 
     def post(self, request):
+        location_checker = CheckUserAccess(request)
         signup_anyway = request.data.get('signup_anyway')
-        if not signup_anyway:
-            return Response(data={
-                "title": "LOCATION UNAVAILABLE",
-                "message": "Looks like you’re in <barred state>, a state we do not currently operate in.  "
-                           "You can still sign up for an account and create a lineup, but you will be unable"
-                           " to deposit or enter contests while in <barred state>.  ",
-                "verification_modal": True}, status=status.HTTP_400_BAD_REQUEST)
+
+        if location_checker.geo_ip_response:
+            country_access, message, contry = location_checker.check_location_country(return_country=True)
+            state_access, message, state = location_checker.check_location_state(return_state=True)
+            if not signup_anyway:
+                if not country_access:
+                    return Response(data=MODAL_MESSAGES['COUNTRY'], status=status.HTTP_400_BAD_REQUEST)
+                elif not state_access:
+                    data = MODAL_MESSAGES['STATE']
+                    data['message'] = data['message'].format(barred_state=state)
+                    return Response(data=MODAL_MESSAGES['STATE'], status=status.HTTP_400_BAD_REQUEST)
 
         # use the serializer to validate the arguments
         trulioo_serializer = self.trulioo_serializer_class(data=request.data)

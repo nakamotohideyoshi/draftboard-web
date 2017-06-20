@@ -164,8 +164,7 @@ class CheckUserAccess(object):
             client.context.clear()
             return True, ''
 
-    @property
-    def check_location_country(self):
+    def check_location_country(self, return_country=False):
         try:
             country = self.geo_ip_response.get('country_code')
             result = True if country in LEGAL_COUNTRIES else False
@@ -175,6 +174,8 @@ class CheckUserAccess(object):
                     _account_const.IP_CHECK_FAILED_COUNTRY,
                     {'result': 'Access Denied: Country %s in blocked list' % country}
                 )
+            if return_country:
+                return result, msg, country
             return result, msg
         except AddressNotFoundError:
             self.create_log(
@@ -183,8 +184,7 @@ class CheckUserAccess(object):
             )
             return True, ''
 
-    @property
-    def check_location_state(self):
+    def check_location_state(self, return_state=False):
         try:
             state = self.geo_ip_response.get('region')
             result = True if state not in BLOCKED_STATES else False
@@ -194,7 +194,8 @@ class CheckUserAccess(object):
                     _account_const.IP_CHECK_FAILED_STATE,
                     {'result': 'Access Denied: State %s in blocked list' % state}
                 )
-
+            if return_state:
+                return result, msg, state
             return result, msg
         except AddressNotFoundError:
             self.create_log(
@@ -252,12 +253,12 @@ class CheckUserAccess(object):
 
         # do it one by one because it doesn't make a sense to check ip if country
         # or city already blocked
-        access, msg = self.check_location_country
+        access, msg = self.check_location_country()
         logger.info('%s - %s - user: %s' % ('check_location_country', access, self.user))
         if not access:
             return access, msg
 
-        access, msg = self.check_location_state
+        access, msg = self.check_location_state()
         logger.info('%s - %s - user: %s' % ('check_location_state', access, self.user))
         if not access:
             return access, msg
@@ -276,3 +277,21 @@ def reset_user_password_email(user, request):
         form.is_valid()
         form.save(from_email=settings.DEFAULT_FROM_EMAIL, request=request)
 
+
+MODAL_MESSAGES = {
+    "COUNTRY": {
+        "title": "LOCATION UNAVAILABLE",
+        "message": "Looks like you’re outside of the US or Canada.  Draftboard is available "
+                   "only to residents of the US or Canada.  You can still sign up for an "
+                   "account and create a lineup, but you will be unable to deposit or enter "
+                   "contests while in not in the US or Canada.",
+        "verification_modal": True
+    },
+    "STATE": {
+        "title": "LOCATION UNAVAILABLE",
+        "message": "Looks like you’re in {barred_state}, a state we do not currently operate in.  "
+                   "You can still sign up for an account and create a lineup, but you will be unable "
+                   "to deposit or enter contests while in {barred_state}",
+        "verification_modal": True
+    }
+}
