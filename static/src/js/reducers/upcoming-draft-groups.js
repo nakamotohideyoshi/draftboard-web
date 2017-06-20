@@ -32,12 +32,11 @@ module.exports = (state = initialState, action) => {
     }
 
 
-    case ActionTypes.FETCHING_DRAFTGROUP_BOX_SCORES:
-      return merge({}, state, {
-        boxScores: merge({}, state.boxscores, {
-          isFetching: true,
-        }),
-      });
+    case ActionTypes.FETCHING_DRAFTGROUP_BOX_SCORES: {
+      const stateCopy = merge({}, state);
+      stateCopy.boxScores.isFetching = true;
+      return stateCopy;
+    }
 
 
     case ActionTypes.FETCH_DRAFTGROUP_BOX_SCORES_FAIL:

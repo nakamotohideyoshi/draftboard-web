@@ -48,6 +48,14 @@ export const getLineupDraft = (draftGroupId) => {
   if (!draftGroupId) {
     return {};
   }
-  const lineupDrafts = JSON.parse(window.localStorage.getItem(localStoreKey));
-  return lineupDrafts[draftGroupId] || {};
+  let lineupDrafts = {};
+
+  if (window.localStorage.getItem(localStoreKey)) {
+    lineupDrafts = JSON.parse(window.localStorage.getItem(localStoreKey));
+  }
+
+  if (lineupDrafts.hasOwnProperty(draftGroupId)) {
+    return lineupDrafts[draftGroupId];
+  }
+  return {};
 };
