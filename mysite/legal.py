@@ -8,7 +8,6 @@ ALL_STATES = [
 # States we cannot operate in.
 BLOCKED_STATES = [
     'AL',
-    'AR',
     'AZ',
     'DE',
     'FL',
@@ -17,7 +16,9 @@ BLOCKED_STATES = [
     'IA',
     'ID',
     'IL',
+    'IN',
     'LA',
+    'MO',
     'MT',
     'NV',
     'TX',
@@ -25,6 +26,27 @@ BLOCKED_STATES = [
     'VT',
     'WA',
 ]
+# States we cannot operate in.
+BLOCKED_STATES_NAMES = {
+    'AL': "Alabama",
+    'AZ': "Arizona",
+    'DE': "Delaware",
+    'FL': "Florida",
+    'GA': "Georgia",
+    'HI': "Hawaii",
+    'IA': "Iowa",
+    'ID': "Idaho",
+    'IL': "Illinois",
+    'IN': "Indiana",
+    'LA': "Louisiana",
+    'MO': "Missouri",
+    'MT': "Montana",
+    'NV': "Nevada",
+    'TX': "Texas",
+    'VA': "Virginia",
+    'VT': "Vermont",
+    'WA': "Washington",
+}
 
 # All states, in tuple format.
 # ex: [('NY', 'NY'), ('FL', 'FL'), ...]

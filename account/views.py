@@ -72,6 +72,7 @@ from cash.classes import (
 )
 from contest.models import CurrentEntry
 from contest.refund.tasks import unregister_entry_task
+from mysite.legal import BLOCKED_STATES_NAMES
 from pp.classes import (
     CardData,
     PayPal,
@@ -931,7 +932,7 @@ class RegisterAccountAPIView(APIView):
                     return Response(data=MODAL_MESSAGES['COUNTRY'], status=status.HTTP_400_BAD_REQUEST)
                 elif not state_access:
                     data = MODAL_MESSAGES['STATE']
-                    data['message'] = data['message'].format(barred_state=state)
+                    data['message'] = data['message'].format(barred_state=BLOCKED_STATES_NAMES['state'])
                     return Response(data=MODAL_MESSAGES['STATE'], status=status.HTTP_400_BAD_REQUEST)
 
         # use the serializer to validate the arguments
