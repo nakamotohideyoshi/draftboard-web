@@ -494,12 +494,6 @@ class PlayerHistoryAPIView(generics.ListAPIView):
             # query_str = "{4} (select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id) as player_stats on {3}.srid = ANY(player_stats.games)".format(select_columns_str, database_table_name, str(n_games_history), game_table_name, outter_select_str)
             # query_str = """select player_id, array_agg(points) as points, avg(points) as avg_points, array_agg(three_points_made) as three_points_made, avg(three_points_made) as avg_three_points_made from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=10) as agg group by player_id"""
 
-            print('')
-            print('final_select_str')
-            print(final_select_str)
-            print('')
-            print('')
-
             with connection.cursor() as c:
                 c.execute(final_select_str)
                 player_stats += self.dictfetchall(c)
