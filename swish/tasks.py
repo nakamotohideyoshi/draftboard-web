@@ -86,10 +86,12 @@ def update_lookups(self, sport):
             site_sport = site_sport_manager.get_site_sport(sport)
             player_model_class = site_sport_manager.get_player_class(site_sport)
             try:
-                lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'), sport=sport.upper())
-                if not lookup.player_id:
+                lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'))
+                if not lookup.player_id and (lookup.sport == sport.upper() or not lookup.sport):
                     lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
                     lookup.player_type = ContentType.objects.get_for_model(player_model_class)
+                    if not lookup.sport:
+                        lookup.sport = sport.upper()
                     lookup.save()
             except PlayerLookup.DoesNotExist:
                 try:
