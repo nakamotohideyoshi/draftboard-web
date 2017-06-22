@@ -6,20 +6,28 @@ import AppStateStore from '../../stores/app-state-store.js';
 /**
  * When a user attempts to enter a contest, prompt them to confirm.
  */
-const RegisterConfirmModal = React.createClass({
+const RestrictedLocationConfirmModal = React.createClass({
 
   propTypes: {
-    confirmEntry: React.PropTypes.func.isRequired,
-    cancelEntry: React.PropTypes.func.isRequired,
     isOpen: React.PropTypes.bool,
-    children: React.PropTypes.element.isRequired,
-    titleText: React.PropTypes.string.isRequired,
+    children: React.PropTypes.element,
+    titleText: React.PropTypes.string,
+    continueButtonText: React.PropTypes.string,
+    showCancelButton: React.PropTypes.bool,
+  },
+
+  getDefaultProps() {
+    return {
+      continueButtonText: 'Continue',
+    };
   },
 
 
   getInitialState() {
     return {
       isOpen: this.props.isOpen,
+      hasBeenDismissed: false,
+      showCancelButton: true,
     };
   },
 
@@ -27,39 +35,41 @@ const RegisterConfirmModal = React.createClass({
   // If the parent component tells us the modal should be closed via prop change, close it.
   // The parent can also call this components 'close()' method directly.
   componentWillReceiveProps(nextProps) {
-    this.setState({ isOpen: nextProps.isOpen });
-    AppStateStore.modalOpened();
+    // If it's already been dismissed, don't ever open it again.
+    if (!this.state.hasBeenDismissed) {
+      this.setState({ isOpen: nextProps.isOpen });
+      AppStateStore.modalOpened();
+    }
   },
 
 
   // Open the modal.
   open() {
-    this.setState({ isOpen: true });
+    // If it's already been dismissed, don't ever open it again.
+    if (!this.state.hasBeenDismissed) {
+      this.setState({ isOpen: true });
+    }
   },
 
 
   // This gets called when the user requests to close the modal.
   close() {
     // close the modal.
-    this.setState({ isOpen: false });
+    this.setState({ isOpen: false, hasBeenDismissed: true });
     AppStateStore.modalClosed();
   },
 
 
-  // When the user clicks the 'ok' button.
-  handleConfirmEntry() {
-    // confirm entry via the provided function.
-    this.props.confirmEntry();
-    this.close();
-  },
-
-
-  // When the user clicks the 'cancel' button.
-  handleCancelEntry(event) {
-    event.preventDefault();
-    // confirm entry via the provided function.
-    this.props.cancelEntry();
-    this.close();
+  renderCancelButton() {
+    if (this.props.showCancelButton) {
+      return (
+        <a
+          href="/"
+          className="no-thanks"
+        >No thanks</a>
+      );
+    }
+    return '';
   },
 
 
@@ -68,11 +78,11 @@ const RegisterConfirmModal = React.createClass({
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
-        className="cmp-modal--register-confirm"
+        className="cmp-modal--restricted-location-confirm"
         showCloseBtn={false}
       >
         <div>
-          <div className="cmp-register-confirm-modal">
+          <div className="cmp-restricted-location-confirm">
             <div className="content">
               <div className="content-inner">
                 <div className="top-icon" />
@@ -83,17 +93,11 @@ const RegisterConfirmModal = React.createClass({
               <div className="controls">
                 <div
                   className="button button--gradient button--lrg-len ok-button"
-                  onClick={this.handleConfirmEntry}
+                  onClick={this.close}
                 >
-                  SIGN UP
+                  {this.props.continueButtonText}
                 </div>
-                <a
-                  href="#"
-                  className="no-thanks"
-                  onClick={this.handleCancelEntry}
-                >
-                  No thanks
-                </a>
+                {this.renderCancelButton()}
               </div>
             </div>
           </div>
@@ -106,4 +110,4 @@ const RegisterConfirmModal = React.createClass({
 });
 
 
-module.exports = RegisterConfirmModal;
+export default RestrictedLocationConfirmModal;

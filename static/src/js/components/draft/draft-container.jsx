@@ -31,6 +31,7 @@ import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import CountdownClock from '../../components/site/countdown-clock.jsx';
+import RestrictedLocationConfirmModal from '../account/restricted-location-confirm-modal';
 
 
 /*
@@ -56,6 +57,7 @@ function mapStateToProps(state) {
     fantasyHistory: state.fantasyHistory,
     orderByDirection: state.draftGroupPlayersFilters.filters.orderBy.direction,
     orderByProperty: state.draftGroupPlayersFilters.filters.orderBy.property,
+    userLocation: state.user.location,
   };
 }
 
@@ -118,6 +120,7 @@ const DraftContainer = React.createClass({
     updateFilter: React.PropTypes.func.isRequired,
     updateOrderByFilter: React.PropTypes.func,
     verifyLocation: React.PropTypes.func.isRequired,
+    userLocation: React.PropTypes.object.isRequired,
   },
 
 
@@ -140,8 +143,8 @@ const DraftContainer = React.createClass({
 
 
   componentWillMount() {
-    // First check if the user's location is valid. they will be redirected if
-    // it isn't.
+    // First check if the user's location is valid. they will be prompted with a modal showing
+    // them what they can do.
     this.props.verifyLocation();
     // load in draft group players and injuries and boxscores and stuff.
     // After that, look for an unsaved local lineup to import.
@@ -283,6 +286,28 @@ const DraftContainer = React.createClass({
     this.props.updateOrderByFilter(propertyColumn, direction);
   },
 
+
+  renderLocationConfirmModalIfNeeded() {
+    // If we know that they are in a blocked location because we have checked.
+    if (
+      this.props.userLocation.hasAttemptedToVerify &&
+      !this.props.userLocation.isLocationVerified
+    ) {
+      // Show a modal warning them that they will not be able to do some things.
+      return (
+          <RestrictedLocationConfirmModal
+            isOpen
+            titleText="Location Unavailable"
+            continueButtonText="Cool, got it"
+            showCancelButton={false}
+          >
+            <div>{this.props.userLocation.message || 'Your location could not be verified.'}</div>
+          </RestrictedLocationConfirmModal>
+      );
+    }
+    // By default do not show confirm modal.
+    return '';
+  },
 
   render() {
     const self = this;
@@ -444,6 +469,8 @@ const DraftContainer = React.createClass({
           </thead>
           <tbody>{visibleRows}</tbody>
         </table>
+
+        {this.renderLocationConfirmModalIfNeeded()}
       </div>
     );
   },

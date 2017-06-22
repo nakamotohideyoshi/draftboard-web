@@ -1,9 +1,12 @@
 import log from '../../lib/logging';
+import * as ReactRedux from 'react-redux';
 import { querystring } from '../../lib/utils';
 import merge from 'lodash/merge';
 import React from 'react';
+import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import RegisterConfirmModal from './register-confirm-modal';
+import RestrictedLocationConfirmModal from './restricted-location-confirm-modal';
+import { verifyLocation } from '../../actions/user';
 import { registerUser } from '../../actions/user/register';
 import {
   isListOfErrors,
@@ -20,25 +23,35 @@ const logComponent = log.getLogger('component');
  * @param  {function} dispatch The dispatch method to pass actions into
  * @return {object}            All of the methods to map to the component, wrapped in 'action' key
  */
+function mapDispatchToProps(dispatch) {
+  return {
+    verifyLocation: () => dispatch(verifyLocation()),
+  };
+}
+
+function mapStateToProps(state) {
+  return {
+    userLocation: state.user.location,
+  };
+}
+
 export const Register = React.createClass({
 
-  propTypes: {},
+  propTypes: {
+    verifyLocation: React.PropTypes.func.isRequired,
+    userLocation: React.PropTypes.object.isRequired,
+  },
+
 
   getInitialState() {
     const state = {
       isSubmitting: false,
       fieldNames: [
-        'first',
-        'last',
         'username',
         'email',
         'password',
         // 'password_confirm',
         'non_field_errors',
-        'birth_day',
-        'birth_month',
-        'birth_year',
-        'postal_code',
       ],
       fields: {},
       nonFieldErrors: [],
@@ -56,6 +69,16 @@ export const Register = React.createClass({
 
     return state;
   },
+
+
+  componentWillMount() {
+    // When we first boot up this component, fire off a request to
+    // check if the user is in a valid location. If they are not,
+    // we will use props.userLocation to signal the component to
+    // show a confirmation modal.
+    this.props.verifyLocation();
+  },
+
 
   resetErrors() {
     const { fieldNames } = this.state;
@@ -76,16 +99,9 @@ export const Register = React.createClass({
     this.setState({ isSubmitting: true });
 
     registerUser(
-      this.refs.first.value.toString(),
-      this.refs.last.value.toString(),
-      this.refs.birth_day.value.toString(),
-      this.refs.birth_month.value.toString(),
-      this.refs.birth_year.value.toString(),
-      this.refs.postal_code.value.toString(),
-      this.refs.email.value.toString(),
       this.refs.username.value.toString(),
-      this.refs.password.value.toString(),
-      this.state.signup_anyway
+      this.refs.email.value.toString(),
+      this.refs.password.value.toString()
     // if no redirect and we get here, then use the errors
     ).then(
       // only redirect if success is true, otherwise is error that got caught in action
@@ -138,37 +154,6 @@ export const Register = React.createClass({
     );
   },
 
-  // When the user clicks the 'SIGN UP' button.
-  handleModalConfirmEntry() {
-    // Hide modal
-    this.setState({
-      signup_anyway: true,
-      errors: {},
-    }, this.handleSubmit); // Send req again
-  },
-
-  // When the user clicks the 'NO THANKS' button.
-  handleModalCancelEntry() {
-    window.location.href = '/'; // Redirect to main page
-  },
-
-
-  renderDateErrors() {
-    const fields = this.state.fields;
-
-    if (fields.birth_day.error || fields.birth_month.error || fields.birth_year.error) {
-      return (
-        <div className="account__left__content__form__non-field-errors">
-          <span>{(fields.birth_day.error) ? `Birth Day - ${fields.birth_day.error}` : ''}</span>
-          <span>{(fields.birth_month.error) ? `Birth Month - ${fields.birth_month.error}` : ''}</span>
-          <span>{(fields.birth_year.error) ? `Birth Year - ${fields.birth_year.error}` : ''}</span>
-        </div>
-      );
-    }
-
-    return <div></div>;
-  },
-
 
   /**
    * Renders any non field-specific errors into divs.
@@ -193,38 +178,37 @@ export const Register = React.createClass({
     );
   },
 
+  renderLocationConfirmModalIfNeeded() {
+    // If we know that they are in a blocked location because we have checked.
+    if (
+      this.props.userLocation.hasAttemptedToVerify &&
+      !this.props.userLocation.isLocationVerified
+    ) {
+      // Show a modal warning them that they will not be able to do some things.
+      return (
+          <RestrictedLocationConfirmModal
+            isOpen
+            titleText="Location Unavailable"
+            continueButtonText="Sign Up"
+          >
+            <div>{this.props.userLocation.message || 'Your location could not be verified.'}</div>
+          </RestrictedLocationConfirmModal>
+      );
+    }
+    // By default do not show confirm modal.
+    return '';
+  },
 
   render() {
-    const { first, last, postal_code, email, username, password } = this.state.fields;
-
+    const { email, username, password } = this.state.fields;
     let submitClasses = 'button button--gradient';
+
     if (this.state.isSubmitting) {
       submitClasses += ' button--disabled';
     }
 
-
     return (
       <form className="account__left__content__form" method="post" onSubmit={this.handleSubmit}>
-
-        <div className="split_field_group">
-          <div
-            className={`account__left__content__form__input-layout ${(first.error) ? 'errored' : ''}`}
-          >
-            <label htmlFor="password">
-              First Name <span>{(first.error) ? `- ${first.error}` : ''}</span>
-            </label>
-            <input ref="first" id="first" type="text" name="first" required />
-          </div>
-
-          <div className={
-            `account__left__content__form__input-layout ${(last.error) ? 'errored' : ''}`}
-          >
-            <label htmlFor="password">
-              Last Name <span>{(last.error) ? `- ${last.error}` : ''}</span>
-            </label>
-            <input ref="last" id="last" type="text" name="last" required />
-          </div>
-        </div>
 
         <div className={
           `account__left__content__form__input-layout ${(username.error) ? 'errored' : ''}`}
@@ -256,86 +240,21 @@ export const Register = React.createClass({
           <input ref="password" id="password" type="password" name="password" required />
         </div>
 
-        <div
-          className="account__left__content__form__input-layout birth-date"
-        >
-          <label htmlFor="birth_day">
-            Birth Date (M/D/Y)
-            {this.renderDateErrors()}
-          </label>
-          <select
-            placeholder="Month"
-            ref="birth_month"
-            className="form-field__select birth-month"
-            type="number"
-            name="birth_month"
-            min="1"
-            max="12"
-            required
-          >
-            <option value="01">Jan</option>
-            <option value="02">Feb</option>
-            <option value="03">Mar</option>
-            <option value="04">Apr</option>
-            <option value="05">May</option>
-            <option value="06">Jun</option>
-            <option value="07">Jul</option>
-            <option value="08">Aug</option>
-            <option value="09">Sep</option>
-            <option value="10">Oct</option>
-            <option value="11">Nov</option>
-            <option value="12">Dec</option>
-          </select>
-          /
-          <input
-            placeholder="DD"
-            ref="birth_day"
-            className="form-field__text-input birth-day"
-            type="number"
-            name="birth_day"
-            min="1"
-            max="31"
-            required
-          />
-          /
-          <input
-            placeholder="YYYY"
-            ref="birth_year"
-            className="form-field__text-input birth-year"
-            type="number"
-            name="birth_year"
-            max="9999"
-            min="1912"
-            maxLength="4"
-            required
-          />
-        </div>
-
-        <div className={`account__left__content__form__input-layout ${(postal_code.error) ? 'errored' : ''}`}>
-          <label htmlFor="postal_code">
-            Postal Code <span>{(postal_code.error) ? `- ${postal_code.error}` : ''}</span>
-          </label>
-          <input ref="postal_code" id="postal_code" type="text" name="postal_code" required />
-        </div>
-
-        {this.renderNonFieldErrors(this.state.nonFieldErrors)}
+        {this.renderNonFieldErrors()}
 
         <div className="account__left__content__form__input-layout">
           <input type="submit" value="Create account" className={submitClasses} />
 
-          <RegisterConfirmModal
-            isOpen={this.state.errors.verification_modal}
-            confirmEntry={this.handleModalConfirmEntry}
-            cancelEntry={this.handleModalCancelEntry}
-            titleText={this.state.errors.title}
-          >
-            {this.state.errors.message}
-          </RegisterConfirmModal>
-
           <span className="arrow" />
-          <p>Clicking "Confirm" is an agreement to our <a href="/terms-conditions/" target="_blank">
-            Terms of Use</a> and <a href="/privacy-policy/" target="_blank">Privacy Policy</a></p>
+
+          <p>
+            Clicking “Create Account” confirms you are 18 years of age or older and agree
+             to our <a href="/terms-conditions/" target="_blank">Terms of Use</a> and
+             <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
+          </p>
         </div>
+
+        {this.renderLocationConfirmModalIfNeeded()}
       </form>
     );
   },
@@ -343,7 +262,20 @@ export const Register = React.createClass({
 });
 
 
+// Set up Redux connections to React
+const { Provider, connect } = ReactRedux;
+
+
+// Wrap the component to inject dispatch and selected state into it.
+const RegisterConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Register);
+
+
 renderComponent(
-  <Register />,
+  <Provider store={store}>
+    <RegisterConnected />
+  </Provider>,
   '#account-register'
 );

@@ -1,6 +1,5 @@
 import logging
 
-from rest_framework import exceptions
 from rest_framework import permissions
 
 from .utils import CheckUserAccess
@@ -28,25 +27,27 @@ class HasIpAccess(permissions.BasePermission):
     """
     check user location and ip
     """
+    # Default message -
+    # will be overridden by a more specific one below.
     message = "Unable to verify your location."
 
     def has_permission(self, request, view):
-
         # If the user has permission to bypass location checks, pass them.
         if request.user.has_perm('account.can_bypass_location_check') and \
-           request.user.is_authenticated():
+                request.user.is_authenticated():
             logger.info(
                 'User: %s has bypassed the location check via permissions.' % request.user.username)
             return True
 
         checker = CheckUserAccess(request)
-        access, message = checker.check_access
-
-        # If our IP check has determined we don't have access, return a 403.
-        if not access:
-            raise exceptions.PermissionDenied('IP_CHECK_FAILED')
-
-        return True
+        # Set the response error message to whatever our checker returns.
+        access, reason = checker.check_access
+        self.message = {
+            'detail': reason,
+            'status': 'IP_CHECK_FAILED'
+        }
+        # `access` is a bool that tells us if the user passed our IP location+proxy checks.
+        return access
 
 
 class HasVerifiedIdentity(permissions.BasePermission):

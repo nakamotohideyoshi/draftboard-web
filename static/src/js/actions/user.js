@@ -278,9 +278,9 @@ export function updateEmailNotificationSettings(formData) {
 export const verifyLocation = () => ({
   [CALL_API]: {
     types: [
-      actionTypes.VERIFY_LOCATION,
-      actionTypes.NULL,
-      actionTypes.ADD_MESSAGE,
+      actionTypes.VERIFY_LOCATION__SEND,
+      actionTypes.VERIFY_LOCATION__SUCCESS,
+      actionTypes.VERIFY_LOCATION__FAIL,
     ],
     endpoint: '/api/account/verify-location/',
   },

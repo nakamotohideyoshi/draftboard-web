@@ -5,6 +5,10 @@ import moment from 'moment';
 
 const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
   const formatTeam = (playerTeam, team) => {
+    if (!playerTeam || !team) {
+      return <span></span>;
+    }
+
     let classname = '';
     if (playerTeam === team.srid) {
       classname = 'players-team';
@@ -12,7 +16,6 @@ const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
 
     return <span className={classname}>{team.alias}</span>;
   };
-
 
   if (gameSrid in draftGroupBoxScores) {
     const game = draftGroupBoxScores[gameSrid];
