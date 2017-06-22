@@ -70,11 +70,10 @@ export const draftGroupInfoSelector = createSelector(
  * section for the team filter.
  */
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
-const boxScoresSelector = (state) => state.upcomingDraftGroups.boxScores;
 // const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScoreGames
 
 export const activeDraftGroupBoxScoresSelector = createSelector(
-  [activeDraftGroupIdSelector, draftGroupsFilterSelector, boxScoresSelector],
+  [activeDraftGroupIdSelector, draftGroupsFilterSelector, draftGroupBoxScoresSelector],
   (activeDraftGroupId, draftGroups, boxScores) => {
     let response = {};
 

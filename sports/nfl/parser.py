@@ -8,6 +8,7 @@ import dataden.models
 import push.classes
 import sports.nfl.models
 from mysite.utils import QuickCache
+from scoring.classes import NflSalaryScoreSystem
 from sports.nfl.models import (
     Team,
     Game,
@@ -1096,6 +1097,7 @@ class PbpEventParser(DataDenPbpDescription):
     player_stats_model = sports.nfl.models.PlayerStats
     pusher_sport_pbp = push.classes.PUSHER_NFL_PBP
     pusher_sport_stats = push.classes.PUSHER_NFL_STATS
+    score_system_class = NflSalaryScoreSystem
 
     manager_class = PlayManager
 
@@ -1165,6 +1167,112 @@ class PbpEventParser(DataDenPbpDescription):
     #     game_srid = self.get_game_srid('game__id')
     #     return self.player_stats_model.objects.filter(srid_game=game_srid,
     #                                                   srid_player__in=player_srids)
+
+    def add_fp_value(self, pbp):
+        """
+        Determine the value of XXX___list pbp['statistic']s and add an 'fp_value' field to
+        each one.
+
+        :param pbp:
+        :return:
+        """
+        if pbp is None:
+            return pbp
+
+        score_system = self.score_system_class()
+        scoring_keywords = ['yards', 'touchdown', 'interception', 'reception', 'fumble']
+
+        """
+            pbp['statistics'] looks something like this: We want to go through each <XXXX__list>
+            element and determine the value of the play.
+
+            'statistics': {
+                # The quarterback
+                'pass__list': {
+                    'att_yards': 2.0,
+                    'attempt': 1.0,
+                    'complete': 1.0,
+                    'confirmed': 'true',
+                    'goaltogo': 0.0,
+                    'inside_20': 0.0,
+                    'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                    'yards': 4.0},
+                # the receiver
+                'receive__list': {
+                    'confirmed': 'true',
+                    'goaltogo': 0.0,
+                    'inside_20': 0.0,
+                    'player': '9691f874-be36-4529-a7eb-dde22ee4a848',
+                    'reception': 1.0,
+                    'target': 1.0,
+                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                    'yards': 4.0,
+                    'yards_after_catch': 2.0}
+            },        
+        """
+
+        # The PBP event fields don't map nicely to our internal score system fields.
+        # This will allow us to look them up and get actual FP values for each stat.
+        field_map = {
+            'pass_yards': score_system.PASS_YDS,
+            'pass_touchdown': score_system.PASS_TD,
+            'pass_interception': score_system.PASS_INT,
+
+            'rec_yards': score_system.REC_YDS,
+            'rec_touchdown': score_system.REC_TD,
+            'rec_reception': score_system.PPR,
+
+            'rush_yards': score_system.RUSH_YDS,
+            'rush_touchdown': score_system.RUSH_TD,
+
+            'ret_touchdown': score_system.KICK_RET_TD,
+
+            'fumble': score_system.FUMBLE_LOST,
+            # add 2pt conversion
+        }
+
+        # for each of the <XXXX__list> items, detrmine what type of stats it contains based on
+        # it's name.
+        for stat_list_type, stats_list in pbp['statistics'].items():
+            # Reset scoring fields + value for this __set
+            scoring_fields = {}
+            total_fp_value = 0
+            stat_type = ''
+            # stat_list_type will be something like:
+            # 'pass__list', 'punt__list', 'rush__list', 'receive__list' 'fumble'
+            # determine if the stats are passing yards or rushing  yards.
+            if 'pass' in stat_list_type:
+                stat_type = 'pass'
+            if 'rush' in stat_list_type:
+                stat_type = 'rush'
+            if 'receive' in stat_list_type:
+                stat_type = 'rec'
+            if 'return' in stat_list_type:
+                stat_type = 'ret'
+            if 'fumble' in stat_list_type:
+                stat_type = ''
+
+            # If our stats list is a dict, run through and determine the FP value
+            # for each stat, compiling a total sum along the way, then embed the
+            # value into the original data set and return it all.
+            if isinstance(stats_list, dict):
+                for stat_name, value in stats_list.items():
+                    if stat_name in scoring_keywords:
+                        # This will fill the `scoring_fields` with things like {rec_yards: 5, }
+                        scoring_fields["%s_%s" % (stat_type, stat_name)] = value
+
+                # once we have our map of stats + values we can get the FP value
+                for stat_name, value in scoring_fields.items():
+                    # if the stat is something that we care about, find the FP value of it.
+                    if stat_name in field_map:
+                        total_fp_value += value * score_system.get_value_of(field_map[stat_name])
+
+                # Embed an 'fp_value' field with the total FP for this player's actions.
+                stats_list['fp_value'] = total_fp_value
+
+        # Return our original pbp data with the FP values added.
+        return pbp
 
     def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
@@ -1236,9 +1344,13 @@ class PbpEventParser(DataDenPbpDescription):
         #     logger.warning('Unknown NFL quarter value. %s' % getattr(game_boxscore, 'quarter'))
 
         # Attach PBP and linked stats, then return.
-        data = {
+        pbp_data = PlayManager(play).get_data()
+        # Now that we have the pbp `extra_info` we can calculate the change in fantasy points that
+        # the play resulted in.
+        pbp_data_with_fp_change = self.add_fp_value(pbp_data)
 
-            'pbp': PlayManager(play).get_data(),
+        data = {
+            'pbp': pbp_data_with_fp_change,
             'stats': player_stats_json,
             'game': self.get_game_info(),
         }

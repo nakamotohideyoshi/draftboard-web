@@ -446,12 +446,12 @@ const DraftContainer = React.createClass({
               />
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
-                text="Status"
+                text=""
                 sortParam="status"
               />
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
-                text="OPP"
+                text="GAME"
                 sortParam="team_alias"
               />
               <DraftTableHeader

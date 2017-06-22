@@ -1,4 +1,3 @@
-/* eslint no-param-reassign: 0 */
 import React from 'react';
 import moment from 'moment';
 import find from 'lodash/find';
@@ -41,10 +40,12 @@ const getFormattedGame = (playerTeamSrid, boxScores) => {
 /**
  * A player row to be placed in a lineup card.
  */
+/* eslint no-param-reassign: 0 */
 const LineupCardPlayer = (props) => (
   <li className="cmp-lineup-card__player">
     <span className="cmp-lineup-card__position">{props.player.roster_spot}</span>
     <span className="cmp-lineup-card__photo">
+
       <img
         src={`${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
         onError={(tag) => {
@@ -66,6 +67,7 @@ const LineupCardPlayer = (props) => (
     </span>
   </li>
 );
+/* eslint-enable no-param-reassign */
 
 LineupCardPlayer.propTypes = {
   player: React.PropTypes.object.isRequired,

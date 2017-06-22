@@ -1,29 +1,28 @@
-/* eslint no-param-reassign: 0 */
 import React from 'react';
 import moment from 'moment';
 
 
 const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
-  const formatTeam = (playerTeam, team) => {
-    if (!playerTeam || !team) {
-      return <span></span>;
+  const formatTeam = (playerTeam, teamSrid, teamName) => {
+    if (playerTeam && teamSrid) {
+      let classname = '';
+      if (playerTeam === teamSrid) {
+        classname = 'players-team';
+      }
+
+      return <span className={classname}>{teamName}</span>;
     }
 
-    let classname = '';
-    if (playerTeam === team.srid) {
-      classname = 'players-team';
-    }
-
-    return <span className={classname}>{team.alias}</span>;
+    return <span></span>;
   };
 
-  if (gameSrid in draftGroupBoxScores) {
+  if (draftGroupBoxScores.hasOwnProperty(gameSrid)) {
     const game = draftGroupBoxScores[gameSrid];
 
     return (
       <div>
-        {formatTeam(playerTeamSrid, game.awayTeam)} @&nbsp;
-        {formatTeam(playerTeamSrid, game.homeTeam)}&nbsp;
+        {formatTeam(playerTeamSrid, game.srid_away, game.away_team)} @&nbsp;
+        {formatTeam(playerTeamSrid, game.srid_home, game.home_team)}&nbsp;
         {moment(game.start, moment.ISO_8601).format('h:mma')}
       </div>
     );
@@ -37,6 +36,7 @@ const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
  */
 const DraftNewLineupCardPlayer = (props) => {
   if (props.player.player) {
+    /* eslint no-param-reassign: 0 */
     return (
       <li className="cmp-lineup-card__player occupied" key={props.player.idx}>
         <span className="cmp-lineup-card__position">{props.player.name}</span>
@@ -80,6 +80,7 @@ const DraftNewLineupCardPlayer = (props) => {
         </span>
       </li>
     );
+    /* eslint-enable no-param-reassign */
   }
 
   return (
@@ -114,7 +115,7 @@ DraftNewLineupCardPlayer.propTypes = {
   // What happens when the delete button is clicked.
   removePlayer: React.PropTypes.func.isRequired,
   onPlayerClick: React.PropTypes.func,
-  draftGroupBoxScores: React.PropTypes.object,
+  draftGroupBoxScores: React.PropTypes.object.isRequired,
 };
 
 module.exports = DraftNewLineupCardPlayer;

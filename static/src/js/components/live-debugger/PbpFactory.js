@@ -5,7 +5,7 @@ import NFLPlayRecapVO from '../../lib/live-animations/nfl/NFLPlayRecapVO';
 
 const PBP_DATA = process.env.NODE_ENV === 'test' ? {} : {
   nba: require('./data/pusher_events__zach_local_nba_pbp.event.txt'),
-  nfl: require('./data/pusher_events__zach_local_nfl_pbp.linked.txt'),
+  nfl: require('./data/pusher_events__zachlocal_nfl_pbp.linked.txt'),
   nhl: '',
 };
 

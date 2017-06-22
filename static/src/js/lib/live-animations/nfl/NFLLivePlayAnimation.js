@@ -1,10 +1,10 @@
 import LiveAnimation from '../LiveAnimation';
-import PassingPlayAnimation from './PassingPlayAnimation';
-import RushingPlayAnimation from './RushingPlayAnimation';
+import NFLPlayRecapVO from './NFLPlayRecapVO';
+import KickReturnAnimation from './animations/KickReturnAnimation';
+import PassingPlayAnimation from './animations/PassingPlayAnimation';
+import QuarterbackSackedAnimation from './animations/QuarterbackSackedAnimation';
+import RushingPlayAnimation from './animations/RushingPlayAnimation';
 
-/**
- * ...
- */
 export default class NFLLivePlayAnimation extends LiveAnimation {
 
   /**
@@ -12,15 +12,20 @@ export default class NFLLivePlayAnimation extends LiveAnimation {
    * @param {NFLPlayRecapVO}  The recap.
    */
   getAnimation(recap) {
-    if (recap.isPassingPlay()) {
-      return new PassingPlayAnimation();
+    switch (recap.playType()) {
+      case NFLPlayRecapVO.KICKOFF:
+      case NFLPlayRecapVO.PUNT:
+        return new KickReturnAnimation();
+      case NFLPlayRecapVO.PASS:
+      case NFLPlayRecapVO.PASS_DEEP:
+        return new PassingPlayAnimation();
+      case NFLPlayRecapVO.RUSH:
+        return new RushingPlayAnimation();
+      case NFLPlayRecapVO.SACK:
+        return new QuarterbackSackedAnimation();
+      default:
+        return null;
     }
-
-    if (recap.isRushingPlay()) {
-      return new RushingPlayAnimation();
-    }
-
-    return null;
   }
 
   /**

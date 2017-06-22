@@ -166,7 +166,7 @@ class RegisterAccountTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # short password field
-        response = self.client.post(url, password_short, format='json')
+        response = self.client.post(url, password_shortn, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Tests for invalid username
