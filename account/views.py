@@ -926,6 +926,7 @@ class RegisterAccountAPIView(APIView):
     def post(self, request):
         # - Attempt to create User account.
         user_serializer = self.register_user_serializer_class(data=request.data)
+
         if user_serializer.is_valid(raise_exception=True):
             username = user_serializer.validated_data.get('username')
             email = user_serializer.validated_data.get('email')
