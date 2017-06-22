@@ -13,8 +13,6 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils import timezone
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from raven.contrib.django.raven_compat.models import client
@@ -43,7 +41,6 @@ from account.models import (
     Limit
 )
 from account.permissions import (
-    IsNotAuthenticated,
     HasIpAccess,
     HasVerifiedIdentity,
 )
@@ -880,11 +877,19 @@ class VerifyLocationAPIView(APIView):
     """
     A simple endpoint to run the HasIpAccess permission class.
     If the user's IP acceptable, return 200. otherwise a 403.
+    This location check is done with our local IP database. This does NOT
+    use GIDX to do a hard check on the user.
     """
+    # We need this. Otherwise it ignores the HasIpAccess' message.
+    authentication_classes = ()
     permission_classes = (HasIpAccess,)
 
-    def get(self, request, *args, **kwargs):
-        return Response(data={"detail": "location and age verification passed"}, status=200, )
+    @staticmethod
+    def get(request):
+        return Response(
+            data={"detail": "location verification passed"},
+            status=200,
+        )
 
 
 class RegisterAccountAPIView(APIView):
@@ -912,45 +917,13 @@ class RegisterAccountAPIView(APIView):
 
     example POST param (JSON):
 
-    {"first": "FullSteve","last": "Stevenson","birth_day": 1,"birth_month": 1,"birth_year": 1990,
-        "postal_code": "11111", "ssn": '111-11-1111'}
+    {"username": "myUserName", "password": "pa$$word", "email": "me@email.com"}
     """
 
     permission_classes = ()
-    trulioo_serializer_class = TruliooVerifyUserSerializer
     register_user_serializer_class = RegisterUserSerializer
 
     def post(self, request):
-        location_checker = CheckUserAccess(request)
-        signup_anyway = request.data.get('signup_anyway')
-
-        if location_checker.geo_ip_response:
-            country_access, message, contry = location_checker.check_location_country(return_country=True)
-            state_access, message, state = location_checker.check_location_state(return_state=True)
-            if not signup_anyway:
-                if not country_access:
-                    return Response(data=MODAL_MESSAGES['COUNTRY'], status=status.HTTP_400_BAD_REQUEST)
-                elif not state_access:
-                    data = MODAL_MESSAGES['STATE']
-                    data['message'] = data['message'].format(barred_state=BLOCKED_STATES_NAMES['state'])
-                    return Response(data=MODAL_MESSAGES['STATE'], status=status.HTTP_400_BAD_REQUEST)
-
-        # use the serializer to validate the arguments
-        trulioo_serializer = self.trulioo_serializer_class(data=request.data)
-        trulioo_serializer.is_valid(raise_exception=True)
-        logger.debug(trulioo_serializer.validated_data)
-        # Grab the data out of the serializer. it will be validated and whitespace-trimmed.
-        first = trulioo_serializer.validated_data.get('first')
-        last = trulioo_serializer.validated_data.get('last')
-        birth_day = trulioo_serializer.validated_data.get('birth_day')
-        birth_month = trulioo_serializer.validated_data.get('birth_month')
-        birth_year = trulioo_serializer.validated_data.get('birth_year')
-        postal_code = trulioo_serializer.validated_data.get('postal_code')
-
-        # - Attempt to verify user identity with Trulioo.
-        #       This will raise exceptions + validation errors if the verification failed.
-        verify_user_identity(first, last, birth_day, birth_month, birth_year, postal_code)
-
         # - Attempt to create User account.
         user_serializer = self.register_user_serializer_class(data=request.data)
         if user_serializer.is_valid(raise_exception=True):
@@ -969,7 +942,7 @@ class RegisterAccountAPIView(APIView):
             if new_user is not None:
                 authLogin(request, new_user)
 
-            # DO NOT respond yet. we still need to save the user's Identity below.
+                # DO NOT respond yet. we still need to save the user's Identity below.
         else:
             # If there were user user_serializer, send em back to the user.
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -977,7 +950,7 @@ class RegisterAccountAPIView(APIView):
         # If the verification request was successful...
         #
         # Save the information so we can do multi-account checking.
-        create_user_identity(new_user, first, last, birth_day, birth_month, birth_year, postal_code)
+        # create_user_identity(new_user, first, last, birth_day, birth_month, birth_year, postal_code)
         # return success response if everything went ok
         return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
 

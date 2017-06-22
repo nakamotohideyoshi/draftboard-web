@@ -3,6 +3,8 @@ import json
 from django.conf import settings
 from django.core.cache import caches
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_control
 from django.views.generic import View
 from rest_framework import generics
 from rest_framework import status
@@ -23,63 +25,7 @@ from draftgroup.serializers import (
 from sports.classes import SiteSportManager
 
 
-# class GetSerializedDataMixin:
-#
-#     def get_serialized_data(self, draft_group_id, model_class, serializer_class):
-#         game_updates = model_class.objects.filter(draft_groups__pk=draft_group_id)
-#         serialized_data = serializer_class(game_updates, many=True).data
-#         return serialized_data
-#
-# class UpdateAPIView(APIView, GetSerializedDataMixin):
-#     """
-#     parent view class for XxxxUpdateAPIView(s)
-#     """
-#     authentication_classes = (IsAuthenticated, )
-#
-#     model_class = None          # child view must set this
-#     serializer_class = None     # child view must set this
-#
-#     # def get_serialized_data(self, draft_group_id):
-#     #     game_updates = self.model_class.objects.filter(draft_groups__pk=draft_group_id)
-#     #     serialized_data = self.serializer_class(game_updates, many=True).data
-#     #     return serialized_data
-#
-#     def get(self, request, *args, **kwargs):
-#         draft_group_id = kwargs.get('draft_group_id')
-#         # game_updates = self.model_class.objects.filter(draft_groups__pk=draft_group_id)
-#         # serialized_data = self.serializer_class(game_updates, many=True).data
-#         data = self.get_serialized_data(draft_group_id, self.model_class, self.serializer_class)
-#         return Response(data, status=200)
-#
-# class GameUpdateAPIView(UpdateAPIView):
-#     """
-#
-#     """
-#     model_class = GameUpdate
-#     serializer_class = GameUpdateSerializer
-#
-# class PlayerUpdateAPIView(UpdateAPIView):
-#     """
-#
-#     """
-#     model_class = PlayerUpdate
-#     serializer_class = PlayerUpdateSerializer
-#
-# class PlayerAndGameUpdateAPIView(APIView, GetSerializedDataMixin):
-#     """
-#
-#     """
-#
-#     authentication_classes = (IsAuthenticated,)
-#
-#     def get(self, request, *args, **kwargs):
-#         draft_group_id = kwargs.get('draft_group_id')
-#         data = {
-#             'player_updates' : self.get_serialized_data(draft_group_id, PlayerUpdate, PlayerUpdateSerializer),
-#             'game_updates' : self.get_serialized_data(draft_group_id, GameUpdate, GameUpdateSerializer),
-#         }
-#         return Response(data, status=200)
-
+@method_decorator(cache_control(max_age=43200), name='dispatch')
 class DraftGroupAPIView(generics.GenericAPIView):
     """
     return the draft group players for the given draftgroup id
@@ -91,7 +37,6 @@ class DraftGroupAPIView(generics.GenericAPIView):
     """
 
     DEFAULT_CACHE_TIMEOUT = 12 * 60 * 60  # timeout in seconds
-
     serializer_class = DraftGroupSerializer
 
     def get_object(self, id):
@@ -103,7 +48,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
     def get_cache_key(self, pk):
         return self.__class__.__name__ + str(pk)
 
-    def get(self, request, pk, format=None):
+    def get(self, request, pk):
         """
         given the GET param 'id', get the draft_group
         """
@@ -111,7 +56,8 @@ class DraftGroupAPIView(generics.GenericAPIView):
         c = caches[settings.API_CACHE_NAME]
         serialized_data = c.get(self.get_cache_key(pk), None)
         if serialized_data is None or (
-                draft_group.closed is not None and serialized_data.get('closed', None) is None):
+                        draft_group.closed is not None and serialized_data.get('closed',
+                                                                               None) is None):
             serialized_data = DraftGroupSerializer(self.get_object(pk), many=False).data
             c.add(self.get_cache_key(pk), serialized_data, self.DEFAULT_CACHE_TIMEOUT)
 
@@ -121,6 +67,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
         return Response(serialized_data)
 
 
+@method_decorator(cache_control(max_age=86400), name='dispatch')
 class UpcomingDraftGroupAPIView(generics.ListAPIView):
     """
     return the draft group players for the given draftgroup id
@@ -156,7 +103,8 @@ class DraftGroupFantasyPointsView(View):
     return all the lineups for a given contest as raw bytes, in our special compact format
     """
 
-    def get(self, request, draft_group_id):
+    @staticmethod
+    def get(request, draft_group_id):
         dgm = DraftGroupManager()
         draft_group = dgm.get_draft_group(draft_group_id)
         data = {
@@ -174,7 +122,8 @@ class DraftGroupGameBoxscoresView(View):
     of the draftgroup)
     """
 
-    def __add_to_dict(self, target, extras):
+    @staticmethod
+    def __add_to_dict(target, extras):
         for k, v in extras.items():
             target[k] = v
         return target
@@ -232,7 +181,8 @@ class DraftGroupPbpDescriptionView(View):
     return the most recent PbpDescription objects for this draft group
     """
 
-    def get(self, request, draft_group_id):
+    @staticmethod
+    def get(request, draft_group_id):
 
         dgm = DraftGroupManager()
         draft_group = dgm.get_draft_group(draft_group_id)

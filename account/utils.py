@@ -8,6 +8,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from geoip2.errors import AddressNotFoundError
 from raven.contrib.django.raven_compat.models import client
 from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
+from mysite.legal import BLOCKED_STATES_NAMES
 from account import const as _account_const
 import logging
 from ipware.ip import get_real_ip, get_ip
@@ -139,7 +140,8 @@ class CheckUserAccess(object):
         if response.status_code == 200:
             value = float(response.content)
             result = True if value < settings.GETIPNET_NORMAL else False
-            msg = '' if result else 'Your ip is too risky, or VPN used'
+            msg = '' if result else MODAL_MESSAGES['VPN']['message']
+
             # Log all failed attempts.
             if result is False:
                 self.create_log(
@@ -150,6 +152,14 @@ class CheckUserAccess(object):
         # in case of out of limit
         elif response.status_code == 429:
             logger.error("getipintel.net 429 response: %s" % response.reason)
+            client.context.merge({'extra': {
+                'reason': response.reason,
+                'status_code': response.status_code,
+                'ip': self.ip,
+                'user': self.user.username,
+            }})
+            client.captureMessage("Unexpected getipintel.net response: %s" % str(response))
+            client.context.clear()
             return True, response.reason
         # service not working
         else:
@@ -168,7 +178,8 @@ class CheckUserAccess(object):
         try:
             country = self.geo_ip_response.get('country_code')
             result = True if country in LEGAL_COUNTRIES else False
-            msg = '' if result else 'Country in blocked list'
+            msg = '' if result else MODAL_MESSAGES['COUNTRY']['message']
+
             if not result:
                 self.create_log(
                     _account_const.IP_CHECK_FAILED_COUNTRY,
@@ -188,7 +199,8 @@ class CheckUserAccess(object):
         try:
             state = self.geo_ip_response.get('region')
             result = True if state not in BLOCKED_STATES else False
-            msg = '' if result else 'Your state in blocked list'
+            msg = '' if result else MODAL_MESSAGES['STATE']['message'].format(
+                        barred_state=BLOCKED_STATES_NAMES[state])
             if not result:
                 self.create_log(
                     _account_const.IP_CHECK_FAILED_STATE,
@@ -278,20 +290,29 @@ def reset_user_password_email(user, request):
         form.save(from_email=settings.DEFAULT_FROM_EMAIL, request=request)
 
 
+# These messages get thrown back as API responses if a user fails the location/VPN check.
 MODAL_MESSAGES = {
     "COUNTRY": {
         "title": "LOCATION UNAVAILABLE",
         "message": "Looks like you’re outside of the US or Canada.  Draftboard is available "
                    "only to residents of the US or Canada.  You can still sign up for an "
                    "account and create a lineup, but you will be unable to deposit or enter "
-                   "contests while in not in the US or Canada.",
-        "verification_modal": True
+                   "contests while in not in the US or Canada. "
+                   "Please contact support@draftboard.com if you have further questions.",
     },
     "STATE": {
         "title": "LOCATION UNAVAILABLE",
-        "message": "Looks like you’re in {barred_state}, a state we do not currently operate in.  "
-                   "You can still sign up for an account and create a lineup, but you will be unable "
-                   "to deposit or enter contests while in {barred_state}",
-        "verification_modal": True
+        "message": "Looks like you're in {barred_state}, a state we do not currently operate in. "
+                   "You can still sign up for an account and create a lineup, but you will be "
+                   "unable to deposit or enter contests while in {barred_state}. "
+                   "Please contact support@draftboard.com if you have further questions.",
+
+    },
+    "VPN": {
+        "title": "LOCATION UNAVAILABLE",
+        "message": "Looks like you're using a VPN or proxy, "
+                   "You can still sign up for an account and create a lineup, but you will be "
+                   "unable to deposit or enter contests while using this connection. "
+                   "Please contact support@draftboard.com if you have further questions.",
     }
 }
