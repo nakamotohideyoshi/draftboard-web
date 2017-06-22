@@ -1,5 +1,6 @@
 import React from 'react';
 import find from 'lodash/find';
+import moment from 'moment';
 
 
 /**
@@ -33,7 +34,10 @@ const DraftPlayerNextGame = React.createClass({
       }
       // Otherwise, they are on the home team, make that bold.
       return (
-        <span>{awayTeam.alias} @ <span className="player-team">{homeTeam.alias}</span></span>
+        <span>
+          {awayTeam.alias} @ <span className="player-team">{homeTeam.alias}</span>&nbsp;
+          {moment(this.props.game.start, moment.ISO_8601).format('h:mma')}
+        </span>
       );
     }
 

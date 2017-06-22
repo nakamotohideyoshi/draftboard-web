@@ -5,6 +5,7 @@ import { clip as qbDefaultPassDeepMiddle } from '../clips/nfl/qb-default-pass-de
 import { clip as qbDefaultPassLeft } from '../clips/nfl/qb-default-pass-left';
 import { clip as qbDefaultPassMiddle } from '../clips/nfl/qb-default-pass-middle';
 import { clip as qbDefaultPassRight } from '../clips/nfl/qb-default-pass-right';
+import { clip as qbDefaultSacked } from '../clips/nfl/qb-default-sacked';
 import { clip as qbDefaultScramble } from '../clips/nfl/qb-default-scramble';
 import { clip as qbShotgunHandoffLeft } from '../clips/nfl/qb-shotgun-handoff-left';
 import { clip as qbShotgunHandoffRight } from '../clips/nfl/qb-shotgun-handoff-right';
@@ -13,12 +14,15 @@ import { clip as qbShotgunHandoffShortRight } from '../clips/nfl/qb-shotgun-hand
 import { clip as qbShotgunPassLeft } from '../clips/nfl/qb-shotgun-pass-left';
 import { clip as qbShotgunPassMiddle } from '../clips/nfl/qb-shotgun-pass-middle';
 import { clip as qbShotgunPassRight } from '../clips/nfl/qb-shotgun-pass-right';
+import { clip as qbShotgunSacked } from '../clips/nfl/qb-shotgun-sacked';
 import { clip as qbShotgunScramble } from '../clips/nfl/qb-shotgun-scramble';
 import { clip as receptionSide } from '../clips/nfl/reception-side';
 import { clip as receptionInterception } from '../clips/nfl/reception-interception';
 import { clip as receptionBasket } from '../clips/nfl/reception-basket';
+import { clip as receptionKick } from '../clips/nfl/reception-kick';
 
 const plays = {
+  reception_kick: receptionKick,
   reception_pass_left: receptionSide,
   reception_pass_middle: receptionBasket,
   reception_pass_right: receptionSide,
@@ -26,6 +30,7 @@ const plays = {
   reception_pass_deep_middle: receptionBasket,
   reception_pass_deep_right: receptionBasket,
   reception_interception: receptionInterception,
+  qb_shotgun_sacked: qbShotgunSacked,
   qb_shotgun_scramble_left: qbShotgunScramble,
   qb_shotgun_scramble_right: qbShotgunScramble,
   qb_shotgun_scramble_middle: qbShotgunScramble,
@@ -41,6 +46,7 @@ const plays = {
   qb_shotgun_pass_deep_left: qbShotgunPassMiddle,
   qb_shotgun_pass_deep_middle: qbShotgunPassMiddle,
   qb_shotgun_pass_deep_right: qbShotgunPassMiddle,
+  qb_default_sacked: qbDefaultSacked,
   qb_default_scramble_left: qbDefaultScramble,
   qb_default_scramble_right: qbDefaultScramble,
   qb_default_scramble_middle: qbDefaultScramble,
@@ -86,6 +92,17 @@ export function getQBClip(formation, action, side) {
 }
 
 /**
+ * Returns a clip representing the QB being sacked from the specified formation.
+ */
+export function getQBSackedClip(formation) {
+  try {
+    return getClip(`qb_${formation}_sacked`);
+  } catch (error) {
+    throw new Error(`Unknown QB Sacked animation "${formation}"`);
+  }
+}
+
+/**
  * Returns a reception representing the provided pass type and side.
  * @param {string} passType     The type of pass being caught.
  * @param {string} side         The side of the field (left, middle, right).
@@ -95,5 +112,16 @@ export function getReceptionClip(passType, side, isIntercepted = false) {
     return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
   } catch (error) {
     throw new Error(`Unknown reception animation "${passType}", "${side}", "${isIntercepted}".`);
+  }
+}
+
+/**
+ * Returns a clip representing kick returns.
+ */
+export function getKickReturnClip() {
+  try {
+    return getClip('reception_kick');
+  } catch (error) {
+    throw new Error('A kick return clip has not been defined.');
   }
 }
