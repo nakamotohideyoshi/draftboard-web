@@ -565,3 +565,4 @@ class StatsPlayer:
 
     def get_id(self):
         return self.data.get(self.field_player_id)
+https://api.gidx-service.in/v3.0/api/CustomerIdentity/Location?ApiKey=k2m9yX4Tl0WXuz8Ahc5muA&MerchantID=Q2wprL4aKEKEj-dzTu44BA&ProductTypeID=iiXXab0LtUCUdZ_6vcdtvQ&DeviceTypeID=2bDPorOkPkepDd8-6Fydtw&ActivityTypeID=login&MerchantSessionID=test_Dan&DeviceIpAddress=24.180.8.163
