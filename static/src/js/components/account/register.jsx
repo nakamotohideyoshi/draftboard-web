@@ -201,7 +201,7 @@ export const Register = React.createClass({
 
   render() {
     const { email, username, password } = this.state.fields;
-    let submitClasses = 'button button--gradient';
+    let submitClasses = 'button button--gradient button--tall';
 
     if (this.state.isSubmitting) {
       submitClasses += ' button--disabled';
@@ -211,24 +211,37 @@ export const Register = React.createClass({
       <form className="account__left__content__form" method="post" onSubmit={this.handleSubmit}>
 
         <div className={
+          `account__left__content__form__input-layout ${(email.error) ? 'errored' : ''}`}
+        >
+          <label htmlFor="email">
+            Email <span>{(email.error) ? `- ${email.error}` : ''}</span>
+          </label>
+          <input
+            ref="email"
+            id="email"
+            type="text"
+            name="email"
+            defaultValue={email.value}
+            placeholder="user@email.com"
+            required
+          />
+        </div>
+
+        <div className={
           `account__left__content__form__input-layout ${(username.error) ? 'errored' : ''}`}
         >
           <label htmlFor="username">
             Username <span>{(username.error) ? `- ${username.error}` : ''}</span>
           </label>
           <input
-            ref="username" id="username"
-            type="text" name="username" defaultValue={username.value} required
+            ref="username"
+            id="username"
+            type="text"
+            name="username"
+            defaultValue={username.value}
+            placeholder="How you will appear to others"
+            required
           />
-        </div>
-
-        <div className={
-          `account__left__content__form__input-layout ${(email.error) ? 'errored' : ''}`}
-        >
-          <label htmlFor="email">
-            Email <span>{(email.error) ? `- ${email.error}` : ''}</span>
-          </label>
-          <input ref="email" id="email" type="text" name="email" defaultValue={email.value} required />
         </div>
 
         <div className={
@@ -237,7 +250,14 @@ export const Register = React.createClass({
           <label htmlFor="password">
             Password <span>{(password.error) ? `- ${password.error}` : ''}</span>
           </label>
-          <input ref="password" id="password" type="password" name="password" required />
+          <input
+            ref="password"
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Must be at least 8 characters"
+            required
+          />
         </div>
 
         {this.renderNonFieldErrors()}
@@ -245,12 +265,10 @@ export const Register = React.createClass({
         <div className="account__left__content__form__input-layout">
           <input type="submit" value="Create account" className={submitClasses} />
 
-          <span className="arrow" />
-
           <p>
-            Clicking “Create Account” confirms you are 18 years of age or older and agree
-             to our <a href="/terms-conditions/" target="_blank">Terms of Use</a> and
-             <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
+            Clicking "Create Account" confirms you’re 18+ (19+ in NE, 21+ in MA) and agree to our
+             &nbsp;<a href="/terms-conditions/" target="_blank">Terms</a> and
+             &nbsp;<a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
           </p>
         </div>
 
