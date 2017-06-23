@@ -884,10 +884,13 @@ class VerifyLocationAPIView(APIView):
     authentication_classes = ()
     permission_classes = (HasIpAccess,)
 
-    @staticmethod
-    def get(request):
+    # Note - this cannot be static, auth breaks if it is.
+    def get(self, request):
         return Response(
-            data={"detail": "location verification passed"},
+            data={
+                "status": "SUCCESS",
+                "detail": "location verification passed"
+            },
             status=200,
         )
 
