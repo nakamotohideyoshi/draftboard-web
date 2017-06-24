@@ -144,10 +144,15 @@ class CheckUserAccess(object):
 
             # Log all failed attempts.
             if result is False:
+                logger.info('check_for_vpn Failed. risk value: %s' % value)
+
                 self.create_log(
                     _account_const.IP_CHECK_STATUS,
                     {'result': 'Access Denied, Risk value: %s' % value}
                 )
+            else:
+                logger.info('check_for_vpn Passed. risk value: %s' % value)
+
             return result, msg
         # in case of out of limit
         elif response.status_code == 429:

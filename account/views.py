@@ -22,7 +22,7 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.exceptions import (APIException, ValidationError)
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
@@ -60,16 +60,14 @@ from account.serializers import (
     SavedCardDeleteSerializer,
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
-    TruliooVerifyUserSerializer,
     UserLimitsSerializer
 )
-from account.utils import create_user_log, CheckUserAccess, MODAL_MESSAGES
+from account.utils import create_user_log
 from cash.classes import (
     CashTransaction,
 )
 from contest.models import CurrentEntry
 from contest.refund.tasks import unregister_entry_task
-from mysite.legal import BLOCKED_STATES_NAMES
 from pp.classes import (
     CardData,
     PayPal,
@@ -79,7 +77,6 @@ from pp.classes import (
 from pp.serializers import (
     VZeroDepositSerializer,
 )
-from trulioo.utils import (verify_user_identity, create_user_identity, )
 
 logger = logging.getLogger('account.views')
 
@@ -880,12 +877,10 @@ class VerifyLocationAPIView(APIView):
     This location check is done with our local IP database. This does NOT
     use GIDX to do a hard check on the user.
     """
-    # We need this. Otherwise it ignores the HasIpAccess' message.
-    authentication_classes = ()
     permission_classes = (HasIpAccess,)
 
-    # Note - this cannot be static, auth breaks if it is.
-    def get(self, request):
+    @staticmethod
+    def get(request):
         return Response(
             data={
                 "status": "SUCCESS",
