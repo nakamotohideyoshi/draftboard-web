@@ -1,6 +1,7 @@
 import logging
 
 from rest_framework import permissions
+from rest_framework.exceptions import PermissionDenied
 
 from .utils import CheckUserAccess
 
@@ -46,6 +47,14 @@ class HasIpAccess(permissions.BasePermission):
             'detail': reason,
             'status': 'IP_CHECK_FAILED'
         }
+
+        # We can't just return False here because of a strange DRF behavior.
+        # If you return False on a custom permission, it ignores the message you set and
+        # returns a hard "No permissions" message that you cannot change.
+        # Instead we manually set our response body and throw the 403.
+        if access is False:
+            raise PermissionDenied(detail=self.message)
+
         # `access` is a bool that tells us if the user passed our IP location+proxy checks.
         return access
 
