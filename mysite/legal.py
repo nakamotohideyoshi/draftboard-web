@@ -56,7 +56,7 @@ STATE_CHOICES = [(x, x) for x in ALL_STATES]
 LEGAL_STATES = set(ALL_STATES) - set(BLOCKED_STATES)
 
 # Country codes we are allowed to operate in. These are in our geoip database.
-LEGAL_COUNTRIES = ['US']
+LEGAL_COUNTRIES = ['US', 'CA']
 
 
 # State Age Limitations
