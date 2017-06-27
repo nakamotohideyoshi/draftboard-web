@@ -39,8 +39,8 @@ DATABASES = {
 }
 
 # Use the local Docker redis location in place of redis cloud.
-REDIS_URL = 'redis://redis:6379/0'
-REDIS_URL_CELERY = 'redis://redis:6379/1'
+REDIS_URL = 'redis://redis-server:6379/0'
+REDIS_URL_CELERY = 'redis://redis-server:6379/1'
 
 
 # Run the command `redis-server` in another window to start up caching.
