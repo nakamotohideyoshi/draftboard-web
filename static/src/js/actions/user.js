@@ -275,17 +275,31 @@ export function updateEmailNotificationSettings(formData) {
  * The user will be redirect to the invalid location page if this  doesn't
  * return a 200 response. The redirection is taken care of in the API middleware
  */
-export const verifyLocation = () => ({
-  [CALL_API]: {
-    types: [
-      actionTypes.VERIFY_LOCATION__SEND,
-      actionTypes.VERIFY_LOCATION__SUCCESS,
-      actionTypes.VERIFY_LOCATION__FAIL,
-    ],
-    endpoint: '/api/account/verify-location/',
-  },
-});
+export const verifyLocation = () => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.VERIFY_LOCATION__SEND,
+        actionTypes.VERIFY_LOCATION__SUCCESS,
+        actionTypes.VERIFY_LOCATION__FAIL,
+      ],
+      endpoint: '/api/account/verify-location/',
+    },
+  });
 
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      // return dispatch({
+      //   type: actionTypes.NULL,
+      //   response: action.error,
+      // });
+    }
+
+    return action;
+  });
+};
 
 /**
  * Verify a user's identity with Trulioo.
