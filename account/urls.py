@@ -25,6 +25,7 @@ from .views import (
     VZeroDepositView,
     VerifyLocationAPIView,
     UserLimitsAPIView,
+    VerifyUserAPIView,
 )
 
 urlpatterns = [
@@ -45,6 +46,8 @@ urlpatterns = [
     url(r'^notifications/email/$', UserEmailNotificationAPIView.as_view()),
 
     url(r'^verify-location/$', VerifyLocationAPIView.as_view()),
+
+    url(r'^verify-user/$', VerifyUserAPIView.as_view()),
 
     # draftboard apis using paypal apis to move money to/from the site
     # r'^password-reset-confirm/(?P<uid>.+)/(?P<token>.+)/$'

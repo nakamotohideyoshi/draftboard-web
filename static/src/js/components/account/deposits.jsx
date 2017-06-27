@@ -5,13 +5,15 @@ import renderComponent from '../../lib/render-component';
 import { deposit } from '../../actions/payments';
 import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
-import { verifyLocation, fetchUser } from '../../actions/user';
+import { verifyLocation, fetchUser, verifyIdentity } from '../../actions/user';
 import { addMessage, removeMessage } from '../../actions/message-actions.js';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
 import PubSub from 'pubsub-js';
 const { Provider, connect } = ReactRedux;
 const depositOptions = ['25', '50', '100', '250', '500'];
+import RestrictedLocationConfirmModal from './restricted-location-confirm-modal';
+import IdentityVerificationModal from './identity-verification-modal';
 
 
 function mapStateToProps(state) {
@@ -22,6 +24,8 @@ function mapStateToProps(state) {
     isDepositing: state.payments.isDepositing,
     depositSum: state.user.cashBalance.depositSum,
     depositLimit: state.user.cashBalance.depositLimit,
+    userLocation: state.user.location,
+    identityFormInfo: state.user.identityFormInfo,
   };
 }
 
@@ -32,6 +36,7 @@ function mapDispatchToProps(dispatch) {
     setupBraintree: (callback) => setupBraintree(callback),
     beginPaypalCheckout: (options) => beginPaypalCheckout(options),
     verifyLocation: () => dispatch(verifyLocation()),
+    verifyIdentity: () => dispatch(verifyIdentity()),
   };
 }
 
@@ -47,9 +52,12 @@ const Deposits = React.createClass({
     setupBraintree: React.PropTypes.func.isRequired,
     beginPaypalCheckout: React.PropTypes.func.isRequired,
     verifyLocation: React.PropTypes.func.isRequired,
+    userLocation: React.PropTypes.object.isRequired,
+    verifyIdentity: React.PropTypes.func.isRequired,
     fetchUser: React.PropTypes.func.isRequired,
     depositSum: React.PropTypes.number.isRequired,
     depositLimit: React.PropTypes.number.isRequired,
+    identityFormInfo: React.PropTypes.object.isRequired,
   },
 
 
@@ -70,8 +78,7 @@ const Deposits = React.createClass({
       this.setState({ paypalInstance });
       this.enablePaypalButton();
     });
-    // First check if the user's location is valid. they will be redirected if
-    // it isn't.
+    // First check if the user's location is valid. they will be prompted and warned if not.
     this.props.verifyLocation();
     // Listen for a succesful deposit message.
     // When we find out the deposit is a success, reset the form.
@@ -204,6 +211,13 @@ const Deposits = React.createClass({
   handleTextInputChange(event) {
     if (this.props.depositLimit) {
       if ((this.props.depositSum + Number(this.refs.textInput.value)) > this.props.depositLimit) {
+        store.dispatch(addMessage({
+          header: 'Cannot Deposit',
+          content: 'Sorry but you have exceeded your deposit limit',
+          level: 'warning',
+          id: 'limit error',
+        }));
+
         this.disablePaypalButton();
       } else {
         this.enablePaypalButton();
@@ -238,6 +252,43 @@ const Deposits = React.createClass({
     }
 
     this.setState({ amount: this.refs.textInput.value });
+  },
+
+
+  renderLocationConfirmModalIfNeeded() {
+    // If we know that they do not have a verified identity.
+    if (
+      this.props.userLocation.hasAttemptedToVerify &&
+      !this.props.userLocation.isLocationVerified
+    ) {
+      // Show a modal warning them that they will not be able to do some things.
+      return (
+          <RestrictedLocationConfirmModal
+            isOpen
+            titleText="Location Unavailable"
+            continueButtonText="Continue"
+          >
+            <div>{this.props.userLocation.message || 'Your location could not be verified.'}</div>
+          </RestrictedLocationConfirmModal>
+      );
+    }
+    // By default do not show confirm modal.
+    return '';
+  },
+
+
+  renderIdentityVerificationModalIfNeeded() {
+    if (!this.props.user.isIdentityVerified && this.props.user.hasFetched) {
+      return (
+        <IdentityVerificationModal
+          isOpen
+          identityFormInfo={this.props.identityFormInfo}
+          verifyIdentity={this.props.verifyIdentity}
+        />
+      );
+    }
+
+    return '';
   },
 
 
@@ -308,6 +359,9 @@ const Deposits = React.createClass({
             onClick={this.handleButtonClick}
           >{ this.getButtonText() }</button>
         </div>
+
+        { this.renderIdentityVerificationModalIfNeeded() }
+        { this.renderLocationConfirmModalIfNeeded() }
       </div>
     );
   },

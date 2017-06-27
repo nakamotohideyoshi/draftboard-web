@@ -9,10 +9,13 @@ const initialState = {
     userLimits: [],
     currentLimits: [],
     selectedLimits: [],
+    hasFetched: false,
   },
   username: window.dfs.user.username,
-  identityFormErrors: {},
-  identityFormIsSending: false,
+  identityFormInfo: {
+    errors: {},
+    isSending: false,
+  },
   info: {
     isFetching: false,
     isIdentityVerified: false,
@@ -23,6 +26,8 @@ const initialState = {
   emailPassFormSaved: false,
   cashBalance: {
     isFetching: false,
+    depositSum: 0,
+    depositLimit: 0,
   },
   notificationSettings: {
     isFetchingEmail: false,
@@ -55,6 +60,7 @@ module.exports = (state = initialState, action) => {
       return merge({}, state, {
         user: {
           isFetching: false,
+          hasFetched: true,
         },
       });
     }
@@ -63,6 +69,7 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state);
       newState.user = action.response;
       newState.user.isFetching = false;
+      newState.user.hasFetched = true;
       return newState;
     }
 
@@ -194,29 +201,32 @@ module.exports = (state = initialState, action) => {
      * User Verification
      */
     case actionTypes.VERIFY_IDENTITY__SEND: {
-      const newState = merge({}, state, {
-        identityFormIsSending: true,
+      return merge({}, state, {
+        identityForm: {
+          isSending: true,
+          errors: {},
+        },
       });
-      newState.identityFormErrors = {};
-      return newState;
     }
 
 
     case actionTypes.VERIFY_IDENTITY__SUCCESS: {
-      const newState = merge({}, state, {
-        identityFormIsSending: false,
+      return merge({}, state, {
+        identityForm: {
+          isSending: false,
+          errors: {},
+        },
       });
-      newState.identityFormErrors = {};
-      return newState;
     }
 
 
     case actionTypes.VERIFY_IDENTITY__FAIL: {
-      const newState = merge({}, state, {
-        identityFormIsSending: false,
+      return merge({}, state, {
+        identityForm: {
+          isSending: false,
+          errors: action.response,
+        },
       });
-      newState.identityFormErrors = action.response;
-      return newState;
     }
 
     /**

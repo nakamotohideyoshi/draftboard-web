@@ -1,4 +1,4 @@
-import Raven from 'raven-js';
+// import Raven from 'raven-js';
 import * as actionTypes from '../action-types';
 import request from 'superagent';
 import Cookies from 'js-cookie';
@@ -13,35 +13,19 @@ import * as responseTypes from '../lib/utils/response-types';
 /**
  * Payment Actions
  */
-export const fetchPayPalClientToken = () => (dispatch) => {
-  const apiActionResponse = dispatch({
-    [CALL_API]: {
-      types: [
-        actionTypes.FETCHING_PAYPAL_CLIENT_TOKEN,
-        actionTypes.FETCH_PAYPAL_CLIENT_TOKEN_SUCCESS,
-        actionTypes.ADD_MESSAGE,
-      ],
-      endpoint: '/api/account/vzero/client-token/',
-      callback: (json) => json,
-    },
-  });
-
-  apiActionResponse.then((action) => {
-    // If something fails, the 3rd action is dispatched, then this.
-    if (action.error) {
-      return dispatch({
-        type: actionTypes.FETCH_PAYPAL_CLIENT_TOKEN_FAIL,
-        response: action.error,
-      });
-    }
-    return true;
-  }).catch((exception) => {
-    Raven.captureException(exception);
-  });
-
-  // Return the promise chain in case we want to use it elsewhere.
-  return apiActionResponse;
-};
+export const fetchPayPalClientToken = () => ({
+  // We don't notify use of failures because we'll let a BraintreeError take care of that.
+  // This will fail due to an invalid location check.
+  [CALL_API]: {
+    types: [
+      actionTypes.FETCHING_PAYPAL_CLIENT_TOKEN,
+      actionTypes.FETCH_PAYPAL_CLIENT_TOKEN_SUCCESS,
+      actionTypes.FETCH_PAYPAL_CLIENT_TOKEN_FAIL,
+    ],
+    endpoint: '/api/account/vzero/client-token/',
+    callback: (json) => json,
+  },
+});
 
 
 // Get a client token if we dont' already have one.

@@ -890,6 +890,23 @@ class VerifyLocationAPIView(APIView):
         )
 
 
+class VerifyUserAPIView(APIView):
+    """
+
+    """
+    permission_classes = (IsAuthenticated,)
+
+    @staticmethod
+    def post(request):
+        return Response(
+            data={
+                "status": "TODO",
+                "detail": "This doesn't do anything yet."
+            },
+            status=200,
+        )
+
+
 class RegisterAccountAPIView(APIView):
     """
     verify the user is real based on the information specified.
