@@ -28,7 +28,7 @@ export default class RushingPlayAnimation extends LiveAnimation {
     });
 
     // Rush for yards (except short handoffs)
-    if (recap.qbAction() === NFLPlayRecapVO.HANDOFF_SHORT) {
+    if (recap.qbAction() !== NFLPlayRecapVO.HANDOFF_SHORT) {
       sequence.push(() => {
         const animation = new RushArrowAnimation();
         const start = recap.startingYardLine();
