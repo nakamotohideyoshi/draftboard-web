@@ -219,7 +219,20 @@ $button-box-shadow: 0px 5px 20px 0px rgba(22, 37, 48, 0.38);
     }
   }
 
-
+  // This probably doesn't really work.
+  &.button--continue {
+    &::after {
+      content: "";
+      display: inline-block;
+      background: url('../img/account/arrow.png') no-repeat center;
+      background-size: auto 12px;
+      height: 12px;
+      width: 25px;
+      position: absolute;
+      right: 0;
+      top: 10px;
+    }
+  }
 
   /**
    * Sizes
@@ -287,4 +300,13 @@ $button-box-shadow: 0px 5px 20px 0px rgba(22, 37, 48, 0.38);
     min-width: 100px;
   }
 
+  /**
+  Height
+ */
+  &.button--tall {
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
 }
+
+

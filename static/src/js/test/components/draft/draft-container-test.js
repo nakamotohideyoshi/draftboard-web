@@ -42,6 +42,13 @@ const defaultTestProps = {
       count: 0,
     },
   },
+  userLocation: {
+    status: 'unknown',
+    isLocationVerified: false,
+    isSending: false,
+    hasAttemptedToVerify: false,
+    message: null,
+  },
   createLineupViaCopy: () => true,
   setActiveDraftGroupId: () => true,
   teams: sportsStore,

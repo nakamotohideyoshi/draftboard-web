@@ -25,10 +25,14 @@ const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
     return getJsonResponse(response).then((json) => {
       // If the error response is for a restricted location, immediately redirect to the
       // restricted location page.
-      if (json.detail === 'IP_CHECK_FAILED') {
-        window.location.href = '/restricted-location/';
-        return Promise.reject('redirecting due to location restriction.');
-      }
+      // This is disabled because we don't want to insta-redirect. Our new
+      // default strategy is to show a modal telling the user they will not
+      // be able to do some action, we can move this logic somewhere else if
+      // we want to redirect on a specific action.
+      // if (json.detail === 'IP_CHECK_FAILED') {
+      //   window.location.href = '/restricted-location/';
+      //   return Promise.reject('redirecting due to location restriction.');
+      // }
 
       // If it wasn't a location issue, log the error, and reject the promise.
       // The provided failure action will be called after this.
@@ -40,10 +44,12 @@ const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
           status: response.status,
           statusText: response.statusText,
           url: response.url,
+          detail: response.detail,
         },
       });
 
-      return Promise.reject(response);
+      const reason = json.detail || response;
+      return Promise.reject(reason);
     });
   }
 
@@ -116,7 +122,7 @@ export default store => next => action => {
       response,
       type: successType,
     })),
-    error => {
+    (error) => {
       // The 'captureMessage' above will catch any http related errors, this will catch any errors
       // in our code that occur further on in the pipeline. Without this, any errors in our reducers
       // or actions or callbacks will die silently and get passed into the failure action.
