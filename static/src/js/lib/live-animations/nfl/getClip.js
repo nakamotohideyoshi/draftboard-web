@@ -20,12 +20,17 @@ import { clip as qbShotgunScramble } from '../clips/nfl/qb-shotgun-scramble';
 import { clip as receptionSide } from '../clips/nfl/reception-side';
 import { clip as receptionInterception } from '../clips/nfl/reception-interception';
 import { clip as receptionBasket } from '../clips/nfl/reception-basket';
+import { clip as receptionShortBasket } from '../clips/nfl/reception-short-basket';
+import { clip as receptionShortSide } from '../clips/nfl/reception-short-side';
 
 const plays = {
   kick_reception: kickReception,
   reception_pass_left: receptionSide,
   reception_pass_middle: receptionBasket,
   reception_pass_right: receptionSide,
+  reception_pass_short_left: receptionShortSide,
+  reception_pass_short_middle: receptionShortBasket,
+  reception_pass_short_right: receptionShortSide,
   reception_pass_deep_left: receptionBasket,
   reception_pass_deep_middle: receptionBasket,
   reception_pass_deep_right: receptionBasket,
@@ -46,6 +51,9 @@ const plays = {
   qb_shotgun_pass_deep_left: qbShotgunPassMiddle,
   qb_shotgun_pass_deep_middle: qbShotgunPassMiddle,
   qb_shotgun_pass_deep_right: qbShotgunPassMiddle,
+  qb_shotgun_pass_short_left: qbShotgunPassLeft,
+  qb_shotgun_pass_short_middle: qbShotgunPassMiddle,
+  qb_shotgun_pass_short_right: qbShotgunPassRight,
   qb_default_sack: qbDefaultSack,
   qb_default_scramble_left: qbDefaultScramble,
   qb_default_scramble_right: qbDefaultScramble,
@@ -62,6 +70,9 @@ const plays = {
   qb_default_pass_deep_left: qbDefaultPassDeepMiddle,
   qb_default_pass_deep_middle: qbDefaultPassDeepMiddle,
   qb_default_pass_deep_right: qbDefaultPassDeepMiddle,
+  qb_default_pass_short_left: qbDefaultPassLeft,
+  qb_default_pass_short_middle: qbDefaultPassMiddle,
+  qb_default_pass_short_right: qbDefaultPassRight,
 };
 
 /**
@@ -108,6 +119,7 @@ export function getQBSackClip(formation) {
  * @param {string} side         The side of the field (left, middle, right).
  */
 export function getReceptionClip(passType, side, isIntercepted = false) {
+  console.log('------------', passType, '-------------------');
   try {
     return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
   } catch (error) {

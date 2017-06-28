@@ -83,6 +83,10 @@ export default class NFLPlayRecapVO {
     return 'pass_deep';
   }
 
+  static get PASS_SHORT() {
+    return 'pass_short';
+  }
+
   static get UNKNOWN_PLAY() {
     return 'unknown_play';
   }
@@ -235,6 +239,8 @@ export default class NFLPlayRecapVO {
       return null;
     } else if (this.passingYards() > 0.2) {
       return NFLPlayRecapVO.PASS_DEEP;
+    } else if (this.passingYards() < 0.1) {
+      return NFLPlayRecapVO.PASS_SHORT;
     }
     return NFLPlayRecapVO.PASS;
   }
