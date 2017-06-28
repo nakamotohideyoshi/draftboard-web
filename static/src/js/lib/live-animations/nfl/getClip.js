@@ -1,4 +1,5 @@
 import ClipWithAvatar from '../clips/ClipWithAvatar';
+import { clip as kickReception } from '../clips/nfl/kick-reception';
 import { clip as qbDefaultHandoffLeft } from '../clips/nfl/qb-default-handoff-left';
 import { clip as qbDefaultHandoffRight } from '../clips/nfl/qb-default-handoff-left';
 import { clip as qbDefaultPassDeepMiddle } from '../clips/nfl/qb-default-pass-deep-middle';
@@ -19,10 +20,9 @@ import { clip as qbShotgunScramble } from '../clips/nfl/qb-shotgun-scramble';
 import { clip as receptionSide } from '../clips/nfl/reception-side';
 import { clip as receptionInterception } from '../clips/nfl/reception-interception';
 import { clip as receptionBasket } from '../clips/nfl/reception-basket';
-import { clip as receptionKick } from '../clips/nfl/reception-kick';
 
 const plays = {
-  reception_kick: receptionKick,
+  kick_reception: kickReception,
   reception_pass_left: receptionSide,
   reception_pass_middle: receptionBasket,
   reception_pass_right: receptionSide,
@@ -120,7 +120,7 @@ export function getReceptionClip(passType, side, isIntercepted = false) {
  */
 export function getKickReturnClip() {
   try {
-    return getClip('reception_kick');
+    return getClip('kick_reception');
   } catch (error) {
     throw new Error('A kick return clip has not been defined.');
   }
