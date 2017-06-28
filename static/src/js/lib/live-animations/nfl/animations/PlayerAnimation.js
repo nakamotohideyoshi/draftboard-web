@@ -1,6 +1,6 @@
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import { getKickReturnClip, getQBClip, getReceptionClip, getQBSackedClip } from '../getClip';
+import { getKickReturnClip, getQBClip, getReceptionClip, getQBSackClip } from '../getClip';
 
 export default class PlayerAnimation extends LiveAnimation {
 
@@ -9,7 +9,7 @@ export default class PlayerAnimation extends LiveAnimation {
       case 'quarterback' :
         return getQBClip(recap.playFormation(), recap.qbAction(), recap.side());
       case 'quarterback_sacked':
-        return getQBSackedClip(recap.playFormation());
+        return getQBSackClip(recap.playFormation());
       case 'reception':
         return getReceptionClip(recap.passType(), recap.side(), recap.isTurnover());
       case 'kick_return':
