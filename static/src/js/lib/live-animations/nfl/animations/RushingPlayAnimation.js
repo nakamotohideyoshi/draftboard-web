@@ -40,6 +40,11 @@ export default class RushingPlayAnimation extends LiveAnimation {
 
     // Finish the play
     sequence.push(() => {
+      // Skip the downline for turnovers/fumbles
+      if (recap.isFumble() || recap.isTurnover()) {
+        return Promise.resolve();
+      }
+
       // Touchdown!
       if (recap.isTouchdown()) {
         return new TouchdownAnimation().play(recap, field);
