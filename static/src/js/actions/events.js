@@ -139,7 +139,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
   calls.push(dispatch(removePlayersPlaying(relevantPlayersInEvent)));
 
   // add to big plays, if relevant
-  if (relevantPlayersInEvent.length > 0 || animationEvent.isBigPlay) {
+  if (relevantPlayersInEvent.length > 0 || animationEvent.isBigPlay || window.is_debugging_live_animation) {
     calls.push(dispatch(addEventToBigPlays(animationEvent)));
   }
 
@@ -189,10 +189,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
 
       // update player stats if we have them
       calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.playersStats)));
-
-      // add to big plays
-      calls.push(dispatch(addEventToBigPlays(animationEvent)));
-
       break;
     }
     default:
