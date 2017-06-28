@@ -335,107 +335,23 @@ const getNBAData = (message, gameId) => {
 const getNFLData = (message, gameId, game) => {
   logAction.debug('actions.getNFLData', message);
 
-  // faster to not camelize the object
-  /* eslint-disable camelcase */
-  const {
-    clock,
-    description,
-    end_situation = {},
-    extra_info = {},
-    start_situation = {},
-    statistics = {},
-    type,
-  } = message.pbp;
-  const {
-    fumbles = false,
-    touchdown = false,
-    formation = 'default',
-  } = extra_info;
-
-  const startLocation = start_situation.location || {};
-  const endLocation = end_situation.location || {};
-  /* eslint-enable camelcase */
-
-  // use offense to determine direction because offense has no constant team field
-  let driveDirection = 'leftToRight';
-  if ('down_conversion__list' in statistics) {
-    driveDirection = (game.srid_away === statistics.down_conversion__list.team) ? 'rightToLeft' : 'leftToRight';
-  }
-
-  const data = {
-    description,
-    driveDirection,
+  return {
+    sport: 'nfl',
+    description: message.pbp.description,
     eventPlayers: compileEventPlayers(message, 'nfl'),
-    formation,
-    fumbles,
     gameId,
     id: dateNow(),  // since we don't pass through an ID, use timestamp
     playersStats: message.stats || [],
-    sport: 'nfl',
     side: 'middle',  // hardcoding start position, vertically, to the middle
-    touchdown,
-    type,
+    type: message.pbp.type,
+    pbp: message.pbp,
+    stats: message.stats,
+    game: message.game,
     when: {
-      clock,
+      clock: message.pbp.clock,
       quarter: game.boxscore.quarter || 0,
     },
-    yardlineEnd: yardlineToDecimal(endLocation.yardline, driveDirection),
-    yardlineStart: yardlineToDecimal(startLocation.yardline, driveDirection),
   };
-  // let extraData;
-
-  // set big play to be > 20 yards or touchdown
-  data.isBigPlay = data.yardlineEnd - data.yardlineStart > 0.2 || touchdown === true;
-
-  switch (type) {
-    case 'pass': {
-      /* eslint-disable camelcase */
-      const { receive__list = {}, pass__list = {} } = statistics;
-      const { intercepted } = extra_info;
-      const { distance = 'short', side = 'middle' } = extra_info.pass || {};
-      const { att_yards = 0, complete = 0, sack = false, sack_yards = 0 } = pass__list;
-      const { yards_after_catch = 0 } = receive__list;
-      /* eslint-enable camelcase */
-
-      data.pass = {
-        attemptedYards: att_yards,
-        completed: complete > 0,
-        distance,  // options are ['short', 'deep']
-        intercepted,
-        sack,
-        sackYards: sack_yards,  // figure out why this isn't coming through
-        side,  // side thrown to options are ['left', 'middle', 'right']
-        yardsAfterCatch: yards_after_catch,
-      };
-
-      break;
-    }
-    case 'rush': {
-      const { scramble = false, side = 'middle' } = extra_info.rush || {};
-
-      data.rush = {
-        scramble,  // true indicates QB sneak
-        side,
-      };
-      break;
-    }
-    case 'kickoff': {
-      /* eslint-disable camelcase */
-      const { return__list = {} } = statistics;
-      const { yards = 0 } = return__list;
-      /* eslint-enable camelcase */
-
-      data.kickoff = {
-        returnYards: yards,
-      };
-      break;
-    }
-    default:
-      break;
-  }
-
-  return data;
-  // return merge(data, extraData);
 };
 
 /*
