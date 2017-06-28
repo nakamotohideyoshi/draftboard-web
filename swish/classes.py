@@ -368,7 +368,7 @@ class RotoWire(object):
         )
         response_data = self.call_api(url)
         # free players
-        players_data = response_data.get('FreeAgents', [])
+        players_data = []
         # add players
         [players_data.extend(x.get('Players')) for x in response_data.get('Teams', [])]
         return filter(lambda x: x.get('SportsDataId'), players_data)

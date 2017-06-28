@@ -4,6 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_control
 from django.views.generic import View
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -58,7 +60,7 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
         player_srid = self.kwargs['player_srid']
 
         filters = {
-            'player_srid':player_srid
+            'player_srid': player_srid
         }
         if category:
             filters['category'] = category
@@ -140,6 +142,7 @@ class UpdateAPIView(APIView, GetSerializedDataMixin):
         return Response(data, status=200)
 
 
+@method_decorator(cache_control(max_age=86400), name='dispatch')
 class LeagueTeamAPIView(generics.ListAPIView):
     """
     Get the teams for the league teams for a sport.
@@ -270,7 +273,6 @@ class PlayerCsvView(View):
             # <process form cleaned data>
             site_sport = form.cleaned_data['site_sport']
 
-            print(site_sport, 'site_sport')
             if site_sport.name == 'mlb':
                 self.player_csv_obj = sports.classes.MlbPlayerNamesCsv()
             elif site_sport.name == 'nfl':
@@ -292,12 +294,11 @@ class PlayerCsvView(View):
 
             return render(request, self.template_name, context)
 
-        #
-        #
         context = {'form': form}
         return render(request, self.template_name, context)
 
 
+@method_decorator(cache_control(max_age=3600), name='dispatch')
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
     Get all Player's trailing history of Fantasy Points

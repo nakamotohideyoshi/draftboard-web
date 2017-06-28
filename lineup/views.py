@@ -58,7 +58,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
+    permission_classes = (IsAuthenticated,)
     serializer_class = CreateLineupSerializer
 
     def post(self, request):

@@ -8,7 +8,6 @@ ALL_STATES = [
 # States we cannot operate in.
 BLOCKED_STATES = [
     'AL',
-    'AR',
     'AZ',
     'DE',
     'FL',
@@ -17,7 +16,9 @@ BLOCKED_STATES = [
     'IA',
     'ID',
     'IL',
+    'IN',
     'LA',
+    'MO',
     'MT',
     'NV',
     'TX',
@@ -25,6 +26,27 @@ BLOCKED_STATES = [
     'VT',
     'WA',
 ]
+# States we cannot operate in.
+BLOCKED_STATES_NAMES = {
+    'AL': "Alabama",
+    'AZ': "Arizona",
+    'DE': "Delaware",
+    'FL': "Florida",
+    'GA': "Georgia",
+    'HI': "Hawaii",
+    'IA': "Iowa",
+    'ID': "Idaho",
+    'IL': "Illinois",
+    'IN': "Indiana",
+    'LA': "Louisiana",
+    'MO': "Missouri",
+    'MT': "Montana",
+    'NV': "Nevada",
+    'TX': "Texas",
+    'VA': "Virginia",
+    'VT': "Vermont",
+    'WA': "Washington",
+}
 
 # All states, in tuple format.
 # ex: [('NY', 'NY'), ('FL', 'FL'), ...]
@@ -34,7 +56,7 @@ STATE_CHOICES = [(x, x) for x in ALL_STATES]
 LEGAL_STATES = set(ALL_STATES) - set(BLOCKED_STATES)
 
 # Country codes we are allowed to operate in. These are in our geoip database.
-LEGAL_COUNTRIES = ['US']
+LEGAL_COUNTRIES = ['US', 'CA']
 
 
 # State Age Limitations
