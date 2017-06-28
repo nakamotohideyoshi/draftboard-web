@@ -79,6 +79,10 @@ export default class NFLPlayRecapVO {
     return 'handoff_short';
   }
 
+  static get HANDOFF_FUMBLE() {
+    return 'handoff_fumble';
+  }
+
   static get PASS_DEEP() {
     return 'pass_deep';
   }
@@ -218,7 +222,9 @@ export default class NFLPlayRecapVO {
     }
 
     if (this.isHandOff()) {
-      if (this.rushingYards() === 0) {
+      if (this.isFumble()) {
+        return NFLPlayRecapVO.HANDOFF_FUMBLE;
+      } else if (this.rushingYards() === 0) {
         return NFLPlayRecapVO.HANDOFF;
       } else if (this.rushingYards() < 0.03) {
         return NFLPlayRecapVO.HANDOFF_SHORT;
@@ -307,6 +313,14 @@ export default class NFLPlayRecapVO {
    */
   isTurnover() {
     return this.isPassingPlay() && this._obj.pbp.extra_info.intercepted;
+  }
+
+  /**
+   * Returns true if the play contains a fumble.
+   */
+  isFumble() {
+    const fumbles = _.get(this._obj, 'pbp.statistics.fumbles', []);
+    return fumbles.length > 0;
   }
 
   /**
