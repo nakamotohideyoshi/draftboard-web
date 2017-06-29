@@ -967,7 +967,7 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         response = super(AccessSubdomainsTemplateView, self).render_to_response(context,
                                                                                 **response_kwargs)
 
-        if not self.request.user.has_perm('sites.access_subdomains'):
+        if not self.request.user.has_perm('auth.access_subdomains'):
             raise Http404
 
         days_expire = 7
