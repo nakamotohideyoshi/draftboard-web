@@ -104,7 +104,6 @@ const ResultsHeader = React.createClass({
           <div className="icon"></div>
         </div>
         <div className="cta">
-          {ctaLive}
           <a href="/contests/" className="draft-a-team">
             Draft a team
           </a>
