@@ -19,11 +19,11 @@ const ResultsHeader = React.createClass({
   getTitle() {
     const { year, month, day } = this.props;
     return moment(`${year}-${month}-${day}`, 'YYYY-M-D').calendar(null, {
-      sameDay: '[Today], MMMM D, YYYY',
-      nextDay: '[Tomorrow], MMMM D, YYYY',
-      nextWeek: 'dddd, MMMM D, YYYY',
-      lastDay: '[Yesterday], MMMM D, YYYY',
-      lastWeek: '[Last] dddd, MMMM D, YYYY',
+      sameDay: 'MMMM D, YYYY',
+      nextDay: 'MMMM D, YYYY',
+      nextWeek: 'MMMM D, YYYY',
+      lastDay: 'MMMM D, YYYY',
+      lastWeek: `MMMM D, YYYY`,
       sameElse: 'MMMM D, YYYY',
     });
   },
