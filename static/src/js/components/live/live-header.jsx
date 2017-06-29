@@ -46,7 +46,12 @@ export default React.createClass({
     const modifiers = !this.props.currentEvent ? [] : ['event-ended'];
 
     // If the lineups name is falsy just show the lineup owner's username.
-    const name = lineup.name || this.props.contest.lineupsUsernames[lineup.id];
+    let name;
+    try {
+      name = lineup.name || this.props.contest.lineupsUsernames[lineup.id];
+    } catch (e) {
+      name = '';
+    }
 
     return (
       <LiveOverallStatsConnected
