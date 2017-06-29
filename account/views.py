@@ -27,6 +27,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
+from account.gidx.request import CustomerRegistrationRequest
+
 import account.tasks
 from account import const as _account_const
 from account.forms import (
@@ -60,9 +62,10 @@ from account.serializers import (
     SavedCardDeleteSerializer,
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
-    UserLimitsSerializer
+    UserLimitsSerializer,
+    VerifyUserIdentitySerializer
 )
-from account.utils import create_user_log
+from account.utils import (create_user_log, get_client_ip)
 from cash.classes import (
     CashTransaction,
 )
@@ -892,19 +895,55 @@ class VerifyLocationAPIView(APIView):
 
 class VerifyUserAPIView(APIView):
     """
-
+    Uses GIDX to verify the user's identity. If the GIDX request was a success, we set the
+    user's account as 'verified'.
+    If this fails, the client will proceed to the advanced GIDX-provided JS drop-in form.
     """
     permission_classes = (IsAuthenticated,)
+    serializer_class = VerifyUserIdentitySerializer
 
-    @staticmethod
-    def post(request):
-        return Response(
-            data={
-                "status": "TODO",
-                "detail": "This doesn't do anything yet."
-            },
-            status=200,
-        )
+    def post(self, request):
+        print(request.data)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # Prepare a request to the GIDX API.
+            crr = CustomerRegistrationRequest(
+                user=request.user,
+                first_name=serializer.validated_data.get('first'),
+                last_name=serializer.validated_data.get('last'),
+                date_of_birth="%s/%s/%s" % (
+                    serializer.validated_data.get('birth_month'),
+                    serializer.validated_data.get('birth_day'),
+                    serializer.validated_data.get('birth_year'),
+                ),
+                ip_address=get_client_ip(request)
+            )
+            # Verify data and send!
+            crr.send()
+
+            # If the user was verified...
+            if crr.is_verified():
+                return Response(
+                    data={
+                        "status": "SUCCESS",
+                        "detail": "This doesn't do anything yet."
+                    },
+                    status=200,
+                )
+
+            # If not verified...
+            message = crr.get_response_message()
+            if not message:
+                message = "We were unable to verify your identity."
+
+            return Response(
+                data={
+                    "status": "FAIL",
+                    "detail": message,
+                    "reasonCodes": crr.res_payload['ReasonCodes'],
+                },
+                status=200,
+            )
 
 
 class RegisterAccountAPIView(APIView):

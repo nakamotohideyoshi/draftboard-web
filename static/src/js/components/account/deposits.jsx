@@ -36,7 +36,7 @@ function mapDispatchToProps(dispatch) {
     setupBraintree: (callback) => setupBraintree(callback),
     beginPaypalCheckout: (options) => beginPaypalCheckout(options),
     verifyLocation: () => dispatch(verifyLocation()),
-    verifyIdentity: () => dispatch(verifyIdentity()),
+    verifyIdentity: (postData) => dispatch(verifyIdentity(postData)),
   };
 }
 

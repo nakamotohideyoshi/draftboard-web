@@ -202,7 +202,7 @@ module.exports = (state = initialState, action) => {
      */
     case actionTypes.VERIFY_IDENTITY__SEND: {
       return merge({}, state, {
-        identityForm: {
+        identityFormInfo: {
           isSending: true,
           errors: {},
         },
@@ -212,7 +212,7 @@ module.exports = (state = initialState, action) => {
 
     case actionTypes.VERIFY_IDENTITY__SUCCESS: {
       return merge({}, state, {
-        identityForm: {
+        identityFormInfo: {
           isSending: false,
           errors: {},
         },
@@ -222,7 +222,7 @@ module.exports = (state = initialState, action) => {
 
     case actionTypes.VERIFY_IDENTITY__FAIL: {
       return merge({}, state, {
-        identityForm: {
+        identityFormInfo: {
           isSending: false,
           errors: action.response,
         },

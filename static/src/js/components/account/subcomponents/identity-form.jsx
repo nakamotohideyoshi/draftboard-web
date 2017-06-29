@@ -1,5 +1,5 @@
 import React from 'react';
-import log from '../../../lib/logging';
+// import log from '../../../lib/logging';
 import forEach from 'lodash/forEach';
 
 /**
@@ -26,7 +26,6 @@ const IdentityForm = React.createClass({
 
   onSubmit(event) {
     event.preventDefault();
-    log.info(event);
     this.setState({ values: event.target.value });
 
     this.props.verifyIdentity({

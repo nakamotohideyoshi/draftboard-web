@@ -1,4 +1,4 @@
-.cmp-modal-identity-form {
+.cmp-modal--identity-verification {
 
   .birth-date {
     // Remove spinner controls in webkit browsers.
@@ -10,6 +10,7 @@
         margin: 0;
     }
 
+    select,
     input {
       width: 55px;
       display: inline-block;
