@@ -1,5 +1,4 @@
 from logging import getLogger
-from pprint import pprint
 
 import requests
 from django.conf import settings
@@ -8,11 +7,14 @@ from .exceptions import (ResponseMessageException, RequestError)
 
 logger = getLogger('account.gidx.request')
 
+EXISTING_IDENTITY_MESSAGE = "We are unable to verify your identity. Please contact " \
+                            "support@draftboard.com for more info."
+
 
 class GidxRequest(object):
     url = None
     response = None
-    # Extra params that sub-classes can fill up.
+    # Extra params that subclasses can fill up.
     params = {}
     # Params that are required for every API request.
     base_params = {
@@ -28,18 +30,22 @@ class GidxRequest(object):
         'ActivityTypeID': settings.GIDX_ACTIVITY_ID,
     }
 
-    def _get(self):
+    def _send(self):
+        # Do a simple `None` check on all params
         self.validate_params()
+        # Make the request!
         res = requests.post(self.url, self.params)
+        # Save the response
         self.response = res
-
+        # If we get a bad http status, exit outta here.
         if res.status_code != 200:
             raise RequestError(self.response.text)
 
-        pprint(res.json())
+        # Parse the payload
         self.res_payload = res.json()
 
-        # a ResponseCode of 0 indicates no errors.
+        # a ResponseCode of 0 indicates no errors. If we had errors, raise an exception that can
+        # be caught on the view layer.
         if not self.res_payload['ResponseCode'] == 0:
             logger.warning(self.res_payload['ResponseMessage'])
             raise ResponseMessageException(
@@ -88,10 +94,71 @@ class CustomerRegistrationRequest(GidxRequest):
         # we can pass as POST parameters.
         self.params = {**self.base_params, **args}
 
-    def get(self):
+    def send(self):
         # Call the parent's _send, it does the actual work.
-        self._get()
+        self._send()
 
         # Now do any response handling.
         if len(self.res_payload['ProfileMatches']) == 0:
             logger.warning('No profile match found!')
+
+    def get_response_message(self):
+        """
+        This is used to filter out the stupid 'No error.' response message.
+        :return:
+        """
+        if self.res_payload:
+            # If the identity is already claimed, return that message.
+            if self.identity_is_claimed():
+                return EXISTING_IDENTITY_MESSAGE
+
+            # There is no error, so return nothing, not their dumb default.
+            if self.res_payload['ResponseMessage'] == 'No error.':
+                return ''
+
+            return self.res_payload['ResponseMessage']
+        return ''
+
+    def identity_is_claimed(self):
+        """
+        Check if the response reasonCod contains `ID-EX` which means that
+        this identity has already been verified by us before.
+        :return:
+        """
+        if self.res_payload is None:
+            logger.warning('You have not made a request yet.')
+            return False
+
+        reason_codes = self.res_payload['ReasonCodes']
+        if 'ID-EX' in reason_codes:
+            logger.warning('This identity has been previously verified.')
+            return True
+
+        return False
+
+    def is_verified(self):
+        """
+        After we have made our request, use this to check the if the response tells us the
+        identity we sent was a verified match.
+        :return: bool
+        """
+
+        # If we haven't retrieved the payload yet, it obviously isn't an identity match.
+        if self.res_payload is None:
+            logger.warning('You have not made a request yet.')
+            return False
+
+        reason_codes = self.res_payload['ReasonCodes']
+        # If we have reason codes...
+        if len(reason_codes):
+            # The identity we verified was am match, but we've already matched
+            # it before. so we want to decline this person so that they don't
+            # create multiple accounts.
+            if self.identity_is_claimed():
+                return False
+            # And one of othem is an id verified flag, we are verified!
+            if 'ID-VERIFIED' in reason_codes:
+                return True
+
+        # If we have no codes or are missing  the verified one, we are not verified.
+        return False

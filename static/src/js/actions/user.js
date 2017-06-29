@@ -308,6 +308,7 @@ export const verifyLocation = () => (dispatch) => {
  */
 export function verifyIdentity(postData) {
   return (dispatch) => {
+    console.log(postData)
     // Tell the state that we are currently verifying an identity.
     dispatch({
       type: actionTypes.VERIFY_IDENTITY__SEND,

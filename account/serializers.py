@@ -1,9 +1,9 @@
 from re import search
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from rest_framework import serializers
 
 from account.blacklist import BLACKLIST
@@ -99,6 +99,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     email = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True)
+
     # We don't currently require password confirmation.
     # password_confirm = serializers.CharField(write_only=True, required=False)
 
@@ -127,7 +128,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         """
         UserModel = get_user_model()
 
-        if value is None or value == '' or UserModel.objects.filter(email__iexact=value).count() > 0:
+        if value is None or value == '' or UserModel.objects.filter(
+                email__iexact=value).count() > 0:
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
             raise serializers.ValidationError(error_message)
@@ -246,13 +248,12 @@ class CreditCardPaymentSerializer(SavedCardAddSerializer):
     amount = serializers.FloatField()
 
 
-class TruliooVerifyUserSerializer(serializers.Serializer):
+class VerifyUserIdentitySerializer(serializers.Serializer):
     first = serializers.CharField(max_length=100)
     last = serializers.CharField(max_length=100)
     birth_day = serializers.IntegerField(min_value=1, max_value=31)
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
-    birth_year = serializers.IntegerField(min_value=1912, max_value=9999)
-    postal_code = serializers.CharField(max_length=16)
+    birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
 
 
 class LimitsListSerializer(serializers.ListSerializer):
