@@ -437,7 +437,7 @@ const DraftContainer = React.createClass({
               scoringModalState: !this.state.scoringModalState,
             })}
           >
-            Export
+            SCORING
           </div>
         </div>
 
