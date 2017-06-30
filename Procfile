@@ -13,6 +13,8 @@ celery: newrelic-admin run-program celery -A mysite worker -l info --autoscale=2
 # soft time limit of 9 mins, hard cutoff at 10 mins.
 celery_long: newrelic-admin run-program celery -A mysite worker -Q long_running -l info --time-limit=600 --soft-time-limit=540 -Ofair --autoscale=2,1 -n Long@%n
 
+# This has a stupid long timeout (24hrs) and should ONLY be used for the replayer.tasks.play_replay task.
+celery_time_machine: newrelic-admin run-program celery -A mysite worker -Q time_machine -l info --time-limit=86400 -Ofair -n TimeMachine@%n
 
 # celery workers for realtime stat updates from the trigger
 celeryrt: newrelic-admin run-program celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,1 -n Realtime@%n

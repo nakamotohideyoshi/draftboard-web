@@ -24,12 +24,6 @@ export default class QuarterbackSackedAnimation extends LiveAnimation {
       return animation.play(recap, field, 'quarterback_sacked');
     });
 
-    // Down the ball
-    sequence.push(() => {
-      const animation = new YardlineAnimation();
-      return animation.play(recap, field, recap.endingYardLine(), YardlineAnimation.COLOR_DOWN_LINE);
-    });
-
     // Clear the field
     sequence.push(() => {
       const animation = new OutroAnimation();
