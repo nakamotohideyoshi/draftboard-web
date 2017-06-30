@@ -44,6 +44,80 @@ const events = {
   }],
 };
 
+/**
+ * Print out divs with names
+ */
+const renderNames = (part) =>
+  part.map((event) => (
+      <div>{event.title}</div>
+  ));
+
+/**
+ * Print out divs with values, if value starts of '-' it adds negative class
+ */
+const renderValues = (part) =>
+  part.map((event) => (
+      <div className={(event.value.indexOf('-') === 0 ? 'negative' : '')}>{event.value}</div>
+  ));
+
+/**
+ * Print out player groups with names and values
+ */
+const renderGroup = (group) => {
+  const firstPart = group.slice(0, Math.ceil(group.length / 2));
+  const secondPart = group.slice(Math.ceil(group.length / 2), group.length);
+  return (
+    <div className="own-col">
+      <div className="score-col">
+        <div className="score-col-name">
+            {renderNames(firstPart)}
+        </div>
+        <div className="score-col-value">
+            {renderValues(firstPart)}
+        </div>
+      </div>
+      <div className="score-col">
+        <div className="score-col-name">
+            {renderNames(secondPart)}
+        </div>
+        <div className="score-col-value">
+            {renderValues(secondPart)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Check groups existing in data and print out groups
+ */
+const renderGroups = (sport) => {
+  let res;
+  if (sport in events && events[sport].length) {
+    if ('title' in events[sport][0] && 'value' in events[sport][0]) {
+      res = renderGroup(events[sport]);
+    } else {
+      res = events[sport].map((event) => {
+        let res2 = [];
+        Object.keys(event).forEach((name) => {
+          res2.push((<div>{name}</div>));
+          res2 = res2.concat(renderGroup(event[name]));
+        });
+        return res2;
+      });
+    }
+    return res;
+  }
+};
+
+/**
+ * Print out a table of fantasy points awarded for each type of player action.
+ */
+const ScoringInfoModal = (props) => (
+  <div className="score-table">
+    {renderGroups(props.sport)}
+  </div>
+);
 
 /**
  * Render a list of <tr> elements for supplied events.
@@ -63,24 +137,39 @@ const renderEvents = (sport) => {
 /**
  * Print out a table of fantasy points awarded for each type of player action.
  */
-const ScoringInfo = (props) => (
-  <div className="cmp-scoring-info">
-    <table className="table">
-      <thead>
-        <tr>
-          <th className="title">Event</th>
-          <th className="title">Points</th>
-        </tr>
-      </thead>
-      <tbody>
-        {renderEvents(props.sport)}
-      </tbody>
-    </table>
-  </div>
-);
+const ScoringInfo = (props, isModal) => {
+  let res;
+  if (isModal) {
+    res = (
+        <ScoringInfoModal sport={props.sport} />
+    );
+  } else {
+    res = (
+      <div className="cmp-scoring-info">
+        <table className="table">
+          <thead>
+          <tr>
+            <th className="title">Event</th>
+            <th className="title">Points</th>
+          </tr>
+          </thead>
+          <tbody>
+          {renderEvents(props.sport)}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  return res;
+};
 
 
 ScoringInfo.propTypes = {
+  sport: React.PropTypes.string.isRequired,
+  isModal: React.PropTypes.boolean,
+};
+
+ScoringInfoModal.propTypes = {
   sport: React.PropTypes.string.isRequired,
 };
 

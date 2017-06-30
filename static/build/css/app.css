@@ -5746,26 +5746,31 @@ label.calendar-input-label {
   .cmp-draft-scoring-modal .content-inner .score-table {
     display: -ms-flexbox;
     display: flex;
-    -ms-flex-pack: distribute;
-        justify-content: space-around;
+    -ms-flex-direction: column;
+        flex-direction: column;
     font-size: 14px;
     font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
     margin-top: 10px; }
-    .cmp-draft-scoring-modal .content-inner .score-table .score-col {
+    .cmp-draft-scoring-modal .content-inner .score-table .own-col {
       display: -ms-flexbox;
       display: flex;
-      -ms-flex-pack: justify;
-          justify-content: space-between; }
-      .cmp-draft-scoring-modal .content-inner .score-table .score-col .score-col-name {
-        text-align: left;
-        padding-right: 40px;
-        padding-right: calc(100vw / 1920 * 40); }
-      .cmp-draft-scoring-modal .content-inner .score-table .score-col .score-col-value {
-        text-align: right;
-        font-weight: bold;
-        color: green; }
-        .cmp-draft-scoring-modal .content-inner .score-table .score-col .score-col-value .negative {
-          color: red; }
+      -ms-flex-pack: distribute;
+          justify-content: space-around; }
+      .cmp-draft-scoring-modal .content-inner .score-table .own-col .score-col {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-pack: justify;
+            justify-content: space-between; }
+        .cmp-draft-scoring-modal .content-inner .score-table .own-col .score-col .score-col-name {
+          text-align: left;
+          padding-right: 40px;
+          padding-right: calc(100vw / 1920 * 40); }
+        .cmp-draft-scoring-modal .content-inner .score-table .own-col .score-col .score-col-value {
+          text-align: right;
+          font-weight: bold;
+          color: green; }
+          .cmp-draft-scoring-modal .content-inner .score-table .own-col .score-col .score-col-value .negative {
+            color: red; }
 
 .cmp-draft-scoring-modal .controls {
   text-align: center;
