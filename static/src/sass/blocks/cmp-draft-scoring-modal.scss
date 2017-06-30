@@ -112,27 +112,32 @@ $imgDir: '../img/blocks/live-animation-stage/';
 
     .score-table {
       display: flex;
-      justify-content: space-around;
+      flex-direction: column;
       font-size: 14px;
       font-family: $font-open-sans;
       margin-top: 10px;
 
-      .score-col {
+      .own-col {
         display: flex;
-        justify-content: space-between;
+        justify-content: space-around;
 
-        .score-col-name {
-          text-align: left;
-          padding-right: 40px;
-          padding-right: calc(100vw / 1920 * 40);
-        }
-        .score-col-value {
-          text-align: right;
-          font-weight: bold;
-          color: green;
+        .score-col {
+          display: flex;
+          justify-content: space-between;
 
-          .negative {
-            color: red;
+          .score-col-name {
+            text-align: left;
+            padding-right: 40px;
+            padding-right: calc(100vw / 1920 * 40);
+          }
+          .score-col-value {
+            text-align: right;
+            font-weight: bold;
+            color: green;
+
+            .negative {
+              color: red;
+            }
           }
         }
       }

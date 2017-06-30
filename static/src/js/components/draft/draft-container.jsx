@@ -33,6 +33,7 @@ import { syncHistoryWithStore } from 'react-router-redux';
 import CountdownClock from '../../components/site/countdown-clock.jsx';
 import RestrictedLocationConfirmModal from '../account/restricted-location-confirm-modal';
 import DraftScoringModal from './draft-scoring-modal';
+import ScoringInfo from '../contest-list/scoring-info';
 
 
 /*
@@ -426,32 +427,8 @@ const DraftContainer = React.createClass({
             })}
           >
             <div className={`sport-image sport-image--${this.props.sport}`} />
-            <div className="score-table">
-              <div className="score-col">
-                <div className="score-col-name">
-                  <div>Point:</div>
-                  <div>Assist:</div>
-                  <div>Rebound:</div>
-                </div>
-                <div className="score-col-value">
-                  <div>+1</div>
-                  <div>+1.5</div>
-                  <div>+1.25</div>
-                </div>
-              </div>
-              <div className="score-col">
-                <div className="score-col-name">
-                  <div>Steal:</div>
-                  <div>Block:</div>
-                  <div>Turnover:</div>
-                </div>
-                <div className="score-col-value">
-                  <div>+2</div>
-                  <div>+2</div>
-                  <div className="negative">-0.5</div>
-                </div>
-              </div>
-            </div>
+
+            <ScoringInfo sport={this.props.sport} isModal="true" />
           </DraftScoringModal>
 
           <div
