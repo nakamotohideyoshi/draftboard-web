@@ -3424,7 +3424,6 @@ category: Tooltips
     margin: 0 auto 15px;
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAzCAQAAACQqPihAAACU0lEQVR4AcXXM7wlZxwG4Dc222DVxajirFGt2cdVrGUdo4mdXMW20deLOupiPOF8v9/FmfOdvXrKo3dmzswfqeMAy9zvK98CvveV+y1zYCaKuV7T2avOy/g4wOPqPJi9NTzCLjeba4YDEweaYa6b7VLg8fTKGoU+p6QjZxtSWJN65Yvcmiq2agyljj8Brzk01RzqNcCf6cbBGlelZ1ZpHJw2AOld/S8Afs64+Lk1yIdAxg3wSUazAciEAGzo9MYFmRDOBzKcPjCYCWMQDKSIfYBMKCBFPA22ZELZAR7qnDsZ5+Mi0JcJZxDMzT+8DU5MC5vMzihm25QWjgfvlipGWrgUMgq4NC1KhbOqJHbgIIAMo3FQOvIOWBm3g21p4arRQXWV3FZwZ3wClqWVRcODNBallSXg0/genJgurADssq89gBXpwhzwTQAHpivnGu7cdOVY8FuAVDGHYk6qAHVnU/gR8GP1pAdq/pvCMKlgBvi+3Gn1IbbXByl32p1gW3XIyYmTa4OU52YleLcyZHH+ZXFdkHfByoqa5lCN+SnM1zi0oqaVxBO7fnhdhrEWSEdOpFwpc7v3G7vdkFFcY3da6ANzp7J7lllgcyaUzeDpKZls7JMiBiZpThuc3KnzPGDKZ+jCJ8CEhXza/vZPGRc/AdO2rRUO01idnlmtcVj18ehPT/QDpI4XNG5OFVs0Xkg9ayn6nJqOnGmQYn165TkovrDZEjPslzjaDItt9jkUz2XvONCT6jyU8TLfGzp7zYWZKA60zN0+9T34zXc+d7dlDkqVvwDZaaW5amx46gAAAABJRU5ErkJggg==);
     background-size: 27px auto;
-    cursor: pointer;
     display: block;
     height: 27px;
     width: 27px;
@@ -5582,6 +5581,8 @@ label.calendar-input-label {
 .player-list-filter-set {
   display: inline-block;
   float: right; }
+  .player-list-filter-set .export-button {
+    background: white; }
   .player-list-filter-set .cmp-collection-search-filter {
     float: none;
     display: inline-block;
@@ -5641,6 +5642,121 @@ label.calendar-input-label {
     clear: both; }
   .cmp-collection-search-filter {
     margin-left: 0; } }
+
+.cmp-modal--draft-scoring .cmp-modal__dialog {
+  background: transparent;
+  color: #262a3b;
+  width: auto;
+  padding: 50px 35px;
+  padding: 50px calc(100vw / 1920 * 35);
+  position: relative;
+  z-index: 1; }
+
+.cmp-modal--draft-scoring .cmp-modal__inner {
+  width: 35%;
+  min-width: 500px;
+  position: relative;
+  background: white; }
+  .cmp-modal--draft-scoring .cmp-modal__inner:before {
+    content: '';
+    display: block;
+    background: #edf0f5;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: calc(50px + 36px + 40px + calc(100vw / 1920 * 150) - 50px);
+    z-index: 0; }
+
+.cmp-modal--draft-scoring .cmp-modal__close {
+  margin: 0;
+  background: none;
+  display: block;
+  position: absolute;
+  height: 28px;
+  width: 28px;
+  transform: rotate(45deg);
+  right: calc(100vw / 1920 * 35);
+  top: calc(100vw / 1920 * 35);
+  opacity: 0.6; }
+  .cmp-modal--draft-scoring .cmp-modal__close:hover {
+    opacity: 0.9; }
+  .cmp-modal--draft-scoring .cmp-modal__close:before, .cmp-modal--draft-scoring .cmp-modal__close:after {
+    content: '';
+    display: inline-block;
+    background: black;
+    position: absolute;
+    top: 0;
+    left: 0; }
+  .cmp-modal--draft-scoring .cmp-modal__close:before {
+    width: 1px;
+    height: 100%;
+    left: 50%; }
+  .cmp-modal--draft-scoring .cmp-modal__close:after {
+    width: 100%;
+    height: 1px;
+    top: 50%; }
+
+.cmp-draft-scoring-modal .content-inner {
+  font-size: 15px; }
+  .cmp-draft-scoring-modal .content-inner .title {
+    font-family: "Oswald", "Arial", "Helvetica", sans-serif;
+    font-weight: 400;
+    font-size: 24px;
+    color: #262a3b;
+    padding: 0 0 40px;
+    text-transform: uppercase; }
+  .cmp-draft-scoring-modal .content-inner .sport-image {
+    height: 150px;
+    height: calc(100vw / 1920 * 150);
+    background: transparent no-repeat center top;
+    background-size: contain; }
+    .cmp-draft-scoring-modal .content-inner .sport-image--mlb {
+      background-image: url(/static/img/nba-court-1Wd-rZX.png); }
+    .cmp-draft-scoring-modal .content-inner .sport-image--nba {
+      background-image: url(/static/img/nba-court-1Wd-rZX.png); }
+    .cmp-draft-scoring-modal .content-inner .sport-image--nfl {
+      background-image: url(/static/img/nfl-field-1OBuGgu.png); }
+    .cmp-draft-scoring-modal .content-inner .sport-image--nhl {
+      background-image: url(/static/img/nhl-rink-2Uf2LUv.png); }
+  .cmp-draft-scoring-modal .content-inner .score-table {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-pack: distribute;
+        justify-content: space-around;
+    font-size: 14px;
+    font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+    margin-top: 10px; }
+    .cmp-draft-scoring-modal .content-inner .score-table .score-col {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-pack: justify;
+          justify-content: space-between; }
+      .cmp-draft-scoring-modal .content-inner .score-table .score-col .score-col-name {
+        text-align: left;
+        padding-right: 40px;
+        padding-right: calc(100vw / 1920 * 40); }
+      .cmp-draft-scoring-modal .content-inner .score-table .score-col .score-col-value {
+        text-align: right;
+        font-weight: bold;
+        color: green; }
+        .cmp-draft-scoring-modal .content-inner .score-table .score-col .score-col-value .negative {
+          color: red; }
+
+.cmp-draft-scoring-modal .controls {
+  text-align: center;
+  margin-top: 35px; }
+  .cmp-draft-scoring-modal .controls .ok-button {
+    display: inline-block;
+    position: relative;
+    color: white;
+    font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+    font-size: 14px;
+    padding: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-shadow: 0 24px 57px rgba(21, 89, 65, 0.38);
+    width: 60%; }
 
 .cmp_modal .cmp-modal__close, .cmp-modal-payment-action .cmp-modal__close {
   background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAACK0lEQVR4Ac3Rg3JkURSF4V232HiCGI1gPFNKv8fY9rTHtm3bthXjcQZx/lO146Q9WFVf970Hawfy32VC42ILFQjiMK7odxA+WOkPaVjiwDq0owoH4ccs+PW9Eu16ziGpZHz90lX4jf3IiXM2B/v1/CpJJuNqlx1AI7xJ3vPqvQOJXahefgCvYJcUYu7p/dgDx1auCKIJDEo95j4aEZShMubbSgd+wSUZiOnRPsegzdFf/OuxXzIY04f1/RZHfQpYaEe2ZDCmT3ut3sUPoQpUSZy4K+eW9X331M3kPXborYSvZ2Hk23AE+yRGXO+Xlbs/Lml2f1k4SQdP8lTPafbUzoo5kN69iPYsjHgdPYUlEieul/7Jrjcrmhl8XAdPljihdzFO9yyUv1hzE1MlgRQ/iZxwPQt1MviEJBDTi5s9C2XP1p5C3N+s6ObmSUV3NjQX31t3ovjhmmYGT5I4oXcxen+z0ifrI4j5Pyu8uKus8PKO5qKr2yfp4Mk6OOb/jN696P2flTzc4EOlxEnhhd39ihnMe+yYXvh6Frz3N1loR7ZkMKZPe61+G567m9djv2Qw9O3D+kEb7ttbHfgFl2Qgpkf7nDJUXDe3BdEIu6QRc197grEPXt9+AK+Q0kBzT+8fkERSfHXHATTCI0nEnNd7DEoiRZd3+vET+5Ad52w29ul5v6SSoku7nFiPdlRiP/yYAb++V+r+ejgl3RRe3G3BhzAO45p+h3Xdkv8tXboSTM0mxjSEAAAAAElFTkSuQmCC); }

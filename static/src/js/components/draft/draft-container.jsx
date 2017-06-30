@@ -31,6 +31,7 @@ import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import CountdownClock from '../../components/site/countdown-clock.jsx';
+import DraftScoringModal from './draft-scoring-modal';
 
 
 /*
@@ -135,6 +136,7 @@ const DraftContainer = React.createClass({
       newLineup: {
         availablePositions: [],
       },
+      scoringModalState: false,
     });
   },
 
@@ -391,6 +393,50 @@ const DraftContainer = React.createClass({
             />
           </div>
 
+          <DraftScoringModal
+            isOpen={this.state.scoringModalState}
+            sport={this.props.sport}
+            onClose={() => this.setState({
+              scoringModalState: false,
+            })}
+          >
+            <div className={`sport-image sport-image--${this.props.sport}`} />
+            <div className="score-table">
+              <div className="score-col">
+                <div className="score-col-name">
+                  <div>Point:</div>
+                  <div>Assist:</div>
+                  <div>Rebound:</div>
+                </div>
+                <div className="score-col-value">
+                  <div>+1</div>
+                  <div>+1.5</div>
+                  <div>+1.25</div>
+                </div>
+              </div>
+              <div className="score-col">
+                <div className="score-col-name">
+                  <div>Steal:</div>
+                  <div>Block:</div>
+                  <div>Turnover:</div>
+                </div>
+                <div className="score-col-value">
+                  <div>+2</div>
+                  <div>+2</div>
+                  <div className="negative">-0.5</div>
+                </div>
+              </div>
+            </div>
+          </DraftScoringModal>
+
+          <div
+            className="button button--outline-alt1 export-button"
+            onClick={() => this.setState({
+              scoringModalState: !this.state.scoringModalState,
+            })}
+          >
+            Export
+          </div>
         </div>
 
         <div>

@@ -1,0 +1,159 @@
+@import "../variables.scss";
+
+$imgDir: '../img/blocks/live-animation-stage/';
+
+// Modal to prompt a user to confirm their contest entry.
+.cmp-modal--draft-scoring {
+  .cmp-modal {
+    &__dialog {
+      background: transparent;
+      color: #262a3b;
+      width: auto;
+      padding: 50px 35px;
+      padding: 50px calc(100vw / 1920 * 35);
+      position: relative;
+      z-index: 1;
+    }
+
+    &__inner {
+      width: 35%;
+      min-width: 500px;
+      position: relative;
+      background: white;
+
+      &:before {
+        content: '';
+        display: block;
+        background: #edf0f5;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: calc(50px + 36px + 40px + calc(100vw / 1920 * 150) - 50px);
+        z-index: 0;
+      }
+    }
+
+    &__close {
+      margin: 0;
+      background: none;
+      display: block;
+      position: absolute;
+      height: 28px;
+      width: 28px;
+      transform: rotate(45deg);
+      right: calc(100vw / 1920 * 35);
+      top: calc(100vw / 1920 * 35);
+      opacity: 0.6;
+
+      &:hover {
+        opacity: 0.9;
+      }
+      &:before,
+      &:after {
+        content: '';
+        display: inline-block;
+        background: black;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      &:before {
+        width: 1px;
+        height: 100%;
+        left: 50%;
+      }
+      &:after {
+        width: 100%;
+        height: 1px;
+        top: 50%;
+      }
+    }
+  }
+}
+
+// Inner modal content.
+.cmp-draft-scoring-modal {
+
+  .content-inner {
+    font-size: 15px;
+
+    .title {
+      font-family: $font-oswald;
+      font-weight: 400;
+      font-size: 24px;
+      color: #262a3b;
+      padding: 0 0 40px;
+      text-transform: uppercase;
+    }
+
+    .sport-image {
+      height: 150px;
+      height: calc(100vw / 1920 * 150);
+      background: transparent no-repeat center top;
+      background-size: contain;
+
+      &--mlb {
+        background-image: url('#{$imgDir}nba-court.png'); // TODO: change to mlb logo!
+      }
+
+      &--nba {
+        background-image: url('#{$imgDir}nba-court.png');
+      }
+
+      &--nfl {
+        background-image: url('#{$imgDir}nfl-field.png');
+      }
+
+      &--nhl {
+        background-image: url('#{$imgDir}nhl-rink.png');
+      }
+    }
+
+    .score-table {
+      display: flex;
+      justify-content: space-around;
+      font-size: 14px;
+      font-family: $font-open-sans;
+      margin-top: 10px;
+
+      .score-col {
+        display: flex;
+        justify-content: space-between;
+
+        .score-col-name {
+          text-align: left;
+          padding-right: 40px;
+          padding-right: calc(100vw / 1920 * 40);
+        }
+        .score-col-value {
+          text-align: right;
+          font-weight: bold;
+          color: green;
+
+          .negative {
+            color: red;
+          }
+        }
+      }
+    }
+  }
+
+  .controls {
+    text-align: center;
+    margin-top: 35px;
+
+    .ok-button {
+      display: inline-block;
+      position: relative;
+      color: white;
+      font-family: $font-open-sans;
+      font-size: 14px;
+      padding: 15px;
+      font-weight: 600;
+      text-transform: uppercase;
+      box-shadow: 0 24px 57px rgba(21, 89, 65, 0.38);
+      width: 60%;
+    }
+  }
+}
