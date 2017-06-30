@@ -85,13 +85,12 @@ export default React.createClass({
   },
 
   render() {
-    const { id, pbp, game, stats, sport, quarter } = this.props.event;
-    const key = `${id}-${new Date().getTime()}`;
+    const { pbp, game, stats, sport, quarter } = this.props.event;
     const score = `${game.away.alias} @ ${game.home.alias}`;
     const time = this.formatGameTime(quarter, pbp.clock);
 
     return (
-      <article key={key} className={`${block} ${block}--${sport}`}>
+      <article className={`${block} ${block}--${sport}`}>
         <div className={`${block}__inner`}>
           <p className={`${block}__description`}>{cleanDescription(pbp.description)}</p>
           {this.renderPlayersDOM(stats)}

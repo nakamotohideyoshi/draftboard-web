@@ -101,7 +101,7 @@ class CheckUserAccess(object):
     def create_log(self, action, metadata):
         # Simple method to pass LOCATION_VERIFY actions onto the user logger.
         create_user_log(request=self.request, type=_account_const.LOCATION_VERIFY, action=action,
-                        metadata=metadata)
+                        metadata=metadata, user=self.user)
 
     def is_on_local_network(self):
         try:
@@ -198,7 +198,7 @@ class CheckUserAccess(object):
                 _account_const.IP_CHECK_UNKNOWN,
                 {'result': 'Access Granted: IP not found in country db'}
             )
-            return True, ''
+            return True, 'Access Granted: IP not found in country db'
 
     def check_location_state(self, return_state=False):
         try:
@@ -299,7 +299,7 @@ def reset_user_password_email(user, request):
 MODAL_MESSAGES = {
     "COUNTRY": {
         "title": "LOCATION UNAVAILABLE",
-        "message": "Looks like you’re outside of the US or Canada.  Draftboard is available "
+        "message": "Looks like you're outside of the US or Canada.  Draftboard is available "
                    "only to residents of the US or Canada.  You can still sign up for an "
                    "account and create a lineup, but you will be unable to deposit or enter "
                    "contests while in not in the US or Canada. "
