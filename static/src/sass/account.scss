@@ -119,14 +119,13 @@ $account-height: 600px;
         &__input-layout {
           position: relative;
           text-align: left;
-          margin-top: 15px;
+          margin-top: 25px;
 
           p {
-            font-size: 12px;
+            font-size: 11px;
             font-family: $font-open-sans;
-            text-align: center;
             margin: 10px auto;
-            width: 70%;
+            width: 85%;
             vertical-align: top;
           }
 
@@ -137,6 +136,8 @@ $account-height: 600px;
             font-weight: 500;
             letter-spacing: 1px;
             text-transform: uppercase;
+            display: inline-block;
+            padding-bottom: 5px;
 
             span {
               font-size: 10px;
@@ -167,6 +168,11 @@ $account-height: 600px;
               transition: none;
               outline-width: 0;
             }
+
+            &::placeholder {
+              color: #b0b2c1;
+              font-weight: 300;
+            }
           }
 
           input[type=submit] {
@@ -178,18 +184,6 @@ $account-height: 600px;
             height: 20px;
             display: inline-block;
             vertical-align: top;
-          }
-
-          // show arrow on the right side of the button
-          .arrow {
-            background: url(../img/account/arrow.png) no-repeat;
-            background-size: cover;
-            display: inline-block;
-            height: 11px;
-            position: absolute;
-            right: 12px;
-            top: 98px;
-            width: 19px;
           }
 
           .forgot-password-link > a {

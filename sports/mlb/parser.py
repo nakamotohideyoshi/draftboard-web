@@ -50,6 +50,7 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
+from scoring.classes import MlbSalaryScoreSystem
 
 logger = getLogger('sports.mlb.parser')
 
@@ -2339,6 +2340,7 @@ class PbpParser(DataDenPbpDescription):
 
     pusher_sport_pbp = push.classes.PUSHER_MLB_PBP
     pusher_sport_pbp_event = 'linked'
+    score_system_class = MlbSalaryScoreSystem
 
     # until we could potentially send a duplicate if we parsed it again
     cache_timeout = 60 * 60 * 18

@@ -25,9 +25,11 @@ const config = Object.assign(
       ],
       // separated homepage
       homepage: [
-        // Enable Webpack's dev server hot reloads for this entry.
-        'webpack/hot/dev-server',
         path.join(__dirname, 'static', 'src', 'sass', 'homepage.scss'),
+      ],
+      // Separate bundle for animation debugger
+      'live-debugger-app': [
+        path.join(__dirname, 'static', 'src', 'js', 'live-debugger-app.jsx'),
       ],
     },
   }

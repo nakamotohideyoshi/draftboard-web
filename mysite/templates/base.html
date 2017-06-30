@@ -16,6 +16,7 @@
   {% block css %}
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% endblock css %}
+  {% block extra_css %}{% endblock extra_css %}
 </head>
 
 <body class="{% block body_class %}{% endblock %}">
@@ -86,7 +87,9 @@
   </script>
   {% kissanalyticsjs %}
   {% googleanalyticsjs %}
+  {% block js_app %}
   <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+  {% endblock js_app %}
 </body>
 </html>
 {% endspaceless %}

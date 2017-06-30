@@ -17,8 +17,8 @@ services:
   # when linked container is up, this will also be running
   # you can see this by running `docker-compose ps` to view active containers
   # run `docker-compose exec redis sh` to mess around in this container
-  redis:
-    image: mendsley/alpine-redis
+  redis-server:
+    image: sickp/alpine-redis:3.2.6
     restart: unless-stopped
     expose:
       - "6379"
@@ -33,9 +33,9 @@ services:
       context: .
       args:
         - DRAFTBOARD_SETTINGS
-    command: celery flower -A mysite --broker=redis://redis:6379/1 --port=5555
+    command: celery flower -A mysite --broker=redis://redis-server:6379/1 --port=5555
     links:
-      - redis
+      - redis-server
     volumes:
       - .:/code
     ports:
@@ -52,7 +52,7 @@ services:
     command: dumb-init celery worker -A mysite -l info --purge -Q long_running,realtime,celery
     links:
       - postgres
-      - redis
+      - redis-server
     volumes:
       - .:/code
     environment:
@@ -69,7 +69,7 @@ services:
     command: dumb-init celery beat -A mysite -l debug
     links:
       - postgres
-      - redis
+      - redis-server
     volumes:
       - .:/code
     environment:
@@ -87,7 +87,7 @@ services:
     command: dumb-init python3 manage.py runserver 0.0.0.0:8000 --noreload
     links:
       - postgres
-      - redis
+      - redis-server
     ports:
       - "8000:8000"
     volumes:

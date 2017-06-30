@@ -1,8 +1,21 @@
 import _ from 'lodash';
-import { flipOperator } from '../utils/flipPos';
 
-function yardlineToDecimal(yardline) {
+function yardsToDecimal(yardline) {
   return yardline / 100;
+}
+
+function mapYardlineToField(yardline, possession, sideOfField, driveDirection) {
+  const isGoingRightToLeft = driveDirection === 'rightToLeft';
+  const isPastThe50 = possession !== sideOfField;
+  const yardlineAsDecimal = yardsToDecimal(yardline);
+
+  if (isPastThe50 && !isGoingRightToLeft) {
+    return 1 - yardlineAsDecimal;
+  } else if (!isPastThe50 && isGoingRightToLeft) {
+    return 1 - yardlineAsDecimal;
+  }
+
+  return yardlineAsDecimal;
 }
 
 /**
@@ -42,8 +55,20 @@ export default class NFLPlayRecapVO {
     return 'rush';
   }
 
+  static get KICKOFF() {
+    return 'kickoff';
+  }
+
+  static get PUNT() {
+    return 'punt';
+  }
+
   static get SCAMBLE() {
     return 'scramble';
+  }
+
+  static get SACK() {
+    return 'sack';
   }
 
   static get HANDOFF() {
@@ -54,37 +79,44 @@ export default class NFLPlayRecapVO {
     return 'handoff_short';
   }
 
+  static get HANDOFF_FUMBLE() {
+    return 'handoff_fumble';
+  }
+
   static get PASS_DEEP() {
     return 'pass_deep';
   }
 
+  static get PASS_SHORT() {
+    return 'pass_short';
+  }
+
+  static get UNKNOWN_PLAY() {
+    return 'unknown_play';
+  }
+
   /**
-   * The starting yard line of the play.
+   * The starting yardline of the play.
    */
   startingYardLine() {
-    let yardline = _.get(this._obj, 'pbp.start_situation.location.yardline', 0);
-    const possession = this._obj.pbp.start_situation.possession.alias;
-    const sideOfField = this._obj.pbp.start_situation.location.alias;
-    const isGoingRightToLeft = this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT;
+    const situation = this._obj.pbp.start_situation;
+    const yardline = situation.location.yardline;
+    const possession = situation.possession.alias;
+    const sideOfField = situation.location.alias;
 
-    if (sideOfField !== possession && !isGoingRightToLeft) {
-      yardline = 100 - yardline;
-    } else if (sideOfField === possession && isGoingRightToLeft) {
-      yardline = 100 - yardline;
-    }
-
-    return yardlineToDecimal(yardline);
+    return mapYardlineToField(yardline, possession, sideOfField, this.driveDirection());
   }
 
   /**
    * The ending yard line of the play.
    */
   endingYardLine() {
-    // Calculate the endingYardLine based on the total passing & rushing yards
-    // accrued during the play to ensure that plays that cross the 50 yardline
-    // are properly displayed.
-    const isFlipped = this.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT;
-    return flipOperator(this.startingYardLine(), '+', this.totalYards(), isFlipped);
+    const situation = this._obj.pbp.end_situation;
+    const yardline = situation.location.yardline;
+    const sideOfField = situation.location.alias;
+    const possession = situation.possession.alias;
+
+    return mapYardlineToField(yardline, possession, sideOfField, this.driveDirection());
   }
 
   /**
@@ -93,27 +125,43 @@ export default class NFLPlayRecapVO {
    */
   passingYards() {
     const yards = _.get(this._obj, 'pbp.statistics.pass__list.att_yards', 0);
-    return yardlineToDecimal(yards);
+    return yardsToDecimal(yards);
   }
 
   /**
    * The distance the ball was carried. For passing plays this will
-   * be the distance the ball was carried after the catch.
+   * be the distance the ball was carried after the catch for kick returns this
+   * is the distance the ball was returned.
    * @return {number}
    */
   rushingYards() {
-    const yards = this.isPassingPlay()
-    ? _.get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0)
-    : _.get(this._obj, 'pbp.statistics.rush__list.yards', 0);
+    let yards = 0;
+    switch (this.playType()) {
+      case NFLPlayRecapVO.PASS:
+        yards = _.get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0);
+        break;
+      case NFLPlayRecapVO.RUSH:
+        yards = _.get(this._obj, 'pbp.statistics.rush__list.yards', 0);
+        break;
+      case NFLPlayRecapVO.KICKOFF:
+        yards = _.get(this._obj, 'pbp.statistics.return__list.yards', 0);
+        break;
+      case NFLPlayRecapVO.PUNT:
+        yards = _.get(this._obj, 'pbp.statistics.return__list.yards', 0);
+        break;
+      default:
+        return 0;
+    }
 
-    return yardlineToDecimal(yards);
+    return yardsToDecimal(yards);
   }
 
   /**
-   * The total yards of the play.
+   * The total yards the ball was kicked.
+   * @return {[type]} [description]
    */
-  totalYards() {
-    return this.passingYards() + this.rushingYards();
+  kickedYards() {
+    return yardsToDecimal(_.get(this._obj, 'pbp.punt__list.yards', 0));
   }
 
   /**
@@ -128,7 +176,20 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   playType() {
-    return this._obj.pbp.type;
+    const supportedTypes = [
+      NFLPlayRecapVO.PASS,
+      NFLPlayRecapVO.RUSH,
+      NFLPlayRecapVO.SACK,
+      NFLPlayRecapVO.KICKOFF,
+      NFLPlayRecapVO.PUNT,
+    ];
+
+    if (this.isQBSack()) {
+      return NFLPlayRecapVO.SACK;
+    }
+
+    const type = this._obj.pbp.type;
+    return supportedTypes.indexOf(type) !== -1 ? type : NFLPlayRecapVO.UNKNOWN_PLAY;
   }
 
   /**
@@ -161,9 +222,11 @@ export default class NFLPlayRecapVO {
     }
 
     if (this.isHandOff()) {
-      if (this.totalYards() === 0) {
+      if (this.isFumble()) {
+        return NFLPlayRecapVO.HANDOFF_FUMBLE;
+      } else if (this.rushingYards() === 0) {
         return NFLPlayRecapVO.HANDOFF;
-      } else if (this.totalYards() < 0.03) {
+      } else if (this.rushingYards() < 0.03) {
         return NFLPlayRecapVO.HANDOFF_SHORT;
       }
 
@@ -182,6 +245,8 @@ export default class NFLPlayRecapVO {
       return null;
     } else if (this.passingYards() > 0.2) {
       return NFLPlayRecapVO.PASS_DEEP;
+    } else if (this.passingYards() < 0.1) {
+      return NFLPlayRecapVO.PASS_SHORT;
     }
     return NFLPlayRecapVO.PASS;
   }
@@ -251,6 +316,22 @@ export default class NFLPlayRecapVO {
   }
 
   /**
+   * Returns true if the play contains a fumble.
+   */
+  isFumble() {
+    const fumbles = _.get(this._obj, 'pbp.statistics.fumbles', []);
+    return fumbles.length > 0;
+  }
+
+  /**
+   * Returns true if the play resulted in a touchback.
+   * @return {Boolean}
+   */
+  isTouchback() {
+    return _.get(this._obj, 'pbp.statistics.return__list.touchback', 0) === 1;
+  }
+
+  /**
    * Returns true if the QB passes the ball.
    * @return {boolean}
    */
@@ -267,6 +348,14 @@ export default class NFLPlayRecapVO {
   }
 
   /**
+   * Returns true if the play represents a quarterback being sacked.
+   * @return {boolean}
+   */
+  isQBSack() {
+    return _.get(this._obj, 'pbp.statistics.pass__list.sack', false);
+  }
+
+  /**
    * Returns an array of info for all players featured in the recap.
    */
   players() {
@@ -276,6 +365,7 @@ export default class NFLPlayRecapVO {
       { stat: 'pass__list', player: 'quarterback' },
       { stat: 'receive__list', player: 'receiver' },
       { stat: 'rush__list', player: 'receiver' },
+      { stat: 'return__list', player: 'receiver' },
     ].filter(
       list => stats.hasOwnProperty(list.stat) && stats[list.stat].hasOwnProperty('player')
     ).map(list => {

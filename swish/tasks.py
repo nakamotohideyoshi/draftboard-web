@@ -1,20 +1,19 @@
 from __future__ import absolute_import
 
+from logging import getLogger
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
+from django.db import transaction
+
 import sports.classes
-from draftgroup.classes import AbstractUpdateManager
+from draftgroup.models import PlayerStatus
 from mysite.celery_app import app
-from draftgroup.models import PlayerUpdate, PlayerStatus
 from statscom.models import PlayerLookup
 from swish.classes import (
     PlayerUpdateManager,
-    SwishAnalytics,
     RotoWire,
 )
-from logging import getLogger
-from draftgroup.serializers import PlayerUpdateSerializer
-from django.db import transaction
 
 logger = getLogger('swish.tasks')
 LOCK_EXPIRE = 59
@@ -60,7 +59,8 @@ def update_injury_feed(self, sport):
                     pass
             if player_update_manager.players_not_found:
                 num_players_not_found = len(player_update_manager.players_not_found)
-                logger.warning('%s | [%s] rotowire players not found:' % (sport, num_players_not_found))
+                logger.warning(
+                    '%s | [%s] rotowire players not found:' % (sport, num_players_not_found))
 
                 for player in player_update_manager.players_not_found:
                     logger.warning('%s | rotowire player not found: %s' % (sport, player))
@@ -70,34 +70,58 @@ def update_injury_feed(self, sport):
 
 @app.task(bind=True)
 def update_lookups(self, sport):
+    """
+    Rotowire provides us with a service that matches sportsradar SRIDs with stats.com's StatsGlobalId
+    so that we don't have to do linking manually. This task will call that service and create
+    PlayerLookup objects.
+    """
     rotowire = RotoWire(sport)
     players_data = rotowire.get_players()
     players_not_found = []
+    # Keep track of how many we've created.
+    lookups_created = 0
     for p in players_data:
         if p.get('StatsGlobalId'):
             site_sport_manager = sports.classes.SiteSportManager()
             site_sport = site_sport_manager.get_site_sport(sport)
             player_model_class = site_sport_manager.get_player_class(site_sport)
             try:
-                print(p.get('StatsGlobalId'))
-                lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'), sport=sport.upper())
-                if not lookup.player_id:
+                lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'))
+                if not lookup.player_id and (lookup.sport == sport.upper() or not lookup.sport):
                     lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
                     lookup.player_type = ContentType.objects.get_for_model(player_model_class)
+                    if not lookup.sport:
+                        lookup.sport = sport.upper()
                     lookup.save()
             except PlayerLookup.DoesNotExist:
-                print(p.get('SportsDataId'))
                 try:
-                    pid = player_model_class.objects.get(srid=p.get('SportsDataId')).id
+                    player = player_model_class.objects.get(srid=p.get('SportsDataId'))
                     PlayerLookup.objects.create(
                         sport=sport.upper(),
                         player_type=ContentType.objects.get_for_model(player_model_class),
-                        player_id=pid,
+                        player_id=player.id,
                         pid=p.get('StatsGlobalId'),
-                        first_name=p.get('StatsGlobalId'),
-                        last_name=p.get('StatsGlobalId')
+                        first_name=player.first_name,
+                        last_name=player.last_name
                     )
+                    # Increase the counter.
+                    lookups_created = lookups_created + 1
                 except player_model_class.DoesNotExist:
                     players_not_found.append(p)
+
+            except player_model_class.DoesNotExist:
+                players_not_found.append(p)
+
     for player in players_not_found:
-        logger.warning('%s | player not found: %s %s' % (sport, player.get('FirstName'), player.get('LastName')))
+        logger.info('%s | player not found: %s %s' % (
+            sport, player.get('FirstName'), player.get('LastName')))
+
+    # Summary of task.
+    msg = {
+        "task": "update_lookups - %s" % sport,
+        "lookups created": lookups_created,
+        "players not found": len(players_not_found),
+    }
+
+    logger.info(msg)
+    return msg

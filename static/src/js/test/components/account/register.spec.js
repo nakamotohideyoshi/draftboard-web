@@ -16,6 +16,14 @@ describe('<Register /> Component', () => {
     actions: {
       registerUser: sinon.spy(),
     },
+    verifyLocation: sinon.spy(),
+    userLocation: {
+      status: 'unknown',
+      isLocationVerified: false,
+      isSending: false,
+      hasAttemptedToVerify: false,
+      message: null,
+    },
   };
 
   afterEach(() => {
