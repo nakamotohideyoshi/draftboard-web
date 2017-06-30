@@ -1,10 +1,10 @@
 /* eslint no-param-reassign: 0 */
 import React from 'react';
-import * as AppActions from '../../stores/app-state-store.js';
-import Sparkline from './sparkline.jsx';
+import * as AppActions from '../../stores/app-state-store';
+import Sparkline from './sparkline';
 import isEqual from 'lodash/isEqual';
-import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
-import DraftPlayerNextGame from './draft-player-next-game.jsx';
+import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils';
+import DraftPlayerNextGame from './draft-player-next-game';
 
 
 /**
@@ -128,7 +128,7 @@ const DraftPlayerListRow = React.createClass({
         </td>
         <td className="name">
           <span className="player">{this.props.row.name} </span>
-          <span className="team">{this.props.row.team_alias}</span>
+          <span className="team">{this.props.row.teamCity} {this.props.row.teamName}</span>
         </td>
         <td className={statusClasses}>{this.props.row.status}</td>
         <td className="game">

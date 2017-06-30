@@ -29,7 +29,7 @@ const playersWithInfo = createSelector(
   (players, injuries, histories, sport, sportInfo, activeDraftGroupId, boxScoreGames
   ) => mapValues(players, (player) => {
     // Duplicate the player so we don't mutate the state.
-    const playerWithInfo = merge({}, player);
+    const playerWithInfo = merge({}, player, {});
     // Add injury status if we have it.
     if (
       injuries.sports[sport].hasOwnProperty('playerUpdates') &&

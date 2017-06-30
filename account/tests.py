@@ -143,66 +143,64 @@ class RegisterAccountTest(APITestCase):
             'email': 'user@test.com',
             'username': 'user',
             'password': 'password',
-            'password_confirm': 'not_same',
+        }
+        password_short = {
+            'email': 'user@test.com',
+            'username': 'user',
+            'password': 'pass',
         }
         proper_data = {
             'username': 'user',
             'email': "user@test.com",
             'password': 'password',
-            'password_confirm': 'password',
         }
 
         url = '/api/account/register/'
 
-        #
         # Tests for invalid password
         response = self.client.post(url, invalid_password_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
         # Tests for missing password field
         response = self.client.post(url, missing_password_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
+        # short password field
+        response = self.client.post(url, password_short, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
         # Tests for invalid username
         response = self.client.post(url, invalid_username_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
         # Tests for missing username field
         response = self.client.post(url, missing_username_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
         # Tests for invalid email data
         response = self.client.post(url, invalid_email_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
         # Tests for missing email data
         response = self.client.post(url, missing_email_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
+        # we no longer require password confirm fields
         # Tests for mismatched passwords
-        response = self.client.post(url, password_mismatch, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # response = self.client.post(url, password_mismatch, format='json')
+        # self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        #
         # Tests for proper creation
-        # response = self.client.post(url, proper_data, format='json')
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(url, proper_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Hit the log out page, since creation auto logs in
         self.client.get('/logout/')
 
-        #
         # Tests for duplicates
         response = self.client.post(url, proper_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # TODO: test Trulioo stuff here too.
 
 class APITestCaseMixin(APITestCase):
     """
@@ -293,11 +291,11 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
 
         # Make sure the blocked country request fails.
         checker = CheckUserAccess(blocked_country_request)
-        self.assertFalse(checker.check_location_country[0])
+        self.assertFalse(checker.check_location_country()[0])
 
         # Make sure the blocked state request fails.
         checker = CheckUserAccess(blocked_request)
-        self.assertFalse(checker.check_location_state[0])
+        self.assertFalse(checker.check_location_state()[0])
 
     def test_checker_ok(self):
         # A valid request
@@ -306,8 +304,8 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
 
         # Make sure a valid request passes.
         checker = CheckUserAccess(valid_request)
-        self.assertTrue(checker.check_location_country[0])
-        self.assertTrue(checker.check_location_state[0])
+        self.assertTrue(checker.check_location_country()[0])
+        self.assertTrue(checker.check_location_state()[0])
         self.assertTrue(checker.check_for_vpn()[0])
 
     def test_check_invalid_location_age(self):

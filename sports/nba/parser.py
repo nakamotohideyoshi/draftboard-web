@@ -7,6 +7,7 @@ from raven.contrib.django.raven_compat.models import client
 import push.classes
 import sports.nba.models
 from dataden.classes import DataDen
+from scoring.classes import NbaSalaryScoreSystem
 from sports.game_status import GameStatus
 from sports.nba.models import (
     Team,
@@ -456,6 +457,7 @@ class PbpEventParser(DataDenPbpDescription):
     pusher_sport_stats = push.classes.PUSHER_NBA_STATS
     gameboxscore_model = GameBoxscore
     gameboxscore_period_field = 'quarter'
+    score_system_class = NbaSalaryScoreSystem
 
     def __init__(self):
         super().__init__()

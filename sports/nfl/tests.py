@@ -475,6 +475,42 @@ class TestPlayParser(AbstractTest):
     NOTE: because the test database does parse the stats previously,
     we will NOT HAVE the PlayerStats objects.
     """
+    pass_play = {
+        'start_situation__list': {'yfd': 5.0,
+                                  'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                  'clock': '14:30',
+                                  'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                  'down': 2.0},
+        'away_points': 0.0, 'reference': 103.0,
+        'end_situation__list': {'yfd': 1.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                'clock': '13:56',
+                                'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                                'down': 3.0},
+        'alt_description': '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
+        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp',
+        'clock': '14:30',
+        'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
+        'id': '7e49db54-68d0-444d-b244-690f3930b77b',
+        'sequence': 103.0, 'parent_list__id': 'play_by_play__list', 'home_points': 0.0,
+        'description': '(14:30) (Shotgun) 8-K.Cousins pass short right to 12-A.Roberts to WAS 29 for 4 yards (21-B.Grimes).',
+        '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2I=',
+        'type': 'pass', 'statistics__list': {
+            'receive__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0,
+                              'goaltogo': 0.0,
+                              'player': '9691f874-be36-4529-a7eb-dde22ee4a848',
+                              'confirmed': 'true',
+                              'reception': 1.0, 'yards_after_catch': 2.0, 'inside_20': 0.0,
+                              'target': 1.0},
+            'pass__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0,
+                           'goaltogo': 0.0,
+                           'att_yards': 2.0, 'attempt': 1.0,
+                           'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                           'complete': 1.0, 'inside_20': 0.0, 'confirmed': 'true'},
+            'defense__list': {'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'tackle': 1.0,
+                              'player': '7979b613-6dbf-4534-8166-6430433c1ec3',
+                              'confirmed': 'true'}},
+        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'dd_updated__id': 1464841517401,
+        'wall_clock': '2015-09-13T17:03:57+00:00'}
 
     sack_play = {
         '_id': 'UID1',
@@ -1098,7 +1134,6 @@ class TestPlayParser(AbstractTest):
             sent_data['stats'][0]['last_name'],
             ''
         )
-
         # Ensure home + away scores are in PBP
         self.assertEqual(
             sent_data['pbp']['away_points'],
@@ -1109,8 +1144,46 @@ class TestPlayParser(AbstractTest):
             self.sack_play['home_points']
         )
 
-        # from pprint import pprint
-        # pprint(sent_data)
+    def test_fp_value_pass_play(self):
+        """
+        Test that player names are being added to the parser output data.
+        :return:
+        """
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        parser = self.__parse_and_send(self.pass_play, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        # These are hard-coded stat value calculations, so if we ever change the value of
+        # statPoints, these will fail (and that's probably fine)
+        self.assertEqual(sent_data['pbp']['statistics']['pass__list']['fp_value'], .16)
+        self.assertEqual(sent_data['pbp']['statistics']['receive__list']['fp_value'], .9)
+
+    def test_pbp_has_necessary_fields(self):
+        """
+        A quick test to make sure that these various fields exist in the pbp object.
+        :return:
+        """
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        parser = self.__parse_and_send(self.pass_play, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        self.assertIsNotNone(sent_data['pbp']['statistics'])
+        self.assertIsNotNone(sent_data['pbp']['start_situation'])
+        self.assertIsNotNone(sent_data['pbp']['description'])
+        self.assertIsNotNone(sent_data['pbp']['away_points'])
+        self.assertIsNotNone(sent_data['pbp']['home_points'])
+        self.assertIsNotNone(sent_data['pbp']['extra_info'])
+        self.assertIsNotNone(sent_data['pbp']['type'])
+        self.assertIsNotNone(sent_data['game'])
+        self.assertIsNotNone(sent_data['stats'])
 
     def test_game_info(self):
         sport_db = 'nflo'

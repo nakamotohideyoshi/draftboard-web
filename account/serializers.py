@@ -1,4 +1,6 @@
 from re import search
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -94,11 +96,15 @@ class UserCredentialsSerializer(serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
-    password_confirm = serializers.CharField(write_only=True, required=False)
+    username = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+    # We don't currently require password confirmation.
+    # password_confirm = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ("username", "email", "password", "password_confirm")
+        fields = ("username", "email", "password")
 
     def return_no_password(self, obj):
         """
@@ -106,20 +112,30 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         """
         return None
 
-    def validate_email(self, value):
+    @staticmethod
+    def validate_email(value):
+        error_message = 'This email/username is not valid.'
+
+        # First, validate the email with django's validators.
+        try:
+            validate_email(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(error_message)
+
         """
         Extra check on email for whether it's in use
         """
         UserModel = get_user_model()
 
-        if UserModel.objects.filter(email__iexact=value):
+        if value is None or value == '' or UserModel.objects.filter(email__iexact=value).count() > 0:
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
-            raise serializers.ValidationError('This email/username is not valid.')
+            raise serializers.ValidationError(error_message)
 
         return value
 
-    def validate_username(self, value):
+    @staticmethod
+    def validate_username(value):
         """
         Validation method to ensure that the username is valid, of proper length and unique
         """
@@ -128,7 +144,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         if value in BLACKLIST:
             raise serializers.ValidationError('This username is in a black list.')
 
-        if UserModel.objects.filter(username__iexact=value):
+        if UserModel.objects.filter(username__iexact=value).count() > 0:
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
             raise serializers.ValidationError('This email/username is not valid.')
@@ -138,16 +154,15 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
         return value
 
-    def validate(self, data):
-        """
-        Check length and password strength
-        """
-        if 'password' in data:
-            if len(data['password']) < 8:
+    @staticmethod
+    def validate_password(value):
+        if value:
+            if len(value) < 8:
                 raise serializers.ValidationError(
-                    'The password must be a minimum 8 characters in length')
-
-        return data
+                    'The password must be a minimum 8 characters in length.')
+        else:
+            raise serializers.ValidationError('You must provide a password.')
+        return value
 
 
 class UserSerializerNoPassword(serializers.ModelSerializer):

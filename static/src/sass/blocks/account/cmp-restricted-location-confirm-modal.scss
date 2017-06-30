@@ -1,0 +1,82 @@
+@import "../../variables.scss";
+
+// Modal to prompt a user to confirm their contest entry.
+.cmp-modal--restricted-location-confirm {
+  .cmp-modal {
+    &__dialog {
+      background: white;
+      color: #262a3b;
+      width: auto;
+      padding: 40px 98px;
+    }
+  }
+  .cmp-modal__inner {
+    width: 500px;
+  }
+}
+
+
+// Inner modal content.
+.cmp-restricted-location-confirm {
+
+  .footer {
+    padding: 0 0 20px;
+    border-bottom: 1px solid #57616d;
+  }
+
+  .top-icon {
+    background: url('../img/blocks/lobby/lock.png') no-repeat top center;
+    background-size: 36px auto;
+    height:43px;
+  }
+
+  .title {
+    font-family: $font-oswald;
+    font-weight: 400;
+    font-size: 16px;
+    color: #262a3b;
+    padding: 30px 0 11px;
+    text-transform: uppercase;
+  }
+
+  .text-content {
+    padding: 0 10px 50px;
+    color: #70758b;
+    font-size: 13px;
+    line-height: 1.6em;
+  }
+
+  .content-inner {
+    color: #fff;
+    font-size: 15px;
+  }
+
+  .controls {
+    .ok-button {
+      position: relative;
+      padding: 15px;
+      box-shadow: 0 24px 57px rgba(21, 89, 65, 0.38);
+      margin-bottom: 20px;
+
+      &:after {
+        content: "";
+        display: inline-block;
+        background: url('../img/account/arrow.png') no-repeat center;
+        background-size: 16px auto;
+        height: 100%;
+        width: 55px;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+    }
+
+    .no-thanks {
+      color: #262a3b;
+      font-family: $font-open-sans;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+  }
+}

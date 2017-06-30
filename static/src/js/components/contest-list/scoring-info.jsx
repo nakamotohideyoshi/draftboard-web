@@ -23,7 +23,25 @@ const events = {
     { title: 'Fumble', value: '-0.1 pts' },
   ],
   nhl: [],
-  mlb: [],
+  mlb: [{
+    hitter: [
+      { title: 'Stolen Base', value: '6 pts' },
+      { title: 'RBI', value: '2 pts' },
+      { title: 'Single', value: '3 pts' },
+      { title: 'Double', value: '6 pts' },
+      { title: 'Triple', value: '9 pts' },
+      { title: 'Home Run', value: '12 pts' },
+      { title: 'RBI', value: '2 pts' },
+      { title: 'Walk ', value: '3 pts' },
+      { title: 'Hit By Pitch', value: '3 pts' },
+    ],
+    pitcher: [
+      { title: 'Strike Out', value: '3 pts' },
+      { title: 'Walk', value: '-1 pts' },
+      { title: 'Hit Batter', value: '-1 pts' },
+      { title: 'Earned Run', value: '-3 pts' },
+    ],
+  }],
 };
 
 

@@ -200,8 +200,8 @@ class TimeMachineAdmin(admin.ModelAdmin):
             timemachine.refresh_from_db()
 
             # start the replay task
-            result = replayer.tasks.play_replay.delay(
-                timemachine)  # the filename - i forget if path is prefixed!
+            result = replayer.tasks.play_replay.apply_async(
+                args=[timemachine], kwargs={}, queue='time_machine')
 
     def stop_replayer(self, request, queryset):
         if len(queryset) > 1:

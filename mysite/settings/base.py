@@ -236,7 +236,7 @@ slack_updates = environ.get('SLACK_UPDATES', None)
 if slack_updates is not None and 't' in str(slack_updates).lower():
     SLACK_UPDATES = True
 
-REDIS_URL = 'redis://redis:6379'  # for live stats, defaults to local vagrant
+REDIS_URL = 'redis://redis-server:6379'  # for live stats, defaults to local vagrant
 
 # defaults to use the default cache, but
 # if server has Heroku Redis add-on should be set to

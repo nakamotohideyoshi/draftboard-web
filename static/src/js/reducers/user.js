@@ -30,6 +30,13 @@ const initialState = {
     email: [],
     emailErrors: [],
   },
+  location: {
+    status: 'unknown',
+    isLocationVerified: false,
+    isSending: false,
+    hasAttemptedToVerify: false,
+    message: null,
+  },
 };
 
 
@@ -210,6 +217,42 @@ module.exports = (state = initialState, action) => {
       });
       newState.identityFormErrors = action.response;
       return newState;
+    }
+
+    /**
+     * Location Verification
+     */
+    case actionTypes.VERIFY_LOCATION__SEND: {
+      return merge({}, state, {
+        location: {
+          isSending: true,
+          message: 'Verifying...',
+        },
+      });
+    }
+
+    case actionTypes.VERIFY_LOCATION__SUCCESS: {
+      return merge({}, state, {
+        location: {
+          isSending: false,
+          hasAttemptedToVerify: true,
+          isLocationVerified: true,
+          status: 'verified',
+          message: action.error,
+        },
+      });
+    }
+
+    case actionTypes.VERIFY_LOCATION__FAIL: {
+      return merge({}, state, {
+        location: {
+          isSending: false,
+          hasAttemptedToVerify: true,
+          isLocationVerified: false,
+          status: 'failed',
+          message: action.error,
+        },
+      });
     }
 
 
