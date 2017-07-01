@@ -11,7 +11,7 @@ const ResultsHeader = React.createClass({
     year: React.PropTypes.number.isRequired,
     month: React.PropTypes.number.isRequired,
     day: React.PropTypes.number.isRequired,
-    watchLiveLineups: React.PropTypes.func,
+    isWatchingLive: React.PropTypes.isRequired,
     onSelectDate: React.PropTypes.func,
   },
 
