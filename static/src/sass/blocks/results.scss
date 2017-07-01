@@ -869,17 +869,24 @@ $results-selected-text-color: #2bb677;
         display: block;
         position: relative;
         left: 50%;
-        margin-left: -50%;
+        top: 10px;
+        width: 262px;
+        margin-left: -131px;
         transform: scale(0.9);
       }
 
       .results-date-picker {
-        padding-top: 18px;
+        display: block;
+        text-align: center;
+        .toggle{
+          margin-left: 0;
+          display: none;
+        }
       }
 
       .cta {
         right: 5%;
-        top: 20px;
+        top: 28px;
       }
     }
 
