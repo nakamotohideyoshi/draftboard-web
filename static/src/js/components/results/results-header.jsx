@@ -19,11 +19,6 @@ const ResultsHeader = React.createClass({
   getTitle() {
     const { year, month, day } = this.props;
     return moment(`${year}-${month}-${day}`, 'YYYY-M-D').calendar(null, {
-      sameDay: 'MMMM D, YYYY',
-      nextDay: 'MMMM D, YYYY',
-      nextWeek: 'MMMM D, YYYY',
-      lastDay: 'MMMM D, YYYY',
-      lastWeek: `MMMM D, YYYY`,
       sameElse: 'MMMM D, YYYY',
     });
   },
@@ -50,17 +45,11 @@ const ResultsHeader = React.createClass({
   },
 
   render() {
-    const { year, month, day, isWatchingLive, onSelectDate, watchLiveLineups } = this.props;
+    const { year, month, day, isWatchingLive, onSelectDate } = this.props;
 
     let lineupType = 'Live Lineups';
     let datePicker;
     let daySlider;
-
-    let ctaLive = (
-      <div className="watch-live-lineups" onClick={this.returnToYesterday}>
-        See Past Lineups
-      </div>
-    );
 
     if (isWatchingLive === false) {
       lineupType = 'Past Lineups';
@@ -81,12 +70,6 @@ const ResultsHeader = React.createClass({
           day={day}
           onSelectDate={onSelectDate}
         />
-      );
-
-      ctaLive = (
-        <div className="watch-live-lineups" onClick={watchLiveLineups}>
-          Watch Live Lineups
-        </div>
       );
     }
 
