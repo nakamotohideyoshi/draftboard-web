@@ -21,9 +21,9 @@ const ResultsStatic = (props) => {
         <ResultsStats stats={dayResults.overall} />
         <div className="results-page--data">
           <ResultsLineups
-              isWatchingLive={isWatchingLive}
-              lineups={dayResults.lineups}
-              fetchEntryResults={props.fetchEntryResults}
+            isWatchingLive={isWatchingLive}
+            lineups={dayResults.lineups}
+            fetchEntryResults={props.fetchEntryResults}
           />
         </div>
       </div>
