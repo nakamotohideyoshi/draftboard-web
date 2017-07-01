@@ -866,10 +866,10 @@ $results-selected-text-color: #2bb677;
       }
 
       .results-days-slider {
-        display: inline-block;
-        position: absolute;
-        right: 0;
-        top: 60px;
+        display: block;
+        position: relative;
+        left: 50%;
+        margin-left: -50%;
         transform: scale(0.9);
       }
 
