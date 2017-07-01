@@ -11,7 +11,7 @@ $results-selected-text-color: #2bb677;
   width: 100%;
 
   &--header {
-    height: 130px;
+    height: 110px;
     margin-top: 60px;
     position: relative;
     background-color: #ffffff;
@@ -26,7 +26,7 @@ $results-selected-text-color: #2bb677;
       .date {
         color: #47495e;
         font-family: $font-oswald;
-        font-size: 20px;
+        font-size: 24px;
         min-width: 110px;
       }
     }
@@ -125,7 +125,7 @@ $results-selected-text-color: #2bb677;
     .results-date-picker {
       display: inline-block;
       white-space: nowrap;
-
+      margin-top: 5px;
       .toggle {
         display: inline-block;
         background: url('../img/blocks/results/calendar.png') no-repeat center center;
@@ -133,7 +133,6 @@ $results-selected-text-color: #2bb677;
         width: 20px;
         height: 20px;
         position: relative;
-        top: 4px;
         cursor: pointer;
         margin-left: 45px;
       }
@@ -190,7 +189,7 @@ $results-selected-text-color: #2bb677;
       .title,
       .value {
         display: inline-block;
-        line-height: 1;
+        line-height: .8;
         vertical-align: middle;
       }
 
@@ -206,7 +205,7 @@ $results-selected-text-color: #2bb677;
   &--data {
     position: relative;
     display: block;
-    min-height: calc(100vh - 240px);
+    min-height: calc(100vh - 220px);
   }
 
   &__no-contests {
@@ -816,24 +815,24 @@ $results-selected-text-color: #2bb677;
 
       .title {
         display: inline-block;
-        padding-top: 40px;
+        padding-top: 30px;
       }
 
       .results-days-slider {
         position: relative;
-        top: 14px;
+        top: 10px;
         margin-left: 60px;
       }
 
       .cta {
-        top: 58px;
+        top: 45px;
       }
     }
 
     &--stats {
-      height: 50px;
+      height: 45px;
       padding-left: 88px;
-      line-height: 50px;
+      line-height: 45px;
 
       .item {
         &.possible,
