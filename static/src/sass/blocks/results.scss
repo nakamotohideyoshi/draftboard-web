@@ -203,19 +203,24 @@ $results-selected-text-color: #2bb677;
     }
   }
 
+  &--data {
+    position: relative;
+    display: block;
+    min-height: calc(100vh - 240px);
+  }
+
   &__no-contests {
     color: #fff;
     font-family: $font-oswald;
     font-size: 18px;
     font-weight: 700;
-    height: 100px;
     left: 50%;
     margin: 0;
     padding: 0;
-    position: fixed;
+    position: absolute;
     text-align: center;
     text-transform: uppercase;
-    top: 60%;
+    top: 50%;
     transform: translateX(-50%) translateY(-50%);
     width: 300px;
     z-index: 1;
