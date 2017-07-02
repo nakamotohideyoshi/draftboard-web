@@ -125,7 +125,7 @@ const ResultsLineup = React.createClass({
       }
 
       return (
-        <div key={player.player_id} className="player">
+        <div key={player.player_id} className="cmp-lineup-card__player">
           <span className="position">{player.roster_spot}</span>
 
           <div className="circle">
@@ -159,26 +159,26 @@ const ResultsLineup = React.createClass({
 
     if (isFinished) {
       lineupStats = (
-        <div className="footer">
-          <div className="item">
+        <footer className="cmp-lineup-card__footer">
+          <div className="cmp-lineup-card__footer-section">
             <span className="title">Won</span>
             <span className="value">
               {humanizeCurrency(this.props.stats.won)}
             </span>
           </div>
-          <div className="item">
+          <div className="cmp-lineup-card__footer-section">
             <span className="title">Entries</span>
             <span className="value">
               {this.props.stats.entries}
             </span>
           </div>
-          <div className="item">
+          <div className="cmp-lineup-card__footer-section">
             <span className="title">PTS</span>
             <span className="value">
               {humanizeFP(totalFP)}
             </span>
           </div>
-        </div>
+        </footer>
       );
 
       popup = (
@@ -273,17 +273,18 @@ const ResultsLineup = React.createClass({
     }
 
     return (
-      <div key={`${this.props.id}-lineup`} className="lineup">
-        <div className="header">
-          {this.props.name || 'Your Lineup'}
+      <div key={`${this.props.id}-lineup`} className="front">
+        <header className="cmp-lineup-card__header">
+          <h3 className="cmp-lineup-card__title">{this.props.name || 'Your Lineup'}</h3>
 
           {popup}
 
-          <div className="right-stat-title">
-            {rightStatTitle}
-          </div>
+
+        </header>
+        <div className="cmp-lineup-card__list-header">
+          <span className="cmp-lineup-card__list-header-salary">{rightStatTitle}</span>
         </div>
-        <div className="list">
+        <div className="players">
           {players}
         </div>
         {lineupStats}
@@ -301,12 +302,12 @@ const ResultsLineup = React.createClass({
 
       if (isUpcoming === true) {
         return (
-          <div key={contest.id}
-            className="contest"
+          <li key={contest.id}
+            className="entry"
           >
-            <div className="title">{contest.name}</div>
-            <div className="prize">{humanizeCurrency(entry.buyin)}</div>
-          </div>
+            <span className="title">{contest.name}</span>
+            <span className="prize">{humanizeCurrency(entry.buyin)}</span>
+          </li>
         );
       }
 
@@ -316,14 +317,14 @@ const ResultsLineup = React.createClass({
       }
 
       return (
-        <div key={contest.id}
-          className="contest"
+        <li key={contest.id}
+          className="entry"
           onClick={this.handleShowContestPane.bind(this, contest.id, entry, isLive)}
         >
-          <div className="place">{entry.final_rank}</div>
-          <div className="title">{contest.name}</div>
-          <div className={prizeClassName}>{humanizeCurrency(payout.amount || 0)}</div>
-        </div>
+          <span className="place">{entry.final_rank}</span>
+          <span className="title">{contest.name}</span>
+          <span className={prizeClassName}>{humanizeCurrency(payout.amount || 0)}</span>
+        </li>
       );
     });
 
@@ -352,28 +353,32 @@ const ResultsLineup = React.createClass({
     }
 
     return (
-      <div key={this.props.id} className="contests">
-        <div className="header">
-          {this.props.entries.length} Contests
+      <div key={this.props.id} className="back">
+        <header className="cmp-lineup-card__header">
+          <h3 className="cmp-lineup-card__title">{this.props.entries.length} Contests</h3>
+          <div className="actions-menu-container">
+            <ul className="actions">
+              <li><div className="icon-flop action" onClick={this.handleSwitchToLineup}></div></li>
+            </ul>
 
-          <div className="to-lineup" onClick={this.handleSwitchToLineup}>
           </div>
-          <div className="titles">
-            <div className="titles--pos">Pos</div>
-            <div className="titles--contest">Contest</div>
-            <div className="titles--winning">Winning</div>
+          <div className="cmp-lineup-card__list-header">
+            <span className="cmp-lineup-card__list-header-remove">Pos</span>
+            <span className="cmp-lineup-card__list-header-remove">Contest</span>
+            <span className="cmp-lineup-card__list-header-remove">Winning</span>
           </div>
-        </div>
-        <div className="list">
+        </header>
+
+        <ul className="entry-list">
           {entries}
-        </div>
+        </ul>
         {footer}
       </div>
     );
   },
 
   render() {
-    let className = 'cmp-results-lineup flip-container';
+    let className = 'cmp-lineup-card flip-container';
 
     if (!this.state.renderLineup) className += ' hover';
     if (this.state.renderContestPane) {
