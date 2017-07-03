@@ -1,9 +1,10 @@
 from logging import getLogger
+from raven.contrib.django.raven_compat.models import client
 
 import requests
 from django.conf import settings
 
-from .exceptions import (ResponseMessageException, RequestError)
+from rest_framework.exceptions import (APIException, ValidationError)
 
 logger = getLogger('account.gidx.request')
 
@@ -37,21 +38,34 @@ class GidxRequest(object):
         res = requests.post(self.url, self.params)
         # Save the response
         self.response = res
+
         # If we get a bad http status, exit outta here.
-        if res.status_code != 200:
-            raise RequestError(self.response.text)
+        if self.response.status_code != 200:
+            logger.error('%s - %s' % (self.response, self.response.text))
+            # Send some useful information to Sentry.
+            client.context.merge({'extra': {
+                'response': self.response,
+                'response_text': self.response.text,
+                'params': self.params,
+                'url': self.url,
+            }})
+            client.captureMessage("GIDX request failed - %s" % self.response.status_code)
+            client.context.clear()
+            raise APIException(self.response.text)
 
         # Parse the payload
         self.res_payload = res.json()
-
+        # Log out the req + res
+        logger.info({
+            "action": "ID_VERIFICATON_REQUEST",
+            "request": self.params,
+            "response": self.res_payload,
+        })
         # a ResponseCode of 0 indicates no errors. If we had errors, raise an exception that can
         # be caught on the view layer.
         if not self.res_payload['ResponseCode'] == 0:
             logger.warning(self.res_payload['ResponseMessage'])
-            raise ResponseMessageException(
-                '%s - %s' %
-                (self.res_payload['ResponseCode'], self.res_payload['ResponseMessage'])
-            )
+            raise ValidationError('%s' % self.res_payload['ResponseMessage'])
 
     def validate_params(self):
         """
@@ -151,14 +165,35 @@ class CustomerRegistrationRequest(GidxRequest):
         reason_codes = self.res_payload['ReasonCodes']
         # If we have reason codes...
         if len(reason_codes):
-            # The identity we verified was am match, but we've already matched
-            # it before. so we want to decline this person so that they don't
-            # create multiple accounts.
-            if self.identity_is_claimed():
-                return False
             # And one of othem is an id verified flag, we are verified!
             if 'ID-VERIFIED' in reason_codes:
                 return True
 
         # If we have no codes or are missing  the verified one, we are not verified.
         return False
+
+    def get_country(self):
+        if self.res_payload is None:
+            logger.warning('You have not made a request yet.')
+            return False
+
+        for code in self.res_payload['ReasonCodes']:
+            if 'LL-GEO-' in code:
+                return code.split('-')[-2]
+
+    def get_region(self):
+        def get_country(self):
+            if self.res_payload is None:
+                logger.warning('You have not made a request yet.')
+                return False
+
+            for code in self.res_payload['ReasonCodes']:
+                if 'LL-GEO-' in code:
+                    return code.split('-')[-1]
+
+    def is_identity_previously_claimed(self):
+        if self.res_payload is None:
+            logger.warning('You have not made a request yet.')
+            return False
+
+        return 'ID-EX' in self.res_payload['ReasonCodes']

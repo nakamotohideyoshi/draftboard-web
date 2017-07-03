@@ -6,8 +6,7 @@ import request from 'superagent';
 import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
 import { addMessage } from './message-actions';
-import { getJsonResponse } from '../lib/utils/response-types';
-
+import { isExceptionDetail, isFieldValidationErrorObject } from '../lib/utils/response-types';
 
 // custom API domain for local dev testing
 let { API_DOMAIN = '' } = process.env;
@@ -19,16 +18,31 @@ if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
 /**
  * Get Basic User Information.
  */
-export const fetchUser = () => ({
-  [CALL_API]: {
-    types: [
-      actionTypes.FETCH_USER,
-      actionTypes.FETCH_USER__SUCCESS,
-      actionTypes.FETCH_USER__FAIL,
-    ],
-    endpoint: '/api/account/user/',
-  },
-});
+export const fetchUser = (sport) => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCH_USER,
+        actionTypes.FETCH_USER__SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: '/api/account/user/',
+    },
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      return dispatch({
+        type: actionTypes.FETCH_USER__FAIL,
+        response: action,
+      });
+    }
+
+    return action;
+  });
+};
 
 
 /**
@@ -308,68 +322,131 @@ export const verifyLocation = () => (dispatch) => {
  */
 export function verifyIdentity(postData) {
   return (dispatch) => {
-    console.log(postData)
-    // Tell the state that we are currently verifying an identity.
-    dispatch({
-      type: actionTypes.VERIFY_IDENTITY__SEND,
-    });
+    // Dispatch the send action.
+    dispatch({ type: actionTypes.VERIFY_IDENTITY__SEND });
 
-    return fetch(`${API_DOMAIN}/api/account/verify-user/`, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        username: Cookies.get('username'),
-      },
-      body: JSON.stringify(postData),
-    }).then((response) => {
-      // If the response was not in the success (2xx) range...
-      if (!response.ok) {
-        // Extract the text and dispatch some actions.
-        return getJsonResponse(response).then(
-          json => {
+    return new Promise((resolve, reject) => {
+      request
+      .post('/api/account/verify-user/')
+      .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
+      .send(postData)
+      .end((err, res) => {
+        if (err) {
+          // Is the response a general error, with a detail message?
+          // If it isn't, we need to show the error banner.
+          if (isExceptionDetail(res)) {
             dispatch(addMessage({
               header: 'Unable to verify your identity.',
               level: 'warning',
-              content: json.detail || 'Please contact us if you beleive this is an error.',
+              content: res.body.detail || 'Please contact us if you beleive this is an error.',
             }));
-
-            // Tell the state it failed.
-            dispatch({
-              type: actionTypes.VERIFY_IDENTITY__FAIL,
-              response: json,
-            });
-            // Kill the promise chain.
-            return Promise.resolve({ err: json });
           }
-        );
-      }
 
-      dispatch(fetchUser());
+          // Tell the state it failed.
+          dispatch({
+            type: actionTypes.VERIFY_IDENTITY__FAIL,
+            response: res.body,
+          });
 
-      // if it was a success...
-      dispatch({
-        type: actionTypes.VERIFY_IDENTITY__SUCCESS,
-      });
+          // Kill the promise chain.
+          return reject({ err: res.body });
+        }
 
-      // Show a success message.
-      dispatch(addMessage({
-        level: 'success',
-        header: 'Your identity was verified.',
-        ttl: 3000,
-      }));
+        // if it was a success...
+        dispatch({
+          type: actionTypes.VERIFY_IDENTITY__SUCCESS,
+          response: res.body,
+        });
 
-      // Parse the json response and resolve the promise chain.
-      return response.json().then(json => {
-        log.debug(json);
-        return Promise.resolve({ response: json });
+        // Show a success message.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your identity was verified.',
+          ttl: 3000,
+        }));
+
+        // Now that we have a verified identity, re-fetch the user info
+        // so our store can be up-to-date.
+        dispatch(fetchUser());
+
+        // Resolve the promise chain.
+        return resolve({ response: res });
       });
     });
   };
 }
+
+//
+//
+// export function verifyIdentity(postData) {
+//   return (dispatch) => {
+//     console.log(postData)
+//     // Tell the state that we are currently verifying an identity.
+//     dispatch({
+//       type: actionTypes.VERIFY_IDENTITY__SEND,
+//     });
+//
+//     return fetch(`${API_DOMAIN}/api/account/verify-user/`, {
+//       method: 'POST',
+//       credentials: 'same-origin',
+//       headers: {
+//         Accept: 'application/json',
+//         'Content-Type': 'application/json',
+//         'X-REQUESTED-WITH': 'XMLHttpRequest',
+//         'X-CSRFToken': Cookies.get('csrftoken'),
+//         username: Cookies.get('username'),
+//       },
+//       body: JSON.stringify(postData),
+//     }).then((response) => {
+//       // If the response was not in the success (2xx) range...
+//       if (!response.ok) {
+//         // Extract the text and dispatch some actions.
+//         return getJsonResponse(response).then(
+//           json => {
+//
+//             // Is the response a serializer validation error?
+//             // If it is, we don't need to show the error banner.
+//             if (!isFieldValidationErrorObject(json)) {
+//               dispatch(addMessage({
+//                 header: 'Unable to verify your identity.',
+//                 level: 'warning',
+//                 content: json.detail || 'Please contact us if you beleive this is an error.',
+//               }));
+//             }
+//
+//             // Tell the state it failed.
+//             dispatch({
+//               type: actionTypes.VERIFY_IDENTITY__FAIL,
+//               response: json,
+//             });
+//             // Kill the promise chain.
+//             return Promise.resolve({ err: json });
+//           }
+//         );
+//       }
+//
+//       dispatch(fetchUser());
+//
+//       // if it was a success...
+//       dispatch({
+//         type: actionTypes.VERIFY_IDENTITY__SUCCESS,
+//       });
+//
+//       // Show a success message.
+//       dispatch(addMessage({
+//         level: 'success',
+//         header: 'Your identity was verified.',
+//         ttl: 3000,
+//       }));
+//
+//       // Parse the json response and resolve the promise chain.
+//       return response.json().then(json => {
+//         log.debug(json);
+//         return Promise.resolve({ response: json });
+//       });
+//     });
+//   };
+// }
 
 
 /**

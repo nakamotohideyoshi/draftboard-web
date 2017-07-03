@@ -4,6 +4,7 @@ from datetime import datetime, date, timedelta
 
 from braces.views import LoginRequiredMixin
 from django.conf import settings
+from account.models import Identity
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth import login as authLogin
 from django.contrib.auth import views as auth_views
@@ -893,7 +894,7 @@ class VerifyLocationAPIView(APIView):
         )
 
 
-class VerifyUserAPIView(APIView):
+class VerifyUserIdentityAPIView(APIView):
     """
     Uses GIDX to verify the user's identity. If the GIDX request was a success, we set the
     user's account as 'verified'.
@@ -923,10 +924,26 @@ class VerifyUserAPIView(APIView):
 
             # If the user was verified...
             if crr.is_verified():
+                # create a date out of the input.
+                dob = datetime(
+                    serializer.validated_data.get('birth_year'),
+                    serializer.validated_data.get('birth_month'),
+                    serializer.validated_data.get('birth_day')
+                )
+                # If GIDX says they are verified, we save the some of the identity info.
+                Identity.objects.create(
+                    user=request.user,
+                    dob=dob,
+                    gidx_customer_id=crr.res_payload['MerchantCustomerID'],
+                    country=crr.get_country(),
+                    region=crr.get_region(),
+                    flagged=crr.is_identity_previously_claimed(),
+                    metadata=crr.res_payload,
+                )
                 return Response(
                     data={
                         "status": "SUCCESS",
-                        "detail": "This doesn't do anything yet."
+                        "detail": "Your identity has been verified."
                     },
                     status=200,
                 )
@@ -942,7 +959,7 @@ class VerifyUserAPIView(APIView):
                     "detail": message,
                     "reasonCodes": crr.res_payload['ReasonCodes'],
                 },
-                status=200,
+                status=400,
             )
 
 
