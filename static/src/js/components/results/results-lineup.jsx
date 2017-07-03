@@ -111,7 +111,7 @@ const ResultsLineup = React.createClass({
 
       let team;
       if (player.player_meta.team) {
-        team = (<span className="team">- {player.player_meta.team.alias}</span>);
+        team = (<span className="team">{`${player.player_meta.team.alias}`}</span>);
       }
 
       let score = humanizeFP(player.fantasy_points);
