@@ -147,6 +147,10 @@
   display: inline-block;
   float: right;
 
+  .export-button {
+    background: white;
+  }
+
   // Search
   .cmp-collection-search-filter {
     float: none;
