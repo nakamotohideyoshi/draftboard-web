@@ -108,6 +108,7 @@ mysite/settings/dev_zach.py
 mysite/settings/craigruks.py
 mysite/settings/ivo.py
 mysite/settings/hristo.py
+mysite/settings/dev_parker_local.py
 
 # swap files
 *.swp
