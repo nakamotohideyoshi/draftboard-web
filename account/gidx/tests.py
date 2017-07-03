@@ -2,7 +2,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from model_mommy import mommy
 
-from .exceptions import (ResponseMessageException)
+from rest_framework.exceptions import (APIException, ValidationError)
+
 from .request import (
     CustomerRegistrationRequest,
     EXISTING_IDENTITY_MESSAGE
@@ -27,17 +28,17 @@ class TestCustomerRegistrationRequest(TestCase):
         self.user.delete()
 
     # Makes a real API call to the service. with z's real info.
-    # def test_service(self):
-    #     crr = CustomerRegistrationRequest(
-    #         user=self.user,
-    #         first_name='zachary',
-    #         last_name='wood',
-    #         date_of_birth='02/23/1984',
-    #         ip_address='174.51.188.204'
-    #     )
-    #
-    #     crr.send()
-    #     response = crr.res_payload
+    def test_service(self):
+        crr = CustomerRegistrationRequest(
+            user=self.user,
+            first_name='zachary',
+            last_name='wood',
+            date_of_birth='02/23/1984',
+            ip_address='174.51.188.204'
+        )
+
+        crr.send()
+        response = crr.res_payload
 
     def test_response_message_exception(self):
         # None of these params matter since we never call .send().
@@ -49,7 +50,7 @@ class TestCustomerRegistrationRequest(TestCase):
             ip_address=''
         )
         crr.res_payload = CUSTOMER_REGISTRATION_BAD_INPUT_RESPONSE
-        self.assertRaises(ResponseMessageException, crr.send())
+        self.assertRaises(ValidationError, crr.send())
 
     def test_is_verified_false(self):
         # None of these params matter since we never call .send().
@@ -87,6 +88,8 @@ class TestCustomerRegistrationRequest(TestCase):
             ip_address=''
         )
         crr.res_payload = CUSTOMER_REGISTRATION_EXISTING_MATCH_RESPONSE
-        self.assertFalse(crr.is_verified())
+        # claimed identity respsones should count as being verified. we don't turn people
+        # away for previously claimed ones, we flag them and investigate manually.
+        self.assertTrue(crr.is_verified())
         self.assertEqual(crr.get_response_message(), EXISTING_IDENTITY_MESSAGE)
         self.assertNotEqual(crr.get_response_message(), '')

@@ -201,33 +201,38 @@ module.exports = (state = initialState, action) => {
      * User Verification
      */
     case actionTypes.VERIFY_IDENTITY__SEND: {
-      return merge({}, state, {
+      const newState = merge({}, state, {
         identityFormInfo: {
           isSending: true,
-          errors: {},
         },
       });
-    }
 
+      newState.identityFormInfo.errors = {};
+      return newState;
+    }
 
     case actionTypes.VERIFY_IDENTITY__SUCCESS: {
-      return merge({}, state, {
+      const newState = merge({}, state, {
         identityFormInfo: {
           isSending: false,
-          errors: {},
         },
       });
-    }
 
+      newState.identityFormInfo.errors = {};
+      return newState;
+    }
 
     case actionTypes.VERIFY_IDENTITY__FAIL: {
-      return merge({}, state, {
+      const newState = merge({}, state, {
         identityFormInfo: {
           isSending: false,
-          errors: action.response,
         },
       });
+
+      newState.identityFormInfo.errors = action.response;
+      return newState;
     }
+
 
     /**
      * Location Verification

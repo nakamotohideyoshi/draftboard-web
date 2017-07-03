@@ -9,24 +9,30 @@ from .utils import reset_user_password_email
 
 class InformationAdminInline(admin.TabularInline):
     model = Information
-    list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
+    list_display = ['user', 'inactive', 'exclude_date']
 
+    # Don't let this be deleted via the admin panel
     def has_delete_permission(self, request, obj=None):
         return False
 
 
 class IdentityAdminInline(admin.TabularInline):
     model = Identity
-    list_display = ['first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
-                    'postal_code', 'created']
+    readonly_fields = [
+        'gidx_customer_id', 'dob', 'country', 'region', 'flagged', 'created', 'metadata']
+
+    # Don't let this be deleted via the admin panel
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Identity)
 class IdentityAdmin(admin.ModelAdmin):
-    list_display = ['user', 'flagged', 'first_name', 'last_name', 'birth_day', 'birth_month',
-                    'birth_year', 'postal_code', 'created']
-    search_fields = ['user__username', 'first_name', 'last_name', 'postal_code']
-    list_filter = ['flagged']
+    list_display = ['user', 'dob', 'country', 'region', 'flagged', 'created']
+    search_fields = ['user__username', 'country', 'region']
+    readonly_fields = ['gidx_customer_id', 'user', 'dob', 'country', 'region', 'metadata',
+                       'created']
+    list_filter = ['flagged', 'country', 'region']
 
 
 @admin.register(EmailNotification)
