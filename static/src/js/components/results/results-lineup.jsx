@@ -126,7 +126,7 @@ const ResultsLineup = React.createClass({
 
       return (
         <div key={player.player_id} className="cmp-lineup-card__player">
-          <span className="position">{player.roster_spot}</span>
+          <span className="cmp-lineup-card__position">{player.roster_spot}</span>
 
           <div className="circle">
             <PlayerPmrHeadshotComponent
@@ -161,19 +161,19 @@ const ResultsLineup = React.createClass({
       lineupStats = (
         <footer className="cmp-lineup-card__footer">
           <div className="cmp-lineup-card__footer-section">
-            <span className="title">Won</span>
+            <span className="cmp-lineup-card__footer-title">Won</span>
             <span className="value">
               {humanizeCurrency(this.props.stats.won)}
             </span>
           </div>
           <div className="cmp-lineup-card__footer-section">
-            <span className="title">Entries</span>
+            <span className="cmp-lineup-card__footer-title">Entries</span>
             <span className="value">
               {this.props.stats.entries}
             </span>
           </div>
           <div className="cmp-lineup-card__footer-section">
-            <span className="title">PTS</span>
+            <span className="cmp-lineup-card__footer-title">PTS</span>
             <span className="value">
               {humanizeFP(totalFP)}
             </span>
@@ -199,7 +199,7 @@ const ResultsLineup = React.createClass({
         lineupStats = (
           <div className="footer-upcoming">
             <div className="item">
-              <span className="title">Live In</span>
+              <span className="cmp-lineup-card__footer-title">Live In</span>
               <span className="value">
                 <CountdownClock
                   time={ new Date(this.props.start).getTime() }
@@ -207,7 +207,7 @@ const ResultsLineup = React.createClass({
               </span>
             </div>
             <div className="item">
-              <span className="title">Fees&nbsp;/&nbsp;Entries</span>
+              <span className="cmp-lineup-card__footer-title">Fees&nbsp;/&nbsp;Entries</span>
               <span className="value">
                 <span className="fees">{humanizeCurrency(this.props.liveStats.totalBuyin)}</span>
                 &nbsp;/&nbsp;

@@ -287,6 +287,9 @@ category: Lineup
   // Footer section.
   &__footer {
     padding: 15px 0;
+    display: flex;
+    flex-justify: center;
+    align-items: stretch;
   }
 
   &__footer-section {
