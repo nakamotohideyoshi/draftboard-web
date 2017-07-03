@@ -11,19 +11,18 @@ const ResultsHeader = React.createClass({
     year: React.PropTypes.number.isRequired,
     month: React.PropTypes.number.isRequired,
     day: React.PropTypes.number.isRequired,
-    isWatchingLive: React.PropTypes.bool.isRequired,
-    watchLiveLineups: React.PropTypes.func,
+    isWatchingLive: React.PropTypes.isRequired,
     onSelectDate: React.PropTypes.func,
   },
 
   getTitle() {
     const { year, month, day } = this.props;
     return moment(`${year}-${month}-${day}`, 'YYYY-M-D').calendar(null, {
-      sameDay: '[Today], MMMM D, YYYY',
-      nextDay: '[Tomorrow], MMMM D, YYYY',
-      nextWeek: 'dddd, MMMM D, YYYY',
-      lastDay: '[Yesterday], MMMM D, YYYY',
-      lastWeek: '[Last] dddd, MMMM D, YYYY',
+      sameDay: 'MMMM D, YYYY',
+      nextDay: 'MMMM D, YYYY',
+      nextWeek: 'MMMM D, YYYY',
+      lastDay: 'MMMM D, YYYY',
+      lastWeek: 'MMMM D, YYYY',
       sameElse: 'MMMM D, YYYY',
     });
   },
@@ -50,17 +49,11 @@ const ResultsHeader = React.createClass({
   },
 
   render() {
-    const { year, month, day, isWatchingLive, onSelectDate, watchLiveLineups } = this.props;
+    const { year, month, day, isWatchingLive, onSelectDate } = this.props;
 
     let lineupType = 'Live Lineups';
     let datePicker;
     let daySlider;
-
-    let ctaLive = (
-      <div className="watch-live-lineups" onClick={this.returnToYesterday}>
-        See Past Lineups
-      </div>
-    );
 
     if (isWatchingLive === false) {
       lineupType = 'Past Lineups';
@@ -82,12 +75,6 @@ const ResultsHeader = React.createClass({
           onSelectDate={onSelectDate}
         />
       );
-
-      ctaLive = (
-        <div className="watch-live-lineups" onClick={watchLiveLineups}>
-          Watch Live Lineups
-        </div>
-      );
     }
 
     return (
@@ -104,7 +91,6 @@ const ResultsHeader = React.createClass({
           <div className="icon"></div>
         </div>
         <div className="cta">
-          {ctaLive}
           <a href="/contests/" className="draft-a-team">
             Draft a team
           </a>
