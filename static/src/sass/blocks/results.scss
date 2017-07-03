@@ -291,9 +291,7 @@ $results-selected-text-color: #2bb677;
           min-height: 40px;
           border-bottom: 1px solid #ebedf2;
 
-          &:hover {
-            background-color: #f8fafb;
-          }
+
 
           .position,
           .circle,
@@ -312,35 +310,9 @@ $results-selected-text-color: #2bb677;
             text-transform: uppercase;
           }
 
-          .circle {
-            background-size: 120% auto;
-            border-radius: 50%;
-            display: inline-block;
-            margin: 0 6px;
-            position: relative;
-          }
-
-          .name {
-            color: $results-fg-text-color;
-            font-size: 12px;
-          }
-
           .team {
             font-size: 12px;
             color: #9c9faf;
-          }
-
-          .score {
-            color: #46495e;
-            font-family: $font-oswald;
-            font-size: 13px;
-            position: absolute;
-            right: 20px;
-            top: 9px;
-
-            &.score-zero {
-              color: #c3c4ce;
-            }
           }
         }
       }

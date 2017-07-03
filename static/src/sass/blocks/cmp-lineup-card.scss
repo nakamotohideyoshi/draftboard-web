@@ -40,9 +40,55 @@ category: Lineup
     display: table-row;
     list-style: none;
     margin: 0;
-
+    &:hover {
+      background-color: #f8fafb;
+    }
+    .team > span{
+      display: inline;
+      font-size: 10px;
+      padding-left: 5px;
+    }
     > span {
       vertical-align: middle;
+    }
+    .circle {
+      background-size: 120% auto;
+      border-radius: 50%;
+      display: inline-block;
+      margin: 7px 6px 5px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid red;
+      .cmp-lineup-card {
+        &__photo {
+          overflow: hidden;
+          padding: 0;
+          height: auto;
+          width: auto;
+          vertical-align: middle;
+          display: block;
+          img {
+            vertical-align: middle;
+            padding: 0;
+            margin: 0;
+            max-width: 50px;
+            display: block;
+            width: 100%;
+            height: auto;
+            position: relative;
+            top: 0;
+            left: 0;
+          }
+        }
+      }
+    }
+    .score{
+      padding: 0;
+      text-align: center;
+      .text{
+        padding: 0;
+        text-align: center;
+      }
     }
   }
 
@@ -167,8 +213,8 @@ category: Lineup
     width: 50px;
     height: 41px;
     overflow: hidden;
-    padding: 0 5px !important;
-    vertical-align: bottom !important;
+    padding: 0 5px;
+    vertical-align: bottom;
 
     img {
       vertical-align: bottom;
@@ -742,6 +788,8 @@ category: Lineup
   	transition: 0.25s ease-in-out;
   	transform-style: preserve-3d;
   	position: relative;
+    display: flex;
+    align-items: stretch;
   }
 
   .front,
@@ -750,6 +798,7 @@ category: Lineup
   	backface-visibility: hidden;
   	// min-height: 510px;
   	width: 290px;
+    height: 100%;
   }
 
   /* front pane, placed above back */
