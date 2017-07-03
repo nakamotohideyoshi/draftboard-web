@@ -186,6 +186,7 @@ category: Lineup
   &__name,
   &__salary,
   &__average,
+  &__emvalue,
   &__position {
     vertical-align: middle;
   }
@@ -243,6 +244,7 @@ category: Lineup
   }
 
   &__salary,
+  &__emvalue,
   &__average {
     font-family: $font-oswald;
     line-height: 1em;
@@ -253,7 +255,8 @@ category: Lineup
     }
   }
 
-  &__average {
+  &__average,
+  &__emvalue{
     .text {
       text-align: right;
       padding-right: 10px;

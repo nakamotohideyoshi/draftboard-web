@@ -125,7 +125,7 @@ const ResultsLineup = React.createClass({
       }
 
       return (
-        <div key={player.player_id} className="cmp-lineup-card__player">
+        <li key={player.player_id} className="cmp-lineup-card__player">
           <span className="cmp-lineup-card__position">{player.roster_spot}</span>
 
           <div className="circle">
@@ -140,12 +140,16 @@ const ResultsLineup = React.createClass({
             />
           </div>
 
-          <span className="name">{player.full_name}</span>
-          <span className="team">{team}</span>
-          <span className={scoreClassName}>
-            {score}
+          <span className="cmp-lineup-card__name-game">
+            <span className="name">{player.full_name}</span>
           </span>
-        </div>
+          <span className="team">{team}</span>
+          <span className={`cmp-lineup-card__emvalue ${scoreClassName}`}>
+            <span className="text">
+              {score}
+            </span>
+          </span>
+        </li>
       );
     });
 
@@ -284,9 +288,9 @@ const ResultsLineup = React.createClass({
         <div className="cmp-lineup-card__list-header">
           <span className="cmp-lineup-card__list-header-salary">{rightStatTitle}</span>
         </div>
-        <div className="players">
+        <ul className="players">
           {players}
-        </div>
+        </ul>
         {lineupStats}
       </div>
     );
