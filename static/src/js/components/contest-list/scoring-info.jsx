@@ -137,11 +137,11 @@ const renderEvents = (sport) => {
 /**
  * Print out a table of fantasy points awarded for each type of player action.
  */
-const ScoringInfo = (props, isModal) => {
+const ScoringInfo = (props) => {
   let res;
-  if (isModal) {
+  if (props.isModal === true) {
     res = (
-        <ScoringInfoModal sport={props.sport} />
+        <ScoringInfoModal sport={props.sport} isModal={props.isModal} />
     );
   } else {
     res = (
@@ -166,11 +166,12 @@ const ScoringInfo = (props, isModal) => {
 
 ScoringInfo.propTypes = {
   sport: React.PropTypes.string.isRequired,
-  isModal: React.PropTypes.boolean,
+  isModal: React.PropTypes.bool,
 };
 
 ScoringInfoModal.propTypes = {
   sport: React.PropTypes.string.isRequired,
+  isModal: React.PropTypes.bool,
 };
 
 

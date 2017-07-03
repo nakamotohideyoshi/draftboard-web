@@ -5,6 +5,7 @@ import Component from '../../../components/contest-list/scoring-info';
 
 const defaultTestProps = {
   sport: 'nba',
+  isModal: false,
 };
 
 
@@ -43,6 +44,36 @@ describe('<ScoringInfo /> Component', () => {
 
     assert.lengthOf(
       wrapper.find('tbody tr'),
+      0,
+      'is rendering invalid table data.'
+    );
+  });
+
+
+  it('should render with modal.', () => {
+    wrapper.setProps({ isModal: true });
+    assert.lengthOf(
+      wrapper.find('.score-table'),
+      1,
+      'Component is not rendering'
+    );
+  });
+
+  /* tests for modal mode */
+  it('should render .score-col-name when a valid sport is provided', () => {
+    wrapper.setProps({ isModal: true });
+    assert.lengthOf(
+      wrapper.find('.score-col-name'),
+      2,
+      'Not rendering table data'
+    );
+  });
+
+  it('should NOT render .score-col-name when an invalid sport is provided', () => {
+    wrapper.setProps({ sport: 'invalid sport', isModal: true });
+
+    assert.lengthOf(
+      wrapper.find('.score-col-name'),
       0,
       'is rendering invalid table data.'
     );
