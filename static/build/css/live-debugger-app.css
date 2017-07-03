@@ -3493,7 +3493,7 @@ category: Tooltips
   position: relative;
   width: 100%; }
   .results-page--header {
-    height: 130px;
+    height: 110px;
     margin-top: 60px;
     position: relative;
     background-color: #ffffff;
@@ -3504,7 +3504,8 @@ category: Tooltips
     .results-page--header .title .date {
       color: #47495e;
       font-family: "Oswald", "Arial", "Helvetica", sans-serif;
-      font-size: 20px; }
+      font-size: 24px;
+      min-width: 110px; }
     .results-page--header .results-days-slider {
       display: inline-block;
       width: 290px; }
@@ -3573,7 +3574,8 @@ category: Tooltips
           top: 8px; }
     .results-page--header .results-date-picker {
       display: inline-block;
-      white-space: nowrap; }
+      white-space: nowrap;
+      margin-top: 5px; }
       .results-page--header .results-date-picker .toggle {
         display: inline-block;
         background: url(/static/img/calendar.3237df2.png) no-repeat center center;
@@ -3581,7 +3583,6 @@ category: Tooltips
         width: 20px;
         height: 20px;
         position: relative;
-        top: 4px;
         cursor: pointer;
         margin-left: 45px; }
     .results-page--header .search {
@@ -3623,26 +3624,29 @@ category: Tooltips
       .results-page--stats .item .title,
       .results-page--stats .item .value {
         display: inline-block;
-        line-height: 1;
+        line-height: .8;
         vertical-align: middle; }
       .results-page--stats .item .value {
         color: #47495e;
         font-family: "Oswald", "Arial", "Helvetica", sans-serif;
         font-size: 15px;
         margin-left: 6px; }
+  .results-page--data {
+    position: relative;
+    display: block;
+    min-height: calc(100vh - 220px); }
   .results-page__no-contests {
     color: #fff;
     font-family: "Oswald", "Arial", "Helvetica", sans-serif;
     font-size: 18px;
     font-weight: 700;
-    height: 100px;
     left: 50%;
     margin: 0;
     padding: 0;
-    position: fixed;
+    position: absolute;
     text-align: center;
     text-transform: uppercase;
-    top: 60%;
+    top: 50%;
     transform: translateX(-50%) translateY(-50%);
     width: 300px;
     z-index: 1; }
@@ -4034,17 +4038,17 @@ category: Tooltips
     height: 100%; }
     .results-page--header .title {
       display: inline-block;
-      padding-top: 40px; }
+      padding-top: 30px; }
     .results-page--header .results-days-slider {
       position: relative;
-      top: 14px;
+      top: 10px;
       margin-left: 60px; }
     .results-page--header .cta {
-      top: 58px; }
+      top: 45px; }
     .results-page--stats {
-      height: 50px;
+      height: 45px;
       padding-left: 88px;
-      line-height: 50px; }
+      line-height: 45px; }
       .results-page--stats .item.possible, .results-page--stats .item.winnings, .results-page--stats .item.buyins {
         width: 130px; }
       .results-page--stats .item.entries .value {
@@ -4058,16 +4062,22 @@ category: Tooltips
     padding-top: 10px;
     padding-left: 5%; }
   .results-page--header .results-days-slider {
-    display: inline-block;
-    position: absolute;
-    right: 0;
-    top: 60px;
+    display: block;
+    position: relative;
+    left: 50%;
+    top: 10px;
+    width: 262px;
+    margin-left: -131px;
     transform: scale(0.9); }
   .results-page--header .results-date-picker {
-    padding-top: 18px; }
+    display: block;
+    text-align: center; }
+    .results-page--header .results-date-picker .toggle {
+      margin-left: 0;
+      display: none; }
   .results-page--header .cta {
     right: 5%;
-    top: 20px; }
+    top: 28px; }
   .results-page--stats {
     padding: 10px 5%;
     line-height: 2;
