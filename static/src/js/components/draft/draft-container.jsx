@@ -428,7 +428,7 @@ const DraftContainer = React.createClass({
           >
             <div className={`sport-image sport-image--${this.props.sport}`} />
 
-            <ScoringInfo sport={this.props.sport} isModal="true" />
+            <ScoringInfo sport={this.props.sport} isModal />
           </DraftScoringModal>
 
           <div
