@@ -369,9 +369,11 @@ const ResultsLineup = React.createClass({
           </div>
         </header>
 
-        <ul className="entry-list">
-          {entries}
-        </ul>
+        <div className="cmp-lineup-card-entries">
+          <ul className="entry-list">
+            {entries}
+          </ul>
+        </div>
         {footer}
       </div>
     );
