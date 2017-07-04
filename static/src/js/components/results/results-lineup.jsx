@@ -279,15 +279,18 @@ const ResultsLineup = React.createClass({
     return (
       <div key={`${this.props.id}-lineup`} className="front">
         <header className="cmp-lineup-card__header">
-          <h3 className="cmp-lineup-card__title">{this.props.name || 'Your Lineup'}</h3>
+          <h3 className="cmp-lineup-card__title">
+            <div className={`cmp-sport-icon icon-${this.props.sport}`}></div>
+            {this.props.name || 'Your Lineup'}
+          </h3>
 
           {popup}
 
-
+          <div className="cmp-lineup-card__list-header">
+            <span className="cmp-lineup-card__list-header-salary">{rightStatTitle}</span>
+          </div>
         </header>
-        <div className="cmp-lineup-card__list-header">
-          <span className="cmp-lineup-card__list-header-salary">{rightStatTitle}</span>
-        </div>
+
         <ul className="players">
           {players}
         </ul>
@@ -359,7 +362,9 @@ const ResultsLineup = React.createClass({
     return (
       <div key={this.props.id} className="back">
         <header className="cmp-lineup-card__header">
-          <h3 className="cmp-lineup-card__title">{this.props.entries.length} Contests</h3>
+          <h3 className="cmp-lineup-card__title">
+            <div className={`cmp-sport-icon icon-${this.props.sport}`}></div>
+            {this.props.entries.length} Contests</h3>
           <div className="actions-menu-container">
             <ul className="actions">
               <li><div className="icon-flop action" onClick={this.handleSwitchToLineup}></div></li>
