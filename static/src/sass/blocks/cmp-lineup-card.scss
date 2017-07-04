@@ -526,7 +526,6 @@ category: Lineup
 
   &__list-header {
     color: #6d718a;
-    padding: 0px 25px 0 20px;
     text-align: right;
 
     &-average,
@@ -824,12 +823,14 @@ category: Lineup
     }
 
     .cmp-lineup-card__list-header {
-      padding: 5px 0 0 0;
       text-align: left;
 
       > span {
         color: #c5c7ce;
         display: inline-block;
+        &:last-child{
+          text-align: right;
+        }
       }
 
       &-remove {
