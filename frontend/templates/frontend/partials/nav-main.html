@@ -16,14 +16,14 @@
           <a href="/account/settings/">My Account</a>
         </li>
         <li>
-          <a href="/logout/">Sign Out</a>
+          <a href="{% url "logout" %}">Sign Out</a>
         </li>
       {% else %}
         <li>
-          <a href="/login/">Log In</a>
+          <a href="{% url "login" %}"">Log In</a>
         </li>
         <li>
-          <a href="/register/">Sign Up</a>
+          <a href="{% url "register" %}">Sign Up</a>
         </li>
       {% endif %}
     </ul>
@@ -39,10 +39,10 @@
         <a href="#">Help</a>
       </li>
       <li>
-        <a href="/terms-conditions/">Terms of Use</a>
+        <a href="{% url 'frontend:terms-of-service' %}">Terms of Service</a>
       </li>
       <li>
-        <a href="/privacy-policy">Privacy Policy</a>
+        <a href="{% url 'frontend:privacy-policy' %}">Privacy Policy</a>
       </li>
       <li>
         <a href="{% url 'frontend:responsible-play' %}">Responsible Play</a>

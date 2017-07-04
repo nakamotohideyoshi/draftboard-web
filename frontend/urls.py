@@ -109,9 +109,9 @@ urlpatterns = [
 
     # body copy pages
     url(
-        r'^terms-conditions/$',
+        r'^terms-of-service/$',
         views.FrontendTermsConditionsTemplateView.as_view(),
-        name='terms-conditions'
+        name='terms-of-service'
     ),
 
     url(
