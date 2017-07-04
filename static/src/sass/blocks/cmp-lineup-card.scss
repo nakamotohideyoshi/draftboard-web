@@ -22,9 +22,6 @@ category: Lineup
   background: #fff;
   color: #293f4f;
   margin: 0 auto 10px;
-  max-width: 290px;
-  position: relative;
-  overflow: hidden;
 
   .players {
     list-style: none;
@@ -58,13 +55,14 @@ category: Lineup
       margin: 7px 6px 5px;
       position: relative;
       overflow: hidden;
-      border: 1px solid red;
+      border: 1px solid rgba(109, 113, 138, .5);
       .cmp-lineup-card {
         &__photo {
           overflow: hidden;
           padding: 0;
-          height: auto;
-          width: auto;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
           vertical-align: middle;
           display: block;
           img {
@@ -76,8 +74,8 @@ category: Lineup
             width: 100%;
             height: auto;
             position: relative;
-            top: 0;
-            left: 0;
+            top: 6px;
+            left: 0px;
           }
         }
       }
@@ -343,15 +341,14 @@ category: Lineup
 
   &__footer-section {
       display: inline-block;
-      width: 50%;
-      text-align: left;
-      padding-left: 15px;
+      width: 100%;
       font-size: 16px;
       font-family: $font-oswald;
       border-right: 1px solid #ebedf2;
-
+      text-align: center;
+      width: 100%;
+      display: block;
       &:last-child {
-        padding-left: 30px;
         border-right: none;
       }
   }
@@ -525,7 +522,6 @@ category: Lineup
         right: 15px;
       }
     }
-
   }
 
   &__list-header {
@@ -774,18 +770,20 @@ category: Lineup
 .cmp-lineup-card.flip-container {
   perspective: 1000px;
   background: none;
-  width: 290px;
+  width: 100%;
 
   /* flip the card when .flipped class is added. */
   &.flipped {
     .flipper {
+
       transform: rotateY(-180deg);
     }
   }
 
   // The element that flips.
   .flipper {
-  	transition: 0.25s ease-in-out;
+    max-width: 290px;
+    position: relative;
   	transform-style: preserve-3d;
   	position: relative;
     display: flex;
@@ -799,13 +797,13 @@ category: Lineup
   	// min-height: 510px;
   	width: 290px;
     height: 100%;
+    overflow: hidden;
   }
 
   /* front pane, placed above back */
   .front {
     background: #fff;
   	/* for firefox 31 */
-  	transform: rotateY(0deg);
     z-index: 2;
   }
 
@@ -868,6 +866,7 @@ category: Lineup
 
       &-section {
         border-color: #5f626d;
+
       }
     }
 
@@ -881,10 +880,42 @@ category: Lineup
         color: #c5c7ce;
       }
     }
-
-
   }
 }
+
+.flip-container {
+  .flipper, .front, .back {
+    transition: 0.6s;
+  }
+
+  .flipper {
+    position: relative;
+    transform: rotateY(0deg);
+    transform-style: preserve-3d;
+    transform-origin: center center;
+
+    .front {
+      filter: blur(0px);
+    }
+
+    .back {
+      filter: blur(20px);
+    }
+  }
+
+  &.hover .flipper {
+    transform: rotateY(180deg);
+
+    .front {
+      filter: blur(20px);
+    }
+
+    .back {
+      filter: blur(0px);
+    }
+  }
+}
+
 
 
 
