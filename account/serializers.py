@@ -71,27 +71,9 @@ class UserSerializer(serializers.ModelSerializer):
 class UserCredentialsSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-
-        return user
-
     class Meta:
         model = User
-
-
-# This serializer was re-defined with the same name as the one above...
-# I don't think this one is needed but I'll keep it here just in case.
-#
-# class UserSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = User
-#         fields = ("email", "password")
+        fields = ("email", "password")
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):

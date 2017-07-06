@@ -904,7 +904,20 @@ class VerifyUserIdentityAPIView(APIView):
     serializer_class = VerifyUserIdentitySerializer
 
     def post(self, request):
-        print(request.data)
+        # First, check if they already have a verified identity.
+        if request.user.information.has_verified_identity:
+            logger.warning(
+                'Previously verified user is attempting to verify their identity. %s' % (
+                    request.user))
+            return Response(
+                data={
+                    "status": "SUCCESS",
+                    "detail": "User already has a verified identity"
+                },
+                status=200,
+            )
+
+        # If not. validate the input data.
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # Prepare a request to the GIDX API.

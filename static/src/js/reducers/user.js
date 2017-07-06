@@ -4,7 +4,7 @@ import merge from 'lodash/merge';
 const initialState = {
   user: {
     isFetching: false,
-    isIdentityVerified: false,
+    identity_verified: false,
     identity: {},
     userLimits: [],
     currentLimits: [],
@@ -15,10 +15,8 @@ const initialState = {
   identityFormInfo: {
     errors: {},
     isSending: false,
-  },
-  info: {
-    isFetching: false,
-    isIdentityVerified: false,
+    hasMadeBasicAttempt: false,
+    hasMadeSecondaryAttempt: false,
   },
   infoFormErrors: {},
   infoFormSaved: false,
@@ -83,7 +81,7 @@ module.exports = (state = initialState, action) => {
 
 
     case actionTypes.UPDATE_USER_EMAIL_PASS_SUCCESS: {
-      const newState = merge({}, state, { info: action.body });
+      const newState = merge({}, state);
       // Clear any existing errors.
       newState.emailPassFormErrors = {};
       return newState;
@@ -228,6 +226,16 @@ module.exports = (state = initialState, action) => {
           isSending: false,
         },
       });
+
+      // If it was a failure due to not being able to find the identity, we need to move
+      // on to the advanced form.
+      if (
+        action.response.reasonCodes &&
+        action.response.reasonCodes.includes('ID-UNKN') &&
+        action.response.status === 'FAIL'
+      ) {
+        newState.identityFormInfo.hasMadeBasicAttempt = true;
+      }
 
       newState.identityFormInfo.errors = action.response;
       return newState;

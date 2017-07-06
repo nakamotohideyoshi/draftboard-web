@@ -4,21 +4,20 @@ import log from '../lib/logging.js';
 import { CALL_API } from '../middleware/api';
 import request from 'superagent';
 import Cookies from 'js-cookie';
-import fetch from 'isomorphic-fetch';
 import { addMessage } from './message-actions';
-import { isExceptionDetail, isFieldValidationErrorObject } from '../lib/utils/response-types';
+import { isExceptionDetail } from '../lib/utils/response-types';
 
 // custom API domain for local dev testing
-let { API_DOMAIN = '' } = process.env;
+// let { API_DOMAIN = '' } = process.env;
 // For some dumb reason fetch isn't adding the domain for POST requests, when testing we need
 // a full domain in order for nock to work.
-if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
+// if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
 
 
 /**
  * Get Basic User Information.
  */
-export const fetchUser = (sport) => (dispatch) => {
+export const fetchUser = () => (dispatch) => {
   const apiActionResponse = dispatch({
     [CALL_API]: {
       types: [
