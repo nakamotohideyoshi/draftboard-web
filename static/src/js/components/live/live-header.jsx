@@ -1,5 +1,5 @@
 import React from 'react';
-import NBAPlayRecapVO from '../../lib/live-animations/nba/NBAPlayRecapVO';
+import NFLPlayRecapVO from '../../lib/live-animations/nfl/NFLPlayRecapVO';
 import { LiveOverallStatsConnected } from './live-overall-stats';
 
 // assets
@@ -25,7 +25,7 @@ export default React.createClass({
       return null;
     }
 
-    const playVO = new NBAPlayRecapVO(this.props.currentEvent);
+    const playVO = new NFLPlayRecapVO(this.props.currentEvent);
 
     return (
       <div className="live-header__animation-info live-header__animation-info--show">
