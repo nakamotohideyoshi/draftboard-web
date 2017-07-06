@@ -54,6 +54,7 @@ function mapStateToProps(state) {
     orderByProperty: state.contestPools.filters.orderBy.property,
     queryAction: state.routing.locationBeforeTransitions.query.action,
     hasFetchedLineups: state.upcomingLineups.hasFetchedLineups,
+    sportFilter: state.contestPools.filters.sportFilter,
   };
 }
 
@@ -120,6 +121,7 @@ const LobbyContainer = React.createClass({
     setFocusedContest: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
+    sportFilter: React.PropTypes.object,
   },
 
 
@@ -276,6 +278,7 @@ const LobbyContainer = React.createClass({
           entrySkillLevels={this.props.entrySkillLevels}
           skillLevelFilter={this.props.contestFilters.skillLevelFilter}
           focusedLineup={this.props.focusedLineup}
+          sportFilter={this.props.sportFilter}
         />
       </div>
     );
