@@ -28,17 +28,17 @@ class TestCustomerRegistrationRequest(TestCase):
         self.user.delete()
 
     # Makes a real API call to the service. with z's real info.
-    def test_service(self):
-        crr = CustomerRegistrationRequest(
-            user=self.user,
-            first_name='zachary',
-            last_name='wood',
-            date_of_birth='02/23/1984',
-            ip_address='174.51.188.204'
-        )
-
-        crr.send()
-        response = crr.res_payload
+    # def test_service(self):
+    #     crr = CustomerRegistrationRequest(
+    #         user=self.user,
+    #         first_name='zachary',
+    #         last_name='wood',
+    #         date_of_birth='02/23/1984',
+    #         ip_address='174.51.188.204'
+    #     )
+    #
+    #     crr.send()
+    #     response = crr.res_payload
 
     def test_response_message_exception(self):
         # None of these params matter since we never call .send().
