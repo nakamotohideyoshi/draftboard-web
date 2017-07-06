@@ -72,7 +72,7 @@ class Information(models.Model):
     @cached_property
     def has_verified_identity(self):
         """
-        Has the user verified their identity with Trulioo?
+        Has the user verified their identity with GIDX?
         If so they will have a User.Identity model.
         """
         is_verified = False
@@ -87,6 +87,10 @@ class Information(models.Model):
         Don't allow deleting of this model.
         """
         logger.warning('Deleting a User.information instance is not allowed.')
+
+    def __str__(self):
+        return '<Information user: %s | cash_balance: %s | has_verified_identity: %s>' % (
+            self.user.username, self.cash_balance, self.has_verified_identity)
 
 
 class EmailNotification(models.Model):
@@ -226,6 +230,10 @@ class Identity(models.Model):
     )
     # We can stuff whatever useful info from the GIDX verification response in here.
     metadata = JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return '<Identity user: %s | country: %s | region: %s | flagged: %s>' % (
+            self.user.username, self.country, self.region, self.flagged)
 
     class Meta:
         verbose_name = 'User Identity'

@@ -64,7 +64,7 @@ class GidxRequest(object):
         # a ResponseCode of 0 indicates no errors. If we had errors, raise an exception that can
         # be caught on the view layer.
         if not self.res_payload['ResponseCode'] == 0:
-            logger.warning(self.res_payload['ResponseMessage'])
+            logger.warning(self.res_payload)
             raise ValidationError('%s' % self.res_payload['ResponseMessage'])
 
     def validate_params(self):

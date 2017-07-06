@@ -278,12 +278,13 @@ const Deposits = React.createClass({
 
 
   renderIdentityVerificationModalIfNeeded() {
-    if (!this.props.user.isIdentityVerified && this.props.user.hasFetched) {
+    if (!this.props.user.identity_verified && this.props.user.hasFetched) {
       return (
         <IdentityVerificationModal
           isOpen
           identityFormInfo={this.props.identityFormInfo}
           verifyIdentity={this.props.verifyIdentity}
+          user={this.props.user}
         />
       );
     }

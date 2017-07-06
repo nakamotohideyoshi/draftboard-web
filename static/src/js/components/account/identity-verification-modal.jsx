@@ -12,6 +12,7 @@ const IdentityVerificationModal = React.createClass({
     isOpen: React.PropTypes.bool,
     identityFormInfo: React.PropTypes.object.isRequired,
     verifyIdentity: React.PropTypes.func.isRequired,
+    user: React.PropTypes.object.isRequired,
   },
 
   getDefaultProps() {
@@ -57,6 +58,41 @@ const IdentityVerificationModal = React.createClass({
   },
 
 
+  // Based on our state, this will render one of the identity forms, or a success message.
+  renderContent() {
+    // Show a success message.
+    if (this.props.user.identity_verified) {
+      return (
+        <div className="content-verified">
+          <h3>Identity Verified!</h3>
+          <p>You are now able to <a href="/contests/">enter contests</a> or make a deposit.</p>
+          <div
+            className="button button--med-len button--tall button--gradient ok-button"
+            onClick={this.close}
+          >
+            Continue
+          </div>
+        </div>
+      );
+    }
+
+    // If we've already attempted and failed to ID based on the IdentityForm, show the
+    // advanced form.
+    if (this.props.identityFormInfo.hasMadeBasicAttempt) {
+      return (<p>GIDX drop-in form here.</p>);
+    }
+
+    // default to the standard IdentityForm
+    return (
+      <IdentityForm
+        isSending={this.props.identityFormInfo.isSending}
+        errors={this.props.identityFormInfo.errors}
+        verifyIdentity={this.props.verifyIdentity}
+      />
+    );
+  },
+
+
   render() {
     return (
       <Modal
@@ -70,11 +106,7 @@ const IdentityVerificationModal = React.createClass({
             <div className="content">
               <div className="content-inner">
                 <div className="text-content">
-                  <IdentityForm
-                    isSending={this.props.identityFormInfo.isSending}
-                    errors={this.props.identityFormInfo.errors}
-                    verifyIdentity={this.props.verifyIdentity}
-                  />
+                  {this.renderContent()}
                 </div>
               </div>
             </div>

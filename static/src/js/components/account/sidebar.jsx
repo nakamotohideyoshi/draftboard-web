@@ -8,7 +8,6 @@ import { humanizeCurrency } from '../../lib/utils/currency.js';
 
 function mapStateToProps(state) {
   return {
-    user: state.user.info,
     cashBalance: state.user.cashBalance.amount,
   };
 }
@@ -41,7 +40,6 @@ const Sidebar = (props) => (
 
 
 Sidebar.propTypes = {
-  user: React.PropTypes.object.isRequired,
   cashBalance: React.PropTypes.number,
 };
 
