@@ -32,6 +32,8 @@ import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import CountdownClock from '../../components/site/countdown-clock.jsx';
 import RestrictedLocationConfirmModal from '../account/restricted-location-confirm-modal';
+import DraftScoringModal from './draft-scoring-modal';
+import ScoringInfo from '../contest-list/scoring-info';
 
 
 /*
@@ -138,6 +140,7 @@ const DraftContainer = React.createClass({
       newLineup: {
         availablePositions: [],
       },
+      scoringModalState: false,
     });
   },
 
@@ -416,6 +419,26 @@ const DraftContainer = React.createClass({
             />
           </div>
 
+          <DraftScoringModal
+            isOpen={this.state.scoringModalState}
+            sport={this.props.sport}
+            onClose={() => this.setState({
+              scoringModalState: false,
+            })}
+          >
+            <div className={`sport-image sport-image--${this.props.sport}`} />
+
+            <ScoringInfo sport={this.props.sport} isModal />
+          </DraftScoringModal>
+
+          <div
+            className="button button--outline-alt1 export-button"
+            onClick={() => this.setState({
+              scoringModalState: !this.state.scoringModalState,
+            })}
+          >
+            SCORING
+          </div>
         </div>
 
         <div>
