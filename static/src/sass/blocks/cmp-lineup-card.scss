@@ -767,10 +767,11 @@ category: Lineup
   Source: https://davidwalsh.name/css-flip
  */
 .cmp-lineup-card.flip-container {
-  perspective: 1000px;
   background: none;
-  width: 100%;
-
+  .flipper-wrap{
+    perspective: 1000px;
+    background: none;
+  }
   /* flip the card when .flipped class is added. */
   &.flipped {
     .flipper {

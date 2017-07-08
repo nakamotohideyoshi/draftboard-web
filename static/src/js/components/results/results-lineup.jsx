@@ -398,9 +398,11 @@ const ResultsLineup = React.createClass({
 
     return (
       <div className={className}>
-        <div className="flipper">
-          {this.renderLineup()}
-          {this.renderContests()}
+        <div className="flipper-wrap">
+          <div className="flipper">
+            {this.renderLineup()}
+            {this.renderContests()}
+          </div>
         </div>
         <ResultsPane
           contestId={this.state.contestPaneId}
@@ -410,6 +412,7 @@ const ResultsLineup = React.createClass({
           sport={this.props.sport}
         />
       </div>
+
     );
   },
 });
