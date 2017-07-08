@@ -1,5 +1,5 @@
 import React from 'react';
-import { expect } from 'chai';
+import { expect,chai } from 'chai';
 import { shallow } from 'enzyme';
 
 import { dateNow } from '../../../lib/utils';
@@ -40,9 +40,10 @@ const defaultProps = {
   },
 };
 
+
+
 describe('ResultsLineup Component', () => {
   const renderComponent = (props = defaultProps) => shallow(<ResultsLineup {...props} />);
-
   it('should render all expected children', () => {
     const wrapper = renderComponent();
     expect(wrapper.find('.flip-container')).to.have.length(1);
