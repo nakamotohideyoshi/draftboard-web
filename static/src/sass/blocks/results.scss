@@ -23,7 +23,6 @@ $results-selected-text-color: #2bb677;
         font-size: 9.5px;
       }
 
-
       .date {
         color: #47495e;
         font-family: $font-oswald;
@@ -675,6 +674,11 @@ $results-selected-text-color: #2bb677;
     }
 
     &--lineups {
+      padding-top: 50px;
+      padding-bottom: 50px;
+      .flip-container{
+        margin: 0;
+      }
       .flip-container, .lineup, .contests {
         width: 290px;
       }
@@ -729,7 +733,9 @@ $results-selected-text-color: #2bb677;
 
     &--lineups {
       padding-left: 5%;
-
+      .flip-container{
+        margin: 0 50px;
+      }
       .flip-container.shown-contest-pane .pane {
         width: 90%;
 
