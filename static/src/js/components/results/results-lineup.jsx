@@ -373,8 +373,8 @@ const ResultsLineup = React.createClass({
           </div>
           <div className="cmp-lineup-card__list-header">
             <span className="cmp-lineup-card__list-header-remove">Pos</span>
-            <span className="cmp-lineup-card__list-header-remove">Contest</span>
-            <span className="cmp-lineup-card__list-header-remove">Winning</span>
+            <span className="cmp-lineup-card__list-header-contest">Contest</span>
+            <span className="cmp-lineup-card__list-header-fee">Winning</span>
           </div>
         </header>
 

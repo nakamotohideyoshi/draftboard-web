@@ -825,24 +825,28 @@ category: Lineup
 
     .cmp-lineup-card__list-header {
       text-align: left;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
 
       > span {
         color: #c5c7ce;
-        display: inline-block;
+        display: block;
+        width: 100%;
+        grid-column: span 2;
         &:last-child{
           text-align: right;
         }
       }
 
       &-remove {
-        width: 45px;
+        grid-column: span 2;
       }
       &-contest {
-        width: 190px;
+        grid-column: span 4;
       }
 
       &-fee {
-        width: auto;
+        grid-column: span 2;
       }
     }
 

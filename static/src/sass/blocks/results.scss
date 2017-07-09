@@ -371,30 +371,6 @@ $results-selected-text-color: #2bb677;
           top: 25px;
           right: 10px;
         }
-
-        .titles {
-          font-size: 8px;
-          line-height: 1.5;
-          color: #c3c4ce;
-          width: 100%;
-          position: relative;
-          left: -25px;
-
-          &--pos {
-            display: inline-block;
-            width: 35px;
-          }
-          &--contest {
-            display: inline-block;
-            width: 180px;
-          }
-          &--winning {
-            display: inline-block;
-            width: 30px;
-            position: relative;
-            left: 15px;
-          }
-        }
       }
 
       .list {
