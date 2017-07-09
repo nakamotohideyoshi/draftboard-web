@@ -119,7 +119,7 @@ const LineupCard = React.createClass({
     /**
      * If the lineup card is active, show the expanded state with player details.
      */
-    const flippedClass = this.state.flipped ? 'flipped' : '';
+    const flippedClass = this.state.flipped ? 'hover' : '';
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.lineup.sport}`;
 
     const players = this.props.lineup.players.map((player) => (
