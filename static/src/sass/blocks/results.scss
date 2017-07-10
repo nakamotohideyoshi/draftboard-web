@@ -3,6 +3,11 @@ $results-fg-text-color: #46495e;
 $results-bg-text-color: #BDC0C2;
 $results-selected-text-color: #2bb677;
 
+
+.flipper-wrap{
+  max-width: 310px;
+}
+
 .results-page {
   background: transparent url(../img/blocks/live/bg.jpg) no-repeat left top;
   background-size: 100% auto;
@@ -203,9 +208,11 @@ $results-selected-text-color: #2bb677;
   }
 
   &--data {
-    position: relative;
     display: block;
     min-height: calc(100vh - 220px);
+    .cmp-lineup-card.flip-container{
+      perspective: none;
+    }
   }
 
   &__no-contests {
@@ -371,6 +378,30 @@ $results-selected-text-color: #2bb677;
           top: 25px;
           right: 10px;
         }
+
+        .titles {
+          font-size: 8px;
+          line-height: 1.5;
+          color: #c3c4ce;
+          width: 100%;
+          position: relative;
+          left: -25px;
+
+          &--pos {
+            display: inline-block;
+            width: 35px;
+          }
+          &--contest {
+            display: inline-block;
+            width: 180px;
+          }
+          &--winning {
+            display: inline-block;
+            width: 30px;
+            position: relative;
+            left: 15px;
+          }
+        }
       }
 
       .list {
@@ -465,7 +496,8 @@ $results-selected-text-color: #2bb677;
     }
 
     // // SEE: https://davidwalsh.name/css-flip
-    // .flip-container {
+    // .
+    // {
     //   perspective: 1000;
     // }
 
@@ -474,6 +506,7 @@ $results-selected-text-color: #2bb677;
     .flip-container.shown-contest-pane .pane {
       z-index: 5001;
       right: 0px;
+      top:0;
 
       .has-ended {
         background-image: linear-gradient( 90deg, rgb(33,78,157) 0%, rgb(52,180,204) 100%);
@@ -651,7 +684,6 @@ $results-selected-text-color: #2bb677;
 
     &--lineups {
       padding-top: 50px;
-      padding-bottom: 50px;
       .flip-container{
         margin: 0;
       }
@@ -725,13 +757,6 @@ $results-selected-text-color: #2bb677;
         }
       }
 
-      .flip-container, .lineup, .contests {
-        width: 100%;
-      }
-
-      .flip-container {
-        width: 95%;
-      }
     }
   }
 }

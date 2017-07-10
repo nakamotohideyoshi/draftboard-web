@@ -158,12 +158,10 @@ const LineupCard = React.createClass({
                   </li>
                 </ul>
               </div>
-            </header>
-
-            <div className="cmp-lineup-card__list-header">
+              <div className="cmp-lineup-card__list-header">
               <span className="cmp-lineup-card__list-header-salary">Salary</span>
             </div>
-
+            </header>
             <ul className="players">
               {players}
             </ul>
