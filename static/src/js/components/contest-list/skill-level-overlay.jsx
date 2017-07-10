@@ -15,13 +15,19 @@ const SkillLevelOverlay = (props) => {
   let selectedSkillLevel;
 
   const lineupMatchesFilter = () => {
-    if (!props.skillLevelFilter || !props.entrySkillLevels || !props.focusedLineup) {
+    if (
+        !props.skillLevelFilter ||
+        !props.entrySkillLevels ||
+        !props.focusedLineup ||
+        !props.sportFilter ||
+        !props.sportFilter.match
+    ) {
       // We don't have enough info to determine if the selected lineup is valid for this skill level.
       return true;
     }
 
     // The sport of the focused lineup.
-    currentSport = props.focusedLineup.sport;
+    currentSport = props.sportFilter.match; // props.focusedLineup.sport;
     // The current skill level for that sport.
     sportSkillLevel = props.entrySkillLevels[currentSport];
     // The skill level filter that has been selected.
@@ -33,7 +39,7 @@ const SkillLevelOverlay = (props) => {
     }
 
     // Does the selected skill level filter match the skill level of the sport?
-    return sportSkillLevel === props.skillLevelFilter.match[0];
+    return sportSkillLevel === selectedSkillLevel;
   };
 
   // if they don't match, show a modal blocking entries.
@@ -66,6 +72,8 @@ SkillLevelOverlay.propTypes = {
   entrySkillLevels: React.PropTypes.object,
   // The currently focused lineup.
   focusedLineup: React.PropTypes.object,
+  // The currently focused sport object.
+  sportFilter: React.PropTypes.object,
 };
 
 module.exports = SkillLevelOverlay;

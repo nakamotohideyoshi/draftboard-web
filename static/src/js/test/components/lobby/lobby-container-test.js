@@ -19,7 +19,9 @@ const defaultTestProps = {
     sportFilter: {},
     skillLevelFilter: {
       filterProperty: 'skill_level',
-      match: '',
+      match: [
+        'goodTestSkill',
+      ],
     },
   },
   enterContest: () => true,
@@ -43,7 +45,15 @@ const defaultTestProps = {
   addMessage: () => true,
   upcomingContestUpdateReceived: () => true,
   removeContestPoolEntry: () => true,
-  entrySkillLevels: {},
+  entrySkillLevels: {
+    nba: 'bedTestSkill',
+  },
+  sportFilter: {
+    match: 'nba',
+    filterProperty: 'sport',
+  },
+  removeMessage: () => {
+  },
 };
 
 
@@ -69,6 +79,21 @@ describe('<LobbyContainer /> Component', () => {
     expect(wrapper.find('.cmp-contest-list__row')).to.have.length(
       Object.keys(defaultTestProps.filteredContests).length
     );
+  });
+
+
+  it('should render VETERAN LOBBY LOCKED modal.', () => {
+    expect(wrapper.find('.cmp-skill-level-overlay.active')).to.have.length(1);
+  });
+
+
+  it('should not render VETERAN LOBBY LOCKED modal.', () => {
+    wrapper.setProps({
+      entrySkillLevels: {
+        nba: 'goodTestSkill',
+      },
+    });
+    expect(wrapper.find('.cmp-skill-level-overlay.active')).to.have.length(0);
   });
 
 
