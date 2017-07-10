@@ -130,9 +130,10 @@ const LineupCard = React.createClass({
         draftGroupInfo={this.props.draftGroupInfo}
       />
     ));
-
+    let classnames = 'cmp-lineup-card cmp-lineup-card--expanded flip-container';
+    classnames += ` ${flippedClass} ${classes} ${this.props.lineup.sport}`;
     lineup = (
-      <div className={`cmp-lineup-card cmp-lineup-card--expanded flip-container ${flippedClass} ${classes}`}>
+      <div className={classnames}>
         <div className="flipper">
           <div className="front" ref="front">
             <header className="cmp-lineup-card__header">

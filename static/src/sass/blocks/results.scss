@@ -210,6 +210,7 @@ $results-selected-text-color: #2bb677;
   &--data {
     display: block;
     min-height: calc(100vh - 220px);
+    padding-bottom: 50px;
     .cmp-lineup-card.flip-container{
       perspective: none;
     }

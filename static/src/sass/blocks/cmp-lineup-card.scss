@@ -22,7 +22,14 @@ category: Lineup
   background: #fff;
   color: #293f4f;
   margin: 0 auto 10px;
-
+  &.nfl{
+    .cmp-lineup-card {
+      &__photo {
+        padding: 0 5px;
+        vertical-align: bottom;
+      }
+    }
+  }
   .players {
     list-style: none;
     margin: 0;
@@ -74,7 +81,7 @@ category: Lineup
             width: 100%;
             height: auto;
             position: relative;
-            top: 6px;
+            top: 0px;
             left: 0px;
           }
         }
