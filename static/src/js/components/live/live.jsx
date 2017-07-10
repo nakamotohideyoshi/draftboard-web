@@ -15,6 +15,7 @@ import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
 import { bigPlaysSelector } from '../../selectors/live-big-plays';
 import { bindActionCreators } from 'redux';
+import { clearCurrentAnimationEvent } from '../../actions/events';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
@@ -49,6 +50,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchRelatedLineupsInfo,
     updateLiveMode,
     updateWatchingAndPath,
+    clearCurrentAnimationEvent,
   }, dispatch),
 });
 
@@ -190,6 +192,14 @@ export const Live = React.createClass({
 
   handleResize() {
     this.setState({ windowWidth: window.innerWidth });
+  },
+
+  /**
+   * Handler for when the current PBP animation has completed.
+   */
+  animationCompleted() {
+    // show the results, remove the animation
+    this.props.actions.clearCurrentAnimationEvent();
   },
 
   selectLineup(lineup) {
@@ -342,6 +352,7 @@ export const Live = React.createClass({
             watching={ this.props.watching }
             currentEvent={ this.props.currentEvent }
             eventsMultipart={ this.props.eventsMultipart }
+            onAnimationComplete={ () => this.animationCompleted() }
           />
           {liveStandingsPane}
         </section>

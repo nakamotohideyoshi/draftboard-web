@@ -350,3 +350,28 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
     () => dispatch(shiftOldestEvent(gameId))
   );
 };
+
+
+/**
+ * Clears the current animation event, if it exists. Clearing the event includes
+ * showing the "results" of the animation, which would include things like
+ * updating player history, stats, and FP.
+ */
+export const clearCurrentAnimationEvent = () => (dispatch, getState) => {
+  logAction.debug('actions.clearCurrentAnimationEvent');
+
+  const { currentEvent } = getState().events;
+
+  if (!currentEvent) {
+    return Promise.resolve();
+  }
+
+  return dispatch(showAnimationEventResults(currentEvent))
+  .then(() => dispatch(clearCurrentEvent()))
+  .then(() => new Promise(resolve => {
+    // Hack to give the animations some time to resolve before triggering the
+    // next animation.
+    setTimeout(resolve, 1000);
+  }))
+  .then(() => dispatch(shiftOldestEvent()));
+};
