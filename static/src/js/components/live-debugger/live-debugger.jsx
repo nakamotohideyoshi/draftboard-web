@@ -1,5 +1,6 @@
 import merge from 'lodash/merge';
 import { Provider, connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import React from 'react';
 import LiveAnimationArea from '../live/live-animation-area';
 import LiveHeader from '../live/live-header';
@@ -13,6 +14,7 @@ import { Router, Route, browserHistory } from 'react-router';
 import renderComponent from '../../lib/render-component';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { push as routerPush } from 'react-router-redux';
+import { clearCurrentAnimationEvent } from '../../actions/events';
 
 require('../../../sass/blocks/live-debugger.scss');
 
@@ -26,9 +28,16 @@ const mapStateToProps = (state) => ({
   bigEvents: state.events.bigEvents,
 });
 
-export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClass({
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    clearCurrentAnimationEvent,
+  }, dispatch),
+});
+
+export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToProps)(React.createClass({
 
   propTypes: {
+    actions: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
     bigEvents: React.PropTypes.array,
     params: React.PropTypes.object,
@@ -73,6 +82,10 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClas
     store.dispatch(addEventAndStartQueue(gameId, gameEvent, eventType, sport));
   },
 
+  animationCompleted() {
+    this.props.actions.clearCurrentAnimationEvent();
+  },
+
   render() {
     const { eventsMultipart, watching, contest } = fpoState;
     const { currentEvent, bigEvents } = this.props;
@@ -95,7 +108,10 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClas
             opponentLineup={fpoState.opponentLineup}
             selectLineup={fpoState.selectLineup}
           />
-          <LiveAnimationArea {...{ currentEvent, eventsMultipart, watching }} />
+          <LiveAnimationArea
+            {...{ currentEvent, eventsMultipart, watching }}
+            onAnimationComplete={ () => this.animationCompleted() }
+          />
           <LiveStandingsPane {...{ contest, watching }} />
         </section>
         <LiveBigPlays queue={bigEvents || []} />

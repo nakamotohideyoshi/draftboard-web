@@ -1,12 +1,6 @@
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
 import LiveAnimationStage from './live-animation-stage';
-import {
-  clearCurrentEvent,
-  shiftOldestEvent,
-  showAnimationEventResults,
-} from '../../actions/events';
-import store from '../../store';
 
 export default React.createClass({
 
@@ -14,22 +8,7 @@ export default React.createClass({
     currentEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-  },
-
-  /**
-   * Handler for when a venue's animation has completed.
-   */
-  stageAnimationComplete() {
-    // show the results, remove the animation
-    store.dispatch(showAnimationEventResults(this.props.currentEvent));
-
-    // remove the event
-    store.dispatch(clearCurrentEvent());
-
-    // enter the next item in the queue once everything is done.
-    setTimeout(() => {
-      store.dispatch(shiftOldestEvent());
-    }, 1000);
+    onAnimationComplete: React.PropTypes.func,
   },
 
   /**
@@ -77,7 +56,7 @@ export default React.createClass({
       <LiveAnimationStage
         key={`${sport}-stage`}
         sport={sport}
-        onAnimationComplete={() => this.stageAnimationComplete()}
+        onAnimationComplete={() => this.props.onAnimationComplete()}
         currentEvent={this.props.currentEvent}
       />
     );
