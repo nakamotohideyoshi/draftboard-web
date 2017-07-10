@@ -4,8 +4,17 @@ import FlightArrow from '../graphics/FlightArrow';
 
 export default class FlightArrowAnimation extends LiveAnimation {
 
-  play(recap, field, startPt, endPt, flightArc = 150, duration = 1.2) {
-    const arrow = new FlightArrow(field, startPt.x, endPt.x, startPt.y, endPt.y, flightArc);
+  play(recap, field, startPt, endPt, options) {
+    const {
+      arc = 150,
+      duration = 1.5,
+      startOffsetY = 0,
+      endOffsetY = 0,
+    } = options;
+
+    console.log('startOffsetY:', startOffsetY);
+
+    const arrow = new FlightArrow(field, startPt, endPt, arc, startOffsetY, endOffsetY);
 
     field.addChild(arrow.el, 0, 0, 30);
 

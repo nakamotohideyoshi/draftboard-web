@@ -110,7 +110,9 @@ export default class PassingPlayAnimation extends LiveAnimation {
       sequence.push(() => {
         const animation = new FlightArrowAnimation();
         const arc = this.getPassArc(recap);
-        return animation.play(recap, field, throwPos, catchPos, arc);
+        return animation.play(recap, field, throwPos, catchPos, {
+          arc,
+        });
       });
     }
 
