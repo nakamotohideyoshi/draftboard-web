@@ -390,7 +390,7 @@ const ResultsLineup = React.createClass({
 
   render() {
     let className = 'cmp-lineup-card flip-container';
-
+    className += ` ${this.props.sport}`;
     if (!this.state.renderLineup) className += ' hover';
     if (this.state.renderContestPane) {
       className += ' shown-contest-pane';
