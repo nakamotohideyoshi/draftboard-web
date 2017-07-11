@@ -129,7 +129,6 @@ export function getQBSackClip(formation) {
  * @param {string} side         The side of the field (left, middle, right).
  */
 export function getReceptionClip(passType, side, isIntercepted = false) {
-  console.log('------------', passType, '-------------------');
   try {
     return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
   } catch (error) {

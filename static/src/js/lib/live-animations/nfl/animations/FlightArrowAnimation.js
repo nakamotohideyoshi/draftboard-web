@@ -12,8 +12,6 @@ export default class FlightArrowAnimation extends LiveAnimation {
       endOffsetY = 0,
     } = options;
 
-    console.log('startOffsetY:', startOffsetY);
-
     const arrow = new FlightArrow(field, startPt, endPt, arc, startOffsetY, endOffsetY);
 
     field.addChild(arrow.el, 0, 0, 30);
