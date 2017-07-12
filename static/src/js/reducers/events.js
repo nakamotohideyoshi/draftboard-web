@@ -56,6 +56,19 @@ module.exports = (state = initialState, action = {}) => {
         currentEvent: null,
       });
 
+    case ActionTypes.EVENT__SET_COMPLETED: {
+      return merge({}, state, {
+        completedEvent: action.value,
+      });
+    }
+
+    case ActionTypes.EVENT__CLEAR_COMPLETED: {
+      if (state.completedEvent === null) return state;
+      return merge({}, state, {
+        completedEvent: null,
+      });
+    }
+
     case ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION: {
       const playerEventDescriptions = merge({}, state.playerEventDescriptions);
 
