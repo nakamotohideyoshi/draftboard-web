@@ -8,7 +8,7 @@ require('../../../sass/blocks/live/live-header.scss');
 export default React.createClass({
 
   propTypes: {
-    currentEvent: React.PropTypes.object,
+    animationEvent: React.PropTypes.object,
     contest: React.PropTypes.object.isRequired,
     myLineup: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired,
@@ -21,11 +21,11 @@ export default React.createClass({
    * Renders the DOM for displaying the current animation event's information.
    */
   renderAnimationInfo() {
-    if (!this.props.currentEvent) {
+    if (!this.props.animationEvent) {
       return null;
     }
 
-    const playVO = new NFLPlayRecapVO(this.props.currentEvent);
+    const playVO = new NFLPlayRecapVO(this.props.animationEvent);
 
     return (
       <div className="live-header__animation-info live-header__animation-info--show">
@@ -43,7 +43,7 @@ export default React.createClass({
    * Renders a LiveOverallStatsConnected component.
    */
   renderOverallStats(whichSide, lineup, potentialWinnings, rank) {
-    const modifiers = !this.props.currentEvent ? [] : ['event-ended'];
+    const modifiers = !this.props.animationEvent ? [] : ['event-ended'];
 
     // If the lineups name is falsy just show the lineup owner's username.
     let name;

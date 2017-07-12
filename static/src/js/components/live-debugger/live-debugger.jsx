@@ -25,6 +25,7 @@ require('../../../sass/blocks/live-debugger.scss');
  */
 const mapStateToProps = (state) => ({
   currentEvent: state.events.currentEvent,
+  completedEvent: state.events.completedEvent,
   bigEvents: state.events.bigEvents,
 });
 
@@ -39,6 +40,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   propTypes: {
     actions: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
+    completedEvent: React.PropTypes.object,
     bigEvents: React.PropTypes.array,
     params: React.PropTypes.object,
   },
@@ -88,7 +90,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
 
   render() {
     const { eventsMultipart, watching, contest } = fpoState;
-    const { currentEvent, bigEvents } = this.props;
+    const { currentEvent, completedEvent, bigEvents } = this.props;
 
     watching.sport = this.state.sport;
 
@@ -103,6 +105,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
         <section className="live__venues">
           <LiveHeader
             {...{ contest, currentEvent, watching }}
+            animationEvent={completedEvent}
             lineups={fpoState.uniqueLineups.lineups}
             myLineup={fpoState.myLineupInfo}
             opponentLineup={fpoState.opponentLineup}
