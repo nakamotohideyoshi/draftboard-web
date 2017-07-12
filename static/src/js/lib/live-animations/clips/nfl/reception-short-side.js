@@ -7,7 +7,7 @@ export const clip = {
   avatars: [
     {
       name: 'receiver',
-      x: 122,
+      x: 144,
       y: 20,
       in: 11,
     },
