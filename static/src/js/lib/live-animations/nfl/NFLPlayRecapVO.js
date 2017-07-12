@@ -67,10 +67,6 @@ export default class NFLPlayRecapVO {
     return 'scramble';
   }
 
-  static get SACK() {
-    return 'sack';
-  }
-
   static get HANDOFF() {
     return 'handoff';
   }
@@ -179,14 +175,9 @@ export default class NFLPlayRecapVO {
     const supportedTypes = [
       NFLPlayRecapVO.PASS,
       NFLPlayRecapVO.RUSH,
-      NFLPlayRecapVO.SACK,
       NFLPlayRecapVO.KICKOFF,
       NFLPlayRecapVO.PUNT,
     ];
-
-    if (this.isQBSack()) {
-      return NFLPlayRecapVO.SACK;
-    }
 
     const type = this._obj.pbp.type;
     return supportedTypes.indexOf(type) !== -1 ? type : NFLPlayRecapVO.UNKNOWN_PLAY;
