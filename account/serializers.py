@@ -23,7 +23,7 @@ class UserIdentitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Identity
-        fields = ('country', 'region')
+        fields = ('country', 'region', 'status')
 
 
 class UserSerializer(serializers.ModelSerializer):

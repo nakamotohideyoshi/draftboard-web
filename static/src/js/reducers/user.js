@@ -15,7 +15,7 @@ const initialState = {
   identityFormInfo: {
     errors: {},
     isSending: false,
-    hasMadeBasicAttempt: false,
+    hasMadeBasicAttempt: true,
     hasMadeSecondaryAttempt: false,
   },
   infoFormErrors: {},

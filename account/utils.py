@@ -133,7 +133,7 @@ class CheckUserAccess(object):
         return False
 
     def check_for_vpn(self, flag="m", subdomain=settings.GETIPNET_SUBDOMAIN):
-        url = 'http://%s.getipintel.net/check.php?ip=%s&contact=%s&flags=%s'
+        url = 'https://%s.getipintel.net/check.php?ip=%s&contact=%s&flags=%s'
         response = requests.get(
             url % (subdomain, self.ip, settings.GETIPNET_CONTACT, flag)
         )
@@ -234,7 +234,7 @@ class CheckUserAccess(object):
             return True, ''
         try:
             identity = self.user.identity
-            birthdate = date(identity.birth_year, identity.birth_month, identity.birth_day)
+            birthdate = identity.dob
             minimum_age = STATE_AGE_LIMITS.get(state)
             # Add the legal age for the user's state to thier birthday. This tells us the date
             # that they are allowed to begin uing the site.

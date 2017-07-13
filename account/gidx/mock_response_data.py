@@ -83,7 +83,7 @@ CUSTOMER_REGISTRATION_FAIL_RESPONSE = {
     'WatchChecks': []
 }
 
-# Failed response due to a improperly-formatted DOB.
+# Failed response due to a improperly-formatted DOB. - 200 status code.
 CUSTOMER_REGISTRATION_BAD_INPUT_RESPONSE = {
     'ApiKey': 'k2m9yX4Tl0WXuz8Ahc5muA',
     'ApiVersion': 3.0,
@@ -167,4 +167,111 @@ CUSTOMER_REGISTRATION_EXISTING_MATCH_RESPONSE = {
     'ResponseCode': 0,
     'ResponseMessage': 'No error.',
     'ApiVersion': 3
+}
+
+
+# 500 status code
+SERVICE_ERROR_RESPONSE = {
+    'ApiKey': 'k2m9yX4Tl0WXuz8Ahc5muA',
+    'ApiVersion': 3.0,
+    'CustomerRegistrationLink': None,
+    'FraudConfidenceScore': 0.0,
+    'IdentityConfidenceScore': 0.0,
+    'LocationDetail': {
+        'Altitude': None,
+        'ComplianceLocationServiceStatus': None,
+        'ComplianceLocationStatus': False,
+        'IdentifierType': None,
+        'IdentifierUsed': None,
+        'Latitude': None,
+        'LocationDateTime': None,
+        'LocationServiceLevel': None,
+        'LocationStatus': 0,
+        'Longitude': None,
+        'Radius': None,
+        'ReasonCodes': [],
+        'Speed': None
+    },
+    'MerchantCustomerID': '173--automated_test_user',
+    'MerchantID': 'Q2wprL4aKEKEj-dzTu44BA',
+    'MerchantSessionID': 'GIDXSB_8b4f0dbb-76b9-41db-9eea-7eb3cfa41ee3',
+    'ProfileMatch': {
+        'AddressMatch': False,
+        'CitizenshipMatch': False,
+        'DateOfBirthMatch': False,
+        'EmailMatch': False,
+        'IdDocumentMatch': False,
+        'MobilePhoneMatch': False,
+        'NameMatch': False,
+        'PhoneMatch': False
+    },
+    'ProfileMatches': [],
+    'ReasonCodes': [],
+    'ResponseCode': 500,
+    'ResponseMessage': 'General application error.',
+    'WatchChecks': None
+}
+
+
+WEB_REG_SUCCESS_RESPONSE = {
+    "SessionID": "c-duZaP4WkCIiZ2sMgWx-Q",
+    "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fRegistration%3fsessionid%3dc-duZaP4WkCIiZ2sMgWx-Q%27+data-tsevo-script-tag+data-gidx-session-id%3d%27c-duZaP4WkCIiZ2sMgWx-Q%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
+    "SessionExpirationTime": "2017-07-07T23:41:00.89Z",
+    "SessionScore": 49,
+    "ReasonCodes": [],
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "MerchantSessionID": "GIDXSB_36ed8b29-2d48-49a4-94a3-6b8d8135cb26",
+    "ResponseCode": 0,
+    "ResponseMessage": "No error.",
+    "ApiVersion": 3
+}
+
+# WebReg callback webhooks.
+WEBHOOK_COMPLETE = {
+  "StatusCode": 0,
+  "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
+  "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
+  "SessionScore": 50,
+  "ReasonCodes": [],
+  "ServiceType": "Customer Registration",
+  "StatusMessage": "Registration Complete."
+}
+
+WEBHOOK_INELIGIBLE = {
+    "StatusCode": 1,
+    "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
+    "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
+    "SessionScore": 50,
+    "ReasonCodes": [
+
+    ],
+    "ServiceType": "Customer Registration",
+    "StatusMessage": "Customer Ineligible."
+}
+
+WEBHOOK_INCOMPLETE = {
+  "StatusCode": 2,
+  "SessionID": "GP7u13x6Qk2EMFd9qJ9Q4w",
+  "MerchantSessionID": "e0a8cd91-133b-4dcc-8567-91753c1b102a",
+  "SessionScore": 38,
+  "ReasonCodes": [
+    "DFP-IPNM",
+    "ID-FAIL",
+    "ID-UNKN"
+  ],
+  "ServiceType": "Customer Registration",
+  "StatusMessage": "Registration Incomplete. Last reached step is the ID validation page."
+}
+
+WEBHOOK_TIMEOUT = {
+  "StatusCode": 3,
+  "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
+  "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
+  "SessionScore": 50,
+  "ReasonCodes": [
+
+  ],
+  "ServiceType": "Customer Registration",
+  "StatusMessage": "Registration Timeout."
 }

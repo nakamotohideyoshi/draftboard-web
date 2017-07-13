@@ -77,7 +77,7 @@ class Information(models.Model):
         """
         is_verified = False
         try:
-            is_verified = (self.user.identity is not None)
+            is_verified = self.user.identity.status
         except ObjectDoesNotExist:
             pass
         return is_verified
@@ -228,12 +228,18 @@ class Identity(models.Model):
         null=False,
         help_text="This identity was previously 'claimed' in our GIDX system."
     )
+    status = models.BooleanField(
+        default=False,
+        null=False,
+        help_text="Is the customer's identity verified?"
+    )
+
     # We can stuff whatever useful info from the GIDX verification response in here.
     metadata = JSONField(blank=True, null=True)
 
     def __str__(self):
-        return '<Identity user: %s | country: %s | region: %s | flagged: %s>' % (
-            self.user.username, self.country, self.region, self.flagged)
+        return '<Identity user: %s | status: %s | country: %s | region: %s | flagged: %s>' % (
+            self.user.username, self.status, self.country, self.region, self.flagged)
 
     class Meta:
         verbose_name = 'User Identity'

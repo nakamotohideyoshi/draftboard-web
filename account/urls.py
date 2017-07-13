@@ -1,14 +1,5 @@
 from django.conf.urls import url
 
-from account.views import (
-    AuthAPIView,
-    ForgotPasswordAPIView,
-    PasswordResetAPIView,
-    RegisterAccountAPIView,
-    UserAPIView,
-    UserCredentialsAPIView,
-    UserEmailNotificationAPIView,
-)
 from .views import (
     # paypal apis:
     PayPalDepositWithPayPalAccountAPIView,  # not fully implemented
@@ -26,6 +17,14 @@ from .views import (
     VerifyLocationAPIView,
     UserLimitsAPIView,
     VerifyUserIdentityAPIView,
+    AuthAPIView,
+    ForgotPasswordAPIView,
+    PasswordResetAPIView,
+    RegisterAccountAPIView,
+    UserAPIView,
+    UserCredentialsAPIView,
+    UserEmailNotificationAPIView,
+    GidxCallbackAPIView,
 )
 
 urlpatterns = [
@@ -96,5 +95,12 @@ urlpatterns = [
 
     # get a list of user limits
     url(r'^user-limits/$', UserLimitsAPIView.as_view()),
+
+    # GIDX identity callback webhook.
+    url(
+        r'^identity-webhook/$',
+        GidxCallbackAPIView.as_view(),
+        name="gidx-identity-webhook"
+    ),
 
 ]

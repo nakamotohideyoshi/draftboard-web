@@ -5,7 +5,7 @@ import { CALL_API } from '../middleware/api';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { addMessage } from './message-actions';
-import { isExceptionDetail } from '../lib/utils/response-types';
+import { isExceptionDetail, isListOfErrors } from '../lib/utils/response-types';
 
 // custom API domain for local dev testing
 // let { API_DOMAIN = '' } = process.env;
@@ -333,7 +333,7 @@ export function verifyIdentity(postData) {
         if (err) {
           // Is the response a general error, with a detail message?
           // If it isn't, we need to show the error banner.
-          if (isExceptionDetail(res)) {
+          if (isExceptionDetail(res) || isListOfErrors(res)) {
             dispatch(addMessage({
               header: 'Unable to verify your identity.',
               level: 'warning',
@@ -347,7 +347,15 @@ export function verifyIdentity(postData) {
             response: res.body,
           });
 
-          // Kill the promise chain.
+          // A 400 means that the identity was not able to be verified.
+          // This isn't a failed reqeust, so resolve the promise.
+          if (res.statusCode === 400) {
+            return resolve({ response: res });
+          }
+
+          // If it's an 'err' and it wasn't a 400, it's probably an internal
+          // server error or something. Kill the promise chain. This will
+          // be uncaught and sent to Sentry for reporting.
           return reject({ err: res.body });
         }
 

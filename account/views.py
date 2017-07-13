@@ -1,7 +1,9 @@
 import calendar
 import logging
 from datetime import datetime, date, timedelta
-
+from account.gidx.models import GidxSession
+from account.gidx.response import WebhookResponse
+from account.gidx.request import (get_user_from_session_id, get_customer_id_from_user_id)
 from braces.views import LoginRequiredMixin
 from django.conf import settings
 from account.models import Identity
@@ -27,8 +29,9 @@ from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-
-from account.gidx.request import CustomerRegistrationRequest
+import json
+from rest_framework.parsers import JSONParser
+from account.gidx.request import (CustomerRegistrationRequest, WebRegCreateSession)
 
 import account.tasks
 from account import const as _account_const
@@ -894,6 +897,64 @@ class VerifyLocationAPIView(APIView):
         )
 
 
+class GidxCallbackAPIView(APIView):
+    """
+    When a user can't be validated via direct API, we use the GIDX drop-in form
+    and attempt to verify that way. When that form is submitted, GIDX sends a callback webhook
+    with the status to our server.
+    """
+    parser_classes = (JSONParser,)
+
+    @staticmethod
+    def post(request):
+        logger.info({
+            "action": "WebReg_Callback",
+            "request": None,
+            "response": request.data,
+        })
+
+        response_wrapper = WebhookResponse(request.data)
+        # Grab some of the data from the previous session that is not included in the webhook.
+        user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
+        customer_id = get_customer_id_from_user_id(user.id)
+
+        # Save our session info
+        GidxSession.objects.create(
+            user=user,
+            gidx_customer_id=customer_id,
+            session_id=response_wrapper.json['MerchantSessionID'],
+            service_type='WebReg_Callback',
+            reason_codes=response_wrapper.json['ReasonCodes'],
+            response_data=request.data,
+
+        )
+
+        if response_wrapper.is_verified():
+            # If GIDX says they are verified, we save some of the identity info.
+            # Note: we don't get a DOB back from the webhook, so we can't add one.
+            # I'm not totally sure what the ramifications of that may be.
+            Identity.objects.create(
+                user=request.user,
+                gidx_customer_id=customer_id,
+                country=response_wrapper.get_country(),
+                region=response_wrapper.get_region(),
+                flagged=response_wrapper.is_identity_previously_claimed(),
+                metadata=request.data,
+                status=True
+            )
+
+        return Response(
+            data={
+                # "CustomerID": customer_id,
+                # "MerchantID": settings.GIDX_MERCHANT_ID,
+                # "SessionStatus": response_wrapper.json['StatusCode'],
+                "status": "SUCCESS",
+                "detail": "cool, thanks!"
+            },
+            status=200,
+        )
+
+
 class VerifyUserIdentityAPIView(APIView):
     """
     Uses GIDX to verify the user's identity. If the GIDX request was a success, we set the
@@ -925,7 +986,7 @@ class VerifyUserIdentityAPIView(APIView):
                 user=request.user,
                 first_name=serializer.validated_data.get('first'),
                 last_name=serializer.validated_data.get('last'),
-                date_of_birth="%s/%s/%s" % (
+                date_of_birth="%02d/%02d/%s" % (
                     serializer.validated_data.get('birth_month'),
                     serializer.validated_data.get('birth_day'),
                     serializer.validated_data.get('birth_year'),
@@ -933,10 +994,10 @@ class VerifyUserIdentityAPIView(APIView):
                 ip_address=get_client_ip(request)
             )
             # Verify data and send!
-            crr.send()
+            registration_response = crr.send()
 
             # If the user was verified...
-            if crr.is_verified():
+            if registration_response.is_verified():
                 # create a date out of the input.
                 dob = datetime(
                     serializer.validated_data.get('birth_year'),
@@ -947,11 +1008,12 @@ class VerifyUserIdentityAPIView(APIView):
                 Identity.objects.create(
                     user=request.user,
                     dob=dob,
-                    gidx_customer_id=crr.res_payload['MerchantCustomerID'],
-                    country=crr.get_country(),
-                    region=crr.get_region(),
-                    flagged=crr.is_identity_previously_claimed(),
-                    metadata=crr.res_payload,
+                    gidx_customer_id=registration_response.json['MerchantCustomerID'],
+                    country=registration_response.get_country(),
+                    region=registration_response.get_region(),
+                    flagged=registration_response.is_identity_previously_claimed(),
+                    metadata=registration_response.json,
+                    status=True,
                 )
                 return Response(
                     data={
@@ -961,8 +1023,22 @@ class VerifyUserIdentityAPIView(APIView):
                     status=200,
                 )
 
-            # If not verified...
-            message = crr.get_response_message()
+            # If not verified, get a JS snippet to embed the advanced form.
+            web_reg = WebRegCreateSession(
+                user=request.user,
+                first_name=serializer.validated_data.get('first'),
+                last_name=serializer.validated_data.get('last'),
+                date_of_birth="%02d/%02d/%s" % (
+                    serializer.validated_data.get('birth_month'),
+                    serializer.validated_data.get('birth_day'),
+                    serializer.validated_data.get('birth_year'),
+                ),
+                ip_address=get_client_ip(request)
+            )
+
+            web_reg_response = web_reg.send()
+
+            message = web_reg_response.get_response_message()
             if not message:
                 message = "We were unable to verify your identity."
 
@@ -970,7 +1046,7 @@ class VerifyUserIdentityAPIView(APIView):
                 data={
                     "status": "FAIL",
                     "detail": message,
-                    "reasonCodes": crr.res_payload['ReasonCodes'],
+                    "reasonCodes": registration_response.get_reason_codes(),
                 },
                 status=400,
             )

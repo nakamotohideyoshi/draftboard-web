@@ -2,6 +2,8 @@ import React from 'react';
 import Modal from '../modal/modal.jsx';
 import AppStateStore from '../../stores/app-state-store.js';
 import IdentityForm from './subcomponents/identity-form';
+import GidxIdentityForm from './subcomponents/gidx-identity-form';
+
 
 /**
  * When a user attempts to enter a contest, prompt them to confirm.
@@ -79,10 +81,21 @@ const IdentityVerificationModal = React.createClass({
     // If we've already attempted and failed to ID based on the IdentityForm, show the
     // advanced form.
     if (this.props.identityFormInfo.hasMadeBasicAttempt) {
-      return (<p>GIDX drop-in form here.</p>);
+      // Do we have an embed form?
+      if (
+        this.props.identityFormInfo.errors &&
+        this.props.identityFormInfo.errors.detail &&
+        this.props.identityFormInfo.errors.detail.form_embed
+      ) {
+        return (
+          <GidxIdentityForm
+            embed={this.props.identityFormInfo.errors.detail.form_embed}
+          />
+        );
+      }
     }
 
-    // default to the standard IdentityForm
+    // If we have no embed form, default to the standard IdentityForm.
     return (
       <IdentityForm
         isSending={this.props.identityFormInfo.isSending}

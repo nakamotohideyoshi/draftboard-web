@@ -47,6 +47,7 @@ export function isFieldValidationErrorObject(res) {
  */
 export function isExceptionDetail(res) {
   return (
+    res.body &&
     typeof(res.body) === 'object' &&
     !Array.isArray(res.body) &&
     'detail' in res.body &&
