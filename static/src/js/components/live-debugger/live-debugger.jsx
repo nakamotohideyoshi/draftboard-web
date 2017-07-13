@@ -95,7 +95,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
     watching.sport = this.state.sport;
 
     return (
-      <div className="live">
+      <div className={ `live live--sport live--sport-${this.state.sport}`}>
         <DebugMenu
           sport={this.state.sport}
           play={this.state.play}
