@@ -2,10 +2,7 @@ import merge from 'lodash/merge';
 import { Provider, connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import React from 'react';
-import LiveAnimationArea from '../live/live-animation-area';
-import LiveHeader from '../live/live-header';
-import LiveBigPlays from '../live/live-big-plays';
-import LiveStandingsPane from '../live/live-standings-pane';
+import LiveVenue from '../live/live-venue';
 import DebugMenu from './debug-menu';
 import store from '../../store';
 import fpoState from './fixtures/state';
@@ -89,8 +86,20 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   },
 
   render() {
-    const { eventsMultipart, watching, contest } = fpoState;
-    const { currentEvent, completedEvent, bigEvents } = this.props;
+    const {
+      currentEvent,
+      completedEvent,
+      bigEvents,
+    } = this.props;
+
+    const {
+      eventsMultipart,
+      watching,
+      contest,
+      uniqueLineups,
+      opponentLineup,
+      myLineupInfo,
+    } = fpoState;
 
     watching.sport = this.state.sport;
 
@@ -102,22 +111,21 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
           onSportUpdated={(sport) => this.onSportUpdated(sport)}
           onPBPUpdated={(pbp) => this.onPBPUpdated(pbp)}
         />
-        <section className="live__venues">
-          <LiveHeader
-            {...{ contest, currentEvent, watching }}
-            animationEvent={completedEvent}
-            lineups={fpoState.uniqueLineups.lineups}
-            myLineup={fpoState.myLineupInfo}
-            opponentLineup={fpoState.opponentLineup}
-            selectLineup={fpoState.selectLineup}
-          />
-          <LiveAnimationArea
-            {...{ currentEvent, eventsMultipart, watching }}
-            onAnimationComplete={ () => this.animationCompleted() }
-          />
-          <LiveStandingsPane {...{ contest, watching }} />
-        </section>
-        <LiveBigPlays queue={bigEvents || []} />
+        <LiveVenue
+          {...{
+            contest,
+            currentEvent,
+            watching,
+            completedEvent,
+            opponentLineup,
+            myLineupInfo,
+            eventsMultipart,
+            uniqueLineups,
+          } }
+          selectLineup={() => {}}
+          animationCompleted={this.animationCompleted}
+          bigPlaysQueue={bigEvents || []}
+        />
       </div>
     );
   },
