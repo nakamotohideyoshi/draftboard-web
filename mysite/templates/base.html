@@ -1,15 +1,13 @@
-{% load pipeline %}{% load static %}{% load humanize %}{% load analytics %}{% spaceless %}
+{% load pipeline %}{% load static %}{% load humanize %}{% load analytics %}
 <!DOCTYPE html>
 <html lang="en" class="{% block html_class %}{% endblock %}">
 <head>
-  <title>{% block title %}Draftboard{% endblock %}</title>
-
-  {% comment %} default meta tags for UTF8 and mobile device width {% endcomment %}
-  <meta http-equiv="content-type" content="text/html" charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  {% comment %} standards mode for IE set to latest {% endcomment %}
+  {# These 3 are NEEDED FIRST for GIDX integration DO NOT TOUCH OMG PLZ.  #}
+  <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+
+  <title>{% block title %}Draftboard{% endblock %}</title>
 
   <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
 
@@ -92,4 +90,3 @@
   {% endblock js_app %}
 </body>
 </html>
-{% endspaceless %}

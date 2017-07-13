@@ -114,6 +114,7 @@ INSTALLED_APPS = (
     'pipeline',  # minifying/compressing static assets
     # draftboard specific apps below here #
     'account',
+    'account.gidx',
     'dfslog',
     'transaction',
     'cash',
@@ -444,7 +445,11 @@ LIMIT_DAYS_RESTRAINT = {'MA': 90}
 # Sandbox gidx credentials
 GIDX_API_KEY = 'k2m9yX4Tl0WXuz8Ahc5muA'
 GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
-GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
+# This is is a prefix to enable testing mode on the client-side of things.
+# GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
+# An empty prefixdisables testing mode.
+GIDX_MERCHANT_SESSION_ID_PREFIX = ''
 GIDX_PRODUCT_ID = 'iiXXab0LtUCUdZ_6vcdtvQ'
 GIDX_ACTIVITY_ID = 'FyP1fg_WkU60JnuIarfOQw'
 GIDX_DEVICE_ID = '2bDPorOkPkepDd8-6Fydtw'
+

@@ -26,6 +26,7 @@ from account.views import (
 from account.utils import CheckUserAccess
 from account.models import (Identity, Information)
 from django.contrib.contenttypes.models import ContentType
+from datetime import date
 
 
 class AccountsViewsTest(TestCase):
@@ -314,12 +315,7 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         # This user is too young to use the site.
         Identity(
             user=self.user,
-            first_name='test',
-            last_name='user',
-            birth_day=1,
-            birth_month=1,
-            birth_year=2015,
-            postal_code='80203',
+            dob=date(2015, 1, 1),
         )
         invalid_request.user = self.user
 
@@ -347,12 +343,7 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         # This user is old enough to use the site.
         Identity(
             user=self.user,
-            first_name='test',
-            last_name='user',
-            birth_day=1,
-            birth_month=1,
-            birth_year=1984,
-            postal_code='80203',
+            dob=date(1984, 1, 1),
         )
         valid_request.user = self.user
 
