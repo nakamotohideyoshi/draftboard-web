@@ -76,7 +76,7 @@ const DraftScoringModal = React.createClass({
                   className="button button--gradient button--med ok-button"
                   onClick={this.handleOnClose}
                 >
-                  GO IT
+                  GOT IT
                 </div>
               </div>
             </div>
