@@ -119,7 +119,7 @@ const LineupCard = React.createClass({
     /**
      * If the lineup card is active, show the expanded state with player details.
      */
-    const flippedClass = this.state.flipped ? 'flipped' : '';
+    const flippedClass = this.state.flipped ? 'hover' : '';
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.lineup.sport}`;
 
     const players = this.props.lineup.players.map((player) => (
@@ -130,9 +130,10 @@ const LineupCard = React.createClass({
         draftGroupInfo={this.props.draftGroupInfo}
       />
     ));
-
+    let classnames = 'cmp-lineup-card cmp-lineup-card--expanded flip-container';
+    classnames += ` ${flippedClass} ${classes} ${this.props.lineup.sport}`;
     lineup = (
-      <div className={`cmp-lineup-card cmp-lineup-card--expanded flip-container ${flippedClass} ${classes}`}>
+      <div className={classnames}>
         <div className="flipper">
           <div className="front" ref="front">
             <header className="cmp-lineup-card__header">
@@ -158,12 +159,10 @@ const LineupCard = React.createClass({
                   </li>
                 </ul>
               </div>
-            </header>
-
-            <div className="cmp-lineup-card__list-header">
+              <div className="cmp-lineup-card__list-header">
               <span className="cmp-lineup-card__list-header-salary">Salary</span>
             </div>
-
+            </header>
             <ul className="players">
               {players}
             </ul>
