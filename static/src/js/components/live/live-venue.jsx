@@ -19,27 +19,39 @@ export default React.createClass({
 
   getInitialState() {
     return {
-      completedEvent: null,
+      showPBPInfo: false,
+      currentEvent: this.props.currentEvent || null,
     };
+  },
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({ currentEvent: nextProps.currentEvent });
   },
 
   stageAnimationCompleted(event) {
     // Trigger update to header... title & description
-    this.setState({ completedEvent: event });
+    this.setState({
+      showPBPInfo: true,
+    });
+
+    // Wait three seconds before clearing everything!
     setTimeout(() => {
-      this.setState({ completedEvent: null });
-      this.props.animationCompleted();
-    }, 5000);
+      this.setState({
+        showPBPInfo: false,
+        currentEvent: null,
+      });
+      this.props.animationCompleted(event);
+    }, 3000);
   },
 
   render() {
     const {
-      completedEvent,
+      showPBPInfo,
+      currentEvent,
     } = this.state;
 
     const {
       contest,
-      currentEvent,
       watching,
       myLineupInfo,
       uniqueLineups,
@@ -59,7 +71,7 @@ export default React.createClass({
             lineups={uniqueLineups.lineups}
             myLineup={myLineupInfo}
             opponentLineup={opponentLineup}
-            animationEvent={completedEvent}
+            animationEvent={showPBPInfo ? currentEvent : null}
           />
 
           <LiveAnimationArea
