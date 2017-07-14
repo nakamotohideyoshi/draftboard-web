@@ -315,3 +315,40 @@ WEBHOOK_USER_EXISTS = {
         }
         """,
 }
+
+
+# This is fake json, should I make it a python object?? whatever.
+STATUS_REQUEST = {
+    "ReasonCodes": [
+        "DFP-IPNM",
+        "ID-EX",
+        "ID-PASS",
+        "ID-VERIFIED"
+    ],
+    "ResponseMessage": "No error.",
+    "ApiVersion": 3,
+    "MerchantSessionID": "e6b5fbf4-273d-4dab-a811-8f6ba5d8c7fb",
+    "SessionStatusMessage": "Registration is complete. Please call CustomerRegistration method to get registration details.",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "SessionScore": 95,
+    "SessionStatusCode": "0",
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "ResponseCode": 0,
+    "LocationDetail": {
+        "IdentifierUsed": "172.18.0.1",
+        "LocationStatus": 0,
+        "Longitude": 'null',
+        "IdentifierType": "IP",
+        "Latitude": 'null',
+        "ReasonCodes": [
+
+        ],
+        "Radius": 'null',
+        "Speed": 'null',
+        "LocationDateTime": "2017-06-29T19:48:38.45",
+        "ComplianceLocationServiceStatus": "Passive",
+        "ComplianceLocationStatus": 'false',
+        "LocationServiceLevel": "Auto",
+        "Altitude": 'null'
+    }
+}

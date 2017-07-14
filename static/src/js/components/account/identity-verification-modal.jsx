@@ -42,6 +42,11 @@ const IdentityVerificationModal = React.createClass({
       this.setState({ isOpen: nextProps.isOpen });
       AppStateStore.modalOpened();
     }
+
+    // If we got a succesful GIDX status, close this modal.
+    if (this.props.gidxFormInfo.status === 'SUCCESS') {
+      this.close();
+    }
   },
 
 

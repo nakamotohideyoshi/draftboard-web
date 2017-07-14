@@ -919,6 +919,22 @@ class GidxRegistrationStatus(APIView):
 
         # If the user was verified...
         if status_response.is_verified():
+            # If GIDX says they are verified, we save some of the identity info.
+            # Note: we don't get a DOB back from the webhook, so we can't add one.
+            # I'm not totally sure what the ramifications of that may be.
+
+            # Since they may already have an Identity for some reason, try to get it
+            # first, if not, create a new one.
+            identity, created = Identity.objects.get_or_create(user=request.user)
+
+            identity.gidx_customer_id = get_customer_id_from_user_id(request.user.id)
+            identity.flagged = status_response.is_identity_previously_claimed()
+            identity.metadata = status_response.json
+            identity.country = status_response.get_country()
+            identity.region = status_response.get_region()
+            identity.status = True
+            identity.save()
+
             return Response(
                 data={
                     "status": "SUCCESS",

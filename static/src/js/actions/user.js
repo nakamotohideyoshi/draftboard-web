@@ -317,7 +317,6 @@ export const verifyLocation = () => (dispatch) => {
 
 export function checkUserIdentityVerificationStatus(merchantSessionID) {
   return (dispatch) => {
-    console.log('checkUserIdentityVerificationStatus', merchantSessionID);
     dispatch({ type: actionTypes.CHECK_IDENTITY_STATUS__SEND });
 
     return new Promise((resolve, reject) => {
@@ -370,13 +369,13 @@ export function checkUserIdentityVerificationStatus(merchantSessionID) {
           dispatch(addMessage({
             level: 'success',
             header: 'Your identity was verified.',
-            ttl: 3000,
+            content: 'You can now deposit funds or enter contests.',
           }));
         } else {
           dispatch(addMessage({
             header: 'Unable to verify your identity.',
             level: 'warning',
-            content: 'Please contact us if you beleive this is an error.',
+            content: 'Please contact us if you believe this is an error.',
           }));
         }
 
@@ -413,7 +412,7 @@ export function verifyIdentity(postData) {
             dispatch(addMessage({
               header: 'Unable to verify your identity.',
               level: 'warning',
-              content: message || 'Please contact us if you beleive this is an error.',
+              content: message || 'Please contact us if you believe this is an error.',
             }));
           }
 
