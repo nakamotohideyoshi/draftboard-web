@@ -22,7 +22,6 @@ require('../../../sass/blocks/live-debugger.scss');
  */
 const mapStateToProps = (state) => ({
   currentEvent: state.events.currentEvent,
-  completedEvent: state.events.completedEvent,
   bigEvents: state.events.bigEvents,
 });
 
@@ -37,7 +36,6 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   propTypes: {
     actions: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
-    completedEvent: React.PropTypes.object,
     bigEvents: React.PropTypes.array,
     params: React.PropTypes.object,
   },
@@ -88,7 +86,6 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   render() {
     const {
       currentEvent,
-      completedEvent,
       bigEvents,
     } = this.props;
 
@@ -116,7 +113,6 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
             contest,
             currentEvent,
             watching,
-            completedEvent,
             opponentLineup,
             myLineupInfo,
             eventsMultipart,

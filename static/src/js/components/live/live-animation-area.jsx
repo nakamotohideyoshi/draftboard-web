@@ -56,7 +56,7 @@ export default React.createClass({
       <LiveAnimationStage
         key={`${sport}-stage`}
         sport={sport}
-        onAnimationComplete={() => this.props.onAnimationComplete()}
+        onAnimationComplete={(event) => this.props.onAnimationComplete(event)}
         currentEvent={this.props.currentEvent}
       />
     );
