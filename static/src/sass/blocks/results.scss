@@ -3,6 +3,11 @@ $results-fg-text-color: #46495e;
 $results-bg-text-color: #BDC0C2;
 $results-selected-text-color: #2bb677;
 
+
+.flipper-wrap{
+  max-width: 310px;
+}
+
 .results-page {
   background: transparent url(../img/blocks/live/bg.jpg) no-repeat left top;
   background-size: 100% auto;
@@ -203,9 +208,12 @@ $results-selected-text-color: #2bb677;
   }
 
   &--data {
-    position: relative;
     display: block;
     min-height: calc(100vh - 220px);
+    padding-bottom: 50px;
+    .cmp-lineup-card.flip-container{
+      perspective: none;
+    }
   }
 
   &__no-contests {
@@ -226,125 +234,8 @@ $results-selected-text-color: #2bb677;
   }
 
   &--lineups {
-    padding: 40px 0 0;
-
 
     .lineup {
-      background-color: white;
-      display: inline-block;
-      margin-right: 40px;
-      margin-bottom: 40px;
-
-
-      .header {
-        color: #46495e;
-        font-size: 16px;
-        font-weight: 400;
-        position: relative;
-        padding-left: 35px;
-        line-height: 65px;
-        border-bottom: 1px solid #ebedf2;
-        background: url('../img/blocks/results/basketball.png') no-repeat 15px center;
-        background-size: 12.5px auto;
-
-        // Lineup action icons
-        .actions-menu-container {
-          height: 36px;
-          position: absolute;
-          right: 15px;
-          top: 4px;
-          width: 50px;
-          text-align: right;
-
-          .actions {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-
-            .action {
-              display: inline-block;
-              &:hover {
-                opacity: .75;
-              }
-            }
-
-            li {
-              display: inline-block;
-            }
-          }
-        }
-
-        .right-stat-title {
-          font-size: 8px;
-          position: absolute;
-          right: 20px;
-          top: 53px;
-          line-height: 1.5;
-          color: #6d718a;
-        }
-      }
-
-      .list {
-        .player {
-          position: relative;
-          padding: 0 10px;
-          min-height: 40px;
-          border-bottom: 1px solid #ebedf2;
-
-          &:hover {
-            background-color: #f8fafb;
-          }
-
-          .position,
-          .circle,
-          .name {
-            display: inline-block;
-            vertical-align: middle;
-          }
-
-          .position {
-            color: #9c9faf;
-            color: $results-fg-text-color;
-            display: inline-block;
-            font-size: 9px;
-            line-height: 40px;  // hack as one of the elements needs full height to center on
-            min-width: 16px;
-            text-transform: uppercase;
-          }
-
-          .circle {
-            background-size: 120% auto;
-            border-radius: 50%;
-            display: inline-block;
-            margin: 0 6px;
-            position: relative;
-          }
-
-          .name {
-            color: $results-fg-text-color;
-            font-size: 12px;
-          }
-
-          .team {
-            font-size: 12px;
-            color: #9c9faf;
-          }
-
-          .score {
-            color: #46495e;
-            font-family: $font-oswald;
-            font-size: 13px;
-            position: absolute;
-            right: 20px;
-            top: 9px;
-
-            &.score-zero {
-              color: #c3c4ce;
-            }
-          }
-        }
-      }
-
       .footer {
         text-align: center;
         padding: 20px;
@@ -515,9 +406,6 @@ $results-selected-text-color: #2bb677;
       }
 
       .list {
-        overflow-y: scroll;
-        height: 314px;
-
         .contest {
           @extend %clearfix;
           position: relative;
@@ -609,46 +497,17 @@ $results-selected-text-color: #2bb677;
     }
 
     // // SEE: https://davidwalsh.name/css-flip
-    // .flip-container {
+    // .
+    // {
     //   perspective: 1000;
     // }
 
-    .flip-container {
-      .flipper, .lineup, .contests {
-        transition: 0.6s;
-      }
 
-      .flipper {
-        position: relative;
-        transform: rotateY(0deg);
-        transform-style: preserve-3d;
-        transform-origin: center center;
-
-        .lineup {
-          filter: blur(0px);
-        }
-
-        .contests {
-          filter: blur(20px);
-        }
-      }
-
-      &.hover .flipper {
-        transform: rotateY(180deg);
-
-        .lineup {
-          filter: blur(20px);
-        }
-
-        .contests {
-          filter: blur(0px);
-        }
-      }
-    }
 
     .flip-container.shown-contest-pane .pane {
       z-index: 5001;
       right: 0px;
+      top:0;
 
       .has-ended {
         background-image: linear-gradient( 90deg, rgb(33,78,157) 0%, rgb(52,180,204) 100%);
@@ -749,29 +608,6 @@ $results-selected-text-color: #2bb677;
         }
       }
     }
-
-    .flip-container, .lineup, .contests {
-      min-height: 480px;
-      display: inline-block;
-      margin-right: 40px;
-    }
-
-    .lineup, .contests {
-      backface-visibility: hidden;
-
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .lineup {
-      z-index: 2;
-      transform: rotateY(0deg);
-    }
-
-    .contests {
-      transform: rotateY(180deg);
-    }
   }
 }
 
@@ -848,6 +684,10 @@ $results-selected-text-color: #2bb677;
     }
 
     &--lineups {
+      padding-top: 50px;
+      .flip-container{
+        margin: 0;
+      }
       .flip-container, .lineup, .contests {
         width: 290px;
       }
@@ -902,7 +742,9 @@ $results-selected-text-color: #2bb677;
 
     &--lineups {
       padding-left: 5%;
-
+      .flip-container{
+        margin: 0 50px;
+      }
       .flip-container.shown-contest-pane .pane {
         width: 90%;
 
@@ -916,13 +758,6 @@ $results-selected-text-color: #2bb677;
         }
       }
 
-      .flip-container, .lineup, .contests {
-        width: 100%;
-      }
-
-      .flip-container {
-        width: 95%;
-      }
     }
   }
 }
