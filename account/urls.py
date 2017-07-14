@@ -25,6 +25,7 @@ from .views import (
     UserCredentialsAPIView,
     UserEmailNotificationAPIView,
     GidxCallbackAPIView,
+GidxRegistrationStatus
 )
 
 urlpatterns = [
@@ -101,6 +102,13 @@ urlpatterns = [
         r'^identity-webhook/$',
         GidxCallbackAPIView.as_view(),
         name="gidx-identity-webhook"
+    ),
+
+    # GIDX identity status check.
+    url(
+        r'^identity-status/(?P<merchant_session_id>.+)/$',
+        GidxRegistrationStatus.as_view(),
+        name="gidx-identity-status"
     ),
 
 ]

@@ -1,5 +1,9 @@
 .cmp-modal--identity-verification {
 
+  .cmp-modal__dialog {
+    min-height: 350px;
+  }
+
   .birth-date {
     // Remove spinner controls in webkit browsers.
     input[type=number]::-webkit-inner-spin-button,

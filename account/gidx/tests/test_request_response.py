@@ -24,6 +24,10 @@ from ..response import (
     CustomerRegistrationResponse,
     WebRegCreateSessionResponse,
     WebhookResponse,
+    is_underage,
+    is_location_blocked,
+
+
 )
 
 
@@ -154,6 +158,17 @@ class TestCustomerRegistrationResponse(TestCase):
         # away for previously claimed ones, we flag them and investigate manually.
         response = CustomerRegistrationResponse(response=mock_response_data)
         self.assertTrue(response.is_verified())
+
+    def test_is_underage(self):
+        self.assertTrue(is_underage(['ID-UA-19']))
+        self.assertTrue(is_underage(['ID-UA-19', 'OTHER_CODE']))
+        self.assertFalse(is_underage(['LL-GEO-UA', 'OTHER_CODE']))
+
+    def test_is_location_blocked(self):
+        self.assertTrue(is_location_blocked(['LL-BLOCK']))
+        self.assertFalse(is_location_blocked(['LL-GEO-UA']))
+        self.assertTrue(is_location_blocked(['LL-BLOCK', 'LL-GEO-UA']))
+        self.assertTrue(is_location_blocked(['ID-VERIFIED', 'LL-BLOCK', 'LL-GEO-UA']))
 
 
 class TestWebRegCreateSessionResponse(TestCase):

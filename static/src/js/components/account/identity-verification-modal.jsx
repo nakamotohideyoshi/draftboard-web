@@ -13,8 +13,10 @@ const IdentityVerificationModal = React.createClass({
   propTypes: {
     isOpen: React.PropTypes.bool,
     identityFormInfo: React.PropTypes.object.isRequired,
+    gidxFormInfo: React.PropTypes.object.isRequired,
     verifyIdentity: React.PropTypes.func.isRequired,
     user: React.PropTypes.object.isRequired,
+    checkUserIdentityVerificationStatus: React.PropTypes.func.isRequired,
   },
 
   getDefaultProps() {
@@ -90,6 +92,9 @@ const IdentityVerificationModal = React.createClass({
         return (
           <GidxIdentityForm
             embed={this.props.identityFormInfo.errors.detail.form_embed}
+            merchantSessionID={this.props.identityFormInfo.errors.detail.merchant_session_id}
+            checkUserIdentityVerificationStatus={this.props.checkUserIdentityVerificationStatus}
+            gidxFormInfo={this.props.gidxFormInfo}
           />
         );
       }

@@ -40,7 +40,6 @@ CUSTOMER_REGISTRATION_MATCH_RESPONSE = {
     'WatchChecks': []
 }
 
-
 # NO match from the CustomerIdentity/CustomerRegistration endpoint.
 CUSTOMER_REGISTRATION_FAIL_RESPONSE = {
     'ApiKey': 'k2m9yX4Tl0WXuz8Ahc5muA',
@@ -227,6 +226,27 @@ WEB_REG_SUCCESS_RESPONSE = {
     "ApiVersion": 3
 }
 
+# If we have previously verified this person, but reqeust a webreg embed, we'll get an
+# `ID-VERIFIED` and a script embed.
+# TODO: setup a test case for this. The only reason this would happen is if we verified a user,
+# then removed the Identity or set Identity.status to False afterwards.
+WEB_REG_SUCCESS_RESPONSE_ALREADY_VERIFIED = {
+  "SessionExpirationTime": "2017-07-13T20:56:15.447Z",
+  "ApiVersion": 3,
+  "MerchantSessionID": "d56e41c8-504c-437c-bde9-3e65478fb7af",
+  "SessionID": "yQZTImyPoUqhhXVlJCoilQ",
+  "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fRegistration%3fsessionid%3dyQZTImyPoUqhhXVlJCoilQ%27+data-tsevo-script-tag+data-gidx-session-id%3d%27yQZTImyPoUqhhXVlJCoilQ%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
+  "ResponseMessage": "No error.",
+  "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+  "SessionScore": 75,
+  "ResponseCode": 0,
+  "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+  "ReasonCodes": [
+    "ID-VERIFIED"
+  ]
+}
+
+
 # WebReg callback webhooks.
 WEBHOOK_COMPLETE = {
   "StatusCode": 0,
@@ -274,4 +294,24 @@ WEBHOOK_TIMEOUT = {
   ],
   "ServiceType": "Customer Registration",
   "StatusMessage": "Registration Timeout."
+}
+
+# This one might be bogus.
+WEBHOOK_USER_EXISTS = {
+    "results": """
+        {
+            "StatusCode": 0,
+            "SessionID": "bivbLEzRXEa5znJWTkoS0Q",
+            "MerchantSessionID": "bcac1b5b-5090-44cf-83ee-4cf752b87b26",
+            "SessionScore": 97,
+            "ReasonCodes": [
+            "DFP-IPNM",
+            "ID-EX",
+            "ID-PASS",
+            "ID-VERIFIED"
+            ],
+            "ServiceType": "Customer Registration",
+            "StatusMessage": "Registration is complete. Please call CustomerRegistration method..."
+        }
+        """,
 }
