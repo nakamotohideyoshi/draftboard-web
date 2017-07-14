@@ -13,7 +13,6 @@ export default React.createClass({
     myLineup: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
-    selectLineup: React.PropTypes.func.isRequired,
     watching: React.PropTypes.object.isRequired,
   },
 
@@ -61,7 +60,6 @@ export default React.createClass({
         name={name}
         modifiers={modifiers}
         potentialWinnings={potentialWinnings}
-        selectLineup={this.props.selectLineup}
         rank={rank}
         timeRemaining={lineup.timeRemaining}
         whichSide={whichSide}

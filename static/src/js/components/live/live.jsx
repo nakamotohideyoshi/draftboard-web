@@ -334,7 +334,6 @@ export const Live = React.createClass({
           eventsMultipart={this.props.eventsMultipart}
           currentEvent={this.props.currentEvent}
           completedEvent={this.props.completedEvent}
-          selectLineup={this.selectLineup}
           animationCompleted={this.animationCompleted}
         />
 

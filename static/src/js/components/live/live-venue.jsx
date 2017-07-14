@@ -15,7 +15,6 @@ export default React.createClass({
     opponentLineup: React.PropTypes.object.isRequired,
     uniqueLineups: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-    selectLineup: React.PropTypes.func.isRequired,
     animationCompleted: React.PropTypes.func.isRequired,
   },
 
@@ -45,7 +44,6 @@ export default React.createClass({
             lineups={uniqueLineups.lineups}
             myLineup={myLineupInfo}
             opponentLineup={opponentLineup}
-            selectLineup={ lineup => this.props.selectLineup(lineup) }
             animationEvent={completedEvent}
           />
 
