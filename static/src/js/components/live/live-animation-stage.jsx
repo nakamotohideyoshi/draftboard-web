@@ -56,7 +56,7 @@ export default React.createClass({
     .catch(error => Raven.captureMessage('Live animation failed', {
       extra: { message: error.message, currentEvent: this.props.currentEvent },
     }))
-    .then(() => this.props.onAnimationComplete());
+    .then(() => this.props.onAnimationComplete(this.props.currentEvent));
   },
 
   componentWillUnmount() {

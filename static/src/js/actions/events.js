@@ -52,15 +52,6 @@ const clearCurrentEvent = () => ({
   type: ActionTypes.EVENT__REMOVE_CURRENT,
 });
 
-const setCompletedEvent = (value) => ({
-  type: ActionTypes.EVENT__SET_COMPLETED,
-  value,
-});
-
-const clearCompletedEvent = () => ({
-  type: ActionTypes.EVENT__CLEAR_COMPLETED,
-});
-
 const unshiftPlayerHistory = (key, value) => ({
   type: ActionTypes.EVENT_UNSHIFT_PLAYER_HISTORY,
   key,
@@ -367,13 +358,7 @@ export const clearCurrentAnimationEvent = () => (dispatch, getState) => {
     return Promise.resolve();
   }
 
-  const wait = (delay) => new Promise(resolve => setTimeout(resolve, delay));
-
   return Promise.resolve()
-  .then(() => dispatch(setCompletedEvent(currentEvent)))          // Display PBP title and description
-  .then(() => wait(3000))                                         // Pause on PBP description and title
-  .then(() => dispatch(clearCompletedEvent()))                    // Trigger outro of PBP description and title
-  .then(() => wait(500))                                          // Wait for outro of PBP description and title
   .then(() => dispatch(showAnimationEventResults(currentEvent)))  // Update bigplays, FP, and stats.
   .then(() => dispatch(clearCurrentEvent()))                      // Remove current event
   .then(() => dispatch(shiftOldestEvent()));                      // Bring in the next one

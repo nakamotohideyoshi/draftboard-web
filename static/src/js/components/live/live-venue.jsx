@@ -10,7 +10,6 @@ export default React.createClass({
     eventsMultipart: React.PropTypes.object,
     contest: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
-    completedEvent: React.PropTypes.object,
     myLineupInfo: React.PropTypes.object.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
     uniqueLineups: React.PropTypes.object.isRequired,
@@ -18,14 +17,29 @@ export default React.createClass({
     animationCompleted: React.PropTypes.func.isRequired,
   },
 
+  getInitialState() {
+    return {
+      completedEvent: null,
+    };
+  },
+
+  stageAnimationCompleted(event) {
+    // Trigger update to header... title & description
+    this.setState({ completedEvent: event });
+    setTimeout(() => {
+      this.setState({ completedEvent: null });
+      this.props.animationCompleted();
+    }, 5000);
+  },
+
   render() {
-    // HACK: to avoid stateless component linting error
-    const fixSomething = this.state;
+    const {
+      completedEvent,
+    } = this.state;
 
     const {
       contest,
       currentEvent,
-      completedEvent,
       watching,
       myLineupInfo,
       uniqueLineups,
@@ -40,7 +54,8 @@ export default React.createClass({
       <div>
         <section className="live__venues">
           <LiveHeader
-            { ...{ contest, watching, fixSomething } }
+            contest={contest}
+            watching={watching}
             lineups={uniqueLineups.lineups}
             myLineup={myLineupInfo}
             opponentLineup={opponentLineup}
@@ -48,9 +63,10 @@ export default React.createClass({
           />
 
           <LiveAnimationArea
-            { ...{ currentEvent, watching } }
-            eventsMultipart={ eventsMultipart }
-            onAnimationComplete={ () => this.props.animationCompleted() }
+            watching={watching}
+            currentEvent={currentEvent}
+            eventsMultipart={eventsMultipart}
+            onAnimationComplete={ (event) => this.stageAnimationCompleted(event) }
           />
 
           { isWatchingContest &&
