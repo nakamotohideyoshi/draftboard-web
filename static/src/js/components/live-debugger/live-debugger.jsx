@@ -122,7 +122,6 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
             eventsMultipart,
             uniqueLineups,
           } }
-          selectLineup={() => {}}
           animationCompleted={this.animationCompleted}
           bigPlaysQueue={bigEvents || []}
         />
