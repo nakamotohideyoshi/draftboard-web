@@ -13,20 +13,13 @@ window.gidxErrorReport = function (error, errorMsg) {
   // Error messages will be sent here by the GIDX Client Side Service
 };
 
-window.gidxNextStep = function () {
-    console.log('========= gidxNextStep ===========');
-
-  // Once the customer has completed this Session the GIDX Client Side Service will call this function.
-  //  You should now make an "aJax" call or do a "document.location='a page on your server'" and call
-  // the the appropriate API Method.
-};
-
-
 const GidxIdentityForm = React.createClass({
   propTypes: {
     embed: React.PropTypes.string.isRequired,
+    merchantSessionID: React.PropTypes.string.isRequired,
+    checkUserIdentityVerificationStatus: React.PropTypes.func.isRequired,
+    gidxFormInfo: React.PropTypes.object.isRequired,
   },
-
 
   getInitialState() {
     return {
@@ -34,14 +27,25 @@ const GidxIdentityForm = React.createClass({
     };
   },
 
-
   componentDidMount() {
+    console.log('component mounted!');
     const self = this;
+
+    window.gidxNextStep = function () {
+      // Once the customer has completed this Session the GIDX Client Side Service will call this function.
+      //  You should now make an "aJax" call or do a "document.location='a page on your server'" and call
+      // the the appropriate API Method.
+      console.log('========= gidxNextStep ===========');
+
+      console.log(self);
+
+      self.props.checkUserIdentityVerificationStatus(self.props.merchantSessionID);
+    };
 
     window.gidxServiceStatus = function (service, action, json) {
       // service idAcctComplete-plate == process over.
       if (service === 'idAcctComplete-plate') {
-        self.setState({ status: 'COMPLETE__FAIL' });
+        self.setState({ status: 'COMPLETE' });
       }
 
       console.log('========= gidxServiceStatus ============');
@@ -54,14 +58,14 @@ const GidxIdentityForm = React.createClass({
       // providing you the service action that was just performed, the start & stop time, and a JSON key/value
       // that you can parse/loop to get more data control of the process.
       // Here's an example of getting the deposit value selected and displaying it within an element on the page.
-      for (var i = 0; i < json.length; i++) {
-        for (var key in json[i]) {
+      for (let i = 0; i < json.length; i++) {
+        for (const key in json[i]) {
           if (json[i].hasOwnProperty(key)) {
-          // Here you can look at the key and value to make decisions on what you would
-          // like to do with the client side interface.
-          var sItem = key;
-          var sValue = json[i][key];
-            console.log(sItem + ': ', sValue);
+            // Here you can look at the key and value to make decisions on what you would
+            // like to do with the client side interface.
+            const sItem = key;
+            const sValue = json[i][key];
+            // console.log(sItem + ': ', sValue);
             // Example
             if (sItem === 'TransactionAmount') {
               document.getElementById('DepositAmountDisplay').innerText(sValue);
@@ -70,7 +74,6 @@ const GidxIdentityForm = React.createClass({
         }
       }
     };
-
 
     // This is some hack-ass shit.
     const scriptTag = document.querySelector('#GIDX script');
@@ -87,20 +90,26 @@ const GidxIdentityForm = React.createClass({
     this.refs.GIDX_embed.append(newScriptTag);
   },
 
-
   shouldComponentUpdate(nextProps, nextState) {
     // Only re-render if we set new state, not for passed props.
     return this.state !== nextState;
   },
 
-
   render() {
-
-    if (this.state.status === 'COMPLETE__FAIL') {
+    if (this.props.gidxFormInfo.status === 'FAIL') {
       return (
         <div>
           <h3>Unable Verify Your Identity</h3>
           <p>Please contact support@draftboard.com with any questions.</p>
+        </div>
+      );
+    }
+
+    if (this.props.gidxFormInfo.status === 'SUCCESS') {
+      return (
+        <div>
+          <h3>Identity Verified!</h3>
+          <p>You can now deposit funds or enter contests.</p>
         </div>
       );
     }
@@ -114,12 +123,12 @@ const GidxIdentityForm = React.createClass({
         <div id="GIDX">
 
           <div ref="GIDX_embed">
-            <div data-gidx-script-loading='true'>Loading...</div>
+            <div data-gidx-script-loading="true">Loading...</div>
 
             <div
               id="GIDX_embed_hidden"
               ref="originalEmbed"
-              dangerouslySetInnerHTML={{__html: this.props.embed}}
+              dangerouslySetInnerHTML={{ __html: this.props.embed }}
             ></div>
           </div>
 
@@ -128,6 +137,5 @@ const GidxIdentityForm = React.createClass({
     );
   },
 });
-
 
 export default GidxIdentityForm;

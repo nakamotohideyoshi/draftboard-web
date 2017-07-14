@@ -1,12 +1,9 @@
 import calendar
 import logging
 from datetime import datetime, date, timedelta
-from account.gidx.models import GidxSession
-from account.gidx.response import WebhookResponse
-from account.gidx.request import (get_user_from_session_id, get_customer_id_from_user_id)
+
 from braces.views import LoginRequiredMixin
 from django.conf import settings
-from account.models import Identity
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth import login as authLogin
 from django.contrib.auth import views as auth_views
@@ -16,6 +13,7 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from raven.contrib.django.raven_compat.models import client
@@ -25,13 +23,11 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.exceptions import (APIException, ValidationError)
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-import json
-from rest_framework.parsers import JSONParser
-from account.gidx.request import (CustomerRegistrationRequest, WebRegCreateSession)
 
 import account.tasks
 from account import const as _account_const
@@ -39,6 +35,13 @@ from account.forms import (
     LoginForm,
     SelfExclusionForm,
 )
+from account.gidx.models import GidxSession
+from account.gidx.request import (
+    CustomerRegistrationRequest, WebRegCreateSession, RegistrationStatusRequest, get_user_from_session_id, get_customer_id_from_user_id
+)
+
+from account.gidx.response import WebhookResponse
+from account.models import Identity
 from account.models import (
     Information,
     EmailNotification,
@@ -897,23 +900,65 @@ class VerifyLocationAPIView(APIView):
         )
 
 
+class GidxRegistrationStatus(APIView):
+    """
+    Check the status of a user registration session. This is used after the drop-in form is
+    complete and we need to check for a pass/fail.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    @staticmethod
+    def get(request, merchant_session_id):
+        status_request = RegistrationStatusRequest(
+            user=request.user,
+            merchant_session_id=merchant_session_id
+        )
+
+        # Verify data and send!
+        status_response = status_request.send()
+
+        # If the user was verified...
+        if status_response.is_verified():
+            return Response(
+                data={
+                    "status": "SUCCESS",
+                    "detail": "Your Identity has been verified!"
+                },
+                status=200,
+            )
+
+        return Response(
+            data={
+                "status": "FAIL",
+                "detail": "Your Identity could not be verified"
+            },
+            status=200,
+        )
+
+
 class GidxCallbackAPIView(APIView):
     """
     When a user can't be validated via direct API, we use the GIDX drop-in form
     and attempt to verify that way. When that form is submitted, GIDX sends a callback webhook
     with the status to our server.
     """
-    parser_classes = (JSONParser,)
+
+    parser_classes = (MultiPartParser, FormParser,)
 
     @staticmethod
+    @csrf_exempt
     def post(request):
+        import json
+
+        request_data = json.loads(request.data.dict()['result'])
+
         logger.info({
             "action": "WebReg_Callback",
             "request": None,
-            "response": request.data,
+            "response": request_data,
         })
 
-        response_wrapper = WebhookResponse(request.data)
+        response_wrapper = WebhookResponse(request_data)
         # Grab some of the data from the previous session that is not included in the webhook.
         user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
         customer_id = get_customer_id_from_user_id(user.id)
@@ -925,7 +970,7 @@ class GidxCallbackAPIView(APIView):
             session_id=response_wrapper.json['MerchantSessionID'],
             service_type='WebReg_Callback',
             reason_codes=response_wrapper.json['ReasonCodes'],
-            response_data=request.data,
+            response_data=request_data,
 
         )
 
@@ -933,15 +978,18 @@ class GidxCallbackAPIView(APIView):
             # If GIDX says they are verified, we save some of the identity info.
             # Note: we don't get a DOB back from the webhook, so we can't add one.
             # I'm not totally sure what the ramifications of that may be.
-            Identity.objects.create(
-                user=request.user,
-                gidx_customer_id=customer_id,
-                country=response_wrapper.get_country(),
-                region=response_wrapper.get_region(),
-                flagged=response_wrapper.is_identity_previously_claimed(),
-                metadata=request.data,
-                status=True
-            )
+
+            # Since they may already have an Identity for some reason, try to get it
+            # first, if not, create a new one.
+            identity, created = Identity.objects.get_or_create(user=user)
+
+            identity.gidx_customer_id = customer_id
+            identity.country = response_wrapper.get_country()
+            identity.region = response_wrapper.get_region()
+            identity.flagged = response_wrapper.is_identity_previously_claimed()
+            identity.metadata = request_data
+            identity.status = True
+            identity.save()
 
         return Response(
             data={
@@ -1005,16 +1053,18 @@ class VerifyUserIdentityAPIView(APIView):
                     serializer.validated_data.get('birth_day')
                 )
                 # If GIDX says they are verified, we save the some of the identity info.
-                Identity.objects.create(
-                    user=request.user,
-                    dob=dob,
-                    gidx_customer_id=registration_response.json['MerchantCustomerID'],
-                    country=registration_response.get_country(),
-                    region=registration_response.get_region(),
-                    flagged=registration_response.is_identity_previously_claimed(),
-                    metadata=registration_response.json,
-                    status=True,
-                )
+                # Since they may already have an Identity for some reason, try to get it
+                # first, if not, create a new one.
+                identity, created = Identity.objects.get_or_create(user=request.user)
+                identity.dob = dob
+                identity.gidx_customer_id = registration_response.json['MerchantCustomerID']
+                identity.country = registration_response.get_country()
+                identity.region = registration_response.get_region()
+                identity.flagged = registration_response.is_identity_previously_claimed()
+                identity.metadata = registration_response.json
+                identity.status = True
+                identity.save()
+
                 return Response(
                     data={
                         "status": "SUCCESS",
@@ -1035,8 +1085,25 @@ class VerifyUserIdentityAPIView(APIView):
                 ),
                 ip_address=get_client_ip(request)
             )
-
+            # Make the request.
             web_reg_response = web_reg.send()
+
+            # If we requested a JS embed, and GIDX says they are already verified, go ahead and
+            # update the user's identity.
+            if web_reg_response.is_verified():
+                identity, created = Identity.objects.get_or_create(user=request.user)
+                identity.metadata = web_reg_response.json
+                identity.flagged = web_reg_response.is_identity_previously_claimed()
+                identity.status = True
+                identity.save()
+
+                return Response(
+                    data={
+                        "status": "SUCCESS",
+                        "detail": "Your identity has been verified."
+                    },
+                    status=200,
+                )
 
             message = web_reg_response.get_response_message()
             if not message:

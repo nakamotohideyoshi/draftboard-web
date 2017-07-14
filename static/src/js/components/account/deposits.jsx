@@ -5,7 +5,9 @@ import renderComponent from '../../lib/render-component';
 import { deposit } from '../../actions/payments';
 import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
 import log from '../../lib/logging';
-import { verifyLocation, fetchUser, verifyIdentity } from '../../actions/user';
+import {
+  verifyLocation,
+  fetchUser, verifyIdentity, checkUserIdentityVerificationStatus } from '../../actions/user';
 import { addMessage, removeMessage } from '../../actions/message-actions.js';
 import debounce from 'lodash/debounce';
 import classNames from 'classnames';
@@ -26,6 +28,7 @@ function mapStateToProps(state) {
     depositLimit: state.user.cashBalance.depositLimit,
     userLocation: state.user.location,
     identityFormInfo: state.user.identityFormInfo,
+    gidxFormInfo: state.user.gidxFormInfo,
   };
 }
 
@@ -37,6 +40,8 @@ function mapDispatchToProps(dispatch) {
     beginPaypalCheckout: (options) => beginPaypalCheckout(options),
     verifyLocation: () => dispatch(verifyLocation()),
     verifyIdentity: (postData) => dispatch(verifyIdentity(postData)),
+    checkUserIdentityVerificationStatus: (merchantSessionID) => dispatch(
+      checkUserIdentityVerificationStatus(merchantSessionID)),
   };
 }
 
@@ -58,6 +63,8 @@ const Deposits = React.createClass({
     depositSum: React.PropTypes.number.isRequired,
     depositLimit: React.PropTypes.number.isRequired,
     identityFormInfo: React.PropTypes.object.isRequired,
+    gidxFormInfo: React.PropTypes.object.isRequired,
+    checkUserIdentityVerificationStatus: React.PropTypes.func.isRequired,
   },
 
 
@@ -283,8 +290,10 @@ const Deposits = React.createClass({
         <IdentityVerificationModal
           isOpen
           identityFormInfo={this.props.identityFormInfo}
+          gidxFormInfo={this.props.gidxFormInfo}
           verifyIdentity={this.props.verifyIdentity}
           user={this.props.user}
+          checkUserIdentityVerificationStatus={this.props.checkUserIdentityVerificationStatus}
         />
       );
     }

@@ -18,6 +18,20 @@ def get_region_from_response(response):
             return code.split('-')[-1]
 
 
+def is_underage(reason_codes=[]):
+    # exampe of underage code: 'ID-UA-19'
+    for code in reason_codes:
+        if 'UA' in code:
+            return code.split('-')[1] == 'UA'
+
+    return False
+
+
+def is_location_blocked(reason_codes=[]):
+    # `LL-BLOCK` means the user's location is on our block list.
+    return 'LL-BLOCK' in reason_codes
+
+
 class CustomerRegistrationResponse(object):
     response = None
     json = None
@@ -73,11 +87,19 @@ class CustomerRegistrationResponse(object):
         reason_codes = self.json['ReasonCodes']
         # If we have reason codes...
         if len(reason_codes):
+            # Check if their location is blocked.
+            if is_location_blocked(reason_codes):
+                return False
+
+            # If we had an underage code, don't let them verify.
+            if is_underage(reason_codes):
+                return False
+
             # And one of othem is an id verified flag, we are verified!
             if 'ID-VERIFIED' in reason_codes:
                 return True
 
-        # If we have no codes or are missing  the verified one, we are not verified.
+        # If we have no codes or are missing the verified one, we are not verified.
         return False
 
     def get_country(self):
@@ -85,10 +107,6 @@ class CustomerRegistrationResponse(object):
 
     def get_region(self):
         return get_region_from_response(self.json)
-
-    def location_is_blocked(self):
-        # TODO: `LL-BLOCK` for blocked locations
-        pass
 
     def is_identity_previously_claimed(self):
         """
@@ -108,17 +126,10 @@ class WebRegCreateSessionResponse(CustomerRegistrationResponse):
         if self.json:
             return {
                 # For some ungodly reason they plus-encode the JS snippet :(
-                'form_embed': urllib.parse.unquote_plus(self.json['SessionURL'])
+                'form_embed': urllib.parse.unquote_plus(self.json['SessionURL']),
+                'merchant_session_id': self.json['MerchantSessionID'],
             }
         return ''
-
-    def is_verified(self):
-        """
-        The WebRegCreateSession endpoint cannot tell us if the user is verified or not. it will
-        simply give us an embeddable JS script, so this is always False.
-        :return: Bool
-        """
-        return False
 
 
 class WebhookResponse(CustomerRegistrationResponse):

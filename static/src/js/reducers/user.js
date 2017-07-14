@@ -12,6 +12,10 @@ const initialState = {
     hasFetched: false,
   },
   username: window.dfs.user.username,
+  gidxFormInfo: {
+    stutus: 'UNKNOWN',
+    message: null,
+  },
   identityFormInfo: {
     errors: {},
     isSending: false,
@@ -230,6 +234,7 @@ module.exports = (state = initialState, action) => {
       // If it was a failure due to not being able to find the identity, we need to move
       // on to the advanced form.
       if (
+        action.response &&
         action.response.reasonCodes &&
         action.response.reasonCodes.includes('ID-UNKN') &&
         action.response.status === 'FAIL'
@@ -237,7 +242,8 @@ module.exports = (state = initialState, action) => {
         newState.identityFormInfo.hasMadeBasicAttempt = true;
       }
 
-      newState.identityFormInfo.errors = action.response;
+      newState.identityFormInfo.errors = action.response || {};
+
       return newState;
     }
 
@@ -274,6 +280,37 @@ module.exports = (state = initialState, action) => {
           isLocationVerified: false,
           status: 'failed',
           message: action.error,
+        },
+      });
+    }
+
+
+    /**
+     * GIDX Form stuff.
+     */
+    case actionTypes.CHECK_IDENTITY_STATUS__SEND: {
+      return merge({}, state, {
+        gidxFormInfo: {
+          stutus: 'SENDING',
+          message: null,
+        },
+      });
+    }
+
+    case actionTypes.CHECK_IDENTITY_STATUS__SUCCESS: {
+      return merge({}, state, {
+        gidxFormInfo: {
+          stutus: action.response.status,
+          message: action.response.detail,
+        },
+      });
+    }
+
+    case actionTypes.CHECK_IDENTITY_STATUS__FAIL: {
+      return merge({}, state, {
+        gidxFormInfo: {
+          stutus: 'FAIL',
+          message: 'An error was encountered when trying to validate your identity.',
         },
       });
     }

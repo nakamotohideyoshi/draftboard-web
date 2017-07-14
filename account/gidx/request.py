@@ -72,6 +72,7 @@ class GidxRequest(object):
     service_type = None
     response_wrapper = None
     responseClass = None
+    action_name = None
     # Extra params that subclasses can fill up.
     params = {}
     # Params that are required for every API request.
@@ -86,8 +87,6 @@ class GidxRequest(object):
         'DeviceTypeID': settings.GIDX_DEVICE_ID,
         # Your assigned ID for this specific customer activity type.
         'ActivityTypeID': settings.GIDX_ACTIVITY_ID,
-        # I can't for the life of me get reverse() to work here. I am sorry.
-        'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/identity-webhook/'),
     }
 
     def validate_params(self):
@@ -115,10 +114,10 @@ class GidxRequest(object):
         # Save our session info
         GidxSession.objects.create(
             user=self.user,
-            gidx_customer_id=self.params['MerchantCustomerID'],
-            session_id=self.params['MerchantSessionID'],
+            gidx_customer_id=self.params.get('MerchantCustomerID'),
+            session_id=self.params.get('MerchantSessionID'),
             service_type=self.service_type,
-            device_location=self.params['DeviceIpAddress'],
+            device_location=self.params.get('DeviceIpAddress'),
             request_data=strip_sensitive_fields(self.params),
             response_data=self.response_wrapper.json,
             reason_codes=self.response_wrapper.json['ReasonCodes'],
@@ -126,7 +125,8 @@ class GidxRequest(object):
 
         # Log out the req + res
         logger.info({
-            "action": "ID_VERIFICATON_REQUEST",
+            'url': self.url,
+            "action": self.action_name,
             "request": self.params,
             "response": self.response_wrapper.json,
         })
@@ -134,7 +134,8 @@ class GidxRequest(object):
         # 500+ means some kind of service-level error. make sure we get notified about these.
         if self.response_wrapper.json['ResponseCode'] >= 500:
             logger.error({
-                "action": "ID_VERIFICATON_REQUEST--FAIL",
+                'url': self.url,
+                "action": "%s%s" % (self.action_name, '--FAIL'),
                 "request": self.params,
                 "response": '%s - %s' % (
                     self.response_wrapper, self.response_wrapper.response.text),
@@ -167,6 +168,7 @@ class CustomerRegistrationRequest(GidxRequest):
     url = 'https://api.gidx-service.in/v3.0/api/CustomerIdentity/CustomerRegistration'
     service_type = 'CustomerRegistration'
     responseClass = CustomerRegistrationResponse
+    action_name = "CUSTOMER_REGISTRATION_REQUEST"
 
     def __init__(self, user, first_name, last_name, date_of_birth, ip_address):
         # Bail immediately if we have no logged-in user.
@@ -188,6 +190,8 @@ class CustomerRegistrationRequest(GidxRequest):
             'EmailAddress': user.email,
             # 04/03/1984 (In MM/DD/YYYY Format)
             'DateOfBirth': date_of_birth,
+            # I can't for the life of me get reverse() to work here. I am sorry.
+            'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/identity-webhook/'),
         }
 
         # Combine the base parameters and the supplied arguments into a single dict that
@@ -200,13 +204,89 @@ class CustomerRegistrationRequest(GidxRequest):
         response = self._send()
 
         # Now do any response handling.
-        if (
-                        'ProfileMatches' in self.response_wrapper.json and
-                        len(self.response_wrapper.json['ProfileMatches']) == 0
-        ):
+        if ('ProfileMatches' in self.response_wrapper.json and len(
+                self.response_wrapper.json['ProfileMatches']) == 0):
             logger.warning('No profile match found!')
 
         return response
+
+
+class RegistrationStatusRequest(GidxRequest):
+    """
+    Check the status of a user's registration.
+    (http://www.tsevo.com/Docs/WebReg)
+    """
+    url = 'https://api.gidx-service.in/v3.0/api/WebReg/RegistrationStatus'
+    service_type = 'RegistrationStatus'
+    responseClass = CustomerRegistrationResponse
+    action_name = "REGISTRATION_STATUS_REQUEST"
+
+    def __init__(self, user, merchant_session_id):
+        self.user = user
+
+        args = {
+            'MerchantSessionID': merchant_session_id,
+        }
+
+        # Combine the base parameters and the supplied arguments into a single dict that
+        # we can pass as POST parameters.
+        self.params.update(self.base_params)
+        self.params.update(args)
+
+    def send(self):
+        # Call the parent's _send, it does the actual work.
+        return self._send()
+
+    # We have to override this becase this reqeust is a GET. the default is POST
+    def _send(self):
+        # Do a simple `None` check on all params
+        self.validate_params()
+        # Make the request!
+        res = requests.get(self.url, self.params)
+        # Save the response. This will do some basic response error handling.
+        self.response_wrapper = self.responseClass(response=res, params=self.params, url=self.url)
+        self.handle_response()
+
+        # Return the response wrapper.
+        return self.response_wrapper
+
+    def handle_response(self):
+
+        # Log out the req + res
+        logger.info({
+            'url': self.url,
+            "action": self.action_name,
+            "request": self.params,
+            "response": self.response_wrapper.json,
+        })
+
+        # 500+ means some kind of service-level error. make sure we get notified about these.
+        if self.response_wrapper.json['ResponseCode'] >= 500:
+            logger.error({
+                'url': self.url,
+                "action": "%s%s" % (self.action_name, '--FAIL'),
+                "request": self.params,
+                "response": '%s - %s' % (
+                    self.response_wrapper, self.response_wrapper.response.text),
+            })
+            # Send some useful information to Sentry.
+            client.context.merge({'extra': {
+                'response_json': self.response_wrapper.json,
+                'response_text': self.response_wrapper.response.text,
+                'params': self.params,
+                'url': self.url,
+            }})
+            client.captureMessage(
+                "GIDX request failed - REGISTRATION_STATUS_REQUEST")
+            client.context.clear()
+
+            raise ValidationError(detail='%s' % self.response_wrapper.json['RegistrationStatusMessage'])
+
+        # a ResponseCode of 0 indicates no errors. If we had errors, raise an exception that can
+        # be caught on the view layer.
+        if not self.response_wrapper.json['ResponseCode'] == 0:
+            logger.warning(self.response_wrapper.json)
+            raise ValidationError(detail='%s' % self.response_wrapper.json['RegistrationStatusMessage'])
 
 
 class WebRegCreateSession(GidxRequest):
@@ -219,6 +299,7 @@ class WebRegCreateSession(GidxRequest):
     url = 'https://api.gidx-service.in/v3.0/api/WebReg/CreateSession'
     service_type = 'WebReg_CreateSession'
     responseClass = WebRegCreateSessionResponse
+    action_name = "WEB_REG_CREATE_SESSION_REQUEST"
 
     def __init__(self, user, first_name, last_name, date_of_birth, ip_address):
         # Bail immediately if we have no logged-in user.

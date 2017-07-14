@@ -5,7 +5,7 @@ import { CALL_API } from '../middleware/api';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { addMessage } from './message-actions';
-import { isExceptionDetail, isListOfErrors } from '../lib/utils/response-types';
+import { isExceptionDetail, isListOfErrors, getErrorMessage } from '../lib/utils/response-types';
 
 // custom API domain for local dev testing
 // let { API_DOMAIN = '' } = process.env;
@@ -314,8 +314,82 @@ export const verifyLocation = () => (dispatch) => {
   });
 };
 
+
+export function checkUserIdentityVerificationStatus(merchantSessionID) {
+  return (dispatch) => {
+    console.log('checkUserIdentityVerificationStatus', merchantSessionID);
+    dispatch({ type: actionTypes.CHECK_IDENTITY_STATUS__SEND });
+
+    return new Promise((resolve, reject) => {
+      request.get(`/api/account/identity-status/${merchantSessionID}/`)
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        Accept: 'application/json',
+      })
+      .send()
+      .end((err, res) => {
+        // There was an error.
+        if (err) {
+          // Is the response a general error, with a detail message?
+          // If it isn't, we need to show the error banner.
+          if (isExceptionDetail(res) || isListOfErrors(res) || res.statusCode === 500) {
+            const message = getErrorMessage(res);
+
+            dispatch(addMessage({
+              header: 'Error while attempting to verify your identity.',
+              level: 'warning',
+              content: message || 'Please contact support',
+            }));
+          }
+
+          // Tell the state that the request failed.
+          dispatch({
+            type: actionTypes.CHECK_IDENTITY_STATUS__FAIL,
+            response: res.body,
+          });
+          // This will end up being sent to Sentry.
+          return reject({ err: res.body });
+        }
+
+        // if the request went ok...
+        dispatch({
+          type: actionTypes.CHECK_IDENTITY_STATUS__SUCCESS,
+          response: res.body,
+        });
+
+        // re-fetch the user info so our store can be up-to-date.
+        dispatch(fetchUser());
+
+        // Check the response status.
+        const isVerified = res.body.status === 'SUCCESS';
+
+        // show a pass/fail banner message.
+        if (isVerified) {
+          // Show a success message.
+          dispatch(addMessage({
+            level: 'success',
+            header: 'Your identity was verified.',
+            ttl: 3000,
+          }));
+        } else {
+          dispatch(addMessage({
+            header: 'Unable to verify your identity.',
+            level: 'warning',
+            content: 'Please contact us if you beleive this is an error.',
+          }));
+        }
+
+        // Resolve the promise chain.
+        return resolve({ response: res });
+      });
+    });
+  };
+}
+
+
 /**
- * Verify a user's identity with Trulioo.
+ * Verify a user's identity with Gidx.
  * @param  {Object} postData The field data form the IdentityForm component.
  * @return {Promise}
  */
@@ -333,11 +407,13 @@ export function verifyIdentity(postData) {
         if (err) {
           // Is the response a general error, with a detail message?
           // If it isn't, we need to show the error banner.
-          if (isExceptionDetail(res) || isListOfErrors(res)) {
+          if (isExceptionDetail(res) || isListOfErrors(res) || res.statusCode === 500) {
+            const message = getErrorMessage(res);
+
             dispatch(addMessage({
               header: 'Unable to verify your identity.',
               level: 'warning',
-              content: res.body.detail || 'Please contact us if you beleive this is an error.',
+              content: message || 'Please contact us if you beleive this is an error.',
             }));
           }
 
