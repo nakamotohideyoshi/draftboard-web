@@ -44,7 +44,7 @@ const PlayerPmrHeadshotComponent = (props) => {
 
   return (
     <div className={classNames} style={{ height: `${width}px`, width: `${width}px` }}>
-      <div className="player-pmr-headshot__bg">
+      <span className="cmp-lineup-card__photo">
         <img
           alt="Player Headshot"
           className={`${block}__headshot ${block}__headshot--${sport}`}
@@ -58,7 +58,7 @@ const PlayerPmrHeadshotComponent = (props) => {
           }
           src={headshotSrc}
         />
-      </div>
+      </span>
 
       {renderPmr()}
     </div>
