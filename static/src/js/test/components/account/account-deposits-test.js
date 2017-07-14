@@ -21,6 +21,9 @@ describe('<Deposits /> Component', () => {
     verifyLocation: () => true,
     verifyIdentity: () => true,
     fetchUser: () => true,
+    userLocation: {},
+    checkUserIdentityVerificationStatus: () => true,
+    gidxFormInfo: {},
   };
   let wrapper = null;
 
