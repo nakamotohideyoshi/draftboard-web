@@ -22,10 +22,14 @@ category: Lineup
   background: #fff;
   color: #293f4f;
   margin: 0 auto 10px;
-  max-width: 290px;
-  position: relative;
-  overflow: hidden;
-
+  &.nfl{
+    .cmp-lineup-card {
+      &__photo {
+        padding: 0 5px;
+        vertical-align: bottom;
+      }
+    }
+  }
   .players {
     list-style: none;
     margin: 0;
@@ -40,9 +44,56 @@ category: Lineup
     display: table-row;
     list-style: none;
     margin: 0;
-
+    &:hover {
+      background-color: #f8fafb;
+    }
+    .team > span{
+      display: inline;
+      font-size: 10px;
+      padding-left: 5px;
+    }
     > span {
       vertical-align: middle;
+    }
+    .circle {
+      background-size: 120% auto;
+      border-radius: 50%;
+      display: inline-block;
+      margin: 7px 6px 5px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(109, 113, 138, .5);
+      .cmp-lineup-card {
+        &__photo {
+          overflow: hidden;
+          padding: 0;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          vertical-align: middle;
+          display: block;
+          img {
+            vertical-align: middle;
+            padding: 0;
+            margin: 0;
+            max-width: 50px;
+            display: block;
+            width: 100%;
+            height: auto;
+            position: relative;
+            top: 0px;
+            left: 0px;
+          }
+        }
+      }
+    }
+    .score{
+      padding: 0;
+      text-align: center;
+      .text{
+        padding: 0;
+        text-align: center;
+      }
     }
   }
 
@@ -119,7 +170,7 @@ category: Lineup
   &__save {
     display: inline-block;
     text-align: right;
-
+    float: right;
     &.disabled {
       cursor: default;
       opacity: 0.3;
@@ -167,8 +218,8 @@ category: Lineup
     width: 50px;
     height: 41px;
     overflow: hidden;
-    padding: 0 5px !important;
-    vertical-align: bottom !important;
+    padding: 0 5px;
+    vertical-align: bottom;
 
     img {
       vertical-align: bottom;
@@ -186,6 +237,7 @@ category: Lineup
   &__name,
   &__salary,
   &__average,
+  &__emvalue,
   &__position {
     vertical-align: middle;
   }
@@ -243,6 +295,7 @@ category: Lineup
   }
 
   &__salary,
+  &__emvalue,
   &__average {
     font-family: $font-oswald;
     line-height: 1em;
@@ -253,7 +306,8 @@ category: Lineup
     }
   }
 
-  &__average {
+  &__average,
+  &__emvalue{
     .text {
       text-align: right;
       padding-right: 10px;
@@ -287,19 +341,21 @@ category: Lineup
   // Footer section.
   &__footer {
     padding: 15px 0;
+    display: flex;
+    flex-justify: center;
+    align-items: stretch;
   }
 
   &__footer-section {
       display: inline-block;
-      width: 50%;
-      text-align: left;
-      padding-left: 15px;
+      width: 100%;
       font-size: 16px;
       font-family: $font-oswald;
       border-right: 1px solid #ebedf2;
-
+      text-align: center;
+      width: 100%;
+      display: block;
       &:last-child {
-        padding-left: 30px;
         border-right: none;
       }
   }
@@ -473,12 +529,10 @@ category: Lineup
         right: 15px;
       }
     }
-
   }
 
   &__list-header {
     color: #6d718a;
-    padding: 0px 25px 0 20px;
     text-align: right;
 
     &-average,
@@ -722,20 +776,23 @@ category: Lineup
 .cmp-lineup-card.flip-container {
   perspective: 1000px;
   background: none;
-  width: 290px;
+  width: 100%;
 
   /* flip the card when .flipped class is added. */
   &.flipped {
     .flipper {
+
       transform: rotateY(-180deg);
     }
   }
 
   // The element that flips.
   .flipper {
-  	transition: 0.25s ease-in-out;
+    position: relative;
   	transform-style: preserve-3d;
   	position: relative;
+    display: flex;
+    align-items: stretch;
   }
 
   .front,
@@ -743,15 +800,23 @@ category: Lineup
     /* hide back of pane during swap */
   	backface-visibility: hidden;
   	// min-height: 510px;
-  	width: 290px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
   /* front pane, placed above back */
   .front {
     background: #fff;
   	/* for firefox 31 */
-  	transform: rotateY(0deg);
     z-index: 2;
+    .cmp-lineup-card__list-header {
+      &-salary{
+        display: inline-block;
+        width: 40px;
+        text-align: center;
+      }
+    }
   }
 
   .back {
@@ -771,24 +836,29 @@ category: Lineup
     }
 
     .cmp-lineup-card__list-header {
-      padding: 5px 0 0 0;
       text-align: left;
 
       > span {
         color: #c5c7ce;
         display: inline-block;
+        &:last-child{
+          text-align: right;
+        }
       }
 
       &-remove {
-        width: 45px;
+        width: 15%;
       }
       &-contest {
-        width: 190px;
+        width: 75%;
       }
 
       &-fee {
-        width: auto;
+        width: 10%;
+        text-aiign: right;
+        padding-right: 5px;
       }
+
     }
 
     .cmp-lineup-card-entries {
@@ -800,6 +870,11 @@ category: Lineup
 
     .entry-list {
       height: auto;
+      .entry{
+        .prize{
+          text-align:right;
+        }
+      }
     }
 
     .cmp-lineup-card__footer {
@@ -813,6 +888,7 @@ category: Lineup
 
       &-section {
         border-color: #5f626d;
+
       }
     }
 
@@ -826,10 +902,42 @@ category: Lineup
         color: #c5c7ce;
       }
     }
-
-
   }
 }
+
+.flip-container {
+  .flipper, .front, .back {
+    transition: 0.6s;
+  }
+
+  .flipper {
+    position: relative;
+    transform: rotateY(0deg);
+    transform-style: preserve-3d;
+    transform-origin: center center;
+
+    .front {
+      filter: blur(0px);
+    }
+
+    .back {
+      filter: blur(20px);
+    }
+  }
+
+  &.hover .flipper {
+    transform: rotateY(180deg);
+
+    .front {
+      filter: blur(20px);
+    }
+
+    .back {
+      filter: blur(0px);
+    }
+  }
+}
+
 
 
 

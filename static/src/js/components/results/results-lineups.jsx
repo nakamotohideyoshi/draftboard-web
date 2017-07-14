@@ -28,7 +28,7 @@ const ResultsLineups = (props) => {
 };
 
 ResultsLineups.propTypes = {
-  isWatchingLive: React.PropTypes.bool.isRequired,
+  isWatchingLive: React.PropTypes.bool,
   lineups: React.PropTypes.array.isRequired,
   fetchEntryResults: React.PropTypes.func.isRequired,
 };
