@@ -1,5 +1,5 @@
 from logging import getLogger
-
+from datetime import datetime
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
@@ -252,15 +252,21 @@ class SetLimitsTest(AbstractTest, BuildWorldMixin, ForceAuthenticateAndRequestMi
         entry_limit = Limit.objects.create(type=2, value=3, user=self.user, time_period=7)
         entry_fee_limit = Limit.objects.create(type=3, value=prize / 2, user=self.user)
 
-        Identity.objects.create(
+        self.identity = Identity.objects.create(
+            gidx_customer_id='test',
             user=self.user,
-            first_name='test',
-            last_name='user',
-            birth_day=1,
-            birth_month=1,
-            birth_year=1984,
-            postal_code='80203',
+            dob=datetime(1984, 1, 1),
+            region='CO',
+            country='US',
+            status=True,
         )
+
+    def test_no_identity(self):
+        self.identity.status = False
+        self.identity.save()
+        data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+        self.assertEqual(response.status_code, 403)
 
     def test_entry_fee(self):
         data = {'lineup': self.lineup.pk, 'contest_pool': self.contest_pool.pk}

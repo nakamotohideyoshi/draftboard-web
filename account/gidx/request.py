@@ -137,8 +137,7 @@ class GidxRequest(object):
                 'url': self.url,
                 "action": "%s%s" % (self.action_name, '--FAIL'),
                 "request": self.params,
-                "response": '%s - %s' % (
-                    self.response_wrapper, self.response_wrapper.response.text),
+                "response": self.response_wrapper.response.text,
             })
             # Send some useful information to Sentry.
             client.context.merge({'extra': {
@@ -280,13 +279,15 @@ class RegistrationStatusRequest(GidxRequest):
                 "GIDX request failed - REGISTRATION_STATUS_REQUEST")
             client.context.clear()
 
-            raise ValidationError(detail='%s' % self.response_wrapper.json['RegistrationStatusMessage'])
+            raise ValidationError(
+                detail='%s' % self.response_wrapper.json['RegistrationStatusMessage'])
 
         # a ResponseCode of 0 indicates no errors. If we had errors, raise an exception that can
         # be caught on the view layer.
         if not self.response_wrapper.json['ResponseCode'] == 0:
             logger.warning(self.response_wrapper.json)
-            raise ValidationError(detail='%s' % self.response_wrapper.json['RegistrationStatusMessage'])
+            raise ValidationError(
+                detail='%s' % self.response_wrapper.json['RegistrationStatusMessage'])
 
 
 class WebRegCreateSession(GidxRequest):

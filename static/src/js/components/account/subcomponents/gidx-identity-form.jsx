@@ -1,17 +1,26 @@
 import React from 'react';
+import Raven from 'raven-js';
+import log from '../../../lib/logging.js';
 
-window.gidxServiceSettings = function () {
-  console.log('========= gidxServiceSettings =========');
+// These functions are needed for the GIDX embed script.
+window.gidxServiceSettings = () => {
   window.gidxBuildSteps = true;
-  // this is the dom object (div) where the cashier/registration service should be embedded on the page.
+  // this is the dom object (div) where the cashier/registration service should be embedded
+  // son the page.
   window.gidxContainer = '#GIDX_ServiceContainer';
 };
 
-window.gidxErrorReport = function (error, errorMsg) {
-  console.log('======= gidxErrorReport =========');
-  console.error(error, errorMsg);
-  // Error messages will be sent here by the GIDX Client Side Service
+window.gidxErrorReport = (error, errorMsg) => {
+    // Error messages will be sent here by the GIDX Client Side Service
+  log.error('======= gidxErrorReport =========');
+  // send errors to Sentry.
+  Raven.captureMessage(errorMsg, {
+    error,
+    level: 'error',
+  });
+  log.error(error, errorMsg);
 };
+
 
 const GidxIdentityForm = React.createClass({
   propTypes: {
@@ -21,61 +30,17 @@ const GidxIdentityForm = React.createClass({
     gidxFormInfo: React.PropTypes.object.isRequired,
   },
 
-  getInitialState() {
-    return {
-      status: 'NONE',
-    };
-  },
-
   componentDidMount() {
-    console.log('component mounted!');
     const self = this;
 
-    window.gidxNextStep = function () {
-      // Once the customer has completed this Session the GIDX Client Side Service will call this function.
-      //  You should now make an "aJax" call or do a "document.location='a page on your server'" and call
-      // the the appropriate API Method.
-      console.log('========= gidxNextStep ===========');
-
-      console.log(self);
-
+    // This fires when the GIDX process is complete. We then call our server which makes
+    // a request to GIDX to find out the status of the verification.
+    window.gidxNextStep = () => {
       self.props.checkUserIdentityVerificationStatus(self.props.merchantSessionID);
     };
 
-    window.gidxServiceStatus = function (service, action, json) {
-      // service idAcctComplete-plate == process over.
-      if (service === 'idAcctComplete-plate') {
-        self.setState({ status: 'COMPLETE' });
-      }
-
-      console.log('========= gidxServiceStatus ============');
-
-      console.log('service', service);
-      console.log('action', action);
-      console.log('json', json);
-
-      // during each "step" within a Web Session process this function is called by the GIDX Client Side Service
-      // providing you the service action that was just performed, the start & stop time, and a JSON key/value
-      // that you can parse/loop to get more data control of the process.
-      // Here's an example of getting the deposit value selected and displaying it within an element on the page.
-      for (let i = 0; i < json.length; i++) {
-        for (const key in json[i]) {
-          if (json[i].hasOwnProperty(key)) {
-            // Here you can look at the key and value to make decisions on what you would
-            // like to do with the client side interface.
-            const sItem = key;
-            const sValue = json[i][key];
-            // console.log(sItem + ': ', sValue);
-            // Example
-            if (sItem === 'TransactionAmount') {
-              document.getElementById('DepositAmountDisplay').innerText(sValue);
-            }
-          }
-        }
-      }
-    };
-
     // This is some hack-ass shit.
+    // In order to embed and run a script, you have to do it this way.
     const scriptTag = document.querySelector('#GIDX script');
     const newScriptTag = document.createElement('script');
 
@@ -90,38 +55,29 @@ const GidxIdentityForm = React.createClass({
     this.refs.GIDX_embed.append(newScriptTag);
   },
 
-  shouldComponentUpdate(nextProps, nextState) {
-    // Only re-render if we set new state, not for passed props.
-    return this.state !== nextState;
+  shouldComponentUpdate(nextProps) {
+    // Only re-render if we get a new gidx status. We don't want something external to
+    // re-render and destroy the embedded form.
+
+    return this.props.gidxFormInfo.status !== nextProps.gidxFormInfo.status;
   },
 
   render() {
     if (this.props.gidxFormInfo.status === 'FAIL') {
       return (
-        <div>
+        <div className="cmp-gidx-identity-form">
           <h3>Unable Verify Your Identity</h3>
           <p>Please contact support@draftboard.com with any questions.</p>
         </div>
       );
     }
 
-    if (this.props.gidxFormInfo.status === 'SUCCESS') {
-      return (
-        <div>
-          <h3>Identity Verified!</h3>
-          <p>You can now deposit funds or enter contests.</p>
-        </div>
-      );
-    }
-
     return (
-      <div>
+      <div className="cmp-gidx-identity-form">
         <div id="DepositAmountDisplay"></div>
         <div id="GIDX_ServiceContainer"></div>
 
-
         <div id="GIDX">
-
           <div ref="GIDX_embed">
             <div data-gidx-script-loading="true">Loading...</div>
 
@@ -131,7 +87,6 @@ const GidxIdentityForm = React.createClass({
               dangerouslySetInnerHTML={{ __html: this.props.embed }}
             ></div>
           </div>
-
         </div>
       </div>
     );

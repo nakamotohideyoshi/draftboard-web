@@ -13,14 +13,13 @@ const initialState = {
   },
   username: window.dfs.user.username,
   gidxFormInfo: {
-    stutus: 'UNKNOWN',
+    status: 'UNKNOWN',
     message: null,
   },
   identityFormInfo: {
     errors: {},
     isSending: false,
-    hasMadeBasicAttempt: true,
-    hasMadeSecondaryAttempt: false,
+    hasMadeBasicAttempt: false,
   },
   infoFormErrors: {},
   infoFormSaved: false,
@@ -300,7 +299,7 @@ module.exports = (state = initialState, action) => {
     case actionTypes.CHECK_IDENTITY_STATUS__SUCCESS: {
       return merge({}, state, {
         gidxFormInfo: {
-          stutus: action.response.status,
+          status: action.response.status,
           message: action.response.detail,
         },
       });
@@ -309,7 +308,7 @@ module.exports = (state = initialState, action) => {
     case actionTypes.CHECK_IDENTITY_STATUS__FAIL: {
       return merge({}, state, {
         gidxFormInfo: {
-          stutus: 'FAIL',
+          status: 'FAIL',
           message: 'An error was encountered when trying to validate your identity.',
         },
       });
