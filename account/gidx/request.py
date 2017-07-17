@@ -53,7 +53,7 @@ def get_customer_id_for_user(user):
     If we have already saved a customer id, send that one back.
     If not, generate a new, deterministic one based on their username + id.
     This should probably make username changes ok.
-    
+
     :param user:
     :return: string
     """
@@ -62,7 +62,7 @@ def get_customer_id_for_user(user):
     except ObjectDoesNotExist:
         pass
 
-    return "%s--%s--%012d" % (
+    return "%s%s--%012d" % (
         settings.GIDX_CUSTOMER_ID_PREFIX, user.username, user.id)
 
 

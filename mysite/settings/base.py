@@ -445,7 +445,7 @@ LIMIT_DAYS_RESTRAINT = {'MA': 90}
 # Sandbox gidx credentials
 GIDX_API_KEY = 'k2m9yX4Tl0WXuz8Ahc5muA'
 GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
-GIDX_CUSTOMER_ID_PREFIX = 'TEST'
+GIDX_CUSTOMER_ID_PREFIX = 'TEST--'
 # This is is a prefix to enable testing mode on the client-side of things.
 # GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
 # An empty prefixdisables testing mode.

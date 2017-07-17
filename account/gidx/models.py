@@ -53,7 +53,6 @@ class GidxCustomerMonitor(models.Model):
         null=True,
         blank=True,
     )
-
     gidx_customer_id = models.CharField(
         null=False,
         help_text="The MerchantCustomerID in the GIDX dashboard",
