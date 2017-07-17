@@ -19,8 +19,7 @@ export default React.createClass({
   propTypes: {
     sport: React.PropTypes.oneOf(['nba', 'nfl', 'nhl']),
     currentEvent: React.PropTypes.object,
-    onAnimationComplete: React.PropTypes.func,
-    onAnimationStart: React.PropTypes.func,
+    onAnimationStarted: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -41,22 +40,32 @@ export default React.createClass({
   },
 
   componentDidUpdate() {
-    if (this.props.currentEvent === null || this.props.currentEvent.id === this.eventId) {
+    const { currentEvent, onAnimationStarted } = this.props;
+
+    if (currentEvent === null || currentEvent.id === this.eventId) {
       return;
     }
 
-    this.eventId = this.props.currentEvent.id;
+    this.eventId = currentEvent.id;
 
-    if (this.props.onAnimationStart) {
-      this.props.onAnimationStart();
+    const playCurrentAnimation = (resolve) => {
+      const animation = new LiveAnimationFactory();
+      animation.play(currentEvent, this.refs.stage)
+      .catch(error => (
+        Raven.captureMessage('Live animation failed', {
+          extra: {
+            message: error.message,
+            currentEvent: this.props.currentEvent,
+          },
+        })
+      ))
+      .then(() => Promise.resolve())
+      .then(() => resolve());
+    };
+
+    if (onAnimationStarted) {
+      onAnimationStarted(new Promise(playCurrentAnimation), currentEvent);
     }
-
-    const animation = new LiveAnimationFactory();
-    animation.play(this.props.currentEvent, this.refs.stage)
-    .catch(error => Raven.captureMessage('Live animation failed', {
-      extra: { message: error.message, currentEvent: this.props.currentEvent },
-    }))
-    .then(() => this.props.onAnimationComplete(this.props.currentEvent));
   },
 
   componentWillUnmount() {
