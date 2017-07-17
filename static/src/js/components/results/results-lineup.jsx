@@ -128,17 +128,16 @@ const ResultsLineup = React.createClass({
         <li key={player.player_id} className="cmp-lineup-card__player">
           <span className="cmp-lineup-card__position">{player.roster_spot}</span>
 
-          <div className="circle">
-            <PlayerPmrHeadshotComponent
-              colors={['46495e', '36b5cc', '214e9d']}
-              decimalRemaining={decimalRemaining}
-              modifiers={['results']}
-              playerSrid={player.player_meta.srid}
-              sport={sport}
-              uniquePmrId={`pmr-live-lineup-player-${player.id}`}
-              width={28}
-            />
-          </div>
+
+          <PlayerPmrHeadshotComponent
+            colors={['46495e', '36b5cc', '214e9d']}
+            decimalRemaining={decimalRemaining}
+            modifiers={['results']}
+            playerSrid={player.player_meta.srid}
+            sport={sport}
+            uniquePmrId={`pmr-live-lineup-player-${player.id}`}
+            width={28}
+          />
 
           <span className="cmp-lineup-card__name-game">
             <span className="name">{player.full_name}</span>
