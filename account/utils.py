@@ -236,6 +236,10 @@ class CheckUserAccess(object):
             identity = self.user.identity
             birthdate = identity.dob
             minimum_age = STATE_AGE_LIMITS.get(state)
+
+            if birthdate is None:
+                return True, 'User has no birthdate info on file.'
+
             # Add the legal age for the user's state to thier birthday. This tells us the date
             # that they are allowed to begin uing the site.
             # then make sure that date is in the past
