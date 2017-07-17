@@ -161,7 +161,7 @@ class UserLog(models.Model):
     Log types and actions are found in account/constants.py
     """
     type = models.SmallIntegerField(choices=_account_const.TYPES)
-    ip = models.CharField(max_length=15, blank=True, null=True)
+    ip = models.GenericIPAddressField(blank=True, null=True)
     user = models.ForeignKey(User, related_name='logs')
     action = models.SmallIntegerField(choices=_account_const.ACTIONS)
     timestamp = models.DateTimeField(auto_now=True)
