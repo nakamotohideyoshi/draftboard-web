@@ -4,6 +4,7 @@ from logging import getLogger
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.exceptions import (APIException, ValidationError)
 
@@ -48,7 +49,21 @@ def get_webhook_base_url():
 
 
 def get_customer_id_for_user(user):
-    return "%s--%012d" % (user.usrname, user.id)
+    """
+    If we have already saved a customer id, send that one back.
+    If not, generate a new, deterministic one based on their username + id.
+    This should probably make username changes ok.
+    
+    :param user:
+    :return: string
+    """
+    try:
+        return user.identity.gidx_customer_id
+    except ObjectDoesNotExist:
+        pass
+
+    return "%s--%s--%012d" % (
+        settings.GIDX_CUSTOMER_ID_PREFIX, user.username, user.id)
 
 
 def strip_sensitive_fields(params):
