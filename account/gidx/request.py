@@ -47,8 +47,8 @@ def get_webhook_base_url():
     return 'https://%s' % settings.DOMAIN
 
 
-def get_customer_id_from_user_id(user_id):
-    return "%016d" % user_id
+def get_customer_id_for_user(user):
+    return "%s--%012d" % (user.usrname, user.id)
 
 
 def strip_sensitive_fields(params):
@@ -183,7 +183,7 @@ class CustomerRegistrationRequest(GidxRequest):
             # IP address) for this active session.
             'DeviceIpAddress': ip_address,
             # Your unique ID for this customer.
-            'MerchantCustomerID': get_customer_id_from_user_id(user.id),
+            'MerchantCustomerID': get_customer_id_for_user(user),
             'FirstName': first_name,
             'LastName': last_name,
             'EmailAddress': user.email,
@@ -316,7 +316,7 @@ class WebRegCreateSession(GidxRequest):
             # IP address) for this active session.
             'CustomerIpAddress': ip_address,
             # Your unique ID for this customer.
-            'MerchantCustomerID': get_customer_id_from_user_id(user.id),
+            'MerchantCustomerID': get_customer_id_for_user(user),
             'FirstName': first_name,
             'LastName': last_name,
             'EmailAddress': user.email,

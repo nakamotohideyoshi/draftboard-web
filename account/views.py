@@ -37,7 +37,7 @@ from account.forms import (
 )
 from account.gidx.models import GidxSession
 from account.gidx.request import (
-    CustomerRegistrationRequest, WebRegCreateSession, RegistrationStatusRequest, get_user_from_session_id, get_customer_id_from_user_id
+    CustomerRegistrationRequest, WebRegCreateSession, RegistrationStatusRequest, get_user_from_session_id, get_customer_id_for_user
 )
 
 from account.gidx.response import WebhookResponse
@@ -927,7 +927,7 @@ class GidxRegistrationStatus(APIView):
             # first, if not, create a new one.
             identity, created = Identity.objects.get_or_create(user=request.user)
 
-            identity.gidx_customer_id = get_customer_id_from_user_id(request.user.id)
+            identity.gidx_customer_id = get_customer_id_for_user(request.user)
             identity.flagged = status_response.is_identity_previously_claimed()
             identity.metadata = status_response.json
             identity.country = status_response.get_country()
@@ -977,7 +977,7 @@ class GidxCallbackAPIView(APIView):
         response_wrapper = WebhookResponse(request_data)
         # Grab some of the data from the previous session that is not included in the webhook.
         user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
-        customer_id = get_customer_id_from_user_id(user.id)
+        customer_id = get_customer_id_for_user(user)
 
         # Save our session info
         GidxSession.objects.create(
