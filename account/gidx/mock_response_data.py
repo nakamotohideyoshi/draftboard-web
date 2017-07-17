@@ -191,7 +191,7 @@ SERVICE_ERROR_RESPONSE = {
         'ReasonCodes': [],
         'Speed': None
     },
-    'MerchantCustomerID': '173--automated_test_user',
+    'MerchantCustomerID': 'TEST--173--automated_test_user',
     'MerchantID': 'Q2wprL4aKEKEj-dzTu44BA',
     'MerchantSessionID': 'GIDXSB_8b4f0dbb-76b9-41db-9eea-7eb3cfa41ee3',
     'ProfileMatch': {
