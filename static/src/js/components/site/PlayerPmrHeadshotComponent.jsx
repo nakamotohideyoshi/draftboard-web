@@ -44,22 +44,21 @@ const PlayerPmrHeadshotComponent = (props) => {
 
   return (
     <div className={classNames} style={{ height: `${width}px`, width: `${width}px` }}>
-      <span className="cmp-lineup-card__photo">
-        <img
-          alt="Player Headshot"
-          className={`${block}__headshot ${block}__headshot--${sport}`}
+      <div className="circle">
+        <span
+          className={`cmp-lineup-card__photo ${block}__headshot ${block}__headshot--${sport}`}
+          style={{ backgroundImage: `url(https:${headshotSrc})` }}
           onError={
             /* eslint-disable no-param-reassign */
             (e) => {
               e.target.className = `${block}__headshot ${block}__headshot--default`;
-              e.target.src = defaultPlayerSrc;
+              e.target.style.backgroundImage = defaultPlayerSrc;
             }
             /* eslint-enable no-param-reassign */
           }
-          src={headshotSrc}
-        />
-      </span>
-
+        >
+        </span>
+      </div>
       {renderPmr()}
     </div>
   );
