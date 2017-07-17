@@ -14,7 +14,7 @@ export default React.createClass({
     opponentLineup: React.PropTypes.object.isRequired,
     uniqueLineups: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-    animationCompleted: React.PropTypes.func.isRequired,
+    onAnimationCompleted: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -28,65 +28,53 @@ export default React.createClass({
     this.setState({ currentEvent: nextProps.currentEvent });
   },
 
-  stageAnimationCompleted(event) {
-    // Trigger update to header... title & description
-    this.setState({
-      showPBPInfo: true,
-    });
+  stageAnimationStarted(animationCompletedPromise) {
+    // Helper method for delaying callbacks within a promise chain.
+    const wait = time => new Promise(resolve => setTimeout(resolve, time));
 
-    // Wait three seconds before clearing everything!
-    setTimeout(() => {
-      this.setState({
-        showPBPInfo: false,
-        currentEvent: null,
-      });
-      this.props.animationCompleted(event);
-    }, 3000);
+    animationCompletedPromise.then(() => this.setState({ showPBPInfo: true }))
+    // Wait for the description to be intro'd and displayed
+    .then(() => wait(3000))
+    // Clear the description
+    .then(() => this.setState({ showPBPInfo: false, currentEvent: null }))
+    // Wait for the stage and description to be removed
+    .then(() => wait(1000))
+    // Trigger onAnimationCompleted, if provided.
+    .then(() => (
+      this.props.onAnimationCompleted ? this.props.onAnimationCompleted() : Promise.resolve()
+    ));
   },
 
   render() {
-    const {
-      showPBPInfo,
-      currentEvent,
-    } = this.state;
-
-    const {
-      contest,
-      watching,
-      myLineupInfo,
-      uniqueLineups,
-      opponentLineup,
-      eventsMultipart,
-      bigPlaysQueue,
-    } = this.props;
-
-    const isWatchingContest = watching.contestId !== null && !contest.isLoading;
+    const { showPBPInfo, currentEvent } = this.state;
+    const isLoadingContest = this.props.contest.isLoading;
+    const isWatchingContest = this.props.watching.contestId !== null;
 
     return (
       <div>
         <section className="live__venues">
           <LiveHeader
-            contest={contest}
-            watching={watching}
-            lineups={uniqueLineups.lineups}
-            myLineup={myLineupInfo}
-            opponentLineup={opponentLineup}
+            contest={this.props.contest}
+            watching={this.props.watching}
+            lineups={this.props.uniqueLineups.lineups}
+            myLineup={this.props.myLineupInfo}
+            opponentLineup={this.props.opponentLineup}
             animationEvent={showPBPInfo ? currentEvent : null}
           />
 
           <LiveAnimationArea
-            watching={watching}
+            watching={this.props.watching}
             currentEvent={currentEvent}
-            eventsMultipart={eventsMultipart}
-            onAnimationComplete={ (event) => this.stageAnimationCompleted(event) }
+            eventsMultipart={this.props.eventsMultipart}
+            onAnimationStarted={(event) => this.stageAnimationStarted(event)}
           />
 
-          { isWatchingContest &&
-            <LiveStandingsPane contest={contest} watching={watching} />
+          { isWatchingContest && !isLoadingContest &&
+            <LiveStandingsPane contest={this.props.contest} watching={this.props.watching} />
           }
         </section>
 
-        <LiveBigPlays queue={bigPlaysQueue} />
+        <LiveBigPlays queue={this.props.bigPlaysQueue} />
       </div>
     );
   },

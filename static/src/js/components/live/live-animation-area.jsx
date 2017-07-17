@@ -8,7 +8,7 @@ export default React.createClass({
     currentEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-    onAnimationComplete: React.PropTypes.func,
+    onAnimationStarted: React.PropTypes.func,
   },
 
   /**
@@ -56,8 +56,8 @@ export default React.createClass({
       <LiveAnimationStage
         key={`${sport}-stage`}
         sport={sport}
-        onAnimationComplete={(event) => this.props.onAnimationComplete(event)}
         currentEvent={this.props.currentEvent}
+        onAnimationStarted={(event) => this.props.onAnimationStarted(event)}
       />
     );
   },
