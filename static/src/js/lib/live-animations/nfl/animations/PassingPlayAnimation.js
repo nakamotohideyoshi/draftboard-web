@@ -57,14 +57,14 @@ export default class PassingPlayAnimation extends LiveAnimation {
    */
   getPassDuration(recap) {
     if (recap.passingYards() >= 0.4) {
-      return 2.0;
+      return 1.8;
     } else if (recap.passingYards() >= 0.3) {
-      return 1.5;
+      return 1.4;
     } else if (recap.passingYards() >= 0.2) {
       return 1;
     }
 
-    return 0.5;
+    return 0.6;
   }
 
   /**
