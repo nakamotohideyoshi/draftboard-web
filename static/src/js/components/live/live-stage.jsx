@@ -102,11 +102,13 @@ export default React.createClass({
     };
 
     return (
-      <div ref="container" style={containerStyles}>
-        <section ref="stage"
-          className={`live-animation-stage live-animation-stage--${this.props.sport}`}
-          style={stageStyles}
-        />
+      <div className={`live__venue live__venue-${this.props.sport}`}>
+        <div ref="container" style={containerStyles}>
+          <section ref="stage"
+            className={`live-animation-stage live-animation-stage--${this.props.sport}`}
+            style={stageStyles}
+          />
+        </div>
       </div>
     );
   },

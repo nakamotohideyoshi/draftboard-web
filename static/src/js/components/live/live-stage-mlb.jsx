@@ -1,6 +1,5 @@
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
-import LiveAnimationStage from './live-animation-stage';
 
 export default React.createClass({
 
@@ -43,29 +42,10 @@ export default React.createClass({
     return venues;
   },
 
-  /**
-   * Renders a NBACourt component.
-   * @return {object} LiveNBACourt
-   */
-  renderStage(sport) {
-    if (sport === 'mlb') {
-      return this.renderMLBStadiums(this.props);
-    }
-
-    return (
-      <LiveAnimationStage
-        key={`${sport}-stage`}
-        sport={sport}
-        currentEvent={this.props.currentEvent}
-        onAnimationStarted={(event) => this.props.onAnimationStarted(event)}
-      />
-    );
-  },
-
   render() {
     return (
       <div className={`live__venue live__venue-${this.props.watching.sport}`}>
-        { this.renderStage(this.props.watching.sport) }
+        { this.renderMLBStadiums(this.props) }
       </div>
     );
   },
