@@ -111,7 +111,6 @@ export default class PassingPlayAnimation extends LiveAnimation {
     if (recap.passingYards() > 0.03) {
       sequence.push(() => {
         const animation = new FlightArrowAnimation();
-        console.log(throwPos.y, catchPos.y);
         return animation.play(recap, field, throwPos, catchPos, {
           arc: this.getPassArc(recap),
           duration: this.getPassDuration(recap),
@@ -119,13 +118,13 @@ export default class PassingPlayAnimation extends LiveAnimation {
       });
     }
 
-    if (!recap.isIncompletePass()) {
-      // Catch the ball
-      sequence.push(() => {
-        const animation = new PlayerAnimation();
-        return animation.play(recap, field, 'reception');
-      });
+    // Catch the ball
+    sequence.push(() => {
+      const animation = new PlayerAnimation();
+      return animation.play(recap, field, 'reception');
+    });
 
+    if (!recap.isIncompletePass()) {
       // Rush after catch (but only if it's more than a few yards)
       if (recap.rushingYards() > 0.03) {
         sequence.push(() => {
