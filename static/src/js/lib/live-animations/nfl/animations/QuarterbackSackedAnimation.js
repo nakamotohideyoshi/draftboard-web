@@ -1,5 +1,4 @@
 import LiveAnimation from '../../LiveAnimation';
-import OutroAnimation from './OutroAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
@@ -22,12 +21,6 @@ export default class QuarterbackSackedAnimation extends LiveAnimation {
     sequence.push(() => {
       const animation = new PlayerAnimation();
       return animation.play(recap, field, 'quarterback_sacked');
-    });
-
-    // Clear the field
-    sequence.push(() => {
-      const animation = new OutroAnimation();
-      return animation.play(recap, field);
     });
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());

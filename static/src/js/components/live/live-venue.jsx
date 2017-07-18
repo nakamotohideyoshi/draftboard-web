@@ -40,9 +40,11 @@ export default React.createClass({
     // Wait for the stage and description to be removed
     .then(() => wait(1000))
     // Trigger onAnimationCompleted, if provided.
-    .then(() => (
-      this.props.onAnimationCompleted ? this.props.onAnimationCompleted() : Promise.resolve()
-    ));
+    .then(() => {
+      if (this.props.onAnimationCompleted) {
+        this.props.onAnimationCompleted();
+      }
+    });
   },
 
   render() {
@@ -66,7 +68,7 @@ export default React.createClass({
             watching={this.props.watching}
             currentEvent={currentEvent}
             eventsMultipart={this.props.eventsMultipart}
-            onAnimationStarted={(event) => this.stageAnimationStarted(event)}
+            onAnimationStarted={animationCompletedPromise => this.stageAnimationStarted(animationCompletedPromise)}
           />
 
           { isWatchingContest && !isLoadingContest &&

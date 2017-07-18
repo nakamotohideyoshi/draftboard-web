@@ -118,7 +118,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
             eventsMultipart,
             uniqueLineups,
           } }
-          animationCompleted={this.animationCompleted}
+          onAnimationCompleted={() => this.animationCompleted()}
           bigPlaysQueue={bigEvents || []}
         />
       </div>
