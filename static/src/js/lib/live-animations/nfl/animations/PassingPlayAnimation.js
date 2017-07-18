@@ -27,11 +27,14 @@ export default class PassingPlayAnimation extends LiveAnimation {
    * Returns the field position of the throw.
    */
   getThrowPos(recap, field) {
+    // Shotguns originate a little further back than default formations.
+    const xOffset = recap.playFormation() === 'shotgun' ? 0.05 : 0.04;
+
     // Returns the position of the throw with a slight offset to account for
     // the QB's hand position.
     const x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
-    ? recap.startingYardLine() + 0.04
-    : recap.startingYardLine() - 0.04;
+    ? recap.startingYardLine() + xOffset
+    : recap.startingYardLine() - xOffset;
 
     return { x, y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE) };
   }
@@ -53,20 +56,20 @@ export default class PassingPlayAnimation extends LiveAnimation {
    * Returns the duration of the pass in seconds based on it's distance.
    */
   getPassDuration(recap) {
-    if (recap.passingYards() <= 0.2) {
-      return 0.25;
-    } else if (recap.passingYards() <= 0.4) {
-      return 0.8;
+    if (recap.passingYards() >= 0.4) {
+      return 2.0;
+    } else if (recap.passingYards() >= 0.3) {
+      return 1.5
     }
 
-    return 1.2;
+    return 0.5;
   }
 
   /**
    * Returns the field position of the reception.
    */
   getCatchPos(recap, field) {
-    const y = field.getSideOffsetY(recap.side()) - 0.05;
+    const y = field.getSideOffsetY(recap.side());
     const x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
     ? recap.startingYardLine() - recap.passingYards()
     : recap.startingYardLine() + recap.passingYards();
@@ -108,9 +111,10 @@ export default class PassingPlayAnimation extends LiveAnimation {
     if (recap.passingYards() > 0.03) {
       sequence.push(() => {
         const animation = new FlightArrowAnimation();
-        const arc = this.getPassArc(recap);
+        console.log(throwPos.y, catchPos.y);
         return animation.play(recap, field, throwPos, catchPos, {
-          arc,
+          arc: this.getPassArc(recap),
+          duration: this.getPassDuration(recap),
         });
       });
     }
@@ -122,11 +126,13 @@ export default class PassingPlayAnimation extends LiveAnimation {
         return animation.play(recap, field, 'reception');
       });
 
-      // Rush after catch
-      sequence.push(() => {
-        const animation = new RushArrowAnimation();
-        return animation.play(recap, field, catchPos.x, downPos.x, catchPos.y);
-      });
+      // Rush after catch (but only if it's more than a few yards)
+      if (recap.rushingYards() > 0.03) {
+        sequence.push(() => {
+          const animation = new RushArrowAnimation();
+          return animation.play(recap, field, catchPos.x, downPos.x, catchPos.y);
+        });
+      }
 
       // Complete the play
       sequence.push(() => {
