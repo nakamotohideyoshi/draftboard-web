@@ -1,7 +1,6 @@
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrowAnimation from './FlightArrowAnimation';
-import OutroAnimation from './OutroAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
@@ -142,12 +141,6 @@ export default class PassingPlayAnimation extends LiveAnimation {
         return animation.play(recap, field, downPos.x, color);
       });
     }
-
-    // Clear the field
-    sequence.push(() => {
-      const animation = new OutroAnimation();
-      return animation.play(recap, field);
-    });
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
   }

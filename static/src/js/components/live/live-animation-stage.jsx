@@ -42,13 +42,16 @@ export default React.createClass({
   componentDidUpdate() {
     const { currentEvent, onAnimationStarted } = this.props;
 
-    if (currentEvent === null || currentEvent.id === this.eventId) {
+    if (currentEvent === null || currentEvent.id === this._eventId) {
+      if (currentEvent === null) {
+        this.clearCurrentAnimation();
+      }
       return;
     }
 
-    this.eventId = currentEvent.id;
+    this._eventId = currentEvent.id;
 
-    const playCurrentAnimation = (resolve) => {
+    const playCurrentAnimation = resolve => {
       const animation = new LiveAnimationFactory();
       animation.play(currentEvent, this.refs.stage)
       .catch(error => (
@@ -59,7 +62,6 @@ export default React.createClass({
           },
         })
       ))
-      .then(() => Promise.resolve())
       .then(() => resolve());
     };
 
@@ -73,6 +75,12 @@ export default React.createClass({
     window.removeEventListener('orientationchange', this.handleWindowResize);
   },
 
+  clearCurrentAnimation() {
+    while (this.refs.stage.hasChildNodes()) {
+      this.refs.stage.removeChild(this.refs.stage.lastChild);
+    }
+  },
+
   handleWindowResize() {
     const containerWidth = this.refs.container.offsetWidth;
     const scale = containerWidth / this.state.stageOriginalWidth;
@@ -81,7 +89,7 @@ export default React.createClass({
   },
 
   render() {
-    const courtStyles = {
+    const stageStyles = {
       width: this.state.stageOriginalWidth,
       height: this.state.stageOriginalHeight,
       transformOrigin: '0 top',
@@ -93,13 +101,11 @@ export default React.createClass({
       height: `${this.state.scale * this.state.stageOriginalHeight}px`,
     };
 
-    const block = 'live-animation-stage';
-
     return (
       <div ref="container" style={containerStyles}>
         <section ref="stage"
-          className={`${block} ${block}--${this.props.sport}`}
-          style={courtStyles}
+          className={`live-animation-stage live-animation-stage--${this.props.sport}`}
+          style={stageStyles}
         />
       </div>
     );

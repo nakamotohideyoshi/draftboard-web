@@ -2,7 +2,6 @@ import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrowAnimation from './FlightArrowAnimation';
 import PlayerAnimation from './PlayerAnimation';
-import OutroAnimation from './OutroAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
@@ -96,9 +95,6 @@ export default class KickReturnAnimation extends LiveAnimation {
       const animation = new YardlineAnimation();
       return animation.play(recap, field, downPos.x, YardlineAnimation.COLOR_DOWN_LINE);
     });
-
-    // Clear the field
-    sequence.push(() => new OutroAnimation().play(recap, field));
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
   }

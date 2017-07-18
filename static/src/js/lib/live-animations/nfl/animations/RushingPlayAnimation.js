@@ -1,6 +1,5 @@
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import OutroAnimation from './OutroAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
@@ -53,12 +52,6 @@ export default class RushingPlayAnimation extends LiveAnimation {
       // Down the ball
       const animation = new YardlineAnimation();
       return animation.play(recap, field, recap.endingYardLine(), YardlineAnimation.COLOR_DOWN_LINE);
-    });
-
-    // Clear the field
-    sequence.push(() => {
-      const animation = new OutroAnimation();
-      return animation.play(recap, field);
     });
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
