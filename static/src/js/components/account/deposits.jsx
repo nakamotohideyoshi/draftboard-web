@@ -81,10 +81,13 @@ const Deposits = React.createClass({
     this.props.fetchUser();
     // As soon as the compenent boots up, setup braintree.
     // This will fetch the client token.
-    this.props.setupBraintree((paypalInstance) => {
-      this.setState({ paypalInstance });
-      this.enablePaypalButton();
-    });
+
+    // TODO: This is temporarily disabled to shut the error up. We aren't able to use paypal yet
+    // so the server bombs out on othe request to setup braintree.
+    // this.props.setupBraintree((paypalInstance) => {
+    //   this.setState({ paypalInstance });
+    //   this.enablePaypalButton();
+    // });
     // First check if the user's location is valid. they will be prompted and warned if not.
     this.props.verifyLocation();
     // Listen for a succesful deposit message.
