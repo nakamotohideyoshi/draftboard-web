@@ -1,7 +1,8 @@
 import React from 'react';
-import LiveAnimationArea from './live-animation-area';
+import LiveMLBStage from './live-stage-mlb';
 import LiveBigPlays from '../live/live-big-plays';
 import LiveHeader from './live-header';
+import LiveStage from './live-stage';
 import LiveStandingsPane from './live-standings-pane';
 
 export default React.createClass({
@@ -40,17 +41,16 @@ export default React.createClass({
     // Wait for the stage and description to be removed
     .then(() => wait(1000))
     // Trigger onAnimationCompleted, if provided.
-    .then(() => {
-      if (this.props.onAnimationCompleted) {
-        this.props.onAnimationCompleted();
-      }
-    });
+    .then(() => (
+      this.props.onAnimationCompleted ? this.props.onAnimationCompleted() : true
+    ));
   },
 
   render() {
     const { showPBPInfo, currentEvent } = this.state;
     const isLoadingContest = this.props.contest.isLoading;
     const isWatchingContest = this.props.watching.contestId !== null;
+    const isWatchingMLB = this.props.watching.sport === 'mlb';
 
     return (
       <div>
@@ -64,12 +64,21 @@ export default React.createClass({
             animationEvent={showPBPInfo ? currentEvent : null}
           />
 
-          <LiveAnimationArea
-            watching={this.props.watching}
-            currentEvent={currentEvent}
-            eventsMultipart={this.props.eventsMultipart}
-            onAnimationStarted={animationCompletedPromise => this.stageAnimationStarted(animationCompletedPromise)}
-          />
+          {isWatchingMLB ? (
+            <LiveMLBStage
+              watching={this.props.watching}
+              currentEvent={currentEvent}
+              eventsMultipart={this.props.eventsMultipart}
+              onAnimationStarted={animationCompletedPromise => this.stageAnimationStarted(animationCompletedPromise)}
+            />
+          ) : (
+            <LiveStage
+              key={`${this.props.watching.sport}-stage`}
+              sport={this.props.watching.sport}
+              currentEvent={this.props.currentEvent}
+              onAnimationStarted={(p) => this.stageAnimationStarted(p)}
+            />
+          )}
 
           { isWatchingContest && !isLoadingContest &&
             <LiveStandingsPane contest={this.props.contest} watching={this.props.watching} />

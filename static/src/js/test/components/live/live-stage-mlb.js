@@ -3,15 +3,15 @@ import React from 'react';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 
-import LiveAnimationArea from '../../../components/live/live-animation-area.jsx';
+import LiveMLBStage from '../../../components/live/live-stage-mlb.jsx';
 import LiveMLBStadium from '../../../components/live/mlb/live-mlb-stadium.jsx';
 
 
 /**
- * Tests for LiveAnimationArea
+ * Tests for LiveMLBStage
  */
-describe('<LiveAnimationArea /> Component', () => {
-  const renderComponent = (props) => mount(<LiveAnimationArea {...props} />);
+describe('<LiveMLBStage /> Component', () => {
+  const renderComponent = (props) => mount(<LiveMLBStage {...props} />);
 
   const defaultTestProps = {
     currentEvent: null,
