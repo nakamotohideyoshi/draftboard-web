@@ -73,8 +73,8 @@ const IdentityVerificationModal = React.createClass({
     if (this.props.user.identity_verified) {
       return (
         <div className="content-verified">
-          <h3>Identity Verified!</h3>
-          <p>You are now able to <a href="/contests/">enter contests</a> or make a deposit.</p>
+          <h3>Thanks!</h3>
+          <p>Your account is now verified and you may proceed with your deposit.</p>
           <div
             className="button button--med-len button--tall button--gradient ok-button"
             onClick={this.close}

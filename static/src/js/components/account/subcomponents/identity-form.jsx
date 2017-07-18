@@ -69,10 +69,11 @@ const IdentityForm = React.createClass({
   render() {
     return (
       <div className="cmp-identity-form">
-        <h3>Verify Account</h3>
+        <h3>Account Verification</h3>
         <p>
-          Before you deposit we need to verify your account. Providing this information allows us
-           to insure no one has more than one account on Draftboard.
+            Before you can enter contests you need to make a deposit, but first we need to verify
+            &nbsp;your account.  Providing the information below helps us prevent fraud and comply
+            &nbsp;with state regulations relating to daily fantasy sports.
         </p>
         <div ref="form" className="form">
           <fieldset className="form__fieldset">
@@ -162,6 +163,9 @@ const IdentityForm = React.createClass({
                 className="button button--flat-alt1"
                 onClick={this.onSubmit}
               >Verify Account</button>
+            </div>
+            <div>
+              <a href="/" title="Return to Lobby">Cancel</a>
             </div>
           </fieldset>
         </div>
