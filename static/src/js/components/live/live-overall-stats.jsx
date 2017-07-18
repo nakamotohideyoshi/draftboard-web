@@ -1,8 +1,6 @@
 import Odometer from '../site/odometer';
-import moment from 'moment';
 import ordinal from '../../lib/ordinal.js';
 import React from 'react';
-import merge from 'lodash/merge';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { humanizeCurrency } from '../../lib/utils/currency';
