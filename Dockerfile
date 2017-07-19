@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /code
 WORKDIR /code
 
+RUN apk update
 # install req for python modules using gcc
 RUN apk add python3-dev build-base --update-cache
 RUN apk add make libffi-dev openssl-dev

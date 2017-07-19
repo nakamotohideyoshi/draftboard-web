@@ -4,18 +4,22 @@ import merge from 'lodash/merge';
 const initialState = {
   user: {
     isFetching: false,
-    isIdentityVerified: false,
+    identity_verified: false,
     identity: {},
     userLimits: [],
     currentLimits: [],
     selectedLimits: [],
+    hasFetched: false,
   },
   username: window.dfs.user.username,
-  identityFormErrors: {},
-  identityFormIsSending: false,
-  info: {
-    isFetching: false,
-    isIdentityVerified: false,
+  gidxFormInfo: {
+    status: 'UNKNOWN',
+    message: null,
+  },
+  identityFormInfo: {
+    errors: {},
+    isSending: false,
+    hasMadeBasicAttempt: false,
   },
   infoFormErrors: {},
   infoFormSaved: false,
@@ -23,6 +27,8 @@ const initialState = {
   emailPassFormSaved: false,
   cashBalance: {
     isFetching: false,
+    depositSum: 0,
+    depositLimit: 0,
   },
   notificationSettings: {
     isFetchingEmail: false,
@@ -55,6 +61,7 @@ module.exports = (state = initialState, action) => {
       return merge({}, state, {
         user: {
           isFetching: false,
+          hasFetched: true,
         },
       });
     }
@@ -63,6 +70,7 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state);
       newState.user = action.response;
       newState.user.isFetching = false;
+      newState.user.hasFetched = true;
       return newState;
     }
 
@@ -76,7 +84,7 @@ module.exports = (state = initialState, action) => {
 
 
     case actionTypes.UPDATE_USER_EMAIL_PASS_SUCCESS: {
-      const newState = merge({}, state, { info: action.body });
+      const newState = merge({}, state);
       // Clear any existing errors.
       newState.emailPassFormErrors = {};
       return newState;
@@ -195,29 +203,49 @@ module.exports = (state = initialState, action) => {
      */
     case actionTypes.VERIFY_IDENTITY__SEND: {
       const newState = merge({}, state, {
-        identityFormIsSending: true,
+        identityFormInfo: {
+          isSending: true,
+        },
       });
-      newState.identityFormErrors = {};
+
+      newState.identityFormInfo.errors = {};
       return newState;
     }
-
 
     case actionTypes.VERIFY_IDENTITY__SUCCESS: {
       const newState = merge({}, state, {
-        identityFormIsSending: false,
+        identityFormInfo: {
+          isSending: false,
+        },
       });
-      newState.identityFormErrors = {};
+
+      newState.identityFormInfo.errors = {};
       return newState;
     }
-
 
     case actionTypes.VERIFY_IDENTITY__FAIL: {
       const newState = merge({}, state, {
-        identityFormIsSending: false,
+        identityFormInfo: {
+          isSending: false,
+        },
       });
-      newState.identityFormErrors = action.response;
+
+      // If it was a failure due to not being able to find the identity, we need to move
+      // on to the advanced form.
+      if (
+        action.response &&
+        action.response.reasonCodes &&
+        action.response.reasonCodes.includes('ID-UNKN') &&
+        action.response.status === 'FAIL'
+      ) {
+        newState.identityFormInfo.hasMadeBasicAttempt = true;
+      }
+
+      newState.identityFormInfo.errors = action.response || {};
+
       return newState;
     }
+
 
     /**
      * Location Verification
@@ -251,6 +279,37 @@ module.exports = (state = initialState, action) => {
           isLocationVerified: false,
           status: 'failed',
           message: action.error,
+        },
+      });
+    }
+
+
+    /**
+     * GIDX Form stuff.
+     */
+    case actionTypes.CHECK_IDENTITY_STATUS__SEND: {
+      return merge({}, state, {
+        gidxFormInfo: {
+          stutus: 'SENDING',
+          message: null,
+        },
+      });
+    }
+
+    case actionTypes.CHECK_IDENTITY_STATUS__SUCCESS: {
+      return merge({}, state, {
+        gidxFormInfo: {
+          status: action.response.status,
+          message: action.response.detail,
+        },
+      });
+    }
+
+    case actionTypes.CHECK_IDENTITY_STATUS__FAIL: {
+      return merge({}, state, {
+        gidxFormInfo: {
+          status: 'FAIL',
+          message: 'An error was encountered when trying to validate your identity.',
         },
       });
     }

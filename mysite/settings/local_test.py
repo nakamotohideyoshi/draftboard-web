@@ -2,7 +2,14 @@ from .local import *
 import logging
 
 # Disable any logging less than WARNING.
-logging.disable(logging.DEBUG)
+# logging.disable(logging.DEBUG)
+LOGGING['loggers'].update({
+    'django': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+})
+
 
 print('Using `local_test.py` settings file.')
 

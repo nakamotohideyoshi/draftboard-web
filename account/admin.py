@@ -2,31 +2,57 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
+from account.gidx.models import GidxSession
 from account.models import Information, EmailNotification, UserLog, Identity
 from cash.admin import CashBalanceAdminInline
 from .utils import reset_user_password_email
 
 
+@admin.register(GidxSession)
+class GidxSessionAdmin(admin.ModelAdmin):
+    model = GidxSession
+    list_display = ['user', 'reason_codes', 'gidx_customer_id', 'service_type', 'device_location',
+                    'created']
+    search_fields = ['user', 'gidx_customer_id', 'device_location']
+    list_filter = ['service_type', 'reason_codes']
+    readonly_fields = ['user', 'gidx_customer_id', 'session_id', 'service_type', 'device_location',
+                       'request_data', 'created', 'reason_codes', 'response_data']
+
+    # Don't let this be deleted via the admin panel
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 class InformationAdminInline(admin.TabularInline):
     model = Information
-    list_display = ['user', 'fullname', 'address1', 'address2', 'city', 'state', 'zipcode', 'dob']
+    list_display = ['user', 'inactive', 'exclude_date']
 
+    # Don't let this be deleted via the admin panel
     def has_delete_permission(self, request, obj=None):
         return False
 
 
 class IdentityAdminInline(admin.TabularInline):
     model = Identity
-    list_display = ['first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
-                    'postal_code', 'created']
+    readonly_fields = [
+        'gidx_customer_id', 'dob', 'country', 'region', 'flagged', 'created', 'status', 'metadata']
+
+    # Don't let this be deleted via the admin panel
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Identity)
 class IdentityAdmin(admin.ModelAdmin):
-    list_display = ['user', 'flagged', 'first_name', 'last_name', 'birth_day', 'birth_month',
-                    'birth_year', 'postal_code', 'created']
-    search_fields = ['user__username', 'first_name', 'last_name', 'postal_code']
-    list_filter = ['flagged']
+    list_display = ['user', 'dob', 'country', 'region', 'flagged', 'created']
+    search_fields = ['user__username', 'country', 'region']
+    readonly_fields = ['gidx_customer_id', 'user', 'dob', 'country', 'region', 'status', 'metadata',
+                       'created']
+    list_filter = ['flagged', 'country', 'region']
+
+    # Don't let this be deleted via the admin panel
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(EmailNotification)
@@ -57,6 +83,10 @@ class MyUserAdmin(UserAdmin):
     ]
     actions = [sent_reset_password]
 
+    # Don't let this be deleted via the admin panel
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
@@ -68,3 +98,7 @@ class UserLogAdmin(admin.ModelAdmin):
     search_fields = ['ip', 'user__username']
     list_filter = ['timestamp', 'type']
     readonly_fields = ['user', 'ip', 'type', 'action', 'timestamp', 'metadata']
+
+    # Don't let this be deleted via the admin panel
+    def has_delete_permission(self, request, obj=None):
+        return False

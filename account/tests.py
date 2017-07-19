@@ -1,18 +1,19 @@
-from .classes import AccountInformation
-from .exceptions import AccountInformationException
+import json
+from datetime import date
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission, User
 from django.test import Client
-from django.test import TestCase
 from django.test import RequestFactory
+from django.test import TestCase
 from django.test.utils import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
-from test.classes import (
-    AbstractTest,
-    MasterAbstractTest,                 # has get_user() method
-    ForceAuthenticateAndRequestMixin,
-)
+
+from account import const as _account_const
+from account.models import (Identity)
+from account.models import (UserLog)
+from account.utils import CheckUserAccess
 from account.views import (
     # PayPalDepositWithPayPalAccountAPIView,
     # PayPalDepositWithPayPalAccountSuccessAPIView,
@@ -23,13 +24,13 @@ from account.views import (
     # PayPalSavedCardDeleteAPIView,
     # PayPalSavedCardListAPIView,
 )
-from account.utils import CheckUserAccess
-from account.models import (Identity, Information)
-from django.contrib.contenttypes.models import ContentType
+from test.classes import (
+    MasterAbstractTest,  # has get_user() method
+    ForceAuthenticateAndRequestMixin,
+)
 
 
 class AccountsViewsTest(TestCase):
-
     def setUp(self):
         super().setUp()
         self.client = Client()
@@ -110,7 +111,6 @@ class AccountsViewsTest(TestCase):
 # is_server_error()   # 5xx
 
 class RegisterAccountTest(APITestCase):
-
     def test_api(self):
         invalid_password_data = {
             'username': 'user',
@@ -219,8 +219,7 @@ class PayWithCreditCardAPITest(APITestCase, MasterAbstractTest, ForceAuthenticat
 
 
 class AddSavedCardAPI_TestMissingInformation(
-        APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
-
+    APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
     def setUp(self):
         super().setUp()
         # the view class
@@ -249,8 +248,7 @@ class AddSavedCardAPI_TestMissingInformation(
 
 
 class AddSavedCardAPI_TestEmptyPostParams(
-        APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
-
+    APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
     def setUp(self):
         super().setUp()
         # the view class
@@ -269,7 +267,6 @@ class AddSavedCardAPI_TestEmptyPostParams(
 
 
 class CheckUserAccessTest(TestCase, MasterAbstractTest):
-
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -314,12 +311,7 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         # This user is too young to use the site.
         Identity(
             user=self.user,
-            first_name='test',
-            last_name='user',
-            birth_day=1,
-            birth_month=1,
-            birth_year=2015,
-            postal_code='80203',
+            dob=date(2015, 1, 1),
         )
         invalid_request.user = self.user
 
@@ -347,12 +339,7 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         # This user is old enough to use the site.
         Identity(
             user=self.user,
-            first_name='test',
-            last_name='user',
-            birth_day=1,
-            birth_month=1,
-            birth_year=1984,
-            postal_code='80203',
+            dob=date(1984, 1, 1),
         )
         valid_request.user = self.user
 
@@ -371,3 +358,24 @@ class CheckUserAccessTest(TestCase, MasterAbstractTest):
         checker = CheckUserAccess(request=valid_request)
         checker.check_location_age('CO')
         self.assertTrue(checker.check_location_age('CO')[0])
+
+
+class UserLogModelTest(TestCase):
+    # Basic test to ensure UserLogs can be created
+    def test_create_user_log(self):
+        UserModel = get_user_model()
+
+        user = UserModel.objects.create_user(
+            username='ppgogo',
+            password='ppgogo_rules',
+            email='ppgogo@draftboard.com'
+        )
+
+        # Create a user login log.
+        UserLog.objects.create(
+            type=_account_const.AUTHENTICATION,
+            ip='127.0.0.1',
+            user=user,
+            action=_account_const.LOGIN,
+            metadata=json.dumps({'test_key': 'test_value'})
+        )

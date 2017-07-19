@@ -23,7 +23,9 @@ export function isFieldValidationErrorObject(res) {
    *    - NOT an array (because if you typeof() an Array you get 'object')
    *    - that the object has keys
    */
-  if (typeof(res.body) === 'object' && !Array.isArray(res.body) && Object.keys(res.body).length > 0) {
+  if (res.body && typeof(res.body) === 'object' && !Array.isArray(res.body) &&
+    Object.keys(res.body).length > 0
+  ) {
     // Since generic Exception details (as shown in isExceptionDetail) don't contain any specific
     // field errors, this is NOT truthy for anything that only has a 'detail' key.
     if (Object.keys(res.body).length === 1 && 'detail' in res.body) {
@@ -47,6 +49,8 @@ export function isFieldValidationErrorObject(res) {
  */
 export function isExceptionDetail(res) {
   return (
+    res &&
+    res.body &&
     typeof(res.body) === 'object' &&
     !Array.isArray(res.body) &&
     'detail' in res.body &&
@@ -92,4 +96,25 @@ export function getJsonResponse(res) {
   // If it's text, unpack it and add the text as the 'detail' key of an object literal so it
   // can be used as if it were a json response.
   return res.text().then((text) => ({ detail: text }));
+}
+
+
+export function getErrorMessage(res) {
+  if (isFieldValidationErrorObject(res)) {
+    return res.body.detail;
+  }
+
+  if (isExceptionDetail(res)) {
+    return res.body.detail;
+  }
+
+  if (isListOfErrors(res)) {
+    return res.body;
+  }
+
+  if (isRawTextError(res)) {
+    return res.body;
+  }
+
+  return '';
 }
