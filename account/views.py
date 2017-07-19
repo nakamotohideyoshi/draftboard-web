@@ -13,6 +13,7 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from raven.contrib.django.raven_compat.models import client
@@ -22,6 +23,7 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.exceptions import (APIException, ValidationError)
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -33,6 +35,13 @@ from account.forms import (
     LoginForm,
     SelfExclusionForm,
 )
+from account.gidx.models import GidxSession
+from account.gidx.request import (
+    CustomerRegistrationRequest, WebRegCreateSession, RegistrationStatusRequest, get_user_from_session_id, get_customer_id_for_user
+)
+
+from account.gidx.response import WebhookResponse
+from account.models import Identity
 from account.models import (
     Information,
     EmailNotification,
@@ -60,9 +69,10 @@ from account.serializers import (
     SavedCardDeleteSerializer,
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
-    UserLimitsSerializer
+    UserLimitsSerializer,
+    VerifyUserIdentitySerializer
 )
-from account.utils import create_user_log
+from account.utils import (create_user_log, get_client_ip)
 from cash.classes import (
     CashTransaction,
 )
@@ -890,28 +900,244 @@ class VerifyLocationAPIView(APIView):
         )
 
 
+class GidxRegistrationStatus(APIView):
+    """
+    Check the status of a user registration session. This is used after the drop-in form is
+    complete and we need to check for a pass/fail.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    @staticmethod
+    def get(request, merchant_session_id):
+        status_request = RegistrationStatusRequest(
+            user=request.user,
+            merchant_session_id=merchant_session_id
+        )
+
+        # Verify data and send!
+        status_response = status_request.send()
+
+        # If the user was verified...
+        if status_response.is_verified():
+            # If GIDX says they are verified, we save some of the identity info.
+            # Note: we don't get a DOB back from the webhook, so we can't add one.
+            # I'm not totally sure what the ramifications of that may be.
+
+            # Since they may already have an Identity for some reason, try to get it
+            # first, if not, create a new one.
+            identity, created = Identity.objects.get_or_create(user=request.user)
+
+            identity.gidx_customer_id = get_customer_id_for_user(request.user)
+            identity.flagged = status_response.is_identity_previously_claimed()
+            identity.metadata = status_response.json
+            identity.country = status_response.get_country()
+            identity.region = status_response.get_region()
+            identity.status = True
+            identity.save()
+
+            return Response(
+                data={
+                    "status": "SUCCESS",
+                    "detail": "Your Identity has been verified!"
+                },
+                status=200,
+            )
+
+        return Response(
+            data={
+                "status": "FAIL",
+                "detail": "Your Identity could not be verified"
+            },
+            status=200,
+        )
+
+
+class GidxCallbackAPIView(APIView):
+    """
+    When a user can't be validated via direct API, we use the GIDX drop-in form
+    and attempt to verify that way. When that form is submitted, GIDX sends a callback webhook
+    with the status to our server.
+    """
+
+    parser_classes = (MultiPartParser, FormParser,)
+
+    @staticmethod
+    @csrf_exempt
+    def post(request):
+        import json
+
+        request_data = json.loads(request.data.dict()['result'])
+
+        logger.info({
+            "action": "WebReg_Callback",
+            "request": None,
+            "response": request_data,
+        })
+
+        response_wrapper = WebhookResponse(request_data)
+        # Grab some of the data from the previous session that is not included in the webhook.
+        user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
+        customer_id = get_customer_id_for_user(user)
+
+        # Save our session info
+        GidxSession.objects.create(
+            user=user,
+            gidx_customer_id=customer_id,
+            session_id=response_wrapper.json['MerchantSessionID'],
+            service_type='WebReg_Callback',
+            reason_codes=response_wrapper.json['ReasonCodes'],
+            response_data=request_data,
+
+        )
+
+        if response_wrapper.is_verified():
+            # If GIDX says they are verified, we save some of the identity info.
+            # Note: we don't get a DOB back from the webhook, so we can't add one.
+            # I'm not totally sure what the ramifications of that may be.
+
+            # Since they may already have an Identity for some reason, try to get it
+            # first, if not, create a new one.
+            identity, created = Identity.objects.get_or_create(user=user)
+
+            identity.gidx_customer_id = customer_id
+            identity.country = response_wrapper.get_country()
+            identity.region = response_wrapper.get_region()
+            identity.flagged = response_wrapper.is_identity_previously_claimed()
+            identity.metadata = request_data
+            identity.status = True
+            identity.save()
+
+        return Response(
+            data={
+                # "CustomerID": customer_id,
+                # "MerchantID": settings.GIDX_MERCHANT_ID,
+                # "SessionStatus": response_wrapper.json['StatusCode'],
+                "status": "SUCCESS",
+                "detail": "cool, thanks!"
+            },
+            status=200,
+        )
+
+
+class VerifyUserIdentityAPIView(APIView):
+    """
+    Uses GIDX to verify the user's identity. If the GIDX request was a success, we set the
+    user's account as 'verified'.
+    If this fails, the client will proceed to the advanced GIDX-provided JS drop-in form.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = VerifyUserIdentitySerializer
+
+    def post(self, request):
+        # First, check if they already have a verified identity.
+        if request.user.information.has_verified_identity:
+            logger.warning(
+                'Previously verified user is attempting to verify their identity. %s' % (
+                    request.user))
+            return Response(
+                data={
+                    "status": "SUCCESS",
+                    "detail": "User already has a verified identity"
+                },
+                status=200,
+            )
+
+        # If not. validate the input data.
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # Prepare a request to the GIDX API.
+            crr = CustomerRegistrationRequest(
+                user=request.user,
+                first_name=serializer.validated_data.get('first'),
+                last_name=serializer.validated_data.get('last'),
+                date_of_birth="%02d/%02d/%s" % (
+                    serializer.validated_data.get('birth_month'),
+                    serializer.validated_data.get('birth_day'),
+                    serializer.validated_data.get('birth_year'),
+                ),
+                ip_address=get_client_ip(request)
+            )
+            # Verify data and send!
+            registration_response = crr.send()
+
+            # If the user was verified...
+            if registration_response.is_verified():
+                # create a date out of the input.
+                dob = datetime(
+                    serializer.validated_data.get('birth_year'),
+                    serializer.validated_data.get('birth_month'),
+                    serializer.validated_data.get('birth_day')
+                )
+                # If GIDX says they are verified, we save the some of the identity info.
+                # Since they may already have an Identity for some reason, try to get it
+                # first, if not, create a new one.
+                identity, created = Identity.objects.get_or_create(user=request.user)
+                identity.dob = dob
+                identity.gidx_customer_id = registration_response.json['MerchantCustomerID']
+                identity.country = registration_response.get_country()
+                identity.region = registration_response.get_region()
+                identity.flagged = registration_response.is_identity_previously_claimed()
+                identity.metadata = registration_response.json
+                identity.status = True
+                identity.save()
+
+                return Response(
+                    data={
+                        "status": "SUCCESS",
+                        "detail": "Your identity has been verified."
+                    },
+                    status=200,
+                )
+
+            # If not verified, get a JS snippet to embed the advanced form.
+            web_reg = WebRegCreateSession(
+                user=request.user,
+                first_name=serializer.validated_data.get('first'),
+                last_name=serializer.validated_data.get('last'),
+                date_of_birth="%02d/%02d/%s" % (
+                    serializer.validated_data.get('birth_month'),
+                    serializer.validated_data.get('birth_day'),
+                    serializer.validated_data.get('birth_year'),
+                ),
+                ip_address=get_client_ip(request)
+            )
+            # Make the request.
+            web_reg_response = web_reg.send()
+
+            # If we requested a JS embed, and GIDX says they are already verified, go ahead and
+            # update the user's identity.
+            if web_reg_response.is_verified():
+                identity, created = Identity.objects.get_or_create(user=request.user)
+                identity.metadata = web_reg_response.json
+                identity.flagged = web_reg_response.is_identity_previously_claimed()
+                identity.status = True
+                identity.save()
+
+                return Response(
+                    data={
+                        "status": "SUCCESS",
+                        "detail": "Your identity has been verified."
+                    },
+                    status=200,
+                )
+
+            message = web_reg_response.get_response_message()
+            if not message:
+                message = "We were unable to verify your identity."
+
+            return Response(
+                data={
+                    "status": "FAIL",
+                    "detail": message,
+                    "reasonCodes": registration_response.get_reason_codes(),
+                },
+                status=400,
+            )
+
+
 class RegisterAccountAPIView(APIView):
     """
-    verify the user is real based on the information specified.
-    this will create a log of the trulioo transaction in the django admin
-
-    - Attempt to verify user identity with Trulioo.
-
-    if success:
-        - Attempt to create User account.
-
-        if success:
-            - Create user Identity.
-
-            if failure:
-                - return validation errors.
-
-        if failure:
-            - return validation errors
-
-    if failure:
-        - return Identity validation errors
-
+    Create a user account, Information object, and log the user in.
 
     example POST param (JSON):
 
@@ -940,18 +1166,13 @@ class RegisterAccountAPIView(APIView):
             # Log user in.
             if new_user is not None:
                 authLogin(request, new_user)
+            # Everything went OK!
+            return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
 
-                # DO NOT respond yet. we still need to save the user's Identity below.
-        else:
-            # If there were user user_serializer, send em back to the user.
-            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # If there were user user_serializer errors, send em back to the user.
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # If the verification request was successful...
-        #
-        # Save the information so we can do multi-account checking.
-        # create_user_identity(new_user, first, last, birth_day, birth_month, birth_year, postal_code)
-        # return success response if everything went ok
-        return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
+
 
 
 class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
@@ -967,7 +1188,7 @@ class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
         response = super(AccessSubdomainsTemplateView, self).render_to_response(context,
                                                                                 **response_kwargs)
 
-        if not self.request.user.has_perm('sites.access_subdomains'):
+        if not self.request.user.has_perm('auth.access_subdomains'):
             raise Http404
 
         days_expire = 7

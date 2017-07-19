@@ -100,7 +100,6 @@ export default class Clip {
 
   load(file = 'mine') {
     this._curFrame = 1;
-    this.debug();
     const fileUri = this.getFile(file);
     return this.sprite.load(fileUri, this.frameWidth, this.frameHeight).then(
       () => this._el.appendChild(this.sprite.getElement())

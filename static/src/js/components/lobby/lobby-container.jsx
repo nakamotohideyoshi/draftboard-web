@@ -8,6 +8,7 @@ import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
 import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions';
 import { fetchPrizeIfNeeded } from '../../actions/prizes';
 import { lineupFocused } from '../../actions/upcoming-lineup-actions';
+import { fetchUser } from '../../actions/user';
 import { fetchContestPools, enterContest, setFocusedContest, updateOrderByFilter }
   from '../../actions/contest-pool-actions';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions';
@@ -53,6 +54,7 @@ function mapStateToProps(state) {
     orderByProperty: state.contestPools.filters.orderBy.property,
     queryAction: state.routing.locationBeforeTransitions.query.action,
     hasFetchedLineups: state.upcomingLineups.hasFetchedLineups,
+    sportFilter: state.contestPools.filters.sportFilter,
   };
 }
 
@@ -69,6 +71,7 @@ function mapDispatchToProps(dispatch) {
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
     fetchContestPools: () => dispatch(fetchContestPools()),
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
+    fetchUser: () => dispatch(fetchUser()),
     lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     updateOrderByFilter: (property, direction) => dispatch(
@@ -101,6 +104,7 @@ const LobbyContainer = React.createClass({
     fetchFeaturedContestsIfNeeded: React.PropTypes.func,
     fetchPrizeIfNeeded: React.PropTypes.func,
     fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
+    fetchUser: React.PropTypes.func.isRequired,
     filteredContests: React.PropTypes.array,
     focusedContest: React.PropTypes.object,
     focusedLineup: React.PropTypes.object,
@@ -117,6 +121,7 @@ const LobbyContainer = React.createClass({
     setFocusedContest: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
+    sportFilter: React.PropTypes.object,
   },
 
 
@@ -148,6 +153,7 @@ const LobbyContainer = React.createClass({
 
     if (window.dfs.user.isAuthenticated === true) {
       this.props.fetchContestPoolEntries();
+      this.props.fetchUser();
     }
 
     this.listenToSockets();
@@ -272,6 +278,7 @@ const LobbyContainer = React.createClass({
           entrySkillLevels={this.props.entrySkillLevels}
           skillLevelFilter={this.props.contestFilters.skillLevelFilter}
           focusedLineup={this.props.focusedLineup}
+          sportFilter={this.props.sportFilter}
         />
       </div>
     );

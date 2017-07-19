@@ -28,7 +28,7 @@ export default class RushingPlayAnimation extends LiveAnimation {
     });
 
     // Rush for yards (except short handoffs)
-    if (recap.qbAction() === NFLPlayRecapVO.HANDOFF_SHORT) {
+    if (recap.qbAction() !== NFLPlayRecapVO.HANDOFF_SHORT) {
       sequence.push(() => {
         const animation = new RushArrowAnimation();
         const start = recap.startingYardLine();
@@ -40,6 +40,11 @@ export default class RushingPlayAnimation extends LiveAnimation {
 
     // Finish the play
     sequence.push(() => {
+      // Skip the downline for turnovers/fumbles
+      if (recap.isFumble() || recap.isTurnover()) {
+        return Promise.resolve();
+      }
+
       // Touchdown!
       if (recap.isTouchdown()) {
         return new TouchdownAnimation().play(recap, field);
