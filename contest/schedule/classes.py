@@ -348,6 +348,7 @@ class ScheduleDay(object):
         # if running for the first time, its very likely you wont want to add 1 day to start time
         # dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0] + timedelta(days=1)
         dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0]
+        logger.info("Looking for games later than: %s" % dfs_date_tomorrow)
 
         games = []  # default
         self.data = []
@@ -725,7 +726,7 @@ class BlockManager(object):
         """
         Based on the block's cutoff and dfsday_end times, get all the sport's games that fall
         in between the 2 times.
-        :return: 
+        :return:
         """
         return self.game_model_class.objects.filter(
             start__gte=self.cutoff,

@@ -5,16 +5,15 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from account.models import Information
+from account.models import (Information)
 from account.serializers import RegisterUserSerializer
-from trulioo.utils import create_user_identity
 
 
 class Command(BaseCommand):
     """
     Since there are a number of steps that go into creating a user, we
     can't do it via the django admin panel.
-    
+
     Usage:
 
         $> ./manage.py create_user <username> <email> <password>
@@ -55,15 +54,6 @@ class Command(BaseCommand):
                     # Make sure each user gets Information and Identity models
                     Information.objects.create(user=user)
                     new_user = authenticate(username=user.username, password=password)
-                    create_user_identity(
-                        new_user,
-                        first='created via management command',
-                        last='fake_last',
-                        birth_day=1,
-                        birth_month=1,
-                        birth_year=2000,
-                        postal_code=80203
-                    )
 
                     print('\nUser account created succesfully!\n')
                     pprint(vars(new_user))

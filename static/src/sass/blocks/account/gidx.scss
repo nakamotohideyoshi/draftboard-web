@@ -1,0 +1,24 @@
+@import '../button.scss';
+
+/**
+  Everything having to do with the GIDX modal process.
+ */
+// This is the root element that all things get embedded into.
+#GIDX_ServiceContainer {
+  // The modal window that shows errors.
+  #ModalLoading,
+  #ModalWindow {
+    top: 100px;
+  }
+
+  // Buttons! These should just extend our standard button classes.
+  .btn {
+    @extend .button;
+
+    &.btn-default,
+    &.btn-info {
+      @extend .button--gradient;
+    }
+  }
+}
+

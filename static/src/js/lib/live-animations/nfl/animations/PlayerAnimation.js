@@ -1,6 +1,6 @@
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import { getKickReturnClip, getQBClip, getReceptionClip, getQBSackedClip } from '../getClip';
+import { getKickReturnClip, getQBClip, getReceptionClip, getQBSackClip } from '../getClip';
 
 export default class PlayerAnimation extends LiveAnimation {
 
@@ -9,7 +9,7 @@ export default class PlayerAnimation extends LiveAnimation {
       case 'quarterback' :
         return getQBClip(recap.playFormation(), recap.qbAction(), recap.side());
       case 'quarterback_sacked':
-        return getQBSackedClip(recap.playFormation());
+        return getQBSackClip(recap.playFormation());
       case 'reception':
         return getReceptionClip(recap.passType(), recap.side(), recap.isTurnover());
       case 'kick_return':
@@ -64,6 +64,10 @@ export default class PlayerAnimation extends LiveAnimation {
     clip.setPlayers(recap.players(), 'nfl');
 
     return clip.load(recap.whichSide()).then(() => {
+      if (window.is_debugging_live_animation) {
+        clip.debug();
+      }
+
       // Set the X position to where the player snaps the ball
       // by setting the initial position to the starting yard line.
       const yardline = this.getYardline(type, recap);

@@ -79,6 +79,9 @@ Hello WOrld!
 @import "./blocks/cmp-message-display.scss";
 @import "./blocks/account/section-account.scss";
 @import "./blocks/account/deposits.scss";
+@import "./blocks/account/cmp-restricted-location-confirm-modal";
+@import "./blocks/account/cmp-modal--identity-verification";
+@import "./blocks/account/gidx.scss";
 
 /* Components */
 @import "./blocks/cmp-contest-list.scss";
@@ -90,6 +93,7 @@ Hello WOrld!
 @import "./blocks/cmp-lineup-card.scss";
 @import "./blocks/cmp-input-day-picker.scss";
 @import "./blocks/cmp-player-list.scss";
+@import "./blocks/cmp-draft-scoring-modal.scss";
 @import "./blocks/cmp-deposits.scss";
 @import "./blocks/cmp-transactions-form.scss";
 @import "./blocks/cmp-draft-team-filter.scss";
@@ -98,5 +102,4 @@ Hello WOrld!
 @import "./blocks/cmp-enter-contest-button.scss";
 @import "./blocks/cmp-sport-icon.scss";
 @import './blocks/cmp-skill-level-overlay.scss';
-@import "blocks/account/cmp-restricted-location-confirm-modal";
 @import "self-exclusion.scss";

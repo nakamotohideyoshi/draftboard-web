@@ -1,9 +1,9 @@
 from re import search
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from rest_framework import serializers
 
 from account.blacklist import BLACKLIST
@@ -23,8 +23,7 @@ class UserIdentitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Identity
-        fields = ('first_name', 'last_name', 'birth_day', 'birth_month', 'birth_year',
-                  'postal_code')
+        fields = ('country', 'region', 'status')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -38,21 +37,25 @@ class UserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     identity = UserIdentitySerializer(read_only=True)
 
-    def get_identity_verified(self, user):
+    @staticmethod
+    def get_identity_verified(user):
         # Bypass this if they have the permission.
         if user.has_perm('account.can_bypass_identity_verification'):
             return True
-        # Has the user verified their identity with Trulioo?
+        # Has the user verified their identity with GIDX?
         return user.information.has_verified_identity
 
-    def get_cash_balance(self, user):
+    @staticmethod
+    def get_cash_balance(user):
         return user.information.cash_balance
 
-    def get_cash_balance_formatted(self, user):
+    @staticmethod
+    def get_cash_balance_formatted(user):
         # A string formatted to 2 decimal places and a dollar sign ("$99,997.40")
         return "${:,.2f}".format(user.information.cash_balance)
 
-    def get_permissions(self, user):
+    @staticmethod
+    def get_permissions(user):
         # A list of user permissions.
         return {
             'is_staff': user.is_staff,
@@ -72,33 +75,16 @@ class UserSerializer(serializers.ModelSerializer):
 class UserCredentialsSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-
-        return user
-
     class Meta:
         model = User
-
-
-# This serializer was re-defined with the same name as the one above...
-# I don't think this one is needed but I'll keep it here just in case.
-#
-# class UserSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = User
-#         fields = ("email", "password")
+        fields = ("email", "password")
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     email = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True)
+
     # We don't currently require password confirmation.
     # password_confirm = serializers.CharField(write_only=True, required=False)
 
@@ -127,7 +113,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         """
         UserModel = get_user_model()
 
-        if value is None or value == '' or UserModel.objects.filter(email__iexact=value).count() > 0:
+        if value is None or value == '' or UserModel.objects.filter(
+                email__iexact=value).count() > 0:
             # notice how i don't say the email already exists, prevents people from
             # hacking to find someone's email
             raise serializers.ValidationError(error_message)
@@ -246,13 +233,12 @@ class CreditCardPaymentSerializer(SavedCardAddSerializer):
     amount = serializers.FloatField()
 
 
-class TruliooVerifyUserSerializer(serializers.Serializer):
+class VerifyUserIdentitySerializer(serializers.Serializer):
     first = serializers.CharField(max_length=100)
     last = serializers.CharField(max_length=100)
     birth_day = serializers.IntegerField(min_value=1, max_value=31)
     birth_month = serializers.IntegerField(min_value=1, max_value=12)
-    birth_year = serializers.IntegerField(min_value=1912, max_value=9999)
-    postal_code = serializers.CharField(max_length=16)
+    birth_year = serializers.IntegerField(min_value=1900, max_value=9999)
 
 
 class LimitsListSerializer(serializers.ListSerializer):
