@@ -32,7 +32,7 @@ export default class FlightArrow {
 
     this.shadow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     this.shadow.setAttribute('d', this.getPath(shadowPoints, -(arc * 0.5)));
-    this.shadow.setAttribute('style', 'fill:#000;fill-opacity:.2;');
+    this.shadow.setAttribute('style', 'fill:#000;fill-opacity:.1;');
     this.shadow.setAttribute('transform', 'translate(-2,0)');
     this.shadow.setAttribute('mask', 'url(#mask)');
 
