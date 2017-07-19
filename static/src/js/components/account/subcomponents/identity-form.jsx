@@ -1,10 +1,10 @@
 import React from 'react';
-import log from '../../../lib/logging';
+// import log from '../../../lib/logging';
 import forEach from 'lodash/forEach';
 
 /**
  * A form allowing the user to enter their personal details in order to have
- * their identity verified by Trulioo.
+ * their identity verified by GIDX.
  *
  * This is embedded into the deposit page and prevents the user from depositing
  * funds if they do not have a verified identity.
@@ -13,7 +13,7 @@ const IdentityForm = React.createClass({
   propTypes: {
     verifyIdentity: React.PropTypes.func.isRequired,
     errors: React.PropTypes.object.isRequired,
-    formIsSending: React.PropTypes.bool.isRequired,
+    isSending: React.PropTypes.bool.isRequired,
   },
 
 
@@ -26,7 +26,6 @@ const IdentityForm = React.createClass({
 
   onSubmit(event) {
     event.preventDefault();
-    log.info(event);
     this.setState({ values: event.target.value });
 
     this.props.verifyIdentity({
@@ -35,7 +34,6 @@ const IdentityForm = React.createClass({
       birth_day: this.refs.birth_day.value,
       birth_month: this.refs.birth_month.value,
       birth_year: this.refs.birth_year.value,
-      postal_code: this.refs.postal_code.value,
     });
   },
 
@@ -71,10 +69,11 @@ const IdentityForm = React.createClass({
   render() {
     return (
       <div className="cmp-identity-form">
-        <h3>Hate multi-accounting? So do we!</h3>
+        <h3>Account Verification</h3>
         <p>
-          Providing the information below allows us to make sure no one has more than one account at
-          Draftboard.
+            Before you can enter contests you need to make a deposit, but first we need to verify
+            &nbsp;your account.  Providing the information below helps us prevent fraud and comply
+            &nbsp;with state regulations relating to daily fantasy sports.
         </p>
         <div ref="form" className="form">
           <fieldset className="form__fieldset">
@@ -157,26 +156,16 @@ const IdentityForm = React.createClass({
               {this.renderDateErrors(this.props.errors)}
             </div>
 
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="postal_code">Postal Code</label>
-              <input
-                ref="postal_code"
-                className="form-field__text-input"
-                type="text"
-                name="postal_code"
-                required
-              />
-
-              {this.renderErrors(this.props.errors.postal_code)}
-            </div>
-
             <div className="form-controls">
               <button
-                disabled={this.props.formIsSending}
+                disabled={this.props.isSending}
                 ref="submit-button"
                 className="button button--flat-alt1"
                 onClick={this.onSubmit}
-              >Submit</button>
+              >Verify Account</button>
+            </div>
+            <div>
+              <a href="/" title="Return to Lobby">Cancel</a>
             </div>
           </fieldset>
         </div>

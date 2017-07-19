@@ -19,8 +19,7 @@ export default React.createClass({
   propTypes: {
     sport: React.PropTypes.oneOf(['nba', 'nfl', 'nhl']),
     currentEvent: React.PropTypes.object,
-    onAnimationComplete: React.PropTypes.func,
-    onAnimationStart: React.PropTypes.func,
+    onAnimationStarted: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -41,27 +40,45 @@ export default React.createClass({
   },
 
   componentDidUpdate() {
-    if (this.props.currentEvent === null || this.props.currentEvent.id === this.eventId) {
+    const { currentEvent, onAnimationStarted } = this.props;
+
+    if (currentEvent === null || currentEvent.id === this._eventId) {
+      if (currentEvent === null) {
+        this.clearCurrentAnimation();
+      }
       return;
     }
 
-    this.eventId = this.props.currentEvent.id;
+    this._eventId = currentEvent.id;
 
-    if (this.props.onAnimationStart) {
-      this.props.onAnimationStart();
+    const playCurrentAnimation = resolve => {
+      const animation = new LiveAnimationFactory();
+      animation.play(currentEvent, this.refs.stage)
+      .catch(error => (
+        Raven.captureMessage('Live animation failed', {
+          extra: {
+            message: error.message,
+            currentEvent: this.props.currentEvent,
+          },
+        })
+      ))
+      .then(() => resolve());
+    };
+
+    if (onAnimationStarted) {
+      onAnimationStarted(new Promise(playCurrentAnimation), currentEvent);
     }
-
-    const animation = new LiveAnimationFactory();
-    animation.play(this.props.currentEvent, this.refs.stage)
-    .catch(error => Raven.captureMessage('Live animation failed', {
-      extra: { message: error.message, currentEvent: this.props.currentEvent },
-    }))
-    .then(() => this.props.onAnimationComplete());
   },
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('orientationchange', this.handleWindowResize);
+  },
+
+  clearCurrentAnimation() {
+    while (this.refs.stage.hasChildNodes()) {
+      this.refs.stage.removeChild(this.refs.stage.lastChild);
+    }
   },
 
   handleWindowResize() {
@@ -72,7 +89,7 @@ export default React.createClass({
   },
 
   render() {
-    const courtStyles = {
+    const stageStyles = {
       width: this.state.stageOriginalWidth,
       height: this.state.stageOriginalHeight,
       transformOrigin: '0 top',
@@ -84,14 +101,14 @@ export default React.createClass({
       height: `${this.state.scale * this.state.stageOriginalHeight}px`,
     };
 
-    const block = 'live-animation-stage';
-
     return (
-      <div ref="container" style={containerStyles}>
-        <section ref="stage"
-          className={`${block} ${block}--${this.props.sport}`}
-          style={courtStyles}
-        />
+      <div className={`live__venue live__venue-${this.props.sport}`}>
+        <div ref="container" style={containerStyles}>
+          <section ref="stage"
+            className={`live-animation-stage live-animation-stage--${this.props.sport}`}
+            style={stageStyles}
+          />
+        </div>
       </div>
     );
   },

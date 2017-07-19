@@ -114,6 +114,7 @@ INSTALLED_APPS = (
     'pipeline',  # minifying/compressing static assets
     # draftboard specific apps below here #
     'account',
+    'account.gidx',
     'dfslog',
     'transaction',
     'cash',
@@ -153,7 +154,6 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',  # sentry
     'statscom',  # STATS.com api parsers, models, projections, etc...
     'swish',  # Swish Analytics
-    'trulioo',
     'rest_framework_swagger',
 )
 TEMPLATES = [{
@@ -407,13 +407,6 @@ GETIPNET_NORMAL = 0.99
 # ----------------------------------------------------------
 GEOIP_PATH = path.join(BASE_DIR, '../geoip')
 
-# Trulioo DEMO settings
-# ----------------------------------------------------------
-TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
-TRULIOO_USER = 'Draftboard_Demo_API'
-TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
-TRULIOO_DEMO_MODE = True
-
 # Inactive users
 INACTIVE_USERS_EMAILS = []
 # Who will recieve flagged identity emails. (this can be empty)
@@ -440,3 +433,16 @@ TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
 # once limits applied, residents of specific states will not be able to increase
 # this limit for days respectively.
 LIMIT_DAYS_RESTRAINT = {'MA': 90}
+
+# Sandbox gidx credentials
+GIDX_API_KEY = 'k2m9yX4Tl0WXuz8Ahc5muA'
+GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
+GIDX_CUSTOMER_ID_PREFIX = 'TEST--'
+# This is is a prefix to enable testing mode on the client-side of things.
+# GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
+# An empty prefixdisables testing mode.
+GIDX_MERCHANT_SESSION_ID_PREFIX = ''
+GIDX_PRODUCT_ID = 'iiXXab0LtUCUdZ_6vcdtvQ'
+GIDX_ACTIVITY_ID = 'FyP1fg_WkU60JnuIarfOQw'
+GIDX_DEVICE_ID = '2bDPorOkPkepDd8-6Fydtw'
+

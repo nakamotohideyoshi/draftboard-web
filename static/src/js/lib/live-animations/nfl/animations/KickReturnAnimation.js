@@ -2,7 +2,6 @@ import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrowAnimation from './FlightArrowAnimation';
 import PlayerAnimation from './PlayerAnimation';
-import OutroAnimation from './OutroAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
@@ -70,8 +69,11 @@ export default class KickReturnAnimation extends LiveAnimation {
     sequence.push(() => {
       const animation = new FlightArrowAnimation();
       const arc = recap.playType() === NFLPlayRecapVO.KICKOFF ? 220 : 150;
-      const duration = recap.playType() === NFLPlayRecapVO.KICKOFF ? 1.5 : 1;
-      return animation.play(recap, field, kickPos, catchPos, arc, duration);
+      const duration = recap.playType() === NFLPlayRecapVO.KICKOFF ? 2 : 1.5;
+      return animation.play(recap, field, kickPos, catchPos, {
+        arc,
+        duration,
+      });
     });
 
     // Catch the ball
@@ -93,9 +95,6 @@ export default class KickReturnAnimation extends LiveAnimation {
       const animation = new YardlineAnimation();
       return animation.play(recap, field, downPos.x, YardlineAnimation.COLOR_DOWN_LINE);
     });
-
-    // Clear the field
-    sequence.push(() => new OutroAnimation().play(recap, field));
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
   }

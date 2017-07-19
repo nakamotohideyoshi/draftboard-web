@@ -1,10 +1,8 @@
 import merge from 'lodash/merge';
 import { Provider, connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import React from 'react';
-import LiveAnimationArea from '../live/live-animation-area';
-import LiveHeader from '../live/live-header';
-import LiveBigPlays from '../live/live-big-plays';
-import LiveStandingsPane from '../live/live-standings-pane';
+import LiveVenue from '../live/live-venue';
 import DebugMenu from './debug-menu';
 import store from '../../store';
 import fpoState from './fixtures/state';
@@ -13,6 +11,7 @@ import { Router, Route, browserHistory } from 'react-router';
 import renderComponent from '../../lib/render-component';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { push as routerPush } from 'react-router-redux';
+import { clearCurrentAnimationEvent } from '../../actions/events';
 
 require('../../../sass/blocks/live-debugger.scss');
 
@@ -26,9 +25,16 @@ const mapStateToProps = (state) => ({
   bigEvents: state.events.bigEvents,
 });
 
-export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClass({
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    clearCurrentAnimationEvent,
+  }, dispatch),
+});
+
+export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToProps)(React.createClass({
 
   propTypes: {
+    actions: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
     bigEvents: React.PropTypes.array,
     params: React.PropTypes.object,
@@ -73,32 +79,48 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps)(React.createClas
     store.dispatch(addEventAndStartQueue(gameId, gameEvent, eventType, sport));
   },
 
+  animationCompleted() {
+    this.props.actions.clearCurrentAnimationEvent();
+  },
+
   render() {
-    const { eventsMultipart, watching, contest } = fpoState;
-    const { currentEvent, bigEvents } = this.props;
+    const {
+      currentEvent,
+      bigEvents,
+    } = this.props;
+
+    const {
+      eventsMultipart,
+      watching,
+      contest,
+      uniqueLineups,
+      opponentLineup,
+      myLineupInfo,
+    } = fpoState;
 
     watching.sport = this.state.sport;
 
     return (
-      <div className="live">
+      <div className={ `live live--sport live--sport-${this.state.sport}`}>
         <DebugMenu
           sport={this.state.sport}
           play={this.state.play}
           onSportUpdated={(sport) => this.onSportUpdated(sport)}
           onPBPUpdated={(pbp) => this.onPBPUpdated(pbp)}
         />
-        <section className="live__venues">
-          <LiveHeader
-            {...{ contest, currentEvent, watching }}
-            lineups={fpoState.uniqueLineups.lineups}
-            myLineup={fpoState.myLineupInfo}
-            opponentLineup={fpoState.opponentLineup}
-            selectLineup={fpoState.selectLineup}
-          />
-          <LiveAnimationArea {...{ currentEvent, eventsMultipart, watching }} />
-          <LiveStandingsPane {...{ contest, watching }} />
-        </section>
-        <LiveBigPlays queue={bigEvents || []} />
+        <LiveVenue
+          {...{
+            contest,
+            currentEvent,
+            watching,
+            opponentLineup,
+            myLineupInfo,
+            eventsMultipart,
+            uniqueLineups,
+          } }
+          onAnimationCompleted={() => this.animationCompleted()}
+          bigPlaysQueue={bigEvents || []}
+        />
       </div>
     );
   },

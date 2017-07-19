@@ -60,10 +60,10 @@ const ResultsDaysSlider = React.createClass({
   },
 
   getRightButton(props) {
-    return (<div {...props} onClick={this.nextSlide.bind(this, props.className)}>&gt;</div>);
+    return (<div className={props.className} onClick={this.nextSlide.bind(this, props.className)}>&gt;</div>);
   },
   getLeftButton(props) {
-    return (<div {...props} onClick={this.prevSlide.bind(this, props.className)}>&lt;</div>);
+    return (<div className={props.className} onClick={this.prevSlide.bind(this, props.className)}>&lt;</div>);
   },
 
   getItemsList() {

@@ -148,23 +148,6 @@ const consolidateZonePitches = (zonePitches) => {
 };
 
 /**
- * Convert yardline to decimal, used by transposeFieldPosition
- * @param  {number} yardline  Range of -10 to 110, represents yardline in NFL
- * @param  {string} direction Direction of drive from user's perspective, options are ['leftToRight', 'rightToLeft']
- * @return {number}           Range of -0.05 to 1.05
- */
-const yardlineToDecimal = (yardline, driveDirection) => {
-  let asDecimal = yardline / 100;
-
-  // inverse if away team
-  if (driveDirection === 'rightToLeft') asDecimal = 1 - asDecimal;
-
-  if (asDecimal > 1) return 1;  // touchdown
-  if (asDecimal < 0) return 0;  // touchback
-  return asDecimal;
-};
-
-/**
  * TODO move to lib.utils
  *
  * Helper method to convert an object of pitch types into a readable sentence

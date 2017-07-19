@@ -149,48 +149,51 @@ const DraftNewLineupCard = React.createClass({
     );
 
     return (
-      <div className="cmp-lineup-card cmp-lineup-card--new">
-        <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
-          <DraftNewLineupCardTitle
-            title={this.state.lineupTitle}
-            setTitle={this.setTitle}
-          />
+      <div className="cmp-lineup-card cmp-lineup-card--new flip-container">
+        <div className="flipper">
+          <div className="front">
+            <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
 
-          {this.renderSaveButton()}
+              <DraftNewLineupCardTitle
+                title={this.state.lineupTitle}
+                setTitle={this.setTitle}
+              />
 
-          <Tooltip
-            position="right"
-            isVisible={showError}
-            ref="lineupCardTip"
-            clickToClose
-          >
-            <span>{this.renderErrors(this.props.errorMessage)}</span>
-          </Tooltip>
+              {this.renderSaveButton()}
 
-        </header>
+              <Tooltip
+                position="right"
+                isVisible={showError}
+                ref="lineupCardTip"
+                clickToClose
+              >
+                <span>{this.renderErrors(this.props.errorMessage)}</span>
+              </Tooltip>
+              <div className="cmp-lineup-card__list-header">
+                <span className="cmp-lineup-card__list-header-salary">Salary</span>
+              </div>
+            </header>
+            <ul className="players">
+              {players}
+            </ul>
 
-        <div className="cmp-lineup-card__list-header">
-          <span className="cmp-lineup-card__list-header-salary">Salary</span>
+            <footer className="cmp-lineup-card__footer">
+              <div
+                className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
+              >
+                <span className="cmp-lineup-card__footer-title">Remaining Salary</span>
+                ${this.props.remainingSalary.toLocaleString('en')}
+              </div>
+              <div
+                className={`cmp-lineup-card__countdown cmp-lineup-card__footer-section
+              ${avgRemainingPlayerSalaryClasses}`}
+              >
+                <span className="cmp-lineup-card__footer-title">Avg / Player</span>
+                ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
+              </div>
+            </footer>
+          </div>
         </div>
-
-        <ul className="players">
-          {players}
-        </ul>
-
-        <footer className="cmp-lineup-card__footer">
-          <div
-            className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
-          >
-            <span className="cmp-lineup-card__footer-title">Remaining Salary</span>
-            ${this.props.remainingSalary.toLocaleString('en')}
-          </div>
-          <div
-            className={`cmp-lineup-card__countdown cmp-lineup-card__footer-section ${avgRemainingPlayerSalaryClasses}`}
-          >
-            <span className="cmp-lineup-card__footer-title">Avg / Player</span>
-            ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
-          </div>
-        </footer>
       </div>
     );
   },

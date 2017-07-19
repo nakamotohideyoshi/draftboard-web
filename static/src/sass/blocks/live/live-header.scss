@@ -26,7 +26,7 @@ $block: '.live-header';
     max-width: 280px;
     position: absolute;
     transform: translateX(-50%);
-    width: 30%;
+    width: 100%;
     height: 154px;  // TODO remove this magic number somehow
 
     &__type,
@@ -40,7 +40,8 @@ $block: '.live-header';
       font-family: $font-oswald;
       font-size: 30px;
       font-weight: bold;
-      line-height: 2.2;
+      line-height: 1.4;
+      letter-spacing: 1px;
       margin: 0;
       opacity: 0;
       padding: 0;
