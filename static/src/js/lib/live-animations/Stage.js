@@ -1,7 +1,17 @@
 export default class Stage {
 
   constructor(el) {
-    this.el = el;
+    this.displayList = document.createElement('DIV');
+    this.displayList.classList.add('filter-gray');
+    this.displayList.style.position = 'absolute';
+    this.displayList.style.width = `${el.offsetWidth}px`;
+    this.displayList.style.height = `${el.offsetHeight}px`;
+
+    el.appendChild(this.displayList);
+  }
+
+  getElement() {
+    return this.displayList;
   }
 
   /**
@@ -9,7 +19,7 @@ export default class Stage {
    * @return {number}
    */
   getWidth() {
-    return this.el.offsetWidth;
+    return this.displayList.offsetWidth;
   }
 
   /**
@@ -17,7 +27,7 @@ export default class Stage {
    * @return {number}
    */
   getHeight() {
-    return this.el.offsetHeight;
+    return this.displayList.offsetHeight;
   }
 
   /**
@@ -80,7 +90,7 @@ export default class Stage {
     span.style.zIndex = depth;
     span.appendChild(node);
 
-    this.el.appendChild(span);
+    this.displayList.appendChild(span);
 
     return span;
   }
@@ -89,15 +99,15 @@ export default class Stage {
    * Returns an array of children on the stage.
    */
   children() {
-    return this.el.children;
+    return this.displayList.children;
   }
 
   /**
    * Removes the specified child from the field.
    */
   removeChild(node) {
-    if (node.parentNode && node.parentNode.parentNode === this.el) {
-      this.el.removeChild(node.parentNode);
+    if (node.parentNode && node.parentNode.parentNode === this.displayList) {
+      this.displayList.removeChild(node.parentNode);
     }
   }
 
@@ -105,8 +115,8 @@ export default class Stage {
    * Removes all clips from the field.
    */
   removeAll() {
-    while (this.el.hasChildNodes()) {
-      this.el.removeChild(this.el.lastChild);
+    while (this.displayList.hasChildNodes()) {
+      this.displayList.removeChild(this.displayList.lastChild);
     }
   }
 }

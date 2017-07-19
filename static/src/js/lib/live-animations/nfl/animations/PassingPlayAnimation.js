@@ -5,6 +5,7 @@ import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
+import FlashChildrenAnimation from './FlashChildrenAnimation';
 
 /**
  * Plays a pass play sequence by connecting a QB animation with a
@@ -126,7 +127,12 @@ export default class PassingPlayAnimation extends LiveAnimation {
       return animation.play(recap, field, 'reception');
     });
 
-    if (!recap.isIncompletePass()) {
+    if (recap.isIncompletePass()) {
+      sequence.push(() => {
+        const animation = new FlashChildrenAnimation();
+        return animation.play(recap, field);
+      });
+    } else {
       // Rush after catch (but only if it's more than a few yards)
       if (recap.rushingYards() > 0.03) {
         sequence.push(() => {
