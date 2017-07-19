@@ -99,12 +99,6 @@ INACTIVE_USERS_EMAILS = [
     'dan@draftboard.com',
 ]
 
-# Trulioo creds
-TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
-TRULIOO_USER = 'Draftboard_API'
-TRULIOO_PASSWORD = 'b8)8=799yf&#jN,'
-TRULIOO_DEMO_MODE = False
-
 KISS_ANALYTICS_CODE = '38999ef9bc7158192a6d6dfcc27004c48ed13538'
 
 # Production GIDX credentials

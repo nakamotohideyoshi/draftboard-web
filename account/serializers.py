@@ -37,21 +37,25 @@ class UserSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     identity = UserIdentitySerializer(read_only=True)
 
-    def get_identity_verified(self, user):
+    @staticmethod
+    def get_identity_verified(user):
         # Bypass this if they have the permission.
         if user.has_perm('account.can_bypass_identity_verification'):
             return True
-        # Has the user verified their identity with Trulioo?
+        # Has the user verified their identity with GIDX?
         return user.information.has_verified_identity
 
-    def get_cash_balance(self, user):
+    @staticmethod
+    def get_cash_balance(user):
         return user.information.cash_balance
 
-    def get_cash_balance_formatted(self, user):
+    @staticmethod
+    def get_cash_balance_formatted(user):
         # A string formatted to 2 decimal places and a dollar sign ("$99,997.40")
         return "${:,.2f}".format(user.information.cash_balance)
 
-    def get_permissions(self, user):
+    @staticmethod
+    def get_permissions(user):
         # A list of user permissions.
         return {
             'is_staff': user.is_staff,
