@@ -4,7 +4,7 @@ import forEach from 'lodash/forEach';
 
 /**
  * A form allowing the user to enter their personal details in order to have
- * their identity verified by Trulioo.
+ * their identity verified by GIDX.
  *
  * This is embedded into the deposit page and prevents the user from depositing
  * funds if they do not have a verified identity.

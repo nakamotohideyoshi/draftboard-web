@@ -1137,26 +1137,7 @@ class VerifyUserIdentityAPIView(APIView):
 
 class RegisterAccountAPIView(APIView):
     """
-    verify the user is real based on the information specified.
-    this will create a log of the trulioo transaction in the django admin
-
-    - Attempt to verify user identity with Trulioo.
-
-    if success:
-        - Attempt to create User account.
-
-        if success:
-            - Create user Identity.
-
-            if failure:
-                - return validation errors.
-
-        if failure:
-            - return validation errors
-
-    if failure:
-        - return Identity validation errors
-
+    Create a user account, Information object, and log the user in.
 
     example POST param (JSON):
 
@@ -1185,18 +1166,13 @@ class RegisterAccountAPIView(APIView):
             # Log user in.
             if new_user is not None:
                 authLogin(request, new_user)
+            # Everything went OK!
+            return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
 
-                # DO NOT respond yet. we still need to save the user's Identity below.
-        else:
-            # If there were user user_serializer, send em back to the user.
-            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # If there were user user_serializer errors, send em back to the user.
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # If the verification request was successful...
-        #
-        # Save the information so we can do multi-account checking.
-        # create_user_identity(new_user, first, last, birth_day, birth_month, birth_year, postal_code)
-        # return success response if everything went ok
-        return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
+
 
 
 class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):

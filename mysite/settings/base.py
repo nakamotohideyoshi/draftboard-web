@@ -154,7 +154,6 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',  # sentry
     'statscom',  # STATS.com api parsers, models, projections, etc...
     'swish',  # Swish Analytics
-    'trulioo',
     'rest_framework_swagger',
 )
 TEMPLATES = [{
@@ -407,13 +406,6 @@ GETIPNET_NORMAL = 0.99
 # GEOIP settings
 # ----------------------------------------------------------
 GEOIP_PATH = path.join(BASE_DIR, '../geoip')
-
-# Trulioo DEMO settings
-# ----------------------------------------------------------
-TRULIOO_API_BASE_URL = 'https://api.globaldatacompany.com'
-TRULIOO_USER = 'Draftboard_Demo_API'
-TRULIOO_PASSWORD = 'Pt8MbXrGAeivr{K8'
-TRULIOO_DEMO_MODE = True
 
 # Inactive users
 INACTIVE_USERS_EMAILS = []

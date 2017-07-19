@@ -61,7 +61,7 @@ class HasIpAccess(permissions.BasePermission):
 
 class HasVerifiedIdentity(permissions.BasePermission):
     """
-    Has the user verified their identity with Trulioo? If they have there will be a
+    Has the user verified their identity with GIDX? If they have there will be a
     user.identity model.
     """
     message = "You must verify your identity to perform this action."
