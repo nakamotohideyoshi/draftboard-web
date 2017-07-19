@@ -48,7 +48,7 @@ const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
         },
       });
 
-      const reason = json.detail || response;
+      const reason = json || response;
       return Promise.reject(reason);
     });
   }
@@ -136,14 +136,15 @@ export default store => next => action => {
         // where to pass to
         type: failureType,
         requestType,
-        error: error || {},
+        error: error.detail || {},
 
         // what to show the user
         header: 'Failed to connect to API.',
         // Added some detailed info for non-production purposes
         // TODO: remove these when we go public.
         content: `Please refresh the page to reconnect.<br /> ${error.url || ''}<br />
-                  ${error.status || ''} ${error.statusText || error} `,
+                  ${error.detail || ''} ${error.status || ''} ${error.statusText || error} `,
+        response: error,
         level: 'warning',
         id: 'apiFailure',
       }));

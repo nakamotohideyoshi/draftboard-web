@@ -237,7 +237,7 @@ const ResultsPane = React.createClass({
                 <div><span className="info-title">Entries</span><div>
                   {contest.current_entries}/{contest.entries}
                 </div></div>
-                <div><span className="info-title">Fee</span><div>{humanizeCurrency(contest.buyin)}</div></div>
+                <div><span className="info-title">PLACE / WON</span><div>{humanizeCurrency(contest.buyin)}</div></div>
               </div>
             </div>
           </div>
