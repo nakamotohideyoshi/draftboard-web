@@ -1,14 +1,14 @@
 export const clip = {
-  frame_width: 180,
+  frame_width: 100,
   frame_height: 100,
   length: 11,
-  registration_x: 148,
+  registration_x: 64,
   registration_y: 76,
   avatars: [
     {
       name: 'receiver',
-      x: 122,
-      y: 20,
+      x: 66,
+      y: 24,
       in: 11,
     },
   ],

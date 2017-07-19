@@ -1,14 +1,5 @@
 from django.conf.urls import url
 
-from account.views import (
-    AuthAPIView,
-    ForgotPasswordAPIView,
-    PasswordResetAPIView,
-    RegisterAccountAPIView,
-    UserAPIView,
-    UserCredentialsAPIView,
-    UserEmailNotificationAPIView,
-)
 from .views import (
     # paypal apis:
     PayPalDepositWithPayPalAccountAPIView,  # not fully implemented
@@ -25,6 +16,16 @@ from .views import (
     VZeroDepositView,
     VerifyLocationAPIView,
     UserLimitsAPIView,
+    VerifyUserIdentityAPIView,
+    AuthAPIView,
+    ForgotPasswordAPIView,
+    PasswordResetAPIView,
+    RegisterAccountAPIView,
+    UserAPIView,
+    UserCredentialsAPIView,
+    UserEmailNotificationAPIView,
+    GidxCallbackAPIView,
+GidxRegistrationStatus
 )
 
 urlpatterns = [
@@ -45,6 +46,8 @@ urlpatterns = [
     url(r'^notifications/email/$', UserEmailNotificationAPIView.as_view()),
 
     url(r'^verify-location/$', VerifyLocationAPIView.as_view()),
+
+    url(r'^verify-user/$', VerifyUserIdentityAPIView.as_view()),
 
     # draftboard apis using paypal apis to move money to/from the site
     # r'^password-reset-confirm/(?P<uid>.+)/(?P<token>.+)/$'
@@ -93,5 +96,19 @@ urlpatterns = [
 
     # get a list of user limits
     url(r'^user-limits/$', UserLimitsAPIView.as_view()),
+
+    # GIDX identity callback webhook.
+    url(
+        r'^identity-webhook/$',
+        GidxCallbackAPIView.as_view(),
+        name="gidx-identity-webhook"
+    ),
+
+    # GIDX identity status check.
+    url(
+        r'^identity-status/(?P<merchant_session_id>.+)/$',
+        GidxRegistrationStatus.as_view(),
+        name="gidx-identity-status"
+    ),
 
 ]

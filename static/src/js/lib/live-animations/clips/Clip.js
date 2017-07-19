@@ -36,10 +36,10 @@ export default class Clip {
 
     debugPoints.forEach((pt) => {
       const marker = document.createElement('SPAN');
-      marker.style.borderRadius = '4px';
+      marker.style.borderRadius = '2px';
       marker.style.position = 'absolute';
-      marker.style.top = `${pt[1] - 2}px`;
-      marker.style.left = `${pt[0] - 2}px`;
+      marker.style.top = `${pt[1] - 1}px`;
+      marker.style.left = `${pt[0] - 1}px`;
       marker.style.width = '4px';
       marker.style.height = '4px';
       marker.style.backgroundColor = pt[2];

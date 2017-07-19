@@ -12,17 +12,18 @@ export default class NFLLivePlayAnimation extends LiveAnimation {
    * @param {NFLPlayRecapVO}  The recap.
    */
   getAnimation(recap) {
+    if (recap.isQBSack()) {
+      return new QuarterbackSackedAnimation();
+    }
+
     switch (recap.playType()) {
       case NFLPlayRecapVO.KICKOFF:
       case NFLPlayRecapVO.PUNT:
         return new KickReturnAnimation();
       case NFLPlayRecapVO.PASS:
-      case NFLPlayRecapVO.PASS_DEEP:
         return new PassingPlayAnimation();
       case NFLPlayRecapVO.RUSH:
         return new RushingPlayAnimation();
-      case NFLPlayRecapVO.SACK:
-        return new QuarterbackSackedAnimation();
       default:
         return null;
     }

@@ -67,10 +67,6 @@ export default class NFLPlayRecapVO {
     return 'scramble';
   }
 
-  static get SACK() {
-    return 'sack';
-  }
-
   static get HANDOFF() {
     return 'handoff';
   }
@@ -179,14 +175,9 @@ export default class NFLPlayRecapVO {
     const supportedTypes = [
       NFLPlayRecapVO.PASS,
       NFLPlayRecapVO.RUSH,
-      NFLPlayRecapVO.SACK,
       NFLPlayRecapVO.KICKOFF,
       NFLPlayRecapVO.PUNT,
     ];
-
-    if (this.isQBSack()) {
-      return NFLPlayRecapVO.SACK;
-    }
 
     const type = this._obj.pbp.type;
     return supportedTypes.indexOf(type) !== -1 ? type : NFLPlayRecapVO.UNKNOWN_PLAY;
@@ -198,6 +189,37 @@ export default class NFLPlayRecapVO {
    */
   playDescription() {
     return this._obj.pbp.description;
+  }
+
+  /**
+   * Returns the "title" based on the play's playType.
+   */
+  playTitle() {
+    const yards = Math.round(100 * (this.passingYards() + this.rushingYards()));
+
+    if (this.isTouchdown()) {
+      return 'Touchdown';
+    } else if (this.isTouchback()) {
+      return 'Touchback';
+    } else if (this.isFumble()) {
+      return 'Fumble';
+    } else if (this.isTurnover()) {
+      return 'Interception';
+    } else if (this.isIncompletePass()) {
+      return 'Incomplete Pass';
+    } else if (this.isQBSack()) {
+      return 'Sack';
+    } else if (this.playType() === NFLPlayRecapVO.PUNT) {
+      return `${yards} Yard Punt Return`;
+    } else if (this.playType() === NFLPlayRecapVO.KICKOFF) {
+      return `${yards} Yard Kickoff Return`;
+    } else if (this.isPassingPlay()) {
+      return `${yards} Yard Completion`;
+    } else if (this.isRushingPlay()) {
+      return `${yards} Yard Rush`;
+    }
+
+    return '';
   }
 
   /**

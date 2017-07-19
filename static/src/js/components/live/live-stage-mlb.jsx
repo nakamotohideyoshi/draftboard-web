@@ -1,12 +1,5 @@
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
-import LiveAnimationStage from './live-animation-stage';
-import {
-  clearCurrentEvent,
-  shiftOldestEvent,
-  showAnimationEventResults,
-} from '../../actions/events';
-import store from '../../store';
 
 export default React.createClass({
 
@@ -14,22 +7,7 @@ export default React.createClass({
     currentEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-  },
-
-  /**
-   * Handler for when a venue's animation has completed.
-   */
-  stageAnimationComplete() {
-    // show the results, remove the animation
-    store.dispatch(showAnimationEventResults(this.props.currentEvent));
-
-    // remove the event
-    store.dispatch(clearCurrentEvent());
-
-    // enter the next item in the queue once everything is done.
-    setTimeout(() => {
-      store.dispatch(shiftOldestEvent());
-    }, 1000);
+    onAnimationStarted: React.PropTypes.func,
   },
 
   /**
@@ -64,29 +42,10 @@ export default React.createClass({
     return venues;
   },
 
-  /**
-   * Renders a NBACourt component.
-   * @return {object} LiveNBACourt
-   */
-  renderStage(sport) {
-    if (sport === 'mlb') {
-      return this.renderMLBStadiums(this.props);
-    }
-
-    return (
-      <LiveAnimationStage
-        key={`${sport}-stage`}
-        sport={sport}
-        onAnimationComplete={() => this.stageAnimationComplete()}
-        currentEvent={this.props.currentEvent}
-      />
-    );
-  },
-
   render() {
     return (
       <div className={`live__venue live__venue-${this.props.watching.sport}`}>
-        { this.renderStage(this.props.watching.sport) }
+        { this.renderMLBStadiums(this.props) }
       </div>
     );
   },

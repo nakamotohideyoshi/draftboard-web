@@ -19,14 +19,8 @@ import {
 // get custom logger for actions
 const logAction = log.getLogger('action');
 
-
 const addEventToBigPlays = (value) => ({
   type: ActionTypes.EVENT_ADD_TO_BIG_QUEUE,
-  value,
-});
-
-const setCurrentAnimation = (value) => ({
-  type: ActionTypes.EVENT__SET_CURRENT,
   value,
 });
 
@@ -49,15 +43,13 @@ const shiftEvent = () => ({
   type: ActionTypes.EVENT_SHIFT_GAME_QUEUE,
 });
 
-/**
- * Action creator for removing an event
- * NOTE: exported because nba calls this after animation
- * @param  {string} key SportsRadar UUID for event
- * @return {object}     Object that, when combined with `dispatch()`, updates reducer
- */
-export const clearCurrentEvent = (key) => ({
+const setCurrentEvent = (value) => ({
+  type: ActionTypes.EVENT__SET_CURRENT,
+  value,
+});
+
+const clearCurrentEvent = () => ({
   type: ActionTypes.EVENT__REMOVE_CURRENT,
-  key,
 });
 
 const unshiftPlayerHistory = (key, value) => ({
@@ -173,7 +165,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       });
 
       // update player stats if we have them
-      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.playersStats)));
+      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.stats)));
 
       break;
     }
@@ -188,7 +180,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       });
 
       // update player stats if we have them
-      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.playersStats)));
+      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.stats)));
       break;
     }
     default:
@@ -274,7 +266,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
     case 'nba':
     case 'nfl':
       return Promise.all([
-        dispatch(setCurrentAnimation(animationEvent)),
+        dispatch(setCurrentEvent(animationEvent)),
         dispatch(unionPlayersPlaying(relevantPlayersInEvent)),
       ]);
 
@@ -321,7 +313,8 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
       dispatch(updateGameTeam(message));
       break;
     case 'stats': {
-      dispatch(updatePlayerStats(oldestEvent.sport, message));
+      // TODO: This has to be dispatched as a validation check of some sort!
+      // dispatch(updatePlayerStats(oldestEvent.sport, message));
       break;
     }
     default:
@@ -349,4 +342,24 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
   ]).then(
     () => dispatch(shiftOldestEvent(gameId))
   );
+};
+
+/**
+ * Clears the current animation event, if it exists. Clearing the event includes
+ * showing the "results" of the animation, which would include things like
+ * updating player history, stats, and FP.
+ */
+export const clearCurrentAnimationEvent = () => (dispatch, getState) => {
+  logAction.debug('actions.clearCurrentAnimationEvent');
+
+  const { currentEvent } = getState().events;
+
+  if (!currentEvent) {
+    return Promise.resolve();
+  }
+
+  return Promise.resolve()
+  .then(() => dispatch(showAnimationEventResults(currentEvent)))  // Update bigplays, FP, and stats.
+  .then(() => dispatch(clearCurrentEvent()))                      // Remove current event
+  .then(() => dispatch(shiftOldestEvent()));                      // Bring in the next one
 };
