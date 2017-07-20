@@ -56,10 +56,9 @@ category: Lineup
       vertical-align: middle;
     }
     .circle {
-      background-size: 120% auto;
+      margin-top: 5px;
       border-radius: 50%;
       display: inline-block;
-      margin: 7px 6px 5px;
       position: relative;
       overflow: hidden;
       border: 1px solid rgba(109, 113, 138, .5);
@@ -72,18 +71,9 @@ category: Lineup
           border-radius: 50%;
           vertical-align: middle;
           display: block;
-          img {
-            vertical-align: middle;
-            padding: 0;
-            margin: 0;
-            max-width: 50px;
-            display: block;
-            width: 100%;
-            height: auto;
-            position: relative;
-            top: 0px;
-            left: 0px;
-          }
+          background-size: cover;
+          background-position: center;
+
         }
       }
     }
@@ -586,7 +576,6 @@ category: Lineup
   .cmp-lineup-card {
 
     &__player > span {
-      padding: 5px;
 
       &:first-child {
         padding-left: 15px;
