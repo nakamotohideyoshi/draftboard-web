@@ -1,11 +1,11 @@
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrowAnimation from './FlightArrowAnimation';
-import OutroAnimation from './OutroAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
+import FlashChildrenAnimation from './FlashChildrenAnimation';
 
 /**
  * Plays a pass play sequence by connecting a QB animation with a
@@ -28,11 +28,14 @@ export default class PassingPlayAnimation extends LiveAnimation {
    * Returns the field position of the throw.
    */
   getThrowPos(recap, field) {
+    // Shotguns originate a little further back than default formations.
+    const xOffset = recap.playFormation() === 'shotgun' ? 0.05 : 0.04;
+
     // Returns the position of the throw with a slight offset to account for
     // the QB's hand position.
     const x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
-    ? recap.startingYardLine() + 0.04
-    : recap.startingYardLine() - 0.04;
+    ? recap.startingYardLine() + xOffset
+    : recap.startingYardLine() - xOffset;
 
     return { x, y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE) };
   }
@@ -54,20 +57,22 @@ export default class PassingPlayAnimation extends LiveAnimation {
    * Returns the duration of the pass in seconds based on it's distance.
    */
   getPassDuration(recap) {
-    if (recap.passingYards() <= 0.2) {
-      return 0.25;
-    } else if (recap.passingYards() <= 0.4) {
-      return 0.8;
+    if (recap.passingYards() >= 0.4) {
+      return 1.8;
+    } else if (recap.passingYards() >= 0.3) {
+      return 1.4;
+    } else if (recap.passingYards() >= 0.2) {
+      return 1;
     }
 
-    return 1.2;
+    return 0.6;
   }
 
   /**
    * Returns the field position of the reception.
    */
   getCatchPos(recap, field) {
-    const y = field.getSideOffsetY(recap.side()) - 0.05;
+    const y = field.getSideOffsetY(recap.side());
     const x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
     ? recap.startingYardLine() - recap.passingYards()
     : recap.startingYardLine() + recap.passingYards();
@@ -109,23 +114,32 @@ export default class PassingPlayAnimation extends LiveAnimation {
     if (recap.passingYards() > 0.03) {
       sequence.push(() => {
         const animation = new FlightArrowAnimation();
-        const arc = this.getPassArc(recap);
-        return animation.play(recap, field, throwPos, catchPos, arc);
+        return animation.play(recap, field, throwPos, catchPos, {
+          arc: this.getPassArc(recap),
+          duration: this.getPassDuration(recap),
+        });
       });
     }
 
-    if (!recap.isIncompletePass()) {
-      // Catch the ball
-      sequence.push(() => {
-        const animation = new PlayerAnimation();
-        return animation.play(recap, field, 'reception');
-      });
+    // Catch the ball
+    sequence.push(() => {
+      const animation = new PlayerAnimation();
+      return animation.play(recap, field, 'reception');
+    });
 
-      // Rush after catch
+    if (recap.isIncompletePass()) {
       sequence.push(() => {
-        const animation = new RushArrowAnimation();
-        return animation.play(recap, field, catchPos.x, downPos.x, catchPos.y);
+        const animation = new FlashChildrenAnimation();
+        return animation.play(recap, field);
       });
+    } else {
+      // Rush after catch (but only if it's more than a few yards)
+      if (recap.rushingYards() > 0.03) {
+        sequence.push(() => {
+          const animation = new RushArrowAnimation();
+          return animation.play(recap, field, catchPos.x, downPos.x, catchPos.y);
+        });
+      }
 
       // Complete the play
       sequence.push(() => {
@@ -140,12 +154,6 @@ export default class PassingPlayAnimation extends LiveAnimation {
         return animation.play(recap, field, downPos.x, color);
       });
     }
-
-    // Clear the field
-    sequence.push(() => {
-      const animation = new OutroAnimation();
-      return animation.play(recap, field);
-    });
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
   }

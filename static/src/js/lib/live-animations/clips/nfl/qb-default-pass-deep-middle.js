@@ -7,8 +7,8 @@ export const clip = {
   avatars: [
     {
       name: 'quarterback',
-      x: 50,
-      y: 0,
+      x: 172,
+      y: 36,
       in: 30,
     },
   ],

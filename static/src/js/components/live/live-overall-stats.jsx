@@ -1,8 +1,6 @@
 import Odometer from '../site/odometer';
-import moment from 'moment';
 import ordinal from '../../lib/ordinal.js';
 import React from 'react';
-import merge from 'lodash/merge';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { humanizeCurrency } from '../../lib/utils/currency';
@@ -44,16 +42,9 @@ export const LiveOverallStats = React.createClass({
     name: React.PropTypes.string.isRequired,
     potentialWinnings: React.PropTypes.number.isRequired,
     rank: React.PropTypes.number,
-    selectLineup: React.PropTypes.func.isRequired,
     timeRemaining: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
     watching: React.PropTypes.object.isRequired,
-  },
-
-  getInitialState() {
-    return {
-      lineupsListOpen: false,
-    };
   },
 
   backToContests() {
@@ -64,14 +55,6 @@ export const LiveOverallStats = React.createClass({
     };
 
     actions.updateWatchingAndPath(path, changedFields);
-  },
-
-  toggleLineupList() {
-    const state = merge(this.state);
-
-    state.lineupsListOpen = (state.lineupsListOpen === false);
-
-    this.setState(state);
   },
 
   renderOverallPMR() {
@@ -245,60 +228,21 @@ export const LiveOverallStats = React.createClass({
     );
   },
 
-  renderLineups() {
-    const { id } = this.props;
-
-    return this.props.lineups.filter(
-      lineup => lineup.id !== id
-    ).map((lineup) => (
-      <li
-        key={lineup.id}
-        className={`${BLOCK}__lineup-option`}
-        onClick={this.props.selectLineup.bind(null, lineup)}
-      >
-        {lineup.name || moment(lineup.start).format('MMM Do, h:mma')}
-      </li>
-    ));
-  },
-
   render() {
     const { fp, modifiers, name, whichSide, timeRemaining } = this.props;
-    const { lineupsListOpen } = this.state;
 
-    let lineupListOpenClass;
     let lineupInfo;
-
-    if (lineupsListOpen === true) lineupListOpenClass = `${BLOCK}__lineup--open`;
 
     if (whichSide === 'mine') {
       lineupInfo = (
-        <div className={`${BLOCK}__lineup ${lineupListOpenClass}`}>
-          <h1 className={`${BLOCK}__name ${lineupListOpenClass}`} onClick={this.toggleLineupList}>
-            {name}
-
-            <svg
-              className={`${BLOCK}__down-arrow icon icon-arrow down-arrow-icon`}
-              height="7"
-              onClick={this.handleScrollRight}
-              viewBox="0 0 16 16"
-              width="7"
-            >
-              <g>
-                <line strokeWidth="2.5" x1="10.3" y1="2.3" x2="4.5" y2="8.1" />
-                <line strokeWidth="2.5" x1="3.6" y1="7.3" x2="10.1" y2="13.8" />
-              </g>
-            </svg>
-          </h1>
-
-          <ul className={`${BLOCK}__choose-lineup`}>
-            {this.renderLineups()}
-          </ul>
+        <div className={`${BLOCK}__lineup`}>
+          <h1 className={`${BLOCK}__name`}>{name}</h1>
         </div>
       );
     } else {
       lineupInfo = (
-        <div className={`${BLOCK}__lineup ${lineupListOpenClass}`}>
-          <h1 className={`${BLOCK}__name ${lineupListOpenClass}`} onClick={this.backToContests}>
+        <div className={`${BLOCK}__lineup`}>
+          <h1 className={`${BLOCK}__name has-action`} onClick={this.backToContests}>
             {name}
 
             <svg
