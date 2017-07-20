@@ -69,8 +69,8 @@ const IdentityForm = React.createClass({
   render() {
     return (
       <div className="cmp-identity-form">
-        <h3>Account Verification</h3>
-        <p>
+        <h3 className="cmp-modal__header">Account Verification</h3>
+        <p className="description">
             Before you can enter contests you need to make a deposit, but first we need to verify
             &nbsp;your account.  Providing the information below helps us prevent fraud and comply
             &nbsp;with state regulations relating to daily fantasy sports.
@@ -155,19 +155,21 @@ const IdentityForm = React.createClass({
 
               {this.renderDateErrors(this.props.errors)}
             </div>
+          </fieldset>
 
-            <div className="form-controls">
-              <button
-                disabled={this.props.isSending}
-                ref="submit-button"
-                className="button button--flat-alt1"
-                onClick={this.onSubmit}
-              >Verify Account</button>
-            </div>
-            <div>
+          <div className="form-controls">
+            <button
+              disabled={this.props.isSending}
+              ref="submit-button"
+              className="button button--gradient button--med button--lrg-len"
+              onClick={this.onSubmit}
+            >Verify Account</button>
+
+            <div className="cancel-btn">
               <a href="/" title="Return to Lobby">Cancel</a>
             </div>
-          </fieldset>
+          </div>
+
         </div>
       </div>
     );
