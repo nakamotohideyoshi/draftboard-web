@@ -20,11 +20,11 @@ const events = {
     { title: 'Rushing Yard', value: '0.1 pts' },
     { title: 'Rushing TD', value: '6 pts' },
     { title: '2 Point Conversion', value: '2 pts' },
-    { title: 'Fumble', value: '-0.1 pts' },
+    { title: 'Fumble Lost', value: '-0.1 pts' },
   ],
   nhl: [],
   mlb: [{
-    hitter: [
+    Hitters: [
       { title: 'Stolen Base', value: '6 pts' },
       { title: 'RBI', value: '2 pts' },
       { title: 'Single', value: '3 pts' },
@@ -35,7 +35,7 @@ const events = {
       { title: 'Walk ', value: '3 pts' },
       { title: 'Hit By Pitch', value: '3 pts' },
     ],
-    pitcher: [
+    Pitchers: [
       { title: 'Strike Out', value: '3 pts' },
       { title: 'Walk', value: '-1 pts' },
       { title: 'Hit Batter', value: '-1 pts' },
