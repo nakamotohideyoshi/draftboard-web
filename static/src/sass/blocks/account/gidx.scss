@@ -9,6 +9,40 @@
   #ModalLoading,
   #ModalWindow {
     top: 100px;
+
+    .modal-content {
+      border-radius: 0;
+    }
+
+    .modal-header,
+    .bg-info {
+      background: #fff;
+      border-bottom: none;
+    }
+
+    .modal-title {
+      color: $primary-text;
+      font-family: $font-oswald;
+      padding: 30px 0 0px;
+      text-transform: uppercase;
+    }
+
+    .modal-body {
+      font-family: $font-open-sans;
+      font-size: 12px;
+      color: $primary-text;
+      padding-bottom: 40px !important;
+    }
+
+  }
+
+  // Hint boxes.
+  .alert {
+    p {
+      text-align: left;
+      padding: 0;
+    }
+
   }
 
   // Buttons! These should just extend our standard button classes.
@@ -20,5 +54,158 @@
       @extend .button--gradient;
     }
   }
+
+
+  label {
+    font-size: 12px;
+    font-weight: normal;
+    min-width: 100px;
+  }
+
+  input[type=date],
+  input[type=email],
+  input[type=text],
+  input[type=password] {
+    border: 1px solid $primary-grey;
+    border-radius: 2px;
+    color: $primary-charcoal;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    max-width: 346px;
+    padding: 12px 15px;
+    transition: all 0.2s;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 100%;
+    height: auto;
+    box-shadow: none;
+    line-height: 1.5em;
+
+    // placeholder color needs to be separated by browser prefix
+    &::-webkit-input-placeholder {
+      color: #dbdee0;
+    }
+    &::-moz-placeholder {
+      color: #dbdee0;
+    }
+    &:-ms-input-placeholder {
+      color: #dbdee0;
+    }
+
+    &:focus {
+      border-color: $secondary-charcoal;
+      color: $primary-charcoal;
+      // prevent the safari glow
+      outline-width: 0;
+    }
+
+    &:focus::-webkit-input-placeholder {
+      color:transparent;
+    }
+
+    &:disabled {
+      background: #f8f9f9;
+      color: $primary-charcoal;
+    }
+
+    &.attempted{
+      &:invalid {
+        border-color: $error-red;
+      }
+
+      &:valid {
+        border-color: $success-green;
+      }
+    }
+  }
+
+  // Select boxes.
+  select {
+    -moz-appearance: none;
+    -webkit-appearance:none;
+    background: #fff url('../img/blocks/form/select-bg-arrow.png') no-repeat 93% 50%;
+    background-size: 8px 5px;
+    border-radius: 2px;
+    border: 1px solid $primary-grey;
+    color: $primary-charcoal;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    height: 3.5em;
+    margin-right: 5px;
+    outline: none;
+    padding: 12px 8px;
+    text-indent: 5px;
+    transition: all 0.2s;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 330px;
+    line-height: 1.5em;
+    box-shadow: none;
+
+    // remove focused outline in firefox.
+    &:-moz-focusring {
+      color: transparent;
+      text-shadow: 0 0 0 #000;
+    }
+
+    // Hide dropdown arrow in IE.
+    &::-ms-expand {
+        display: none;
+    }
+
+    &:focus {
+      border-color: $secondary-charcoal;
+      color: $primary-charcoal;
+      // prevent the safari glow
+      outline-width: 0;
+    }
+
+    &--small {
+      background-position: 85% 50%;
+      width: 75px;
+    }
+
+    &--medium {
+      width: 170px;
+    }
+
+    &--large {
+      width: 100%;
+    }
+  }
+
+  // Terms agreement checkbox wrapper
+  #AgreementElement_AgreementId-controls {
+    text-align: left;
+  }
+
+  #AgreementElement_AgreementId {
+    margin-top: 0;
+  }
+
+  // Submit button wrap
+  .form-group.control-submit {
+    .gidx-controls {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+
+  .form-group[data-addressrow=citypostalcode] {
+
+    .col-md-3,
+    .col-md-2 {
+      display: block;
+      margin-bottom: 15px;
+      width: 220px;
+      float: none;
+      margin-left: 25%;
+
+      input {
+        width: 200px;
+      }
+    }
+  }
+
 }
 
