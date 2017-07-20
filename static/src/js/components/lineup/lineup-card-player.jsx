@@ -44,13 +44,7 @@ const getFormattedGame = (playerTeamSrid, boxScores) => {
 const LineupCardPlayer = (props) => (
   <li className="cmp-lineup-card__player">
     <span className="cmp-lineup-card__position">{props.player.roster_spot}</span>
-    <div
-      className="circle"
-      style={`background-image: src=${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
-      onError={(tag) => {
-        tag.currentTarget.style.backgroundImage = require('../../../img/blocks/draft-list/lineup-no-player.png');
-      }}
-    >
+    <div className="circle">
       <span
         className="cmp-lineup-card__photo"
         style={`background-image: src=${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
@@ -59,7 +53,6 @@ const LineupCardPlayer = (props) => (
         }}
       >
       </span>
-
     </div>
     <span className="cmp-lineup-card__name-game">
       <span className="name">{props.player.player_meta.first_name} {props.player.player_meta.last_name}</span>
