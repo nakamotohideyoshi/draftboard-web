@@ -1,12 +1,9 @@
-import LiveAnimationArea from './live-animation-area';
 import LiveChooseLineup from './live-choose-lineup';
-import LiveBigPlays from './live-big-plays';
 import LiveContestsPane from './live-contests-pane';
 import LiveCountdown from './live-countdown';
-import LiveHeader from './live-header';
+import LiveVenue from '../live/live-venue';
 import LiveLineup from './live-lineup';
 import LiveLoading from './live-loading';
-import LiveStandingsPane from './live-standings-pane';
 import LiveUnsupported from './live-unsupported';
 import log from '../../lib/logging';
 import React from 'react';
@@ -15,6 +12,7 @@ import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
 import { bigPlaysSelector } from '../../selectors/live-big-plays';
 import { bindActionCreators } from 'redux';
+import { clearCurrentAnimationEvent } from '../../actions/events';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
@@ -49,6 +47,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchRelatedLineupsInfo,
     updateLiveMode,
     updateWatchingAndPath,
+    clearCurrentAnimationEvent,
   }, dispatch),
 });
 
@@ -67,6 +66,7 @@ const mapStateToProps = (state) => ({
   uniqueLineups: uniqueLineupsSelector(state),
   watching: state.watching,
   currentEvent: state.events.currentEvent,
+  completedEvent: state.events.completedEvent,
   eventsMultipart: state.eventsMultipart,
 });
 
@@ -87,6 +87,7 @@ export const Live = React.createClass({
     uniqueLineups: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
+    completedEvent: React.PropTypes.object,
     eventsMultipart: React.PropTypes.object,
   },
 
@@ -192,6 +193,14 @@ export const Live = React.createClass({
     this.setState({ windowWidth: window.innerWidth });
   },
 
+  /**
+   * Handler for when the current PBP animation has completed.
+   */
+  animationCompleted() {
+    // show the results, remove the animation
+    this.props.actions.clearCurrentAnimationEvent();
+  },
+
   selectLineup(lineup) {
     const { actions } = this.props;
     const path = `/live/${lineup.sport}/lineups/${lineup.id}/`;
@@ -280,8 +289,6 @@ export const Live = React.createClass({
     }
 
     // defining optional component pieces
-    let liveBigPlaysDom;
-    let liveStandingsPane;
     let opponentLineupComponent;
     let contestsPaneOpen = true;
     let venuesPosition = '';
@@ -305,14 +312,10 @@ export const Live = React.createClass({
           />
         );
       }
-
-      liveStandingsPane = <LiveStandingsPane contest={contest} watching={watching} />;
     }
 
     modifiers.push(venuesPosition);
     const classNames = generateBlockNameWithModifiers(block, modifiers);
-
-    if (bigPlaysQueue.length > 0) liveBigPlaysDom = (<LiveBigPlays queue={bigPlaysQueue} />);
 
     return (
       <div className={classNames}>
@@ -326,33 +329,19 @@ export const Live = React.createClass({
 
         {opponentLineupComponent}
 
-        <section className={`${block}__venues`}>
-          <LiveHeader
-            contest={contest}
-            lineups={uniqueLineups.lineups}
-            myLineup={myLineupInfo}
-            opponentLineup={opponentLineup}
-            selectLineup={this.selectLineup}
-            watching={watching}
-            currentEvent={this.props.currentEvent}
-            eventsMultipart={this.props.eventsMultipart}
-          />
-
-          <LiveAnimationArea
-            watching={ this.props.watching }
-            currentEvent={ this.props.currentEvent }
-            eventsMultipart={ this.props.eventsMultipart }
-          />
-          {liveStandingsPane}
-        </section>
+        <LiveVenue
+          {...{ contest, watching, opponentLineup, myLineupInfo, uniqueLineups, bigPlaysQueue } }
+          eventsMultipart={this.props.eventsMultipart}
+          currentEvent={this.props.currentEvent}
+          completedEvent={this.props.completedEvent}
+          onAnimationCompleted={() => this.animationCompleted()}
+        />
 
         <LiveContestsPane
           lineup={myLineupInfo}
           openOnStart={contestsPaneOpen}
           watching={watching}
         />
-
-        {liveBigPlaysDom}
       </div>
     );
   },

@@ -40,7 +40,7 @@ export default class PlayerAvatar {
     /* eslint-enable max-len */
 
     this.el = document.createElement('DIV');
-    this.el.className = 'avatar--nba';
+    this.el.className = 'avatar--nfl';
     this.el.innerHTML = html;
   }
 
