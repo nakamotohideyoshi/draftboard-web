@@ -67,6 +67,8 @@ const IdentityForm = React.createClass({
 
 
   render() {
+    const buttonDisabledClass = (this.props.isSending ? 'button--working' : '');
+
     return (
       <div className="cmp-identity-form">
         <h3 className="cmp-modal__header">Account Verification</h3>
@@ -161,7 +163,7 @@ const IdentityForm = React.createClass({
             <button
               disabled={this.props.isSending}
               ref="submit-button"
-              className="button button--gradient button--med button--lrg-len"
+              className={`button button--gradient button--med button--lrg-len ${buttonDisabledClass}`}
               onClick={this.onSubmit}
             >Verify Account</button>
 
