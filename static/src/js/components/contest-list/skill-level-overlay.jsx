@@ -50,9 +50,11 @@ const SkillLevelOverlay = (props) => {
           <div className="content">
             <h3 className="header">{currentSport.toUpperCase()} {selectedSkillLevel} Lobby Locked</h3>
             <p className="body">
-              You are currently entered in one or more {currentSport.toUpperCase()} {sportSkillLevel} contests.
+              You are currently entered in one or
+              more {currentSport.toUpperCase()} <span className="capitalize"> {sportSkillLevel}</span> contests.
               <br />
-              To enter {selectedSkillLevel} contests please deregister from all {sportSkillLevel} contests.
+              To enter <span className="capitalize">{selectedSkillLevel}</span> contests please deregister
+              from all <span className="capitalize">{sportSkillLevel}</span> contests.
             </p>
           </div>
         </div>
