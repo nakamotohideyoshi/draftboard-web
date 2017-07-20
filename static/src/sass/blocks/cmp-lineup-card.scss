@@ -56,6 +56,7 @@ category: Lineup
       vertical-align: middle;
     }
     .circle {
+      margin-top: 5px;
       border-radius: 50%;
       display: inline-block;
       position: relative;
@@ -575,7 +576,6 @@ category: Lineup
   .cmp-lineup-card {
 
     &__player > span {
-      padding: 5px;
 
       &:first-child {
         padding-left: 15px;

@@ -43,7 +43,7 @@ const PlayerPmrHeadshotComponent = (props) => {
   };
 
   return (
-    <div className={classNames} style={{ height: `${width}px`, width: `${width}px` }}>
+    <div>
       <div className="circle">
         <span
           className={`cmp-lineup-card__photo ${block}__headshot ${block}__headshot--${sport}`}
