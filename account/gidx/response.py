@@ -84,7 +84,7 @@ class CustomerRegistrationResponse(object):
         identity we sent was a verified match.
         :return: bool
         """
-        reason_codes = self.json['ReasonCodes']
+        reason_codes = self.get_reason_codes()
         # If we have reason codes...
         if len(reason_codes):
             # Check if their location is blocked.
@@ -145,8 +145,12 @@ class WebhookResponse(CustomerRegistrationResponse):
         identity we sent was a verified match.
         :return: bool
         """
-        status_code = self.json['StatusCode']
 
+        # First do the normal checking of reason codes.
+        if not super().is_verified():
+            return False
+
+        # If we pass a reason code check, look at the statusCode.
         # 0 is the 'success' code.
-        return status_code == 0
+        return self.json['StatusCode'] == 0
 
