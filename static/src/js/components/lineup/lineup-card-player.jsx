@@ -47,7 +47,7 @@ const LineupCardPlayer = (props) => (
     <div className="circle">
       <span
         className="cmp-lineup-card__photo"
-        style={`background-image: src=${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
+        style={{ backgroundImage: `url(${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png)` }}
         onError={(tag) => {
           tag.currentTarget.style.backgroundImage = require('../../../img/blocks/draft-list/lineup-no-player.png');
         }}
