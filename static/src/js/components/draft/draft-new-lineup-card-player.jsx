@@ -40,17 +40,18 @@ const DraftNewLineupCardPlayer = (props) => {
     return (
       <li className="cmp-lineup-card__player occupied" key={props.player.idx}>
         <span className="cmp-lineup-card__position">{props.player.name}</span>
-        <span className="cmp-lineup-card__photo">
-          <img
-            src={`${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png`}
+        <div className="circle">
+          <span
+            className="cmp-lineup-card__photo"
+            style={{ backgroundImage: `url(${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png)` }}
             onError={(tag) => {
-              tag.currentTarget.src = require('../../../img/blocks/draft-list/lineup-no-player.png');
+              tag.currentTarget.style.backgroundImage = require('../../../img/blocks/draft-list/lineup-no-player.png');
             }}
-            alt=""
-            width="auto"
-            height="35px"
-          />
-        </span>
+          >
+          </span>
+        </div>
+
+
         <span
           className="cmp-lineup-card__name-game"
           onClick={props.onPlayerClick.bind(null, props.player.player.player_id)}
@@ -86,14 +87,15 @@ const DraftNewLineupCardPlayer = (props) => {
   return (
     <li className="cmp-lineup-card__player vacant" key={props.player.idx}>
       <span className="cmp-lineup-card__position">{props.player.name}</span>
-      <span className="cmp-lineup-card__photo">
-        <img
-          alt="No Player Chosen"
-          src={require('../../../img/blocks/draft-list/lineup-no-player.png')}
-          width="auto"
-          height="35px"
-        />
-      </span>
+      <div className="circle">
+        <span
+          className="cmp-lineup-card__photo"
+          style={{ backgroundImage: `url(${require('../../../img/blocks/draft-list/lineup-no-player.png')})` }}
+        >
+
+        </span>
+      </div>
+
       <span className="cmp-lineup-card__name-salary">
         <span className="name">
           &nbsp;
