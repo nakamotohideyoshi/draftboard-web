@@ -288,7 +288,12 @@ const Deposits = React.createClass({
 
 
   renderIdentityVerificationModalIfNeeded() {
-    if (!this.props.user.identity_verified && this.props.user.hasFetched) {
+    // If the user's identity is not verified (and we've checked) OR if we've already
+    // tried to verify them.
+    if (
+      !this.props.user.identity_verified && this.props.user.hasFetched ||
+      this.props.identityFormInfo.hasMadeBasicAttempt
+    ) {
       return (
         <IdentityVerificationModal
           isOpen
