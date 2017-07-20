@@ -12,6 +12,7 @@ describe('<Deposits /> Component', () => {
   const renderComponent = (props) => mount(<Deposits {...props} />);
   const defaultTestProps = {
     user: {},
+    identityFormInfo: {},
     deposit: () => true,
     isDepositing: false,
     payPalNonce: null,
