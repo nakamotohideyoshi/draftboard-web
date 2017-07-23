@@ -14,6 +14,7 @@ from swish.classes import (
     PlayerUpdateManager,
     RotoWire,
 )
+from swish.exception import RotowireDownException
 
 logger = getLogger('swish.tasks')
 LOCK_EXPIRE = 59
@@ -32,7 +33,6 @@ def update_injury_feed(self, sport):
         try:
             player_update_manager = PlayerUpdateManager(sport)
             rotowire = RotoWire(sport)
-            news = rotowire.get_news()
             injuries = rotowire.get_injuries()
             with transaction.atomic():
                 PlayerStatus.objects.filter(sport=sport).delete()
@@ -52,6 +52,7 @@ def update_injury_feed(self, sport):
                     except PlayerUpdateManager.PlayerDoesNotExist:
                         pass
 
+            news = rotowire.get_news()
             for u in news:
                 try:
                     update_model = player_update_manager.update(u)
@@ -64,6 +65,8 @@ def update_injury_feed(self, sport):
 
                 for player in player_update_manager.players_not_found:
                     logger.warning('%s | rotowire player not found: %s' % (sport, player))
+        except RotowireDownException as e:
+            logger.warning('%s | rotowire api is down, url: %s' % (sport, e.response.url))
         finally:
             release_lock()
 
@@ -75,42 +78,47 @@ def update_lookups(self, sport):
     so that we don't have to do linking manually. This task will call that service and create
     PlayerLookup objects.
     """
-    rotowire = RotoWire(sport)
-    players_data = rotowire.get_players()
     players_not_found = []
     # Keep track of how many we've created.
     lookups_created = 0
-    for p in players_data:
-        if p.get('StatsGlobalId'):
-            site_sport_manager = sports.classes.SiteSportManager()
-            site_sport = site_sport_manager.get_site_sport(sport)
-            player_model_class = site_sport_manager.get_player_class(site_sport)
-            try:
-                lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'))
-                if not lookup.player_id and (lookup.sport == sport.upper() or not lookup.sport):
-                    lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
-                    lookup.player_type = ContentType.objects.get_for_model(player_model_class)
-                    if not lookup.sport:
-                        lookup.sport = sport.upper()
-                    lookup.save()
-            except PlayerLookup.DoesNotExist:
+    try:
+        rotowire = RotoWire(sport)
+        players_data = rotowire.get_players()
+
+        for p in players_data:
+            if p.get('StatsGlobalId'):
+                site_sport_manager = sports.classes.SiteSportManager()
+                site_sport = site_sport_manager.get_site_sport(sport)
+                player_model_class = site_sport_manager.get_player_class(site_sport)
                 try:
-                    player = player_model_class.objects.get(srid=p.get('SportsDataId'))
-                    PlayerLookup.objects.create(
-                        sport=sport.upper(),
-                        player_type=ContentType.objects.get_for_model(player_model_class),
-                        player_id=player.id,
-                        pid=p.get('StatsGlobalId'),
-                        first_name=player.first_name,
-                        last_name=player.last_name
-                    )
-                    # Increase the counter.
-                    lookups_created = lookups_created + 1
+                    lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'))
+                    if not lookup.player_id and (lookup.sport == sport.upper() or not lookup.sport):
+                        lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
+                        lookup.player_type = ContentType.objects.get_for_model(player_model_class)
+                        if not lookup.sport:
+                            lookup.sport = sport.upper()
+                        lookup.save()
+                except PlayerLookup.DoesNotExist:
+                    try:
+                        player = player_model_class.objects.get(srid=p.get('SportsDataId'))
+                        PlayerLookup.objects.create(
+                            sport=sport.upper(),
+                            player_type=ContentType.objects.get_for_model(player_model_class),
+                            player_id=player.id,
+                            pid=p.get('StatsGlobalId'),
+                            first_name=player.first_name,
+                            last_name=player.last_name
+                        )
+                        # Increase the counter.
+                        lookups_created = lookups_created + 1
+                    except player_model_class.DoesNotExist:
+                        players_not_found.append(p)
+
                 except player_model_class.DoesNotExist:
                     players_not_found.append(p)
 
-            except player_model_class.DoesNotExist:
-                players_not_found.append(p)
+    except RotowireDownException as e :
+        logger.warning('%s | rotowire api is down, url: %s' % (sport, e.response.url))
 
     for player in players_not_found:
         logger.info('%s | player not found: %s %s' % (

@@ -5,6 +5,8 @@ import dateutil
 from django.conf import settings
 from django.db.transaction import atomic
 from datetime import datetime, date, timedelta
+
+from swish.exception import RotowireDownException
 from util.utctime import UtcTime
 import draftgroup.classes
 from swish.models import (
@@ -297,7 +299,10 @@ class RotoWire(object):
         # self.save_history(self.r)
 
         # otherwise convert it to JSON and return the the data
-        return json.loads(self.r.text)
+        if self.r.status_code == 200:
+            return self.r.json()
+        else:
+            raise RotowireDownException(self.r)
 
     def get_formatted_date(self):
         """ returns a formatted date string like: '2016-08-16' """

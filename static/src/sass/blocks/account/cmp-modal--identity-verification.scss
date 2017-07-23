@@ -1,10 +1,37 @@
+@import "../../variables.scss";
+
 .cmp-modal--identity-verification {
 
   .cmp-modal__dialog {
-    min-height: 350px;
+    padding-top: 40px;
+    min-height: 250px;
+  }
+
+  .cmp-modal__header {
+    font-size: 18px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+
+    &:after {
+      content: none;
+    }
+  }
+
+  .cmp-identity-form {
+
+  }
+
+  .description {
+    padding: 0 40px 20px;
+  }
+
+  .form__fieldset {
+    padding-bottom: 0;
   }
 
   .birth-date {
+
     // Remove spinner controls in webkit browsers.
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
@@ -22,6 +49,11 @@
       text-align: center;
       padding: 12px auto;
       -moz-appearance: textfield;
+    }
+
+    // Month
+    .form-field__select {
+      width: 80px;
     }
 
     .birth-year {
@@ -44,7 +76,12 @@
   }
 
   .form-controls {
-    text-align: right;
+    margin: 40px 0 0;
+    text-align: center;
+
+    button {
+      width: 310px;
+    }
   }
 
   .form-field__select {
@@ -52,7 +89,32 @@
     min-width: 60px;
   }
 
-  //#GIDX_embed_hidden {
-  //  display: none;
-  //}
+  .cancel-btn {
+    text-align: center;
+    margin: 15px auto;
+
+    a {
+      color: $primary-text;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+  }
+
+
+  // Verification Success Pane
+  .content-verified {
+    .controls {
+      text-align: center;
+      background: url('../img/blocks/account/verify_check.jpg') no-repeat top center;
+      background-size: 177px auto;
+      padding-top: 200px;
+
+      .button {
+        display: inline-block;
+        margin: 10px 10px 0px;
+      }
+    }
+  }
+
+
 }
