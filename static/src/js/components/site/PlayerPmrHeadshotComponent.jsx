@@ -1,6 +1,5 @@
 import LivePMRProgressBar from '../live/live-pmr-progress-bar';
 import React from 'react';
-import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 
 // assets
 let defaultPlayerSrc;
@@ -19,10 +18,9 @@ if (process.env.NODE_ENV !== 'test') {
  * @return {jsx}          JSX of component
  */
 const PlayerPmrHeadshotComponent = (props) => {
-  const { colors, decimalRemaining, modifiers, playerSrid, sport, uniquePmrId, width } = props;
+  const { colors, decimalRemaining, playerSrid, sport, uniquePmrId, width } = props;
 
   const block = 'player-pmr-headshot';
-  const classNames = generateBlockNameWithModifiers(block, modifiers);
   const headshotSrc = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${playerSrid}.png`;
 
   // if there's no pmr to render, don't bother
