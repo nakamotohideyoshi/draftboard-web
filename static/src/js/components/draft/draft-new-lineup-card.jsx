@@ -188,7 +188,7 @@ const DraftNewLineupCard = React.createClass({
               <div
                 className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
               >
-                <span className="cmp-lineup-card__footer-title">Remaining Salary</span>
+                <span className="cmp-lineup-card__footer-title">Rem Salary</span>
                 ${this.props.remainingSalary.toLocaleString('en')}
               </div>
               <div
