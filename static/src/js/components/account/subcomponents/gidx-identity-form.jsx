@@ -66,14 +66,19 @@ const GidxIdentityForm = React.createClass({
     if (this.props.gidxFormInfo.status === 'FAIL') {
       return (
         <div className="cmp-gidx-identity-form">
-          <h3>Unable Verify Your Identity</h3>
-          <p>Please contact support@draftboard.com with any questions.</p>
+          <h3 className="cmp-modal__header">Unable Verify Your Identity</h3>
+          <p className="description">Please contact support@draftboard.com with any questions.</p>
         </div>
       );
     }
 
     return (
       <div className="cmp-gidx-identity-form">
+        <h3 className="cmp-modal__header">Account Verification</h3>
+        <p className="description">
+            Please confirm the info below.
+        </p>
+
         <div id="DepositAmountDisplay"></div>
         <div id="GIDX_ServiceContainer"></div>
 

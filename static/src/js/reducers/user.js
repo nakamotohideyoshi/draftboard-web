@@ -216,6 +216,7 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state, {
         identityFormInfo: {
           isSending: false,
+          hasMadeBasicAttempt: true,
         },
       });
 
@@ -227,19 +228,9 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state, {
         identityFormInfo: {
           isSending: false,
+          hasMadeBasicAttempt: true,
         },
       });
-
-      // If it was a failure due to not being able to find the identity, we need to move
-      // on to the advanced form.
-      if (
-        action.response &&
-        action.response.reasonCodes &&
-        action.response.reasonCodes.includes('ID-UNKN') &&
-        action.response.status === 'FAIL'
-      ) {
-        newState.identityFormInfo.hasMadeBasicAttempt = true;
-      }
 
       newState.identityFormInfo.errors = action.response || {};
 

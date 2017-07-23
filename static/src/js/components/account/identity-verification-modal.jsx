@@ -42,11 +42,6 @@ const IdentityVerificationModal = React.createClass({
       this.setState({ isOpen: nextProps.isOpen });
       AppStateStore.modalOpened();
     }
-
-    // If we got a succesful GIDX status, close this modal.
-    if (this.props.gidxFormInfo.status === 'SUCCESS') {
-      this.close();
-    }
   },
 
 
@@ -73,13 +68,19 @@ const IdentityVerificationModal = React.createClass({
     if (this.props.user.identity_verified) {
       return (
         <div className="content-verified">
-          <h3>Thanks!</h3>
-          <p>Your account is now verified and you may proceed with your deposit.</p>
-          <div
-            className="button button--med-len button--tall button--gradient ok-button"
-            onClick={this.close}
-          >
-            Continue
+          <h3 className="cmp-modal__header">Thanks!</h3>
+          <p className="description">Your account is now verified.</p>
+
+          <div className="controls">
+            <a
+              className="button button--sm-len button--tall button--gradient ok-button"
+              href="/contests/"
+            >Enter Contests</a>
+
+            <div
+              className="button button--sm-len button--tall button--gradient ok-button"
+              onClick={this.close}
+            >Deposit</div>
           </div>
         </div>
       );
