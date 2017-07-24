@@ -93,6 +93,7 @@ const ResultsLineup = React.createClass({
   },
 
   renderLineup() {
+    console.log(this.props.players);
     const { sport } = this.props;
     const isLive = this.props.hasOwnProperty('liveStats');
     const isUpcoming = isTimeInFuture(this.props.start);
@@ -335,6 +336,10 @@ const ResultsLineup = React.createClass({
     });
 
     let footer = (<div />);
+    let totalFP = 0;
+    const playersPts = this.props.players.map((player) => {
+      totalFP += player.fantasy_points;
+    });
 
     if (isLive) {
       footer = (
@@ -356,6 +361,29 @@ const ResultsLineup = React.createClass({
           </div>
         </div>
       );
+    } else {
+      footer = (
+        <footer className="cmp-lineup-card__footer">
+          <div className="cmp-lineup-card__footer-section">
+            <span className="cmp-lineup-card__footer-title">Entries</span>
+            <span className="value">
+              {this.props.stats.entries}
+            </span>
+          </div>
+          <div className="cmp-lineup-card__footer-section">
+            <span className="cmp-lineup-card__footer-title">Won</span>
+            <span className="value">
+              {humanizeCurrency(this.props.stats.won)}
+            </span>
+          </div>
+          <div className="cmp-lineup-card__footer-section">
+            <span className="cmp-lineup-card__footer-title">Points</span>
+            <span className="value">
+              {humanizeFP(totalFP)}
+            </span>
+          </div>
+        </footer>
+      )
     }
 
     return (
