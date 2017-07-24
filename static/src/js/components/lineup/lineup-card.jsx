@@ -224,8 +224,13 @@ const LineupCard = React.createClass({
               </div>
 
               <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Fees / Entries</span>
-                ${this.props.lineupInfo.fees} / {this.props.lineupInfo.totalEntryCount}
+                <span className="cmp-lineup-card__footer-title">Fees</span>
+                ${this.props.lineupInfo.fees}
+              </div>
+
+               <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
+                <span className="cmp-lineup-card__footer-title">Entries</span>
+                {this.props.lineupInfo.totalEntryCount}
               </div>
             </footer>
           </div>
