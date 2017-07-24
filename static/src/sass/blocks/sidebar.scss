@@ -9,10 +9,9 @@
 
   &--header {
     background: rgba(19, 26, 37, .50);
-    position: absolute;
+
     top: $nav-scoreboard-height;
-    left: 0;
-    width: 100%;
+
     z-index: 30;
   }
 

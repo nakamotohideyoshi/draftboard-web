@@ -12,6 +12,11 @@
 
       &--header-title {
         display: inline-block;
+        color: #fff;
+        font-family: $font-oswald;
+        font-size: 25px;
+        line-height: 1.1em;
+        transition: color 500ms ease;
       }
 
       &--header-inner {
