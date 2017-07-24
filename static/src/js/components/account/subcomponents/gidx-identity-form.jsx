@@ -22,6 +22,19 @@ window.gidxErrorReport = (error, errorMsg) => {
 };
 
 
+window.gidxServiceStatus = (service, action) => {
+  // We want to skip the 1st WebReg step, so we have to auto-fill the
+  // email confirmation field and push the submit button manually.
+  if (service === 'idInitiate-plate' && action === 'start') {
+    const emailField = document.querySelector('#EmailElement_EmailAddress');
+    const emailFieldConfirm = document.querySelector('#EmailElement_EmailAddressConfirmMatch');
+    emailFieldConfirm.value = emailField.value;
+    const submitBtn = document.querySelector('#GIDX_ServiceContainer .gidx-controls .btn');
+    submitBtn.click();
+  }
+};
+
+
 const GidxIdentityForm = React.createClass({
   propTypes: {
     embed: React.PropTypes.string.isRequired,

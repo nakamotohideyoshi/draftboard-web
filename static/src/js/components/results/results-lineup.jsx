@@ -93,7 +93,6 @@ const ResultsLineup = React.createClass({
   },
 
   renderLineup() {
-    console.log(this.props.players);
     const { sport } = this.props;
     const isLive = this.props.hasOwnProperty('liveStats');
     const isUpcoming = isTimeInFuture(this.props.start);
@@ -337,7 +336,9 @@ const ResultsLineup = React.createClass({
 
     let footer = (<div />);
     let totalFP = 0;
-    const playersPts = this.props.players.map((player) => {
+
+    // Tally up the player's total FP.
+    this.props.players.map((player) => {
       totalFP += player.fantasy_points;
     });
 
@@ -383,7 +384,7 @@ const ResultsLineup = React.createClass({
             </span>
           </div>
         </footer>
-      )
+      );
     }
 
     return (
