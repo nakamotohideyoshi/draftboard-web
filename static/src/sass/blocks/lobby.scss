@@ -17,30 +17,24 @@
         font-size: 25px;
         line-height: 1.1em;
         transition: color 500ms ease;
+        text-decoration: underline;
       }
 
       &--header-inner {
         position: relative;
-        padding-bottom: 35px;
+        h5{
+          display: block;
+          width: 100%;
+          clear: both;
+          text-decoration: none;
+        }
       }
-
-      // Arrow tab thing.
-      // &:after{
-      //     content: ' ';
-      //     display: block;
-      //     position: absolute;
-      //     right: -7px;
-      //     top: 115px;
-      //     width: 15px;
-      //     height: 15px;
-      //     background-color: #141d2c;
-      //     transform: scaleY(1.3) rotate(-45deg);
-      // }
     }
 
     .sidebar-inner {
       background: url(../img/blocks/lobby/sidebar-nba-top.jpg) no-repeat;
       background-size: 100% auto;
+
     }
 
     .page-content__content {
@@ -66,6 +60,7 @@
     &--header-inner {
       position: relative;
       padding-bottom: 20px;
+
     }
   }
 }
