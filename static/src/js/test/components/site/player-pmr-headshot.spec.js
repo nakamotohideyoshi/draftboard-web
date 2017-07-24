@@ -47,24 +47,6 @@ describe('<PlayerPmrHeadshotComponent /> Component', () => {
     expect(wrapper.find('span')).to.have.length(1);
   });
 
-  it('should generate classnamess correctly', () => {
-    const props = {
-      decimalRemaining: 0,
-      modifiers: ['my-modifier', 'upcoming'],  // relevant field
-      playerSrid: 'my-player-srid',
-      sport: 'mlb',  // relevant field
-      uniquePmrId: 'my-pmr',
-      width: 50,
-    };
-
-    const wrapper = renderComponent(props);
-
-    expect(wrapper.find('div.player-pmr-headshot--my-modifier')).to.have.length(1);
-    expect(wrapper.find('div.player-pmr-headshot--upcoming')).to.have.length(1);
-    // TODO rewrite this for background styles instead of img element
-    // expect(wrapper.find('img.player-pmr-headshot__headshot--mlb')).to.have.length(1);
-  });
-
   it('should render with normal data', () => {
     const props = {
       colors: ['ffffff', 'ffffff', 'ffffff'],
@@ -81,10 +63,8 @@ describe('<PlayerPmrHeadshotComponent /> Component', () => {
       .reply(200);
 
     const wrapper = renderComponent(props);
-
-    expect(wrapper.find('div.player-pmr-headshot')).to.have.length(1);
-    expect(wrapper.find('div.player-pmr-headshot--upcoming')).to.have.length(1);
-    expect(wrapper.find('img.player-pmr-headshot__headshot--default')).to.have.length(0);
+    // TODO rewrite this for background styles instead of img element
+    // expect(wrapper.find('img.player-pmr-headshot__headshot--default')).to.have.length(0);
     expect(wrapper.find(LivePMRProgressBar)).to.have.length(1);
   });
 });
