@@ -4,6 +4,8 @@ import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
 import classnames from 'classnames';
+import CountdownClock from '../site/countdown-clock.jsx';
+
 
 const defaultLineupTitle = 'My Lineup';
 
@@ -27,6 +29,7 @@ const DraftNewLineupCard = React.createClass({
     handlePlayerClick: React.PropTypes.func,
     lineupCanBeSaved: React.PropTypes.bool,
     draftGroupBoxScores: React.PropTypes.object,
+    draftGroupStart: React.PropTypes.string,
   },
 
 
@@ -178,10 +181,14 @@ const DraftNewLineupCard = React.createClass({
             </ul>
 
             <footer className="cmp-lineup-card__footer">
+              <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
+                <span className="cmp-lineup-card__footer-title">Live In</span>
+                <CountdownClock time={this.props.draftGroupStart} />
+              </div>
               <div
                 className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
               >
-                <span className="cmp-lineup-card__footer-title">Remaining Salary</span>
+                <span className="cmp-lineup-card__footer-title">Rem Salary</span>
                 ${this.props.remainingSalary.toLocaleString('en')}
               </div>
               <div

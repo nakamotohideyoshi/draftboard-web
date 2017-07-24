@@ -11,6 +11,7 @@ import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupIni
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-info-selector';
+import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
 
 /*
  * Map selectors to the React component
@@ -25,6 +26,8 @@ function mapStateToProps(state) {
     sport: state.draftGroupPlayers.sport,
     draftGroupId: state.draftGroupPlayers.id,
     draftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
+    lineupsInfo: upcomingLineupsInfo(state),
+    draftGroupStart: state.draftGroupPlayers.start,
   };
 }
 
@@ -67,6 +70,8 @@ const DraftLineupCardList = React.createClass({
     params: React.PropTypes.object,
     setFocusedPlayer: React.PropTypes.func,
     draftGroupBoxScores: React.PropTypes.object,
+    lineupsInfo: React.PropTypes.object,
+    draftGroupStart: React.PropTypes.string,
   },
 
 
@@ -151,6 +156,7 @@ const DraftLineupCardList = React.createClass({
           handlePlayerClick={this.handlePlayerClick}
           sport={this.props.sport}
           draftGroupBoxScores={this.props.draftGroupBoxScores}
+          draftGroupStart={this.props.draftGroupStart}
         />
       </div>
     );
