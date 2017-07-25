@@ -2642,7 +2642,8 @@ class Injury(DataDenInjury):
         # extract the information from self.o
         status = self.o.get('status', None)
         if status is None:
-            raise Exception('mlb Injury.parse() error - "status" cant be None!')
+            logger.warning('mlb Injury.parse() error - "status" cant be None! %s' % self.o)
+            return
         # IGNORE CERTAIN STATUSES WHICH ARENT INJURY RELATED
         if status in self.NON_INJURY_STATUSES:
             return
