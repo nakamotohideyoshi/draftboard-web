@@ -478,17 +478,20 @@ const DraftContainer = React.createClass({
                 onClick={this.handleSetOrderBy}
                 text="GAME"
                 sortParam="team_alias"
+                additionalClasses=" padfix"
               />
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
                 text="AVG"
                 sortParam="fppg"
+                additionalClasses=" padfix"
               />
-              <th>Last 10</th>
+              <th class="padfix">Last 10</th>
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
                 text="Salary"
                 sortParam="salary"
+                additionalClasses=" padfix"
               />
             </tr>
           </thead>
