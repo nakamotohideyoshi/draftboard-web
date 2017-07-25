@@ -4,7 +4,7 @@
 .cmp-player-list {
 
   &__table {
-    margin-top: 25px;
+    margin-top: 20px;
   }
 
   &__row {
@@ -146,9 +146,13 @@
 .player-list-filter-set {
   display: inline-block;
   float: right;
-
+  position: relative;
+  padding-right: 90px;
   .export-button {
     background: white;
+    position: absolute;
+    top: 0;
+    right: 0;
   }
 
   // Search

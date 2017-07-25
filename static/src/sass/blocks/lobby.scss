@@ -5,7 +5,25 @@
 .section-lobby {
   &.page-lobby,
   &.page-draft {
-
+    .page-content__header {
+      margin-bottom: 20px;
+      .contest-list-sport-filter__title{
+        clear: both;
+        width: 100%;
+        display: block;
+        margin-bottom: 0;
+        font-size: 10px;
+        padding: 0;
+      }
+      h2.player-list__header{
+        font-size: 25px;
+        line-height: 1.1em;
+        span.player-list__header-games{
+          font-size: 13px;
+          line-height: 1.1em;
+        }
+      }
+    }
     .sidebar {
       background: url(../img/blocks/lobby/sidebar-nba-bottom.jpg) no-repeat bottom left #0C1524;
       background-size: 100% auto;
@@ -27,6 +45,7 @@
           width: 100%;
           clear: both;
           text-decoration: none;
+          font-size: 10px;
         }
       }
     }
@@ -34,11 +53,9 @@
     .sidebar-inner {
       background: url(../img/blocks/lobby/sidebar-nba-top.jpg) no-repeat;
       background-size: 100% auto;
-
     }
 
     .page-content__content {
-      padding-top: 20px;
       padding-bottom: 100px;
       margin-top: 0;
     }
@@ -53,14 +70,11 @@
       display: block;
       font-family: $font-open-sans;
       font-size: 10px;
-      padding-bottom: 15px;
       position: relative;
     }
 
     &--header-inner {
       position: relative;
-      padding-bottom: 20px;
-
     }
   }
 }
