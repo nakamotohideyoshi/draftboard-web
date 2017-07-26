@@ -141,6 +141,7 @@ $contest-nav-foreground-color: #25A758;
       &.allTeams{
         vertical-align: middle;
         background-position: 50% -33px;
+        text-transform: uppercase;
         &:hover {
           background-position: 50% -69px;
         }
