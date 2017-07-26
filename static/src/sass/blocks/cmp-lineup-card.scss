@@ -91,7 +91,7 @@ category: Lineup
     position: relative;
     padding: 25px 15px 5px;
     min-height: 55px;
-    box-shadow: 0 5px 50px rgba(0,0,0,.08);
+    box-shadow: 0 5px 50px 0 rgba(0,0,0,.08);
   }
 
   &__title {
@@ -340,6 +340,7 @@ category: Lineup
     display: flex;
     flex-justify: center;
     align-items: stretch;
+    box-shadow: 0 -5px 50px 0 rgba(0,0,0,.05);
   }
 
   &__footer-section {
