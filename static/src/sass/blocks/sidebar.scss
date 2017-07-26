@@ -8,8 +8,6 @@
   position: relative;
 
   &--header {
-    background: rgba(19, 26, 37, .50);
-
     top: $nav-scoreboard-height;
 
     z-index: 30;
@@ -31,7 +29,7 @@
   }
 
   .sidebar-inner {
-    overflow: auto;
+    
     height: 100%;
     // Disabled because it gets goofy with the opacity of webp images.
     //transform: translateZ(0); // To prevent repaint on scroll.
