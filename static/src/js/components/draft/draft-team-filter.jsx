@@ -18,14 +18,15 @@ const DraftTeamFilter = React.createClass({
     sport: React.PropTypes.string,
   },
 
-
   getDefaultProps() {
     return {
       selectedTeams: [],
       isVisible: false,
     };
   },
-
+  componentWillMount() {
+    this.setState({ selected: '' });
+  },
 
   getGames() {
     const self = this;
@@ -118,8 +119,10 @@ const DraftTeamFilter = React.createClass({
   handleAllClick() {
     if (this.getAllTeams().length > this.props.selectedTeams.length) {
       this.selectAllTeams();
+      this.setState({ selected: 'selected' });
     } else {
       this.unselectAllTeams();
+      this.setState({ selected: '' });
     }
   },
 
@@ -204,7 +207,6 @@ const DraftTeamFilter = React.createClass({
     this.props.onFilterChange(this.filterTitle, 'team_srid', selectedTeams);
   },
 
-
   render() {
     if (!this.props.isVisible) {
       return <div></div>;
@@ -225,7 +227,7 @@ const DraftTeamFilter = React.createClass({
                   className="game scroll-item allTeams"
                   onClick={this.handleAllClick}
                 >
-                  <span className="teamName">All Games</span>
+                  <span className={`teamName team ${this.state.selected}`}>All Games</span>
                 </div>
                 <div className="separator half"></div>
                 {this.getGames()}
