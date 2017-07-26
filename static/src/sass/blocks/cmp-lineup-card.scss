@@ -187,6 +187,7 @@ category: Lineup
 
       &:first-child {
         padding-left: 15px;
+        padding-right: 15px;
       }
 
       &:last-child {
@@ -195,7 +196,11 @@ category: Lineup
 
       display: table-cell;
       padding: 5px 5px;
+      &.cmp-lineup-card__name-game{
+        padding-left: 10px;
+      }
     }
+
   }
 
   &__position {
@@ -254,7 +259,7 @@ category: Lineup
 
   &__name-game {
     width: 100%;
-    padding: 5px;
+    padding: 5px 5px 5px 10px;
     vertical-align: top;
     font-size: 12px;
     white-space: nowrap;

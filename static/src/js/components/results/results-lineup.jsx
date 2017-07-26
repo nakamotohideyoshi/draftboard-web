@@ -336,6 +336,7 @@ const ResultsLineup = React.createClass({
 
     let footer = (<div />);
     let totalFP = 0;
+
     for (let i = 0; i < this.props.players.length; i++) {
       totalFP += this.props.players[i].fantasy_points;
     }
