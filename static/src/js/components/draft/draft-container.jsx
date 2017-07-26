@@ -382,7 +382,7 @@ const DraftContainer = React.createClass({
     return (
       <div>
         <header className="page-content__header">
-          <h5 className="contest-list-sport-filter__title">&nbsp;</h5>
+          <h5 className="contest-list__sub_title">AVAILABLE PLAYERS</h5>
           <h2 className="player-list__header">
             <span className="player-list__header-title">{this.props.sport} Draft</span>
             <span className="player-list__header-divider">/</span>
@@ -486,7 +486,7 @@ const DraftContainer = React.createClass({
                 sortParam="fppg"
                 additionalClasses=" padfix"
               />
-              <th class="padfix">Last 10</th>
+              <th className="padfix">Last 10</th>
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
                 text="Salary"
