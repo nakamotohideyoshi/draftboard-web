@@ -7,13 +7,18 @@
   &.page-draft {
     .page-content__header {
       margin-bottom: 20px;
-      .contest-list-sport-filter__title{
+      .contest-list__sub_title{
         clear: both;
         width: 100%;
+        margin-bottom: 5px;
+        color: #9295a6;
         display: block;
-        margin-bottom: 0;
+        font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
         font-size: 10px;
-        padding: 0;
+        font-weight: 500;
+        padding-bottom: 0;
+        position: relative;
+        text-transform: uppercase;
       }
       h2.player-list__header{
         font-size: 25px;
@@ -41,11 +46,19 @@
       &--header-inner {
         position: relative;
         h5{
-          display: block;
-          width: 100%;
           clear: both;
-          text-decoration: none;
+          width: 100%;
+          margin-bottom: 5px;
+          color: #9295a6;
+          display: block;
+          font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
           font-size: 10px;
+          font-weight: 500;
+          padding-bottom: 0;
+          line-height: normal;
+          position: relative;
+          text-transform: uppercase;
+          text-decoration: none;
         }
       }
     }
