@@ -6,13 +6,17 @@
 {% block sidebar-header %}
   <div class="sidebar--header">
     <div class="sidebar--header-inner">
-      <h2 class="sidebar--header-title">
-        {% if action == 'edit' %}
+      <h5 class="contest-list-sport-filter__title sidebar--header-title">&nbsp;</h5>
+      <div class="sidebar--header-wrap">
+        <h2 class="sidebar--header-title">
+          {% if action == 'edit' %}
           Edit Lineup
-        {% else %}
+          {% else %}
           New Lineup
-        {% endif %}
-      </h2>
+          {% endif %}
+        </h2>
+        <a href="/contests" class="cancel button button--outline-alt1 export-button">Cancel</a>
+      </div>
     </div>
   </div>
 {% endblock sidebar-header %}
@@ -21,13 +25,6 @@
 {% block sidebar %}
   <div class="cmp-draft-lineup-card-list lineup-sidebar-list"></div>
 {% endblock sidebar %}
-
-
-{% block page-content-header %}
-<header class="page-content__header">
-  <div class="page-content__header-content"></div>
-</header>
-{% endblock page-content-header %}
 
 
 {% block page_content %}

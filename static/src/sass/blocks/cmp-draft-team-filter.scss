@@ -50,7 +50,7 @@ $contest-nav-foreground-color: #25A758;
       display: inline-block;
       height: $contest-nav-height;
       overflow: hidden;
-      margin-left: 24px;
+      margin-left: 50px;
 
       &-holder {
         position: relative;
@@ -61,9 +61,37 @@ $contest-nav-foreground-color: #25A758;
 
     .arrow {
       position: absolute;
+      height: 100%;
       display: inline-block;
       z-index: 2;
-      width: 24px;
+      width: 30px;
+      background: none;
+
+      &:before{
+        content: '';
+        display: block;
+        height: 100%;
+        width: 400px;
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        right: 0;
+        background: #fff;
+        transform: skew(-20deg);
+      }
+      &:after{
+        content: '';
+        display: block;
+        height: 100%;
+        width: 400px;
+        position: absolute;
+        z-index:1;
+        top: 0;
+        right: 0;
+        background: rgba(0,0,0,.1);
+        filter: blur(10px);
+        transform: skew(-20deg);
+      }
 
       &.left {
         width: 42px;
@@ -72,12 +100,16 @@ $contest-nav-foreground-color: #25A758;
 
       &.right {
         right: 0;
+         &:before,&:after{
+          right: auto;
+          left: 0;
+        }
       }
 
       .left-arrow-icon, .right-arrow-icon {
         display: inline-block;
         cursor: pointer;
-        background: url('../img/blocks/nav-scoreboard/nav-scoreboard-slider-arrow.png') no-repeat center center #fff;
+        background: url('../img/blocks/nav-scoreboard/nav-scoreboard-slider-arrow.png') no-repeat center center transparent;
         background-size: 7px 11px;
         width: 24px;
         height: 60px;
@@ -106,7 +138,18 @@ $contest-nav-foreground-color: #25A758;
       overflow: hidden;
       position: relative;
       vertical-align: top;
+      &.allTeams{
+        vertical-align: middle;
+        background-position: 50% -33px;
+        text-transform: uppercase;
+        &:hover {
+          background-position: 50% -69px;
+        }
 
+        &.selected {
+          background-position: center 4px !important;
+        }
+      }
       .left {
         display: inline-block;
         margin-right: 30px;
@@ -134,6 +177,7 @@ $contest-nav-foreground-color: #25A758;
       &.selected {
         background-position: 0px 4px !important;
       }
+
     }
   }
 
