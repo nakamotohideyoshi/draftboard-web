@@ -750,6 +750,12 @@ class BlockManager(object):
                         'not creating more. %s' % self.block)
             return
 
+        # Don't make contest pools for should_create_contest_pools == False.
+        if not self.block.should_create_contest_pools:
+            raise Exception(
+                'Not creating contest pools: Block.should_create_contest_pools is set to False.'
+                ' - %s' % self.block)
+
         # default
         num_contest_pools_created = 0
 
