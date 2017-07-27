@@ -29,7 +29,7 @@ const GamesList = React.createClass({
               {this.props.teams.teams[game.srid_away].alias}&nbsp;vs&nbsp;
               {this.props.teams.teams[game.srid_home].alias}
             </td>
-            <td className="time">{moment(game.start, moment.ISO_8601).format('h:mma')}</td>
+            <td className="time">{moment(game.start, moment.ISO_8601).format('ddd @ h:mma')}</td>
           </tr>
         );
       }
