@@ -8,10 +8,10 @@ $block: '.live-big-play';
 
 #{$block} {
   position: relative;
-  margin: 0 .5%;
-  width: 32.33%;
+  width: 300px;
   height: 86px;
-  background: rgba(0, 0, 0, .2);
+  background-color: #262931;
+  cursor: default;
 
   &--nba {
     background: transparent url(../../../img/blocks/live-big-plays/bg-nba.jpg) no-repeat left top;
@@ -33,7 +33,7 @@ $block: '.live-big-play';
 // ITEM BODY
 //------------------------------------------------------------------------------
 
-.live-big-play__inner {
+.live-big-play__body {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -44,7 +44,7 @@ $block: '.live-big-play';
   .live-big-play__description {
     margin: 0;
     padding: 0 15px;
-    max-width: 60%;
+    max-width: 75%;
     color: #a7acbc;
     font-family: $font-open-sans;
     font-size: 11px;

@@ -1,23 +1,27 @@
 @import "../../variables.scss";
 
-//
-// BEM block for React Live Big Plays
-//
-
 $block: '.live-big-plays';
+$listItemHeight: 86px;
 
 #{$block} {
   display: flex;
   position: relative;
   width: 100%;
-  height: (86px + 20px);
-  padding: 10px 80px 10px 80px;
+  height: $listItemHeight + 20px;
+  padding: 10px 60px 10px 60px;
+}
 
+////////////////////////////////////////////////////////////////////////////////
+// NEXT/PREV BUTTONS
+////////////////////////////////////////////////////////////////////////////////
+  
+#{$block} {
   .btn-prev,
   .btn-next {
     display: inline-block;
     position: absolute;
-    top: 2px;
+    z-index: 999;
+    top: 9px;
     width: 40px;
     border: none;
     background-color: transparent;
@@ -26,11 +30,15 @@ $block: '.live-big-plays';
     font-size: 60px;
     font-weight: 100;
     text-align: center;
-    transform: scaleX(0.5) translateY(9px);
+    transform: scaleX(0.5);
     opacity: 0.7;
 
     &:focus {
       outline: none;
+    }
+
+    &:hover {
+      opacity: 0.9;
     }
   }
 
@@ -39,6 +47,9 @@ $block: '.live-big-plays';
   .btn-disabled {
     cursor: auto;
     opacity: 0.1;
+    &:hover {
+      opacity: 0.1;
+    }
   }
 
   .btn-prev {
@@ -48,9 +59,122 @@ $block: '.live-big-plays';
   .btn-next {
     right: 0px;
   }
+}
 
-  &__items {
-    display: flex;
+////////////////////////////////////////////////////////////////////////////////
+// ITEMS LIST
+////////////////////////////////////////////////////////////////////////////////
+
+#{$block} {
+  &__list {
+    position: relative;
     width: 100%;
+    height: 86px;
+    overflow-x: hidden;
+  }
+
+  &__list-item { 
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: .6;
+    transition: transform .5s, opacity .5s;
+  
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  &__list-item--active {
+    opacity: 1;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// ACTIVITIY INDICATOR
+////////////////////////////////////////////////////////////////////////////////
+
+#{$block} {
+  &__activity-indicator {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 50px;
+    display: block;
+    width: 50px;
+    height: 100%;
+    background: transparent url(../../../img/blocks/live-big-plays/happening.png) no-repeat;
+    background-size: 22px 4px;
+    background-position: center center;
+    opacity: 0;
+  }
+
+  &.live-big-plays--has-activity {
+    .live-big-plays__activity-indicator {
+      animation: activityIndicatorPulse .6s linear .1s infinite alternate;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// REACT ANIMATION CLASSES
+////////////////////////////////////////////////////////////////////////////////
+
+#{$block} {
+  .item-enter {
+    // Prepare the element for "enter"
+  }
+
+  .item-enter.item-enter-active {
+    .live-big-play {
+      animation: itemRotateIn .45s ease-out;
+    }
+  }
+
+  .item-leave {
+    // Prepare the element for "leave"
+  }
+
+  .item-leave.item-leave-active {
+    .live-big-play {
+      animation: itemSlideOut .45s ease-out;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// KEYFRAMES
+////////////////////////////////////////////////////////////////////////////////
+
+@keyframes activityIndicatorPulse {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes itemRotateIn {
+  from {
+    opacity: 0;
+    transform-origin: left bottom;
+    transform: translateY(50px) rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+}
+
+@keyframes itemSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
   }
 }

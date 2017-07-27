@@ -85,7 +85,7 @@ export default React.createClass({
           }
         </section>
 
-        <LiveBigPlays queue={this.props.bigPlaysQueue} />
+        <LiveBigPlays history={this.props.bigPlaysQueue} currentEvent={this.props.currentEvent} />
       </div>
     );
   },
