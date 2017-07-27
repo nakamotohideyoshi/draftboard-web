@@ -5,32 +5,62 @@
 .section-lobby {
   &.page-lobby,
   &.page-draft {
-
+    .page-content__header {
+      margin-bottom: 30px;
+      .contest-list__sub_title{
+        clear: both;
+        width: 100%;
+        margin-bottom: 5px;
+        color: #9295a6;
+        display: block;
+        font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        padding-bottom: 0;
+        position: relative;
+        text-transform: uppercase;
+      }
+      h2.player-list__header{
+        font-size: 25px;
+        line-height: 1.1em;
+        span.player-list__header-games{
+          font-size: 13px;
+          line-height: 1.1em;
+        }
+      }
+    }
     .sidebar {
       background: url(../img/blocks/lobby/sidebar-nba-bottom.jpg) no-repeat bottom left #0C1524;
       background-size: 100% auto;
 
       &--header-title {
         display: inline-block;
+        color: #fff;
+        font-family: $font-oswald;
+        font-size: 25px;
+        line-height: 1.1em;
+        transition: color 500ms ease;
+        text-decoration: underline;
       }
 
       &--header-inner {
         position: relative;
-        padding-bottom: 35px;
+        h5{
+          clear: both;
+          width: 100%;
+          margin-bottom: 5px;
+          color: #9295a6;
+          display: block;
+          font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+          font-size: 10px;
+          font-weight: 500;
+          padding-bottom: 0;
+          line-height: normal;
+          position: relative;
+          text-transform: uppercase;
+          text-decoration: none;
+        }
       }
-
-      // Arrow tab thing.
-      // &:after{
-      //     content: ' ';
-      //     display: block;
-      //     position: absolute;
-      //     right: -7px;
-      //     top: 115px;
-      //     width: 15px;
-      //     height: 15px;
-      //     background-color: #141d2c;
-      //     transform: scaleY(1.3) rotate(-45deg);
-      // }
     }
 
     .sidebar-inner {
@@ -39,7 +69,6 @@
     }
 
     .page-content__content {
-      padding-top: 20px;
       padding-bottom: 100px;
       margin-top: 0;
     }
@@ -54,13 +83,11 @@
       display: block;
       font-family: $font-open-sans;
       font-size: 10px;
-      padding-bottom: 15px;
       position: relative;
     }
 
     &--header-inner {
       position: relative;
-      padding-bottom: 20px;
     }
   }
 }

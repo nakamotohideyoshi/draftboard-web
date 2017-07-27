@@ -8,11 +8,8 @@
   position: relative;
 
   &--header {
-    background: rgba(19, 26, 37, .50);
-    position: absolute;
     top: $nav-scoreboard-height;
-    left: 0;
-    width: 100%;
+
     z-index: 30;
   }
 
@@ -30,16 +27,24 @@
       padding: 0;
       text-transform: uppercase;
   }
-
+  &--header-wrap{
+    display: flex;
+    justify-content: space-between;
+    .button.cancel{
+      padding: 5px 10px;
+      color: #fff;
+      margin-top: 5px;
+    }
+  }
   .sidebar-inner {
-    overflow: auto;
+
     height: 100%;
     // Disabled because it gets goofy with the opacity of webp images.
     //transform: translateZ(0); // To prevent repaint on scroll.
   }
 
   .sidebar-content {
-    margin: 14px 34px;
+    margin: 0 34px;
     position: relative;
   }
 

@@ -381,66 +381,68 @@ const DraftContainer = React.createClass({
 
     return (
       <div>
-        <h2 className="player-list__header">
-          <span className="player-list__header-title">{this.props.sport} Draft</span>
-          <span className="player-list__header-divider">/</span>
-          <span
-            className="player-list__header-games"
-            onClick={this.handleGameCountClick}
-          >{gameCount}</span>
-        </h2>
+        <header className="page-content__header">
+          <h5 className="contest-list__sub_title">AVAILABLE PLAYERS</h5>
+          <h2 className="player-list__header">
+            <span className="player-list__header-title">{this.props.sport} Draft</span>
+            <span className="player-list__header-divider">/</span>
+            <span
+              className="player-list__header-games"
+              onClick={this.handleGameCountClick}
+            >{gameCount}</span>
+          </h2>
 
-        <div className="player-list-filter-set">
-          <CollectionSearchFilter
-            className="collection-filter--player-name"
-            filterName="playerSearchFilter"
-            filterProperty="player.name"
-            match=""
-            onUpdate={this.handleFilterChange}
-          />
-
-          <ProbablePitchersFilter
-            onUpdate={this.handleFilterChange}
-            enabled={this.props.filters.probablePitchersFilter.match}
-            sport={this.props.sport}
-          />
-
-          <PlayerPositionFilter
-            positions={positions}
-            handleFilterChange={this.handleFilterChange}
-            newLineup={this.props.newLineup}
-            activeFilter={this.props.filters.positionFilter}
-          />
-
-          <div className="cmp-draft-countdown">
-            <CountdownClock
-              time={this.props.draftGroupTime}
-              timePassedDisplay="Live"
+          <div className="player-list-filter-set">
+            <CollectionSearchFilter
+              className="collection-filter--player-name"
+              filterName="playerSearchFilter"
+              filterProperty="player.name"
+              match=""
+              onUpdate={this.handleFilterChange}
             />
+
+            <ProbablePitchersFilter
+              onUpdate={this.handleFilterChange}
+              enabled={this.props.filters.probablePitchersFilter.match}
+              sport={this.props.sport}
+            />
+
+            <PlayerPositionFilter
+              positions={positions}
+              handleFilterChange={this.handleFilterChange}
+              newLineup={this.props.newLineup}
+              activeFilter={this.props.filters.positionFilter}
+            />
+
+            <div className="cmp-draft-countdown">
+              <CountdownClock
+                time={this.props.draftGroupTime}
+                timePassedDisplay="Live"
+              />
+            </div>
+
+            <DraftScoringModal
+              isOpen={this.state.scoringModalState}
+              sport={this.props.sport}
+              onClose={() => this.setState({
+                scoringModalState: false,
+              })}
+            >
+              <div className={`sport-image sport-image--${this.props.sport}`} />
+
+              <ScoringInfo sport={this.props.sport} isModal />
+            </DraftScoringModal>
+
+            <div
+              className="button button--outline-alt1 export-button"
+              onClick={() => this.setState({
+                scoringModalState: !this.state.scoringModalState,
+              })}
+            >
+              SCORING
+            </div>
           </div>
-
-          <DraftScoringModal
-            isOpen={this.state.scoringModalState}
-            sport={this.props.sport}
-            onClose={() => this.setState({
-              scoringModalState: false,
-            })}
-          >
-            <div className={`sport-image sport-image--${this.props.sport}`} />
-
-            <ScoringInfo sport={this.props.sport} isModal />
-          </DraftScoringModal>
-
-          <div
-            className="button button--outline-alt1 export-button"
-            onClick={() => this.setState({
-              scoringModalState: !this.state.scoringModalState,
-            })}
-          >
-            SCORING
-          </div>
-        </div>
-
+        </header>
         <div>
           <DraftTeamFilter
             boxScores={this.props.activeDraftGroupBoxScores}
@@ -476,17 +478,20 @@ const DraftContainer = React.createClass({
                 onClick={this.handleSetOrderBy}
                 text="GAME"
                 sortParam="team_alias"
+                additionalClasses=" padfix"
               />
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
                 text="AVG"
                 sortParam="fppg"
+                additionalClasses=" padfix"
               />
-              <th>Last 10</th>
+              <th className="padfix">Last 10</th>
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
                 text="Salary"
                 sortParam="salary"
+                additionalClasses=" padfix"
               />
             </tr>
           </thead>

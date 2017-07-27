@@ -337,10 +337,9 @@ const ResultsLineup = React.createClass({
     let footer = (<div />);
     let totalFP = 0;
 
-    // Tally up the player's total FP.
-    this.props.players.map((player) => {
-      totalFP += player.fantasy_points;
-    });
+    for (let i = 0; i < this.props.players.length; i++) {
+      totalFP += this.props.players[i].fantasy_points;
+    }
 
     if (isLive) {
       footer = (

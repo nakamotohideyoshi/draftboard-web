@@ -8,6 +8,7 @@ const DraftTableHeader = React.createClass({
     text: React.PropTypes.string.isRequired,
     sortParam: React.PropTypes.string,
     onClick: React.PropTypes.func,
+    additionalClasses: React.PropTypes.string,
   },
 
   handleClick() {
@@ -19,8 +20,8 @@ const DraftTableHeader = React.createClass({
   },
 
   render() {
-    const classNames = this.props.sortParam ? 'table__sortable' : '';
-
+    let classNames = this.props.sortParam ? 'table__sortable' : '';
+    classNames += this.props.additionalClasses;
     return (
       <th
         className={classNames}
