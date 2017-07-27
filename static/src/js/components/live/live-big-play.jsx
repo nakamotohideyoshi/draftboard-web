@@ -91,7 +91,7 @@ export default React.createClass({
 
     return (
       <article className={`${block} ${block}--${sport}`}>
-        <div className={`${block}__inner`}>
+        <div className={`${block}__body`}>
           <p className={`${block}__description`}>{cleanDescription(pbp.description)}</p>
           {this.renderPlayersDOM(stats)}
         </div>
