@@ -1,0 +1,115 @@
+@import "../../variables.scss";
+
+//
+// BEM block for React Live Big Play
+//
+
+$block: '.live-history-list-pbp';
+
+#{$block} {
+  position: relative;
+  width: 300px;
+  height: 86px;
+  background-color: #262931;
+  cursor: default;
+
+  &--nba {
+    background: transparent url(../../../img/blocks/live-history-list/bg-nba.jpg) no-repeat left top;
+    background-size: 100% 100%;
+  }
+
+  &--nfl {
+    background: transparent url(../../../img/blocks/live-history-list/bg-nfl.jpg) no-repeat left top;
+    background-size: 100% 100%;
+  }
+  
+  &--mlb {
+    background: transparent url(../../../img/blocks/live-history-list/bg-mlb.jpg) no-repeat left top;
+    background-size: 100% 100%;
+  }
+}
+
+//------------------------------------------------------------------------------
+// ITEM BODY
+//------------------------------------------------------------------------------
+
+.live-history-list-pbp__body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 66px;
+  overflow: hidden;
+  
+  .live-history-list-pbp__description {
+    margin: 0;
+    padding: 0 15px;
+    max-width: 75%;
+    color: #a7acbc;
+    font-family: $font-open-sans;
+    font-size: 11px;
+    line-height: 1.8;
+    text-align: left;
+  }
+  
+  ul.live-history-list-pbp__players {
+    display: flex;
+    flex-direction: row-reverse;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    
+    li.live-history-list-pbp__player {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      list-style: none;
+      width: 65px;
+    }
+    
+    .live-history-list-pbp__player-points {
+      flex-grow: 1;
+      width: 100%;
+      padding-top: 8px;
+      color: #1da4d0;
+      font-size: 15px;
+      font-family: $font-oswald;
+      text-align: center;
+    }
+
+    img.live-history-list-pbp__player-photo {
+      width: 50px;
+      height: auto;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// ITEM FOOTER
+//------------------------------------------------------------------------------
+
+#{$block}__footer {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 20px;
+  padding: 0 15px;
+  background-image: linear-gradient( 0deg, rgba(0,0,0, 0.15) 0%, rgba(255,255,255, 0.15) 100%);
+  color: #fff;
+  font-family: $font-open-sans;
+  font-size: 9px;
+  line-height: 2.4;
+  text-align: left;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-image: linear-gradient( 0deg, rgb(33,78,157) 0%, rgb(52,180,204) 100%);
+  }
+}
