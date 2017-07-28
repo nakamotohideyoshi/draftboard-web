@@ -175,7 +175,7 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         'earliest_game_in_block',
         'earliest_actual_game_in_block',
         'number_of_prize_structures',
-        'cutoff_time',
+        # 'cutoff_time',
         'blockgames_included',
         'actual_game_count',
         'should_create_contest_pools',
@@ -192,7 +192,7 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         # 'dfsday_end'
     )
     list_filter = ['site_sport', ]
-    list_editable = ['cutoff_time', ]
+    list_editable = []
     exclude = ()
     ordering = ('dfsday_start', 'site_sport')
     actions = [
