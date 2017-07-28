@@ -355,7 +355,7 @@ class ScheduleDay(object):
         if self.season is None:
             # we are going to have to find the following dfs day... and check gte its start time
             games = self.game_model_class.objects.filter(
-                start__gt=dfs_date_tomorrow,
+                start__gte=dfs_date_tomorrow,
                 season__season_type__in=self.season_types).order_by('start')  # oldest first
         else:
             games = self.game_model_class.objects.filter(
@@ -380,7 +380,7 @@ class ScheduleDay(object):
         # Sundays@6pm or later
 
         # idx = 0
-        while games.filter(start__gt=self.get_day_range()[0]).count() > 0:
+        while games.filter(start__gte=self.get_day_range()[0]).count() > 0:
             # get all the games for the dfs day
             daily_games = games.filter(start__range=self.get_day_range())
 
@@ -506,6 +506,10 @@ class ContestPoolScheduleManager(object):
         create the Blocks for the admin to see what ContestPools
         are currently planned to be created in the upcoming days.
         """
+
+        if self.sport == 'nfl':
+            raise Exception('Auto-scheduler is disabled for NFL! Not attempting to create Blocks.')
+
         if now is None:
             now = timezone.now()
 
@@ -513,6 +517,7 @@ class ContestPoolScheduleManager(object):
         # information about the actual live games for the sport.
         schedule_day = ScheduleDay(self.sport)
         schedule_day.update()
+        created_blocks = []
 
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
@@ -525,6 +530,9 @@ class ContestPoolScheduleManager(object):
 
             # creates the block (although we dont do anything with the new block, it is returned)
             block = block_creator.create()
+            created_blocks.append(block)
+
+        return created_blocks
 
 
 class BlockCreator(object):
