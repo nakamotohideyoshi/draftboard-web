@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'lodash';
 import { CSSTransitionGroup } from 'react-transition-group';
 import LiveHistoryListPBP from './live-history-list-pbp';
 
@@ -9,31 +8,31 @@ require('../../../sass/blocks/live/live-history-list.scss');
 export default React.createClass({
 
   propTypes: {
-    queue: React.PropTypes.array.isRequired,
     currentEvent: React.PropTypes.object,
   },
 
   getInitialState() {
     return {
       offset: 0,
+      curEvent: null,
       history: [],
     };
   },
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.history.length > 0) {
-      const nextItem = _.last(nextProps.history);
-      const prevItem = _.last(this.state.history);
+    const curEvent = this.state.curEvent;
+    const nextEvent = nextProps.currentEvent;
 
-      if (prevItem && nextItem.id === prevItem.id) {
-        return;
-      }
-
+    // If we are not receiving a new event, or waiting for a curEvent to expire
+    // exit the update.
+    if (curEvent && !nextEvent) {
       this.setState({
         offset: this.state.offset + (this.state.offset > 0 ? 1 : 0),
-        history: this.state.history.concat([nextItem]),
+        history: this.state.history.concat([curEvent]),
       });
     }
+
+    this.setState({ curEvent: nextEvent });
   },
 
   /**
