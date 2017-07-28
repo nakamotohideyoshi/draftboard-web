@@ -152,16 +152,13 @@ const LineupCard = React.createClass({
                   </li>
 
                   <li>
-                    <div
-                      className="icon-flip action"
-                      onClick={this.flipCard}
-                    ></div>
+                    <div className="icon-flip action" onClick={this.flipCard}></div>
                   </li>
                 </ul>
               </div>
               <div className="cmp-lineup-card__list-header">
-              <span className="cmp-lineup-card__list-header-salary">Salary</span>
-            </div>
+                <span className="cmp-lineup-card__list-header-salary">Salary</span>
+              </div>
             </header>
             <ul className="players">
               {players}
