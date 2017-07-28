@@ -129,6 +129,7 @@ require('components/lobby/lobby-lineup-card-list');
 
 // Draft
 require('components/draft/draft-lineup-card-list');
+require('components/draft/draft-sport-title');
 require('components/draft/draft-container');
 
 // Live
