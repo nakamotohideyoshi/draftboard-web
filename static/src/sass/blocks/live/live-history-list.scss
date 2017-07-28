@@ -1,7 +1,12 @@
 @import "../../variables.scss";
 
-$block: '.live-big-plays';
+$block: '.live-history-list';
+
+// The constant height of our list items. This is also defined in `live-big-play.scss`
 $listItemHeight: 86px;
+
+// The duration of the intro/outro animation.
+$inOutDuration: .35s;
 
 #{$block} {
   display: flex;
@@ -96,7 +101,6 @@ $listItemHeight: 86px;
 
 #{$block} {
   &__activity-indicator {
-    content: '';
     position: absolute;
     z-index: 1;
     top: 0;
@@ -107,13 +111,7 @@ $listItemHeight: 86px;
     background: transparent url(../../../img/blocks/live-big-plays/happening.png) no-repeat;
     background-size: 22px 4px;
     background-position: center center;
-    opacity: 0;
-  }
-
-  &.live-big-plays--has-activity {
-    .live-big-plays__activity-indicator {
-      animation: activityIndicatorPulse .6s linear .1s infinite alternate;
-    }
+    animation: activityIndicatorPulse .6s linear 0s infinite alternate;
   }
 }
 
@@ -127,8 +125,8 @@ $listItemHeight: 86px;
   }
 
   .item-enter.item-enter-active {
-    .live-big-play {
-      animation: itemRotateIn .45s ease-out;
+    .live-history-item-pbp {
+      animation: itemRotateIn $inOutDuration ease-out;
     }
   }
 
@@ -137,8 +135,8 @@ $listItemHeight: 86px;
   }
 
   .item-leave.item-leave-active {
-    .live-big-play {
-      animation: itemSlideOut .45s ease-out;
+    .live-history-item-pbp {
+      animation: itemSlideOut $inOutDuration ease-out;
     }
   }
 }

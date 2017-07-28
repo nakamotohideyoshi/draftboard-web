@@ -4,7 +4,7 @@
 // BEM block for React Live Big Play
 //
 
-$block: '.live-big-play';
+$block: '.live-history-list-pbp';
 
 #{$block} {
   position: relative;
@@ -14,17 +14,17 @@ $block: '.live-big-play';
   cursor: default;
 
   &--nba {
-    background: transparent url(../../../img/blocks/live-big-plays/bg-nba.jpg) no-repeat left top;
+    background: transparent url(../../../img/blocks/live-history-list/bg-nba.jpg) no-repeat left top;
     background-size: 100% 100%;
   }
 
   &--nfl {
-    background: transparent url(../../../img/blocks/live-big-plays/bg-nfl.jpg) no-repeat left top;
+    background: transparent url(../../../img/blocks/live-history-list/bg-nfl.jpg) no-repeat left top;
     background-size: 100% 100%;
   }
   
   &--mlb {
-    background: transparent url(../../../img/blocks/live-big-plays/bg-mlb.jpg) no-repeat left top;
+    background: transparent url(../../../img/blocks/live-history-list/bg-mlb.jpg) no-repeat left top;
     background-size: 100% 100%;
   }
 }
@@ -33,7 +33,7 @@ $block: '.live-big-play';
 // ITEM BODY
 //------------------------------------------------------------------------------
 
-.live-big-play__body {
+.live-history-list-pbp__body {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -41,7 +41,7 @@ $block: '.live-big-play';
   height: 66px;
   overflow: hidden;
   
-  .live-big-play__description {
+  .live-history-list-pbp__description {
     margin: 0;
     padding: 0 15px;
     max-width: 75%;
@@ -52,14 +52,14 @@ $block: '.live-big-play';
     text-align: left;
   }
   
-  ul.live-big-play__players {
+  ul.live-history-list-pbp__players {
     display: flex;
     flex-direction: row-reverse;
     margin: 0;
     padding: 0;
     height: 100%;
     
-    li.live-big-play__player {
+    li.live-history-list-pbp__player {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -67,7 +67,7 @@ $block: '.live-big-play';
       width: 65px;
     }
     
-    .live-big-play__player-points {
+    .live-history-list-pbp__player-points {
       flex-grow: 1;
       width: 100%;
       padding-top: 8px;
@@ -77,7 +77,7 @@ $block: '.live-big-play';
       text-align: center;
     }
 
-    img.live-big-play__player-photo {
+    img.live-history-list-pbp__player-photo {
       width: 50px;
       height: auto;
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import LiveMLBStage from './live-stage-mlb';
-import LiveBigPlays from '../live/live-big-plays';
+import LiveHistoryList from '../live/live-history-list';
 import LiveHeader from './live-header';
 import LiveStage from './live-stage';
 import LiveStandingsPane from './live-standings-pane';
@@ -85,7 +85,7 @@ export default React.createClass({
           }
         </section>
 
-        <LiveBigPlays history={this.props.bigPlaysQueue} currentEvent={this.props.currentEvent} />
+        <LiveHistoryList history={this.props.bigPlaysQueue} currentEvent={this.props.currentEvent} />
       </div>
     );
   },
