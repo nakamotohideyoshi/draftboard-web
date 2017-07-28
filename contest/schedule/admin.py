@@ -109,7 +109,7 @@ class TabularInlineBlockGame(admin.TabularInline):
 
 
 class TabularInlineBlockGameIncluded(TabularInlineBlockGame):
-    verbose_name = 'Included Game'
+    verbose_name = 'Included BlockGame'
     verbose_name_plural = verbose_name + 's'
     extra = 0
     max_num = 0
@@ -126,7 +126,7 @@ class TabularInlineBlockGameIncluded(TabularInlineBlockGame):
 
 
 class TabularInlineBlockGameExcluded(TabularInlineBlockGame):
-    verbose_name = 'Excluded Game'
+    verbose_name = 'Excluded BlockGame'
     verbose_name_plural = verbose_name + 's'
     extra = 0
     max_num = 0
@@ -146,6 +146,7 @@ class TabularInlineBlockPrizeStructure(admin.TabularInline):
     verbose_name = 'Contest Pool Prize Structure'
     verbose_name_plural = verbose_name + 's'
     model = contest.schedule.models.BlockPrizeStructure
+    extra = 18
 
 
 @admin.register(contest.schedule.models.Block)
@@ -172,21 +173,26 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         'sport',
         'spans_multiple_days',
         'earliest_game_in_block',
+        'earliest_actual_game_in_block',
         'number_of_prize_structures',
-        'cutoff_time',
-        'games_included',
+        # 'cutoff_time',
+        'blockgames_included',
+        'actual_game_count',
+        'should_create_contest_pools',
     ]
     readonly_fields = (
         'contest_pools_created',
         'created',
         'modified',
-        'games_included',
+        'blockgames_included',
+        'actual_game_count',
+        'actual_games_included',
         # 'cutoff',
         # 'dfsday_start',
         # 'dfsday_end'
     )
     list_filter = ['site_sport', ]
-    list_editable = ['cutoff_time', ]
+    list_editable = []
     exclude = ()
     ordering = ('dfsday_start', 'site_sport')
     actions = [
@@ -207,17 +213,19 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         return self.model.objects.filter(cutoff__lt=block.cutoff,
                                          site_sport=block.site_sport).count() == 0
 
-    def save_model(self, request, obj, form, change):
-        # If the schedule block is already drafting (contest pools are created) don't allow it to
-        # be edited.
-        if self.__is_block_drafting(obj):
-            msg = ("YOU CAN'T EDIT THIS SCHEDULE! Contest Pools have been created for it. Changes "
-                   "were NOT saved.")
-            messages.error(request, msg)
-            return
-
-        # otherwise do the normal save stuff.
-        return super(UpcomingBlockAdmin, self).save_model(request, obj, form, change)
+    # Disable this because it makes the stupid assumption that if it is the earliest upcoming
+    # schedule, then it is drafting.
+    # def save_model(self, request, obj, form, change):
+    #     # If the schedule block is already drafting (contest pools are created) don't allow it to
+    #     # be edited.
+    #     if self.__is_block_drafting(obj):
+    #         msg = ("YOU CAN'T EDIT THIS SCHEDULE! Contest Pools have been created for it. Changes "
+    #                "were NOT saved.")
+    #         messages.error(request, msg)
+    #         return
+    #
+    #     # otherwise do the normal save stuff.
+    #     return super(UpcomingBlockAdmin, self).save_model(request, obj, form, change)
 
     # @staticmethod
     def spans_multiple_days(self, block):
@@ -312,8 +320,8 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
 
         # return format_html( prefix + local_daymonth(block.dfsday_start) + suffix )
         suffix = ''
-        if self.is_drafting(block):
-            suffix += ' | Drafting'
+        if block.contest_pools_created:
+            suffix += ' | Contest Pools Created'
         return self.get_bold_text(block, local_daymonth(block.dfsday_start) + suffix)
 
     @staticmethod
@@ -328,6 +336,14 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
     @staticmethod
     def get_block_games(block):
         return block.get_block_games()
+
+    @staticmethod
+    def earliest_actual_game_in_block(block):
+        games = contest.schedule.classes.BlockManager(block).get_included_games()
+        if games:
+            return games[0].start
+
+        return None
 
     def earliest_game_in_block(self, block):
         """
@@ -345,12 +361,25 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
             return 'na'
         return self.get_bold_text(block, local_time(earliest_game.start))
 
-    def games_included(self, block):
+    def blockgames_included(self, block):
         included, excluded = block.get_block_games()
         incl = len(included)
         total = incl + len(excluded)
         text = '%s of %s' % (str(incl), str(total))
         return self.get_bold_text(block, text)
+
+    @staticmethod
+    def actual_game_count(block):
+        return contest.schedule.classes.BlockManager(block).get_included_games().count()
+
+    @staticmethod
+    def actual_games_included(block):
+        games = contest.schedule.classes.BlockManager(block).get_included_games()
+        ret = ''
+        for game in games:
+            ret = ret + '\n\n%s' % game
+
+        return ret
 
     def get_inline_instances(self, request, obj=None):
         if obj is None:

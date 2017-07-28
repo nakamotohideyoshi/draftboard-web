@@ -56,7 +56,6 @@ const ContestListHeader = (props) => (
         activeFilter={props.filters.skillLevelFilter}
       />
     </div>
-    <div className="help">?</div>
 
     <div className="icon-key">
       <span className="contest-size" title="The Maximum number of entries in each contest">
