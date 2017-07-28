@@ -90,7 +90,6 @@ const Tooltip = React.createClass({
       </div>
     );
   },
-
 });
 
 
