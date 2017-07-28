@@ -22,7 +22,7 @@ const SportHeader = React.createClass({
     }
     return (
       <div className="sport-title">
-        <h2>{this.props.theSport}</h2>
+        <h2 className="sidebar--header-title">{this.props.theSport}</h2>
       </div>
     );
   },
