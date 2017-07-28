@@ -3,35 +3,41 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 
-const sportHeader = React.createClass({
+const { Provider, connect } = ReactRedux;
 
+function mapStateToProps(state) {
+  return {
+    theSport: state.draftGroupPlayers.sport,
+  };
+}
+
+const SportHeader = React.createClass({
   propTypes: {
-    sport: React.PropTypes.String,
+    theSport: React.PropTypes.string,
   },
 
-
-
   render() {
+    if (!this.props.theSport) {
+      return null;
+    }
     return (
       <div className="sport-title">
-        <h2>{ this.props.sport }</h2>
+        <h2>{this.props.theSport}</h2>
       </div>
     );
   },
 
 });
 
-const { Provider, connect } = ReactRedux;
-
-const MessageDisplayConnected = connect(
-  mapStateToProps,
-)(sportHeader);
+const SportHeaderConnect = connect(
+  mapStateToProps
+)(SportHeader);
 
 renderComponent(
-  <Provider store={ store }>
-    <sportHeader sport="NFL" />
+  <Provider store={store}>
+    <SportHeaderConnect />
   </Provider>,
   '.sidebar--header-title'
 );
 
-module.exports = sportHeader;
+module.exports = SportHeader;
