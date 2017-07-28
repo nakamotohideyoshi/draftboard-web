@@ -1,10 +1,10 @@
 import React from 'react';
-import LiveBigPlay from './live-big-play';
 import _ from 'lodash';
 import { CSSTransitionGroup } from 'react-transition-group';
+import LiveHistoryListPBP from './live-history-list-pbp';
 
 // assets
-require('../../../sass/blocks/live/live-big-plays.scss');
+require('../../../sass/blocks/live/live-history-list.scss');
 
 export default React.createClass({
 
@@ -95,10 +95,11 @@ export default React.createClass({
   },
 
   /**
-   * Renders a list of LiveBigPlay DOM elements based on array of plays provided.
+   * Renders a list of LiveHistoryListPBP DOM elements based on array of
+   * plays provided.
    */
-  renderBigPlays(plays, hasActivity = false) {
-    const block = 'live-big-plays';
+  renderItems(plays, hasActivity = false) {
+    const block = 'live-history-list';
     const spaceBetweenItems = 10;
     const activityIndicatorWidth = 50;
 
@@ -123,14 +124,14 @@ export default React.createClass({
 
       return (
         <div key={pbp.id} {...{ className, style }}>
-          <LiveBigPlay event={pbp} />
+          <LiveHistoryListPBP event={pbp} />
         </div>
       );
     });
   },
 
   render() {
-    const block = 'live-big-plays';
+    const block = 'live-history-list';
 
     let classNames = block;
 
@@ -144,10 +145,12 @@ export default React.createClass({
         <button className="btn-next" disabled={ !this.hasNext() } onClick={ this.next }>&gt;</button>
         <div className={`${block}__list`}>
           <CSSTransitionGroup transitionName="item" transitionEnterTimeout={500} transitionLeaveTimeout={350}>
-            {this.renderBigPlays(this.getCurrentItems(), this.props.currentEvent !== null)}
+            {this.renderItems(this.getCurrentItems(), this.props.currentEvent !== null)}
           </CSSTransitionGroup>
         </div>
-        <div className={`${block}__activity-indicator`}></div>
+        { this.props.currentEvent !== null &&
+          <div className={`${block}__activity-indicator`}></div>
+        }
       </section>
     );
   },

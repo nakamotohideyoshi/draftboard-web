@@ -3,14 +3,14 @@ import { humanizeFP } from '../../lib/utils/numbers';
 import cleanDescription from '../../lib/utils/nfl-clean-pbp-description';
 
 // assets
-require('../../../sass/blocks/live/live-big-play.scss');
+require('../../../sass/blocks/live/live-history-list-pbp.scss');
 let defaultPlayerSrc;
 if (process.env.NODE_ENV !== 'test') {
   require('../../../sass/site/player-pmr-headshot.scss');
   defaultPlayerSrc = require('../../../img/blocks/draft-list/lineup-no-player.png');
 }
 
-const block = 'live-big-play';
+const block = 'live-history-list-pbp';
 
 export default React.createClass({
   propTypes: {
