@@ -16,7 +16,15 @@ class Block(models.Model):
     cutoff_time = models.TimeField(null=False)
     cutoff = models.DateTimeField(null=False, blank=True,
                                   help_text='the UTC datetime object for the cutoff_time')
-
+    # A flag that will disable the automatic spawning of contest pools.
+    # This is useful if you are manually creating a Block in the admin section but
+    # don't want it to immediately spawn contest pools when you save.
+    should_create_contest_pools = models.BooleanField(
+        default=True,
+        help_text='If this is checked, the contest pool creator will not spawn contest pools! '
+                    'You should check this until you are sure all necessary games and prize '
+                    'structures are included.'
+    )
     # False if the ContestPools for this Block have not been created yet.
     # otherwise, this field should be set to True if ANY Contest Pools have been created
     contest_pools_created = models.BooleanField(default=False)
