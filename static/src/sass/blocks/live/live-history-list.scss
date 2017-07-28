@@ -2,7 +2,7 @@
 
 $block: '.live-history-list';
 
-// The constant height of our list items. This is also defined in `live-big-play.scss`
+// The constant height of our list items. This is also defined in `live-history-list-pbp.scss`
 $listItemHeight: 86px;
 
 // The duration of the intro/outro animation.
@@ -108,7 +108,7 @@ $inOutDuration: .35s;
     display: block;
     width: 50px;
     height: 100%;
-    background: transparent url(../../../img/blocks/live-big-plays/happening.png) no-repeat;
+    background: transparent url(../../../img/blocks/live-history-list/happening.png) no-repeat;
     background-size: 22px 4px;
     background-position: center center;
     animation: activityIndicatorPulse .6s linear 0s infinite alternate;
@@ -125,7 +125,7 @@ $inOutDuration: .35s;
   }
 
   .item-enter.item-enter-active {
-    .live-history-item-pbp {
+    .live-history-list-pbp {
       animation: itemRotateIn $inOutDuration ease-out;
     }
   }
@@ -135,7 +135,7 @@ $inOutDuration: .35s;
   }
 
   .item-leave.item-leave-active {
-    .live-history-item-pbp {
+    .live-history-list-pbp {
       animation: itemSlideOut $inOutDuration ease-out;
     }
   }
