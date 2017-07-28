@@ -5,6 +5,9 @@ import LiveHistoryListPBP from './live-history-list-pbp';
 // assets
 require('../../../sass/blocks/live/live-history-list.scss');
 
+// BEM class name
+const block = 'live-history-list';
+
 export default React.createClass({
 
   propTypes: {
@@ -98,7 +101,6 @@ export default React.createClass({
    * plays provided.
    */
   renderItems(plays, hasActivity = false) {
-    const block = 'live-history-list';
     const spaceBetweenItems = 10;
     const activityIndicatorWidth = 50;
 
@@ -130,7 +132,9 @@ export default React.createClass({
   },
 
   render() {
-    const block = 'live-history-list';
+    const transitionName = 'item';
+    const transitionEnterTimeout = 330;
+    const transitionLeaveTimeout = 330;
 
     let classNames = block;
 
@@ -143,7 +147,7 @@ export default React.createClass({
         <button className="btn-prev" disabled={ !this.hasPrev() } onClick={ this.prev }>&lt;</button>
         <button className="btn-next" disabled={ !this.hasNext() } onClick={ this.next }>&gt;</button>
         <div className={`${block}__list`}>
-          <CSSTransitionGroup transitionName="item" transitionEnterTimeout={500} transitionLeaveTimeout={350}>
+          <CSSTransitionGroup {...{ transitionName, transitionEnterTimeout, transitionLeaveTimeout }}>
             {this.renderItems(this.getCurrentItems(), this.props.currentEvent !== null)}
           </CSSTransitionGroup>
         </div>
