@@ -9,6 +9,7 @@ body.appstate--nav-main--open .nav-main {
   left: 10px;
   top: 18px;
   z-index: $zindex-nav-main - 1;
+  overflow: hidden;
 
   &__menu {
     display: inline-block;
