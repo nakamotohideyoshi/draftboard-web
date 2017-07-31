@@ -228,6 +228,18 @@ html.section-live body {
 *, *:before, *:after {
   box-sizing: inherit;
 }
+// mind blowing that a proper reset wasn't done. it's still necessary in 2017
+*{
+  outline: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+*:focus{
+  outline: 1px solid #35B87F;
+  outline-offset: -1px;
+}
+
 
 html, body {
   color: $primary-text;
