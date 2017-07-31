@@ -96,9 +96,9 @@ const DraftNewLineupCardPlayer = (props) => {
         </span>
       </div>
 
-      <span className="cmp-lineup-card__name-salary">
+      <span className="cmp-lineup-card__name-game">
         <span className="name">
-          &nbsp;
+
           <span className="cmp-lineup-card__team">&nbsp;</span>
         </span>
         <span className="salary">&nbsp;</span>
