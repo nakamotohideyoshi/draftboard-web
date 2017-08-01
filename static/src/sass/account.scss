@@ -10,6 +10,7 @@ $account-height: 600px;
 
 .account {
   // this section is in the __content but above the v-middle on the screen
+  overflow: hidden;
   &__header {
     display: block;
     margin: 0 auto;
@@ -39,6 +40,7 @@ $account-height: 600px;
   }
 
   &__left {
+    float:left;
     background: #fff;
     max-width: $width-left;
     min-height: 100%;
@@ -46,9 +48,9 @@ $account-height: 600px;
     text-align: center;
     width: 34%; // ratio from comp, 982px/2880px
     z-index: 1;
+    height: 100vh;
 
     &__content {
-      padding-bottom: 150px; // max height of footer
 
       &__checkmark-success {
         width: 250px;
@@ -72,7 +74,6 @@ $account-height: 600px;
         max-width: 400px;
         margin: 0 auto;
         // this sizes makes sure the biggest form (registration) is kept intact
-        min-height: 350px;
 
         .split_field_group {
           text-align: left;
@@ -240,21 +241,32 @@ $account-height: 600px;
         }
       }
     }
+    footer{
+      position: absolute;
+      bottom: 0;
+      padding: 30px;
+      width: 100%;
+      left: 0;
+      p{
+        font-size: 14px;
+      }
+    }
   }
 
   &__right {
-    background: url(../img/blocks/account/register/bg.jpg) no-repeat top right;
-    background-size: auto 100%; // default to height 100%, media query covers aspect >= 1:1
-    height: 100%;
+    float: left;
+    background: url(../img/blocks/account/register/bg.jpg) no-repeat bottom center;
+    background-size: cover; // default to height 100%, media query covers aspect >= 1:1
+    height: 100vh;
+    width: 66%;
     overflow: hidden;
-    position: fixed;
-    right: 0;
     text-align: center;
+    display: block;
+    position: absolute;
     top: 0;
+    right: 0;
 
     &__inner {
-      background: url(../img/blocks/live-countdown/glow.png) no-repeat center center;
-      background-size: 100% auto;
       margin: 0 auto;
       padding-bottom: 70%; // important! same height as width via padding-bottom
       position: relative;
@@ -299,55 +311,18 @@ $account-height: 600px;
         }
       }
     }
+    &__bottom{
+      max-width: 1100px;
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
   }
 
   &--register {
     .account__header {
       padding: 4vh 0 3vh;
-    }
-  }
-}
-
-// ratio of width/height that requires change of background to be width 100%
-@media (min-aspect-ratio: 21/12) {
-  .account__right {
-    background-size: 80% auto;
-  }
-}
-
-@media (min-width: 1440px) {
-  .account__right {
-    padding-left: 490px;
-    width: 100%;
-
-    &__inner {
-      max-width: 1150px;
-    }
-  }
-}
-
-@media (min-width: 1025px) and (max-width: 1439px) {
-  .account__right {
-    width: 66%;
-  }
-}
-
-@media (max-width: 1024px) {
-  .account {
-    &__left {
-      width: 44%;
-
-      &__footer {
-        width: 44%;
-      }
-    }
-
-    &__right {
-      width: 56%;
-
-      &__inner {
-        width: 80%; // since width of __right goes up 10%, so does this
-      }
     }
   }
 }
@@ -361,23 +336,3 @@ $account-height: 600px;
   }
 }
 
-@media (max-width: 768px) {
-  .account {
-    &__left {
-      margin: 0 auto;
-      width: 100%;
-
-      &__content__form {
-        width: 80%;
-      }
-
-      &__footer {
-        width: 100%;
-      }
-    }
-
-    &__right {
-      display: none;
-    }
-  }
-}

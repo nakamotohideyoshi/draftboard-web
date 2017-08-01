@@ -25,16 +25,11 @@
     </div>
 
     {% block account_footer %}
-      <a href="{% url 'register' %}" class="logged-out-footer">
-        <div class="logged-out-footer__bait">
-          Don't have an account?
-        </div>
-        <div class="logged-out-footer__hook">
-          Create an account
-          <span class="logged-out-footer__arrow"></span>
-        </div>
-      </a>
+      <footer class="logged-out-footer">
+        <p>Don't have an account? <a href="{% url 'register' %}">create one.</a></p>
+      </footer>
     {% endblock account_footer %}
+
 
   </div>
 
@@ -42,10 +37,13 @@
   <div class="account__right">
     <div class="account__right__inner">
       <div class="account__right__inner__content">
-        <div class="account__right__inner__content__title">It's anyone's game</div>
+        <div class="account__right__inner__content__title">NFL</div>
         <div class="account__right__inner__content__separator"></div>
         <div class="account__right__inner__content__text">sign up &amp; get up to $200 matched bonus</div>
       </div>
+    </div>
+    <div class="account__right__bottom">
+      <p>Draftboard will deposit $1 (the “Bonus”) into the account of any “User” who signs up for the Website. Bonus will be removed from the user’s account 7 days from the date the account was opened, except in situations where User has been present in at least one completed contest.</p>
     </div>
   </div>
   {% endblock right_content %}
