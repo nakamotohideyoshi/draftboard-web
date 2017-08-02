@@ -31,7 +31,7 @@ TODO: Fix Me, if we care.
 
 
 // Variables:
-$button-box-shadow: 0px 5px 20px 0px rgba(22, 37, 48, 0.38);
+$button-box-shadow: 0px 8px 50px 0px rgba(20, 0, 0, 0.2);
 
 
 /**
@@ -125,7 +125,8 @@ $button-box-shadow: 0px 5px 20px 0px rgba(22, 37, 48, 0.38);
   &.button--gradient {
     color: #fff;
     background: linear-gradient(to right, #219d87 0%, #34cc68 100%);
-
+    box-shadow: 0 0 0 0 rgba(0,0,0,0);
+    transition: all .3s;
     &:hover {
       background: linear-gradient(to right, #23a48d 0%, #37d76e 100%);
       box-shadow: $button-box-shadow;
