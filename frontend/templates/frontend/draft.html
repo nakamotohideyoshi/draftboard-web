@@ -6,15 +6,15 @@
 {% block sidebar-header %}
   <div class="sidebar--header">
     <div class="sidebar--header-inner">
-      <h5 class="contest-list-sport-filter__title sidebar--header-title">&nbsp;</h5>
+      <h5 class="contest-list-sport-filter__title">
+        {% if action == 'edit' %}
+        Edit Lineup
+        {% else %}
+        New Lineup
+        {% endif %}
+      </h5>
       <div class="sidebar--header-wrap">
-        <h2 class="sidebar--header-title">
-          {% if action == 'edit' %}
-          Edit Lineup
-          {% else %}
-          New Lineup
-          {% endif %}
-        </h2>
+        <div class="sidebar--header-title"></div>
         <a href="/contests" class="cancel button button--outline-alt1 export-button">Cancel</a>
       </div>
     </div>
