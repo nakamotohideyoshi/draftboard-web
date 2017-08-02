@@ -263,11 +263,10 @@ export const Register = React.createClass({
         {this.renderNonFieldErrors()}
 
         <div className="account__left__content__form__input-layout">
-          <input type="submit" value="Create account" className={submitClasses} />
-
-          <p>
-            Clicking "Create Account" confirms you’re 18+ (19+ in NE, 21+ in MA) and agree to our
-             &nbsp;<a href="/terms-conditions/" target="_blank">Terms</a> and
+          <button className={submitClasses}>Create Account <span className="right">→</span></button>
+          <p>Clicking "Create Account" confirms you’re 18 (19 in NE or Canada, 21 in MA)
+            and agree to our Terms of Service and Privacy Policy.
+             &nbsp;<a href="/terms-of-service/" target="_blank">Terms</a> and
              &nbsp;<a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
           </p>
         </div>

@@ -10,21 +10,19 @@ $account-height: 600px;
 
 .account {
   // this section is in the __content but above the v-middle on the screen
+  overflow: hidden;
   &__header {
     display: block;
-    margin: 0 auto;
+    margin: 0 auto 80px;
     padding: 10vh 0 4vh;
     width: 100%;
 
-    &__logo {
+    img {
       // align logo with the h1
       display: inline-block;
       vertical-align: middle;
-      width: 45px;
-      height: 38px;
-      background-image: url(../img/account/logo.png);
-      background-repeat: no-repeat;
-      background-size: cover;
+      width: 25px;
+      height: auto;
     }
 
     h1 {
@@ -39,16 +37,16 @@ $account-height: 600px;
   }
 
   &__left {
+    float:left;
     background: #fff;
-    max-width: $width-left;
     min-height: 100%;
     position: relative;
     text-align: center;
     width: 34%; // ratio from comp, 982px/2880px
     z-index: 1;
+    height: 100vh;
 
     &__content {
-      padding-bottom: 150px; // max height of footer
 
       &__checkmark-success {
         width: 250px;
@@ -72,7 +70,6 @@ $account-height: 600px;
         max-width: 400px;
         margin: 0 auto;
         // this sizes makes sure the biggest form (registration) is kept intact
-        min-height: 350px;
 
         .split_field_group {
           text-align: left;
@@ -119,7 +116,7 @@ $account-height: 600px;
         &__input-layout {
           position: relative;
           text-align: left;
-          margin-top: 25px;
+          margin-bottom: 25px;
 
           p {
             font-size: 11px;
@@ -137,7 +134,7 @@ $account-height: 600px;
             letter-spacing: 1px;
             text-transform: uppercase;
             display: inline-block;
-            padding-bottom: 5px;
+            padding-bottom: 0;
 
             span {
               font-size: 10px;
@@ -151,18 +148,18 @@ $account-height: 600px;
           input[type=text],
           input[type=email],
           input[type=password] {
-            padding: 0;
+            padding: 10px 0;
             width: 100%;
-
             color: #46495e;
             font-size: 16px;
             font-family: $font-open-sans;
-
             box-shadow: none;
             transition: none 0s ease 0s;
             border: 0;
             border-bottom: 1px solid #9ca1ae;
-
+            &:-webkit-autofill {
+              -webkit-box-shadow: 0 0 0 1000px rgba(226,255,238,1) inset !important;
+            }
             &:focus {
               border-color: $green;
               transition: none;
@@ -175,8 +172,17 @@ $account-height: 600px;
             }
           }
 
-          input[type=submit] {
+          button {
             width: 100%;
+            padding: 13px 0;
+            position: relative;
+            font-size: 9px;
+            margin-top: 20px;
+            .right{
+              position: absolute;
+              top: 13px;
+              right: 15px;
+            }
           }
 
           input[type=checkbox] {
@@ -240,21 +246,33 @@ $account-height: 600px;
         }
       }
     }
+    footer{
+      position: absolute;
+      bottom: 0;
+      padding: 30px 0 20px;
+      width: 100%;
+      left: 0;
+      border-top: 1px solid #dcdde7;
+      p{
+        font-size: 14px;
+      }
+    }
   }
 
   &__right {
-    background: url(../img/blocks/account/register/bg.jpg) no-repeat top right;
-    background-size: auto 100%; // default to height 100%, media query covers aspect >= 1:1
-    height: 100%;
+    float: left;
+    background: url(../img/blocks/account/register/bg.jpg) no-repeat bottom center;
+    background-size: cover; // default to height 100%, media query covers aspect >= 1:1
+    height: 100vh;
+    width: 66%;
     overflow: hidden;
-    position: fixed;
-    right: 0;
     text-align: center;
+    display: block;
+    position: absolute;
     top: 0;
+    right: 0;
 
     &__inner {
-      background: url(../img/blocks/live-countdown/glow.png) no-repeat center center;
-      background-size: 100% auto;
       margin: 0 auto;
       padding-bottom: 70%; // important! same height as width via padding-bottom
       position: relative;
@@ -275,7 +293,7 @@ $account-height: 600px;
 
         &__title {
           color: $white;
-          font-size: 3.5vw;
+          font-size: 16px;
           font-family: $font-oswald;
           font-weight: 400;
           text-transform: uppercase;
@@ -291,93 +309,35 @@ $account-height: 600px;
 
         &__text {
           text-transform: uppercase;
+          font-smoothing: antialiased;
           color: #fefefe;
-          font-size: 0.7vw;
-          font-family: $font-open-sans;
-          font-weight: 600;
-          letter-spacing: 1px;
+          font-size: 60px;
+          font-family: $font-oswald;
+          font-weight: 200;
+          letter-spacing: 10px;
+        }
+        p{
+          color: rgba(255,255,255,.5);
+          font-size: 16px;
         }
       }
+    }
+    &__bottom{
+      max-width: 1100px;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      p{
+        font-size: 11px;
+      };
     }
   }
 
   &--register {
     .account__header {
-      padding: 4vh 0 3vh;
+      margin-bottom: 30px;
     }
   }
 }
 
-// ratio of width/height that requires change of background to be width 100%
-@media (min-aspect-ratio: 21/12) {
-  .account__right {
-    background-size: 80% auto;
-  }
-}
-
-@media (min-width: 1440px) {
-  .account__right {
-    padding-left: 490px;
-    width: 100%;
-
-    &__inner {
-      max-width: 1150px;
-    }
-  }
-}
-
-@media (min-width: 1025px) and (max-width: 1439px) {
-  .account__right {
-    width: 66%;
-  }
-}
-
-@media (max-width: 1024px) {
-  .account {
-    &__left {
-      width: 44%;
-
-      &__footer {
-        width: 44%;
-      }
-    }
-
-    &__right {
-      width: 56%;
-
-      &__inner {
-        width: 80%; // since width of __right goes up 10%, so does this
-      }
-    }
-  }
-}
-
-// inputs get some height
-@media (min-width: 768px) {
-  .account__left__content__form__input-layout input[type=text],
-  .account__left__content__form__input-layout input[type=email],
-  .account__left__content__form__input-layout input[type=password] {
-    padding: 0 0 5px;
-  }
-}
-
-@media (max-width: 768px) {
-  .account {
-    &__left {
-      margin: 0 auto;
-      width: 100%;
-
-      &__content__form {
-        width: 80%;
-      }
-
-      &__footer {
-        width: 100%;
-      }
-    }
-
-    &__right {
-      display: none;
-    }
-  }
-}
