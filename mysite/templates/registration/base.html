@@ -16,7 +16,7 @@
   <div class="account__left">
     {% block content_header %}
     <a href="/" class="account__header">
-      <div class="account__header__logo"></div><h1>draftboard</h1>
+      <img src="/static/img/logo.948f91f.png" alt=""><h1>draftboard</h1>
     </a>
     {% endblock %}
 
@@ -25,16 +25,11 @@
     </div>
 
     {% block account_footer %}
-      <a href="{% url 'register' %}" class="logged-out-footer">
-        <div class="logged-out-footer__bait">
-          Don't have an account?
-        </div>
-        <div class="logged-out-footer__hook">
-          Create an account
-          <span class="logged-out-footer__arrow"></span>
-        </div>
-      </a>
+      <footer class="logged-out-footer">
+        <p>Don't have an account? <a href="{% url 'register' %}">Create One.</a></p>
+      </footer>
     {% endblock account_footer %}
+
 
   </div>
 
@@ -42,10 +37,14 @@
   <div class="account__right">
     <div class="account__right__inner">
       <div class="account__right__inner__content">
-        <div class="account__right__inner__content__title">It's anyone's game</div>
+        <div class="account__right__inner__content__title">NFL</div>
         <div class="account__right__inner__content__separator"></div>
-        <div class="account__right__inner__content__text">sign up &amp; get up to $200 matched bonus</div>
+        <div class="account__right__inner__content__text">Dollar &amp; a dream</div>
+        <p>Sign up for Draftboard and we’ll put a buck in your account, no deposit required. Then enter any contest to qualify for the NFL Record Breaker and a shot at $10,000!</p>
       </div>
+    </div>
+    <div class="account__right__bottom">
+      <p>Draftboard will deposit a bonus of $1 into the account of any user who signs up for a new account. Bonus will be removed from the user’s account seven days from the date the account was opened, except in situations where the user has been present in at least one completed contest.</p>
     </div>
   </div>
   {% endblock right_content %}
