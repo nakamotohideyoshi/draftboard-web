@@ -209,7 +209,7 @@ $nav-scoreboard-foreground-color: #25A758;
     overflow: hidden;
 
     .cmp-nav-scoreboard--separator {
-      border-left: solid 1px #242736;
+      border-left: solid 1px $nav-scoreboard-separator-color;
       vertical-align: middle;
     }
 
@@ -245,7 +245,7 @@ $nav-scoreboard-foreground-color: #25A758;
       z-index: 2;
 
       &:hover .icon line {
-        stroke: #5b5f70;
+        stroke: #7f86a5;
       }
 
       &.not-scrollable {
@@ -272,7 +272,7 @@ $nav-scoreboard-foreground-color: #25A758;
         z-index: 2000;
 
         line {
-          stroke: #2a2e40;
+          stroke: #5b5f70;
         }
       }
 
