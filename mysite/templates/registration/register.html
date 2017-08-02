@@ -7,13 +7,7 @@
 {% endblock %}
 
 {% block account_footer %}
-  <a href="{% url 'login' %}" class="logged-out-footer">
-    <div class="logged-out-footer__bait">
-      Already have an account?
-    </div>
-    <div class="logged-out-footer__hook">
-      Log In
-      <span class="logged-out-footer__arrow"></span>
-    </div>
-  </a>
+  <footer class="logged-out-footer">
+    <p>Already have an account? <a href="{% url 'login' %}">Log In.</a></p>
+  </footer>
 {% endblock account_footer %}
