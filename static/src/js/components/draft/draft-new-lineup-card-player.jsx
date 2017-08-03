@@ -12,7 +12,7 @@ const playerPlaceHolder = [
   { position: '1B', placeholder: 'Select a First Baseman' },
   { position: '2B', placeholder: 'Select a Second Baseman' },
   { position: '3B', placeholder: 'Select a Third Baseman' },
-  { position: 'SS', placeholder: 'Select a Short Stop' },
+  { position: 'SS', placeholder: 'Select a Shortstop' },
   { position: 'OF', placeholder: 'Select an Outfield' },
   { position: 'OF', placeholder: 'Select an Outfield' },
   { position: 'OF', placeholder: 'Select an Outfield' },
