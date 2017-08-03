@@ -35,7 +35,23 @@ import RestrictedLocationConfirmModal from '../account/restricted-location-confi
 import DraftScoringModal from './draft-scoring-modal';
 import ScoringInfo from '../contest-list/scoring-info';
 
+const nbaarena = require('../../../img/blocks/live-animation-stage/nba-court.png');
+const nflarena = require('../../../img/blocks/live-animation-stage/nfl-field.png');
+const nhlarena = require('../../../img/blocks/live-animation-stage/nhl-rink.png');
 
+const arenamap = [
+  { sport: 'nfl', asset: nflarena },
+  { sport: 'nba', asset: nbaarena },
+  { sport: 'nhlarena', asset: nhlarena },
+];
+
+const getArenaAsset = (sport) => {
+  for (let i = 0; i < arenamap.length; i++) {
+    if (arenamap[i].sport === sport) {
+      return arenamap[i].asset;
+    }
+  }
+};
 /*
  * Map selectors to the React component
  * @param  {object} state The current Redux state that we need to pass into the selectors
@@ -428,7 +444,9 @@ const DraftContainer = React.createClass({
                 scoringModalState: false,
               })}
             >
-              <div className={`sport-image sport-image--${this.props.sport}`} />
+              <div className="arena">
+                <img src={getArenaAsset(this.props.sport)} role="presentation" />
+              </div>
 
               <ScoringInfo sport={this.props.sport} isModal />
             </DraftScoringModal>

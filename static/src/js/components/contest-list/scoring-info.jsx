@@ -44,7 +44,6 @@ const events = {
   }],
 };
 
-
 const renderRow = (part) =>
   part.map((event) => (
     <dd>
@@ -89,7 +88,7 @@ const renderGroups = (sport) => {
       res = events[sport].map((event) => {
         let res2 = [];
         Object.keys(event).forEach((name) => {
-          res2.push((<li>{name}</li>));
+          res2.push((<dt>{name}</dt>));
           res2 = res2.concat(renderGroup(event[name]));
         });
         return res2;

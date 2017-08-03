@@ -22,9 +22,8 @@
 
   &__dialog {
     background: #fff;
-    padding: 25px;
     transition: width .25s;
-    width: 500px;
+    max-width: 500px;
   }
 
   &__inner {
@@ -42,13 +41,28 @@
   &__close {
     cursor: pointer;
     margin: 0 auto 15px;
-    background: url('../img/components/modal/close.png');
-    background-size: 27px auto;
     display: block;
-    height: 27px;
-    width: 27px;
+    height: 16px;
+    width: 16px;
     z-index: 30;
-
+    position: absolute;
+    top: 30px;
+    right: 20px;
+    &:before,&:after{
+      content: '';
+      display: block;
+      height: 1px;
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      background: #000;
+    }
+    &:before{
+      transform: translateY(-50%) rotate(45deg);
+    }
+    &:after{
+      transform: translateY(-50%) rotate(-45deg);
+    }
     &:hover {
       opacity: .75;
     }

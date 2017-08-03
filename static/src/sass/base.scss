@@ -244,6 +244,7 @@ html.section-live body {
 html, body {
   color: $primary-text;
   margin: 0;
+  font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
