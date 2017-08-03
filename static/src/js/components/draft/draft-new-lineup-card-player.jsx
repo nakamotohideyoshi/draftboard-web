@@ -1,6 +1,30 @@
 import React from 'react';
 import moment from 'moment';
 
+const playerPlaceHolder = [
+  { position: 'QB', placeholder: 'Select a Quarterback' },
+  { position: 'RB', placeholder: 'Select a Running Back' },
+  { position: 'WR', placeholder: 'Select a Wide Reciever' },
+  { position: 'TE', placeholder: 'Select a Tight End' },
+  { position: 'FX', placeholder: 'Select a Flex' },
+  { position: 'SP', placeholder: 'Select a Pitcher' },
+  { position: 'C', placeholder: 'Select a Catcher' },
+  { position: '1B', placeholder: 'Select a First Baseman' },
+  { position: '2B', placeholder: 'Select a Second Baseman' },
+  { position: '3B', placeholder: 'Select a Third Baseman' },
+  { position: 'SS', placeholder: 'Select a Shortstop' },
+  { position: 'OF', placeholder: 'Select an Outfielder' },
+  { position: 'OF', placeholder: 'Select an Outfielder' },
+  { position: 'OF', placeholder: 'Select an Outfielder' },
+];
+
+const getDefaultPlaceholder = (pos) => {
+  for (let i = 0; i < playerPlaceHolder.length; i++) {
+    if (playerPlaceHolder[i].position === pos) {
+      return playerPlaceHolder[i].placeholder;
+    }
+  }
+};
 
 const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
   const formatTeam = (playerTeam, teamSrid, teamName) => {
@@ -98,7 +122,7 @@ const DraftNewLineupCardPlayer = (props) => {
 
       <span className="cmp-lineup-card__name-game">
         <span className="name">
-
+          <span className="placeholder">{getDefaultPlaceholder(props.player.name)}</span>
           <span className="cmp-lineup-card__team">&nbsp;</span>
         </span>
         <span className="salary">&nbsp;</span>
