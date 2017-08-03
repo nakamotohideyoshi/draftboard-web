@@ -44,20 +44,15 @@ const events = {
   }],
 };
 
-/**
- * Print out divs with names
- */
-const renderNames = (part) =>
-  part.map((event) => (
-      <div>{event.title}</div>
-  ));
 
-/**
- * Print out divs with values, if value starts of '-' it adds negative class
- */
-const renderValues = (part) =>
+const renderRow = (part) =>
   part.map((event) => (
-      <div className={(event.value.indexOf('-') === 0 ? 'negative' : '')}>{event.value}</div>
+    <dd>
+      <dl>
+        <dt>{event.title}</dt>
+        <dd className={(event.value.indexOf('-') === 0 ? 'negative' : '')}>{event.value}</dd>
+      </dl>
+    </dd>
   ));
 
 /**
@@ -69,20 +64,14 @@ const renderGroup = (group) => {
   return (
     <div className="own-col">
       <div className="score-col">
-        <div className="score-col-name">
-            {renderNames(firstPart)}
-        </div>
-        <div className="score-col-value">
-            {renderValues(firstPart)}
-        </div>
+        <dl>
+            {renderRow(firstPart)}
+        </dl>
       </div>
       <div className="score-col">
-        <div className="score-col-name">
-            {renderNames(secondPart)}
-        </div>
-        <div className="score-col-value">
-            {renderValues(secondPart)}
-        </div>
+        <dl>
+            {renderRow(secondPart)}
+        </dl>
       </div>
     </div>
   );
@@ -100,7 +89,7 @@ const renderGroups = (sport) => {
       res = events[sport].map((event) => {
         let res2 = [];
         Object.keys(event).forEach((name) => {
-          res2.push((<div>{name}</div>));
+          res2.push((<li>{name}</li>));
           res2 = res2.concat(renderGroup(event[name]));
         });
         return res2;
