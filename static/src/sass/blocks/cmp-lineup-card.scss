@@ -205,7 +205,13 @@ category: Lineup
         padding-left: 10px;
       }
     }
-
+    &.vacant{
+      .cmp-lineup-card__name-game{
+        .name{
+          overflow: visible;
+        }
+      }
+    }
   }
 
   &__position {
@@ -269,7 +275,9 @@ category: Lineup
     font-size: 12px;
     white-space: nowrap;
     text-overflow: ellipsis;
-
+    .placeholder{
+      opacity: .5;
+    }
     .name {
       display: inline-block;
       text-overflow: ellipsis;
