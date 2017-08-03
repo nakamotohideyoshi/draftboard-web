@@ -192,10 +192,10 @@ const DraftContainer = React.createClass({
     nfl: [
       { title: 'All', column: 'position', match: '' },
       { title: 'QB', column: 'position', match: 'qb' },
-      { title: 'RB', column: 'position', match: 'rb' },
+      { title: 'RB', column: 'position', match: ['rb', 'fb'] },
       { title: 'WR', column: 'position', match: 'wr' },
       { title: 'TE', column: 'position', match: 'te' },
-      { title: 'FX', column: 'position', match: ['rb', 'wr', 'te'] },
+      { title: 'FX', column: 'position', match: ['rb', 'wr', 'te', 'fb'] },
     ],
     nhl: [
       { title: 'All', column: 'position', match: '' },
@@ -208,7 +208,7 @@ const DraftContainer = React.createClass({
       { title: 'All', column: 'position', match: '' },
       { title: 'SP', column: 'position', match: 'sp' },
       { title: 'C', column: 'position', match: 'c' },
-      { title: '1B', column: 'position', match: '1b' },
+      { title: '1B', column: 'position', match: ['1b', 'dh'] },
       { title: '2B', column: 'position', match: '2b' },
       { title: '3B', column: 'position', match: '3b' },
       { title: 'SS', column: 'position', match: 'ss' },
