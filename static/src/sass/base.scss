@@ -236,8 +236,11 @@ html.section-live body {
   padding: 0;
 }
 *:focus{
-  outline: 1px solid #35B87F;
-  outline-offset: -1px;
+  outline: auto;
+  outline-offset: -3px;
+}
+*:active{
+  outline: none;
 }
 
 
