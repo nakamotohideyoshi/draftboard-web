@@ -67,7 +67,7 @@ const DraftScoringModal = React.createClass({
               <div className="closeButton" />
 
               <div className="content-inner">
-                <div className="title">{this.props.sport} SCORING</div>
+                <h3 className="title">{this.props.sport} SCORING</h3>
                 <div className="text-content">{this.props.children}</div>
               </div>
 
