@@ -9,65 +9,13 @@ $imgDir: '../img/blocks/live-animation-stage/';
       background: transparent;
       color: #262a3b;
       width: auto;
-      padding: 50px 35px;
-      padding: 50px calc(100vw / 1920 * 35);
       position: relative;
       z-index: 1;
     }
 
     &__inner {
-      width: 35%;
-      min-width: 500px;
       position: relative;
       background: white;
-
-      &:before {
-        content: '';
-        display: block;
-        background: #edf0f5;
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        height: calc(50px + 36px + 40px + calc(100vw / 1920 * 170) - 50px);
-        z-index: 0;
-      }
-    }
-
-    &__close {
-      margin: 0;
-      background: none;
-      display: block;
-      position: absolute;
-      height: 28px;
-      width: 28px;
-      transform: rotate(45deg);
-      right: calc(100vw / 1920 * 24);
-      top: calc(100vw / 1920 * 31);
-      opacity: 0.6;
-
-      &:hover {
-        opacity: 0.9;
-      }
-      &:before,
-      &:after {
-        content: '';
-        display: inline-block;
-        background: black;
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      &:before {
-        width: 1px;
-        height: 100%;
-        left: 50%;
-      }
-      &:after {
-        width: 100%;
-        height: 1px;
-        top: 50%;
-      }
     }
   }
 }
@@ -81,66 +29,69 @@ $imgDir: '../img/blocks/live-animation-stage/';
     .title {
       font-family: $font-oswald;
       font-weight: 400;
-      font-size: 29px;
+      font-size: 20px;
       color: #262a3b;
-      padding: 0 0 50px;
+      padding: 40px 0 20px;
       text-transform: uppercase;
-      margin-top: 4px;
+      background: #edf0f5;
+    }
+    .arena{
+      padding: 0 20px;
+      position: relative;
+      &:before {
+        content: '';
+        display: block;
+        background: #edf0f5;
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 80%;
+        width: 100%;
+        z-index: 0;
+      }
+      img {
+        display: block;
+        width: 100%;
+        height: auto;
+        position: relative;
+        z-index: 1;
+      }
     }
 
-    .sport-image {
-      height: 150px;
-      height: calc(100vw / 1920 * 150);
-      background: transparent no-repeat center top;
-      background-size: contain;
-
-      &--mlb {
-        background-image: url('#{$imgDir}nba-court.png'); // TODO: change to mlb logo!
-      }
-
-      &--nba {
-        background-image: url('#{$imgDir}nba-court.png');
-      }
-
-      &--nfl {
-        background-image: url('#{$imgDir}nfl-field.png');
-      }
-
-      &--nhl {
-        background-image: url('#{$imgDir}nhl-rink.png');
-      }
-    }
 
     .score-table {
       display: flex;
       flex-direction: column;
       font-size: 17px;
       font-family: $font-open-sans;
-      margin-top: 5px;
-      padding: 0 50px;
-      padding: 0 calc(100vw / 1920 * 50);
+      margin: 0 0 30px;
       line-height: 1.8em;
-
+      background: #fff;
+      padding: 20px 20px 0;
       .own-col {
         display: flex;
         justify-content: space-around;
 
-        .score-col {
-          display: flex;
-          justify-content: space-between;
+        dl {
+          dd{
+            dl{
+              display: flex;
+              justify-content: space-between;
+              font-size: 13px;
+            }
+            dt {
+              text-align: left;
+              padding-right: 50px;
+              padding-right: calc(100vw / 1920 * 50);
+            }
+            dd {
+              text-align: right;
+              font-weight: bold;
+              color: #2ebc72;
 
-          .score-col-name {
-            text-align: left;
-            padding-right: 50px;
-            padding-right: calc(100vw / 1920 * 50);
-          }
-          .score-col-value {
-            text-align: right;
-            font-weight: bold;
-            color: #2ebc72;
-
-            .negative {
-              color: #bc2e49;
+              &.negative {
+                color: #bc2e49;
+              }
             }
           }
         }
@@ -150,19 +101,9 @@ $imgDir: '../img/blocks/live-animation-stage/';
 
   .controls {
     text-align: center;
-    margin-top: 45px;
-
-    .ok-button {
-      display: inline-block;
-      position: relative;
-      color: white;
-      font-family: $font-open-sans;
-      font-size: 14px;
-      padding: 17px;
-      font-weight: 600;
-      text-transform: uppercase;
-      box-shadow: 0 24px 57px rgba(21, 89, 65, 0.38);
-      width: 55%;
+    padding: 0 20px 40px;
+    .button{
+      width: 60%;
     }
   }
 }
