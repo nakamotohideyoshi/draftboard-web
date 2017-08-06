@@ -18,6 +18,7 @@ describe('actions.eventsMultipart.storeEventMultipart', () => {
     // data coming out
     const expectedActions = [{
       type: 'BATCHING_REDUCER.BATCH',
+      meta: { batch: true },
       payload: [
         {
           type: types.EVENT_MULTIPART_SET,
@@ -40,6 +41,7 @@ describe('actions.eventsMultipart.storeEventMultipart', () => {
     // data coming out
     const expectedActions = [{
       type: 'BATCHING_REDUCER.BATCH',
+      meta: { batch: true },
       payload: [
         {
           type: types.EVENT_MULTIPART_SET,
@@ -74,6 +76,7 @@ describe('actions.eventsMultipart.removeEventMultipart', () => {
     // data coming out
     const expectedActions = [{
       type: 'BATCHING_REDUCER.BATCH',
+      meta: { batch: true },
       payload: [
         {
           type: types.EVENT_MULTIPART_OMIT_PLAYERS,
@@ -104,6 +107,7 @@ describe('actions.eventsMultipart.removeEventMultipart', () => {
     // data coming out
     const expectedActions = [{
       type: 'BATCHING_REDUCER.BATCH',
+      meta: { batch: true },
       payload: [
         {
           type: types.EVENT_MULTIPART_DELETE,
@@ -125,6 +129,7 @@ describe('actions.eventsMultipart.removeEventMultipart', () => {
     // data coming out
     const expectedActions = [{
       type: 'BATCHING_REDUCER.BATCH',
+      meta: { batch: true },
       payload: [],
     }];
 
