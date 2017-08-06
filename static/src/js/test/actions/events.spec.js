@@ -144,6 +144,7 @@ describe('actions.events.showGameEvent', () => {
     // data coming out
     const expectedActions = [{
       type: 'BATCHING_REDUCER.BATCH',
+      meta: { batch: true },
       payload: [
         {
           type: types.EVENT_MULTIPART_SET,
