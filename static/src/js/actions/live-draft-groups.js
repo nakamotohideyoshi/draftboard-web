@@ -182,7 +182,7 @@ const fetchDraftGroupFP = (id) => ({
       ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    expiresAt: dateNow() + 1000 * 60 * 1,  // 1 minute cache exire time.
     endpoint: `/api/draft-group/fantasy-points/${id}/`,
     requestFields: { id },
     callback: (json) => ({
@@ -215,7 +215,7 @@ export const fetchDraftGroupBoxscoresIfNeeded = (id) => (dispatch, getState) => 
  *                     returned method or directly as a resolved promise
  */
 export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
-  logAction.debug('actions.fetchDraftGroupFPIfNeeded');
+  logAction.debug('actions.fetchDraftGroupFPIfNeeded', id);
 
   if (shouldFetchDraftGroupFP(getState(), id) === true) {
     return dispatch(fetchDraftGroupFP(id));

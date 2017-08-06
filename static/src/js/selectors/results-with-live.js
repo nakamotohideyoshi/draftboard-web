@@ -7,6 +7,7 @@ import reduce from 'lodash/reduce';
 import size from 'lodash/size';
 import { dateNow } from '../lib/utils';
 import { calcTotalPotentialEarnings, calcEntryContestStats } from './watching';
+import log from '../lib/logging.js';
 
 
 /**
@@ -25,6 +26,17 @@ export const resultsWithLive = createSelector(
   state => state.currentLineups,
 
   (liveDraftGroups, contestsStats, currentLineupsStats, currentLineups) => {
+    if (
+        !currentLineups ||
+        !currentLineups.hasRelatedInfo === true ||
+        !contestsStats ||
+        !Object.keys(contestsStats).length > 0 ||
+        !currentLineupsStats
+    ) {
+      log.info('returning empty resultswitlive');
+      return {};
+    }
+
     const lineups = map(currentLineups.items, (lineup) => {
       let lineupInfo = {
         id: lineup.id,
@@ -38,12 +50,17 @@ export const resultsWithLive = createSelector(
       // hack, need to find better way to know when contests are loaded
       const firstContestsStats = contestsStats[Object.keys(contestsStats)[0]];
 
-      if (currentLineups.hasRelatedInfo === true && firstContestsStats && Object.keys(firstContestsStats).length > 0) {
+      if (
+        currentLineups.hasRelatedInfo === true &&
+        firstContestsStats &&
+        Object.keys(firstContestsStats).length > 0 &&
+        currentLineupsStats.hasOwnProperty(lineup.id)
+      ) {
         const lineupSelector = currentLineupsStats[lineup.id];
         const draftGroup = liveDraftGroups[lineup.draftGroup] || {};
         const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
 
-        let lineupEntriesInfo = null;
+        let lineupEntriesInfo = [];
         if (lineupSelector.upcomingContestsStats) {
           lineupEntriesInfo = lineupSelector.upcomingContestsStats;
         } else {
@@ -105,11 +122,14 @@ export const resultsWithLive = createSelector(
         if (lineupSelector.hasOwnProperty('contestsStats')) {
           lineupInfo.potentialWinnings = calcTotalPotentialEarnings(currentLineups, lineupSelector.contestsStats);
         }
+
+        return lineupInfo;
       }
 
-      return lineupInfo;
+      // otherwise don't return anything
     });
 
+    log.info('succesfully returning resultswitlive');
     return {
       overall: {
         winnings: 0,

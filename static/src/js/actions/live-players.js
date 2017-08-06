@@ -14,7 +14,7 @@ const { API_DOMAIN = '' } = process.env;
  * Dispatch API response object of contest lineups (in bytes and parsed json)
  * Also pass through an updated at so that we can expire and re-poll after a period of time.
  * NOTE: this method must be wrapped with dispatch()
- * @param  {number} id            Contest ID
+ * @param  {number} lineupId      Contest ID
  * @param  {object} response      Object of players and stats
  * @return {object}               Changes for reducer
  */
@@ -76,7 +76,7 @@ const fetchPlayersStats = (lineupId) => ({
       ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
+    expiresAt: dateNow() + 1000 * 60 * 1,  // 1 minutes
     endpoint: `${API_DOMAIN}/api/contest/lineup/${lineupId}/`,
     requestFields: { lineupId },
     callback: (json) => receivePlayersStats(lineupId, json),
@@ -98,9 +98,8 @@ const shouldFetchPlayersStats = (state, lineupId) => {
 
   // fetch if lineup has started
   const lineup = state.currentLineups.items[lineupId] || {};
-  if (dateNow() > lineup.start) return true;
 
-  return false;
+  return dateNow() > lineup.start;
 };
 
 
