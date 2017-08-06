@@ -13,7 +13,6 @@
 # Of course, this is only an example of how to run celery concurrently in your terminals...
 
 from __future__ import absolute_import
-
 import os
 import time
 from datetime import timedelta
@@ -27,6 +26,10 @@ from django.conf import settings
 from django.core.cache import cache
 from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
+
+current_settings_module = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.base")
+print('DJANGO_SETTINGS_MODULE env variable detected: %s Unless overriden, this will be used.' % (
+    current_settings_module))
 
 logger = getLogger('mysite.celery_app')
 

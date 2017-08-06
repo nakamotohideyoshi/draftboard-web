@@ -10,7 +10,7 @@ module.exports = (state = {}, action = {}) => {
         {},
         newState[action.id] || {},
         {
-          id: action.id,
+          id: parseInt(action.id, 10),
           expiresAt: action.expiresAt,
           isFetchingInfo: true,
         }
