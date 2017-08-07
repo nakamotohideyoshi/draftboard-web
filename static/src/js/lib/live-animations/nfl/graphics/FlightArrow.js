@@ -85,22 +85,22 @@ export default class FlightArrow {
    * create the arrow.
    */
   getPoints(field, ptA, ptB) {
-    const thickness = 0.08;
-    const taper = thickness * 0.1;
+    const thickness = 0.03;
+    const taper = 0.01;
     const arcX = ptA.x + (ptB.x - ptA.x) * 0.5;
     const arcY = ptA.y + (ptB.y - ptA.y) * 0.5;
 
     return {
       // Top left
-      tl: field.getFieldPos(ptA.x, ptA.y - taper),
+      tl: field.getFieldPos(ptA.x, ptA.y - thickness * 0.5),
       // Top right
-      tr: field.getFieldPos(ptB.x, ptB.y - taper),
+      tr: field.getFieldPos(ptB.x, ptB.y - thickness * 0.5),
       // Top control point
       tcp: field.getFieldPos(arcX, arcY - thickness * 0.5),
       // Bottom right
-      br: field.getFieldPos(ptB.x, ptB.y + taper),
+      br: field.getFieldPos(ptB.x, ptB.y + taper * 0.5),
       // Bottom left
-      bl: field.getFieldPos(ptA.x, ptA.y + taper),
+      bl: field.getFieldPos(ptA.x, ptA.y + taper * 0.5),
       // Bottom control point
       bcp: field.getFieldPos(arcX, arcY + thickness * 0.5),
     };
@@ -115,17 +115,16 @@ export default class FlightArrow {
     // The lower arc has an %8 percent increase on Y to visually
     // balance the top and bottom arcs by moving them closer together.
     // This number is subjective and was chosen by trial and error.
-    const lowerArc = arc; // + (arc * 0.02);
 
     return [
       // Move to the start of the path
       `M${tl.x},${tl.y}`,
-      // Control point for top arc
+      // Control points for top arc
       `Q${tcp.x},${tcp.y - arc} ${tr.x},${tr.y}`,
       // Line to bottom right
       `L${br.x},${br.y}`,
-      // Control point for bottom arc
-      `Q${bcp.x},${bcp.y - lowerArc} ${bl.x},${bl.y}`,
+      // Control points for bottom arc
+      `Q${bcp.x},${bcp.y - arc} ${bl.x},${bl.y}`,
       // Close the path.
       'Z',
     ].reduce((str, cmd) => ` ${str} ${cmd}`, '');
