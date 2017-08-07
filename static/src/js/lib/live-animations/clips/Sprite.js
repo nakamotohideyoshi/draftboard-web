@@ -1,3 +1,5 @@
+import animate from '../utils/animate';
+
 export default class Sprite {
 
   static get FRAME_RATE() {
@@ -67,7 +69,7 @@ export default class Sprite {
     }
 
     return new Promise((resolve) => {
-      this.animate(frameRate, () => {
+      animate(frameRate, () => {
         this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
         const hasNextFrame = curFrame + 1 <= targetFrame;
         if (!hasNextFrame) {
@@ -78,36 +80,6 @@ export default class Sprite {
         return hasNextFrame;
       });
     });
-  }
-
-  /**
-   * Throttles an animation callback at a specified FPS.
-   * @param {number}      The target frame rate.
-   * @param {function}    The callback to trigger at the specified FPS.
-   */
-  animate(fps, fn) {
-    const fpsInterval = 1000 / fps;
-    let then = window.performance.now();
-    let now = then;
-    let elapsed = 0;
-    let isPlaying = true;
-    let count = 0;
-
-    const tick = () => {
-      now = window.performance.now();
-      elapsed = now - then;
-
-      if (elapsed > fpsInterval) {
-        then = now - (elapsed % fpsInterval);
-        isPlaying = fn(++count);
-      }
-
-      if (isPlaying) {
-        window.requestAnimationFrame(tick);
-      }
-    };
-
-    window.requestAnimationFrame(tick);
   }
 
   /**
