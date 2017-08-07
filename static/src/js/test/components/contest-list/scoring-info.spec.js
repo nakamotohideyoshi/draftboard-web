@@ -63,7 +63,7 @@ describe('<ScoringInfo /> Component', () => {
   it('should render .score-col-name when a valid sport is provided', () => {
     wrapper.setProps({ isModal: true });
     assert.lengthOf(
-      wrapper.find('.score-col-name'),
+      wrapper.find('.score-col'),
       2,
       'Not rendering table data'
     );
