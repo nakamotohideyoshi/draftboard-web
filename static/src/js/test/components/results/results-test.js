@@ -13,9 +13,6 @@ describe('<Results /> Component', () => {
   const renderComponent = (props) => mount(<Results {...props} />);
 
   const defaultProps = {
-    actions: {
-      fetchCurrentLineupsAndRelated: () => ({}),
-    },
     dispatch: () => ({}),
     hasRelatedInfo: true,
     params: {
@@ -26,9 +23,18 @@ describe('<Results /> Component', () => {
     route: {
       path: '',
     },
+    routerPush: () => true,
     results: { isLoading: true },
     myCurrentLineupsSelector: {},
     liveContestsSelector: {},
+    fetchUpcomingDraftGroupsInfo: () => true,
+    fetchUpcomingLineups: () => true,
+    fetchContestPoolEntries: () => true,
+    fetchContestPools: () => true,
+    fetchCurrentLineupsAndRelated: () => true,
+    fetchResultsIfNeeded: () => true,
+    upcominglineupsInfo: {},
+    upcomingLineups: {},
     resultsWithLive: {
       lineups: [],
       overall: {

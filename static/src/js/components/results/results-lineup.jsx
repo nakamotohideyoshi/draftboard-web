@@ -94,7 +94,8 @@ const ResultsLineup = React.createClass({
 
   renderLineup() {
     const { sport } = this.props;
-    const isLive = this.props.hasOwnProperty('liveStats');
+    // const isLive = this.props.hasOwnProperty('liveStats');
+    const isLive = this.props.isWatchingLive;
     const isUpcoming = isTimeInFuture(this.props.start);
     const isFinished = this.props.hasOwnProperty('stats');
 
