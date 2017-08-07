@@ -311,8 +311,10 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         # fill with 0s for every player in the draft group first
         for stats_model in player_stats_models:
-            for draft_group_player in Player.objects.filter(
-                    draft_group=draft_group).prefetch_related('salary_player__player__position'):
+            # These are draftgroup.Player models!
+            draft_group_players = Player.objects.filter(
+                draft_group=draft_group).prefetch_related('salary_player__player__position')
+            for draft_group_player in draft_group_players:
                 data[draft_group_player.player_id] = {
                     stats_model.field_id: draft_group_player.player_id,
                     stats_model.field_fp: 0.0,
@@ -321,7 +323,8 @@ class DraftGroupManager(AbstractDraftGroupManager):
 
         # then add the stats for the existing player stats objects
         for stats_model in player_stats_models:
-            for player_stat_obj in stats_model.objects.filter(srid_game__in=game_srids):
+            for player_stat_obj in stats_model.objects.filter(
+                    srid_game__in=game_srids).select_related('position'):
                 # l.append( player_stat_obj.to_json() )
                 data[player_stat_obj.player_id] = player_stat_obj.to_score()
 
