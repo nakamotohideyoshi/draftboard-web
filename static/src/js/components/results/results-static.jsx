@@ -2,8 +2,7 @@ import React from 'react';
 import ResultsHeader from './results-header.jsx';
 import ResultsLineups from './results-lineups.jsx';
 import ResultsStats from './results-stats.jsx';
-import LineupCard from '../lineup/lineup-card';
-import find from 'lodash/find';
+import { isTimeInFuture } from '../../lib/utils';
 
 
 /*
@@ -17,36 +16,23 @@ const ResultsStatic = (props) => {
     dayResults = props.resultsWithLive || null;
   }
 
-  const upcomingLineups = [];
-  let liveLineups = [];
+
+  let liveLineupsComponent = [];
 
   // Live lineups.
   if (props.currentLineups) {
-    liveLineups = (
+    // currentLineups contains upcoming lineups. We don't want to show them on the results page
+    // so let's strip out any lineups that haven't started yet.
+    const liveLineups = props.currentLineups.filter((lineup) => !isTimeInFuture(lineup.start));
+
+    liveLineupsComponent = (
       <ResultsLineups
         isWatchingLive
-        lineups={props.currentLineups}
+        lineups={liveLineups}
         fetchEntryResults={props.fetchEntryResults}
       />
     );
   }
-
-  Object.keys(props.upcomingLineups).forEach((key) => {
-    const lineup = props.upcomingLineups[key];
-    const lineupInfo = find(props.upcominglineupsInfo, { id: lineup.id });
-    const draftGroupInfo = find(props.draftGroupInfo.draftGroups, { pk: lineup.draft_group });
-
-    if (lineup && lineupInfo) {
-      upcomingLineups.push(
-        <LineupCard
-          lineup={lineup}
-          lineupInfo={lineupInfo}
-          onCardClick={() => null}
-          draftGroupInfo={draftGroupInfo}
-        />
-      );
-    }
-  });
 
   let statsAndLineups;
   if (dayResults !== null) {
@@ -87,14 +73,7 @@ const ResultsStatic = (props) => {
       <div key="live-lineups">
         <h3>Live Lineups</h3>
         <div className="results-page--lineups">
-          {liveLineups}
-        </div>
-      </div>
-
-      <div key="upcoming-lineups">
-        <h3>Upcoming Lineups</h3>
-        <div className="results-page--lineups">
-          {upcomingLineups}
+          {liveLineupsComponent}
         </div>
       </div>
     </div>
@@ -115,8 +94,6 @@ ResultsStatic.propTypes = {
   resultsWithLive: React.PropTypes.object.isRequired,
   watchLiveLineups: React.PropTypes.func,
   fetchEntryResults: React.PropTypes.func.isRequired,
-  upcominglineupsInfo: React.PropTypes.object,
-  upcomingLineups: React.PropTypes.array,
   draftGroupInfo: React.PropTypes.object,
   currentLineups: React.PropTypes.array,
 };

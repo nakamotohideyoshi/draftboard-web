@@ -7,14 +7,12 @@ import store from '../../store';
 import uniqBy from 'lodash/uniqBy';
 import { dateNow } from '../../lib/utils';
 import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
-import { fetchUpcomingLineups } from '../../actions/upcoming-lineup-actions';
 import { fetchResultsIfNeeded, fetchEntryResults } from '../../actions/results';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
 import { push as routerPush } from 'react-router-redux';
 import { resultsWithLive } from '../../selectors/results-with-live';
-import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
 import { Router, Route, browserHistory } from 'react-router';
 import { sportsSelector } from '../../selectors/sports';
 import { syncHistoryWithStore } from 'react-router-redux';
@@ -22,9 +20,7 @@ import { updateLiveMode } from '../../actions/watching';
 import { lineupsHaveRelatedInfoSelector } from '../../selectors/current-lineups';
 import { fetchContestPools } from '../../actions/contest-pool-actions';
 import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
-import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport';
 import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector';
-import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions';
 import { checkForLiveUpdatesResultsPage } from '../../actions/watching';
 
 
@@ -40,14 +36,11 @@ const mapStateToProps = (state) => ({
   results: state.results,
   resultsWithLive: resultsWithLive(state),
   sportsSelector: sportsSelector(state),
-  upcominglineupsInfo: upcomingLineupsInfo(state),
-  upcomingLineups: lineupsBySportSelector(state),
   draftGroupInfo: draftGroupInfoSelector(state),
 });
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
     updateLiveMode: (changedFields) => dispatch(updateLiveMode(changedFields)),
     fetchResultsIfNeeded: (when) => dispatch(fetchResultsIfNeeded(when)),
     fetchCurrentLineupsAndRelated: (force) => dispatch(fetchCurrentLineupsAndRelated(force)),
@@ -55,7 +48,6 @@ function mapDispatchToProps(dispatch) {
     fetchEntryResults: (entryId) => fetchEntryResults(entryId),
     fetchContestPools: () => dispatch(fetchContestPools()),
     fetchContestPoolEntries: () => dispatch(fetchContestPoolEntries()),
-    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
     checkForLiveUpdatesResultsPage: () => dispatch(checkForLiveUpdatesResultsPage()),
   };
 }
@@ -75,7 +67,6 @@ export const Results = React.createClass({
     liveContestsSelector: React.PropTypes.object.isRequired,
     resultsWithLive: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
-    fetchUpcomingLineups: React.PropTypes.func.isRequired,
     updateLiveMode: React.PropTypes.func.isRequired,
     fetchResultsIfNeeded: React.PropTypes.func.isRequired,
     fetchEntryResults: React.PropTypes.func.isRequired,
@@ -83,10 +74,7 @@ export const Results = React.createClass({
     fetchCurrentLineupsAndRelated: React.PropTypes.func.isRequired,
     fetchContestPools: React.PropTypes.func.isRequired,
     fetchContestPoolEntries: React.PropTypes.func.isRequired,
-    upcominglineupsInfo: React.PropTypes.object.isRequired,
-    upcomingLineups: React.PropTypes.array.isRequired,
     draftGroupInfo: React.PropTypes.object,
-    fetchUpcomingDraftGroupsInfo: React.PropTypes.func.isRequired,
     checkForLiveUpdatesResultsPage: React.PropTypes.func.isRequired,
   },
 
@@ -108,12 +96,9 @@ export const Results = React.createClass({
    * Once we have access to URL, check and update to date if it exists
    */
   componentWillMount() {
-    // get any upcoming lineups, with their entry info.
-    this.props.fetchUpcomingDraftGroupsInfo();
-    this.props.fetchUpcomingLineups();
+    // get live lineups (this will fetch necessary related info also).
     this.props.fetchContestPoolEntries();
     this.props.fetchContestPools();
-    // get live lineups (this will fetch necessary related info also).
     this.props.fetchCurrentLineupsAndRelated(true);
     // Fetch live lineup updates every minute.
     window.setInterval(this.props.checkForLiveUpdatesResultsPage, 1000 * 60);
@@ -217,8 +202,6 @@ export const Results = React.createClass({
           date={this.state}
           watchLiveLineups={this.watchLiveLineups}
           fetchEntryResults={(entryId) => this.props.fetchEntryResults(entryId)}
-          upcominglineupsInfo={this.props.upcominglineupsInfo}
-          upcomingLineups={this.props.upcomingLineups}
           draftGroupInfo={this.props.draftGroupInfo}
           currentLineups={this.props.resultsWithLive.lineups}
         />
