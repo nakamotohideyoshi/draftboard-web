@@ -12,8 +12,9 @@ import createStoreWithMiddleware from './middleware/index';
 import reducers from './reducers/index';
 
 const liveSubstates = [
-  'currentLineups',
-  'liveContests',
+  // Disable caching of these as they are goofing with results section stuff.
+  // 'currentLineups',
+  // 'liveContests',
   'liveDraftGroups',
   'livePlayers',
   'prizes',
@@ -21,7 +22,6 @@ const liveSubstates = [
 
 /**
  * Method called each time redux state is saved, and saves `subset` to localStorage
- * @param  {object} ) Redux state
  * @return {object}   Object to store to localStorage
  */
 const slicer = () => (state) => {
