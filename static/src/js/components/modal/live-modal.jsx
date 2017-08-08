@@ -2,8 +2,10 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
+import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
 import AppStateStore from '../../stores/app-state-store.js';
 import Modal from './modal.jsx';
+// import log from '../../lib/logging';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 // import Cookies from 'js-cookie';
@@ -12,16 +14,33 @@ const { Provider, connect } = ReactRedux;
 
 const mapStateToProps = (state) => ({
   start: state.draftGroupPlayers.sport,
+  entries: state.contestPoolEntries,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  fetchContestPoolEntries: () => dispatch(fetchContestPoolEntries()),
 });
 
 const LiveModal = React.createClass({
+  propTypes: {
+    onClose: React.PropTypes.func,
+    showCloseButton: React.PropTypes.bool,
+    entries: React.PropTypes.object,
+    fetchContestPoolEntries: React.PropTypes.func,
+  },
   defaultProps: {
     showCloseButton: true,
   },
-  propTypes: {
-    // sport: React.PropTypes.string.required,
-    onClose: React.PropTypes.func,
-    showCloseButton: React.PropTypes.bool,
+  componentWillMount() {
+    // TODO: will need to check cookie id with current event
+    this.props.fetchContestPoolEntries();
+    // log.info({`{ $this.props.entries }`});
+
+    this.setState({
+      isOpen: false,
+    });
+
+    // log.info({entries});
   },
   onClose() {
     this.setState({
@@ -34,11 +53,6 @@ const LiveModal = React.createClass({
       isOpen: true,
     });
     AppStateStore.modalOpened();
-  },
-  componentWillMount() {
-    this.setState({
-      isOpen: false,
-    });
   },
   render() {
     return (
@@ -60,7 +74,8 @@ const LiveModal = React.createClass({
 });
 
 export const LiveConnected = connect(
-  mapStateToProps
+  mapStateToProps,
+  mapDispatchToProps
 )(LiveModal);
 
 const history = syncHistoryWithStore(browserHistory, store);
