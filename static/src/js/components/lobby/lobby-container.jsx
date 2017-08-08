@@ -159,7 +159,9 @@ const LobbyContainer = React.createClass({
     this.listenToSockets();
   },
 
-
+  componentDidMount() {
+    this.props.updateOrderByFilter('name', 'asc');
+  },
   componentWillReceiveProps(nextProps) {
     // If we've fetched the user's lineups, and none exist, show a message.
     if (nextProps.hasFetchedLineups && Object.keys(nextProps.lineupsInfo).length === 0) {

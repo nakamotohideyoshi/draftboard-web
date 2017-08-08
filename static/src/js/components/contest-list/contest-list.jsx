@@ -58,25 +58,25 @@ const ContestList = (props) => {
         <tr className="cmp-contest-list__header-row">
           <th
             className="table__sortable"
-            onClick={props.setOrderBy.bind(null, 'sport')}
+            // onClick={props.setOrderBy.bind(null, 'sport')}
           >&nbsp;</th>
           <th
             className="table__sortable"
-            onClick={props.setOrderBy.bind(null, 'name')}
+            // onClick={props.setOrderBy.bind(null, 'name')}
           >Contest Type</th>
           <th>Details</th>
           <th
             className="table__sortable"
-            onClick={props.setOrderBy.bind(null, 'prize_pool')}
+            // onClick={props.setOrderBy.bind(null, 'prize_pool')}
           >Prizes</th>
           <th
             className="table__sortable"
-            onClick={props.setOrderBy.bind(null, 'entries')}
+            // onClick={props.setOrderBy.bind(null, 'entries')}
           >Entries</th>
           <th>My Entries</th>
           <th
             className="table__sortable"
-            onClick={props.setOrderBy.bind(null, 'start')}
+            // onClick={props.setOrderBy.bind(null, 'start')}
           >Live In</th>
 
           <th>&nbsp;</th>
