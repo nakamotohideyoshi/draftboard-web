@@ -45,7 +45,7 @@ function mapDispatchToProps(dispatch) {
     fetchResultsIfNeeded: (when) => dispatch(fetchResultsIfNeeded(when)),
     fetchCurrentLineupsAndRelated: (force) => dispatch(fetchCurrentLineupsAndRelated(force)),
     routerPush: (path) => dispatch(routerPush(path)),
-    fetchEntryResults: (entryId) => fetchEntryResults(entryId),
+    fetchEntryResults: (entryId) => dispatch(fetchEntryResults(entryId)),
     fetchContestPools: () => dispatch(fetchContestPools()),
     fetchContestPoolEntries: () => dispatch(fetchContestPoolEntries()),
     checkForLiveUpdatesResultsPage: () => dispatch(checkForLiveUpdatesResultsPage()),
