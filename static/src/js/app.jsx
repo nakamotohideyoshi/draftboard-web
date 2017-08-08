@@ -137,3 +137,6 @@ require('components/live/live');
 
 // Results
 require('components/results/results');
+
+// Live modal
+require('components/modal/live-modal');
