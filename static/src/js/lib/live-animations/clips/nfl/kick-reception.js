@@ -4,16 +4,13 @@ export const clip = {
   length: 13,
   registration_x: 90,
   registration_y: 84,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 96,
-      y: 32,
+      name: 'avatar',
       in: 13,
+      data: { x: 96, y: 32, in: 13, name: 'receiver' },
     },
   ],
-  data: {},
-  cuepoints: [],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/kick-reception-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/kick-reception-red.png'),

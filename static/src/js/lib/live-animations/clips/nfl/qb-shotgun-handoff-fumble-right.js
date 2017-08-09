@@ -4,16 +4,13 @@ export const clip = {
   length: 75,
   registration_x: 142,
   registration_y: 68,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 65,
-      y: 35,
+      name: 'avatar',
       in: 59,
+      data: { x: 65, y: 35, in: 59, name: 'receiver' },
     },
   ],
-  data: {},
-  cuepoints: [],
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-right-blue.png'),
