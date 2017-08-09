@@ -68,7 +68,7 @@ export default class KickReturnAnimation extends LiveAnimation {
     // Kick the ball
     sequence.push(() => {
       const animation = new FlightArrowAnimation();
-      const arc = recap.playType() === NFLPlayRecapVO.KICKOFF ? 220 : 150;
+      const arc = 220;
       const duration = recap.playType() === NFLPlayRecapVO.KICKOFF ? 2 : 1.5;
       return animation.play(recap, field, kickPos, catchPos, {
         arc,
