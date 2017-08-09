@@ -1,0 +1,123 @@
+{
+  "name": "draftboard",
+  "scripts": {
+  },
+  "env": {
+    "CELERY_TASK_SERIALIZER": {
+      "required": true
+    },
+    "DJANGO_SETTINGS_MODULE": {
+      "required": true
+    },
+    "GIT_COMMIT_UUID": {
+      "required": true
+    },
+    "GUNICORN_MAX_REQUESTS": {
+      "required": true
+    },
+    "GUNICORN_TIMEOUT": {
+      "required": true
+    },
+    "GUNICORN_WORKERS": {
+      "required": true
+    },
+    "LOCKDOWN_PASSWORD": {
+      "required": true
+    },
+    "MONGO_AUTH_DB": {
+      "required": true
+    },
+    "MONGO_HOST": {
+      "required": true
+    },
+    "MONGO_PASSWORD": {
+      "required": true
+    },
+    "MONGO_PORT": {
+      "required": true
+    },
+    "MONGO_SERVER_ADDRESS": {
+      "required": true
+    },
+    "MONGO_USER": {
+      "required": true
+    },
+    "NEW_RELIC_APP_NAME": "Draftboard - Pipeline App",
+    "NEW_RELIC_LICENSE_KEY": {
+      "required": true
+    },
+    "NEW_RELIC_LOG": {
+      "required": true
+    },
+    "PAYPAL_CLIENT_ID": {
+      "required": true
+    },
+    "PAYPAL_REST_API_BASE": {
+      "required": true
+    },
+    "PAYPAL_SECRET": {
+      "required": true
+    },
+    "PUSHER_APP_ID": {
+      "required": true
+    },
+    "PUSHER_ENABLED": {
+      "required": true
+    },
+    "PUSHER_KEY": {
+      "required": true
+    },
+    "PUSHER_SECRET": {
+      "required": true
+    },
+    "PUSHER_SOCKET_URL": {
+      "required": true
+    },
+    "PUSHER_URL": {
+      "required": true
+    },
+    "PYTHONUNBUFFERED": {
+      "required": true
+    },
+    "REDISCLOUD_URL": {
+      "required": true
+    },
+    "REDISCLOUD_URL_CELERY": {
+      "required": true
+    },
+    "SENTRY_DSN": {
+      "required": true
+    },
+    "SLACK_UPDATES": {
+      "required": true
+    },
+    "TRULIOO_API_BASE_URL": {
+      "required": true
+    },
+    "TRULIOO_PASSWORD": {
+      "required": true
+    },
+    "TRULIOO_USER": {
+      "required": true
+    },
+    "USE_LOCKDOWN": {
+      "required": true
+    },
+    "VZERO_ACCESS_TOKEN": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "addons": [
+    "heroku-postgresql",
+    "pusher",
+    "rediscloud",
+    "heroku-redis"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
