@@ -41,7 +41,7 @@ const PlayerPmrHeadshotComponent = (props) => {
   };
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <div className="circle">
         <span
           className={`cmp-lineup-card__photo ${block}__headshot ${block}__headshot--${sport}`}
