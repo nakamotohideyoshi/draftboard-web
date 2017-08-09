@@ -5,7 +5,7 @@ import createLogger from 'redux-logger';
 /**
  * Returns a default logging level based on environment
  *
- * @return {[type]} [description]
+ * @return {String} [description]
  */
 const getDefaultLevel = () => {
   const { NODE_ENV } = process.env;

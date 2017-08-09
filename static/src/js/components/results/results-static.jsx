@@ -2,6 +2,8 @@ import React from 'react';
 import ResultsHeader from './results-header.jsx';
 import ResultsLineups from './results-lineups.jsx';
 import ResultsStats from './results-stats.jsx';
+import { isTimeInFuture } from '../../lib/utils';
+
 
 /*
  * The overarching component for the results section.
@@ -14,10 +16,28 @@ const ResultsStatic = (props) => {
     dayResults = props.resultsWithLive || null;
   }
 
+
+  let liveLineupsComponent = [];
+
+  // Live lineups.
+  if (props.currentLineups) {
+    // currentLineups contains upcoming lineups. We don't want to show them on the results page
+    // so let's strip out any lineups that haven't started yet.
+    const liveLineups = props.currentLineups.filter((lineup) => !isTimeInFuture(lineup.start));
+
+    liveLineupsComponent = (
+      <ResultsLineups
+        isWatchingLive
+        lineups={liveLineups}
+        fetchEntryResults={props.fetchEntryResults}
+      />
+    );
+  }
+
   let statsAndLineups;
   if (dayResults !== null) {
     statsAndLineups = (
-      <div>
+      <div key="past-lineups">
         <ResultsStats stats={dayResults.overall} />
         <div className="results-page--data">
           <ResultsLineups
@@ -31,7 +51,7 @@ const ResultsStatic = (props) => {
   } else {
     // Show empty stats line to prevent rendering glitches.
     statsAndLineups = (
-      <div>
+      <div key="past-lineups">
         <ResultsStats />
       </div>
     );
@@ -47,7 +67,15 @@ const ResultsStatic = (props) => {
         onSelectDate={props.onSelectDate}
         watchLiveLineups={props.watchLiveLineups}
       />
+
       {statsAndLineups}
+
+      <div key="live-lineups">
+        <h3>Live Lineups</h3>
+        <div className="results-page--lineups">
+          {liveLineupsComponent}
+        </div>
+      </div>
     </div>
   );
 };
@@ -66,6 +94,8 @@ ResultsStatic.propTypes = {
   resultsWithLive: React.PropTypes.object.isRequired,
   watchLiveLineups: React.PropTypes.func,
   fetchEntryResults: React.PropTypes.func.isRequired,
+  draftGroupInfo: React.PropTypes.object,
+  currentLineups: React.PropTypes.array,
 };
 
 export default ResultsStatic;

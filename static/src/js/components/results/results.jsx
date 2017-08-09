@@ -18,6 +18,11 @@ import { sportsSelector } from '../../selectors/sports';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { updateLiveMode } from '../../actions/watching';
 import { lineupsHaveRelatedInfoSelector } from '../../selectors/current-lineups';
+import { fetchContestPools } from '../../actions/contest-pool-actions';
+import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
+import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector';
+import { checkForLiveUpdatesResultsPage } from '../../actions/watching';
+
 
 /*
  * Map selectors to the React component
@@ -26,12 +31,26 @@ import { lineupsHaveRelatedInfoSelector } from '../../selectors/current-lineups'
  */
 const mapStateToProps = (state) => ({
   hasRelatedInfo: lineupsHaveRelatedInfoSelector(state),
-  myCurrentLineupsSelector: myCurrentLineupsSelector(state),
+  currentLineups: myCurrentLineupsSelector(state),
   liveContestsSelector: liveContestsSelector(state),
   results: state.results,
   resultsWithLive: resultsWithLive(state),
   sportsSelector: sportsSelector(state),
+  draftGroupInfo: draftGroupInfoSelector(state),
 });
+
+function mapDispatchToProps(dispatch) {
+  return {
+    updateLiveMode: (changedFields) => dispatch(updateLiveMode(changedFields)),
+    fetchResultsIfNeeded: (when) => dispatch(fetchResultsIfNeeded(when)),
+    fetchCurrentLineupsAndRelated: (force) => dispatch(fetchCurrentLineupsAndRelated(force)),
+    routerPush: (path) => dispatch(routerPush(path)),
+    fetchEntryResults: (entryId) => dispatch(fetchEntryResults(entryId)),
+    fetchContestPools: () => dispatch(fetchContestPools()),
+    fetchContestPoolEntries: () => dispatch(fetchContestPoolEntries()),
+    checkForLiveUpdatesResultsPage: () => dispatch(checkForLiveUpdatesResultsPage()),
+  };
+}
 
 
 /*
@@ -40,15 +59,23 @@ const mapStateToProps = (state) => ({
 export const Results = React.createClass({
 
   propTypes: {
-    dispatch: React.PropTypes.func.isRequired,
     hasRelatedInfo: React.PropTypes.bool.isRequired,
     params: React.PropTypes.object,
     route: React.PropTypes.object,
     results: React.PropTypes.object.isRequired,
-    myCurrentLineupsSelector: React.PropTypes.object.isRequired,
+    currentLineups: React.PropTypes.object.isRequired,
     liveContestsSelector: React.PropTypes.object.isRequired,
     resultsWithLive: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
+    updateLiveMode: React.PropTypes.func.isRequired,
+    fetchResultsIfNeeded: React.PropTypes.func.isRequired,
+    fetchEntryResults: React.PropTypes.func.isRequired,
+    routerPush: React.PropTypes.func.isRequired,
+    fetchCurrentLineupsAndRelated: React.PropTypes.func.isRequired,
+    fetchContestPools: React.PropTypes.func.isRequired,
+    fetchContestPoolEntries: React.PropTypes.func.isRequired,
+    draftGroupInfo: React.PropTypes.object,
+    checkForLiveUpdatesResultsPage: React.PropTypes.func.isRequired,
   },
 
   /**
@@ -69,6 +96,14 @@ export const Results = React.createClass({
    * Once we have access to URL, check and update to date if it exists
    */
   componentWillMount() {
+    // get live lineups (this will fetch necessary related info also).
+    this.props.fetchContestPoolEntries();
+    this.props.fetchContestPools();
+    this.props.fetchCurrentLineupsAndRelated(true);
+    // Fetch live lineup updates every minute.
+    window.setInterval(this.props.checkForLiveUpdatesResultsPage, 1000 * 60);
+
+    // Now parse the URL params and fetch live & past lineups.
     const urlParams = this.props.params;
 
     if (urlParams.hasOwnProperty('year')) {
@@ -107,12 +142,12 @@ export const Results = React.createClass({
       this.props.hasRelatedInfo === true &&
       this.state.isWatchingLive === true
     ) {
-      this.props.dispatch(updateLiveMode({
+      this.props.updateLiveMode({
         sport: map(
           uniqBy(this.props.resultsWithLive.lineups, 'sport'),
           lineup => lineup.sport
         ),
-      }));
+      });
     }
   },
 
@@ -126,13 +161,13 @@ export const Results = React.createClass({
     };
 
     this.setState(newState);
-    this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));
+    this.props.fetchResultsIfNeeded(newState.formattedDate);
 
-    this.props.dispatch(routerPush(`/results/${year}/${month}/${day}/`));
+    this.props.routerPush(`/results/${year}/${month}/${day}/`);
   },
 
   watchLiveLineups() {
-    this.props.dispatch(fetchCurrentLineupsAndRelated(true));
+    this.props.fetchCurrentLineupsAndRelated(true);
 
     let theDate = new Date(dateNow());
 
@@ -154,7 +189,7 @@ export const Results = React.createClass({
 
     this.setState(newState);
 
-    this.props.dispatch(routerPush('/results/live-with-lineups/'));
+    this.props.routerPush('/results/live-with-lineups/');
   },
 
   render() {
@@ -166,7 +201,9 @@ export const Results = React.createClass({
           onSelectDate={this.handleSelectDate}
           date={this.state}
           watchLiveLineups={this.watchLiveLineups}
-          fetchEntryResults={(entryId) => this.props.dispatch(fetchEntryResults(entryId))}
+          fetchEntryResults={(entryId) => this.props.fetchEntryResults(entryId)}
+          draftGroupInfo={this.props.draftGroupInfo}
+          currentLineups={this.props.resultsWithLive.lineups}
         />
     );
   },
@@ -174,7 +211,8 @@ export const Results = React.createClass({
 
 // Wrap the component to inject dispatch and selected state into it.
 const ResultsConnected = connect(
-  mapStateToProps
+  mapStateToProps,
+  mapDispatchToProps
 )(Results);
 
 // Create an enhanced history that syncs navigation events with the store
@@ -191,3 +229,8 @@ renderComponent(
   </Provider>,
   '.results-page'
 );
+
+// // Export the React component (for easy testing).
+// module.exports = Results;
+// // Export the store-injected ReactRedux component.
+// export default ResultsConnected;

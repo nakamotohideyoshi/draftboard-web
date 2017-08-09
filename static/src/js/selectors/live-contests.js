@@ -1,5 +1,6 @@
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
+import pickBy from 'lodash/pickBy';
 import groupBy from 'lodash/groupBy';
 import log from '../lib/logging';
 import map from 'lodash/map';
@@ -138,12 +139,16 @@ export const liveContestsSelector = createSelector(
     gamesTimeRemainingSelector,
     prizesSelector,
   ],
-  (liveContests, liveContestPools, liveDraftGroups, gamesTimeRemaining, prizes) =>
-    mapValues(liveContests, (contest) => {
+  (liveContests, liveContestPools, liveDraftGroups, gamesTimeRemaining, prizes) => {
+    // Map some values and format things.
+    const formattedContests = mapValues(liveContests, (contest) => {
       logSelector.info('selectors.liveContestsSelector', contest.id);
 
-      // if the contest has not started, return nothing
-      if (!(contest.contestPoolId in liveContestPools)) return {};
+      // if the contest has not started, or we have not fetched info, return nothing
+      if (!(contest.contestPoolId in liveContestPools)) {
+        return {};
+      }
+
       const contestPool = liveContestPools[contest.contestPoolId];
 
       // if draft groups have not loaded yet, return nothing
@@ -188,5 +193,17 @@ export const liveContestsSelector = createSelector(
       logSelector.info('selectors.liveContestsSelector - DONE', contest.id, { rankedLineups, all });
 
       return all;
-    })
+    });
+
+    // Filter out any that we haven't actually fetched info for yet.
+    // We have to do this because the stupid reducer plugs them into the state as soon
+    // as they are requested, even though they have no info.
+    // filter(groupedByFP, (group) => group.length > 1)
+    return pickBy(formattedContests, (contest) =>
+        contest.hasOwnProperty('id') &&
+        contest.hasOwnProperty('lineups') &&
+        contest.hasOwnProperty('rankedLineups') &&
+        contest.hasOwnProperty('prize')
+    );
+  }
 );

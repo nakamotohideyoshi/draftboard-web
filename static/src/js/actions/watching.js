@@ -107,3 +107,21 @@ export const checkForUpdates = () => (dispatch, getState) => {
     }
   }
 };
+
+
+/**
+ * Look through each hof the currently live lineups and fetch their player stats and the
+ * draft group fantasy points so that we can update the live cards on the results page.
+ */
+export const checkForLiveUpdatesResultsPage = () => (dispatch, getState) => {
+  const state = getState();
+  const currentLineups = state.currentLineups.items;
+
+  // Fetch info for each of the player's currently live lineups.
+  forEach(currentLineups, (lineup) => {
+    if (lineup.hasOwnProperty('draftGroup')) {
+      dispatch(fetchPlayersStatsIfNeeded(parseInt(lineup.id, 10)));
+      dispatch(fetchDraftGroupFPIfNeeded(parseInt(lineup.draftGroup, 10)));
+    }
+  });
+};
