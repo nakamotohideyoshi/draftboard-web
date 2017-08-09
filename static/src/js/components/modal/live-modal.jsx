@@ -45,7 +45,7 @@ const LiveModal = React.createClass({
   propTypes: {
     onClose: React.PropTypes.func,
     showCloseButton: React.PropTypes.bool,
-    gamepools: React.PropTypes.array,
+    gamepools: React.PropTypes.object,
     fetchContestPoolEntries: React.PropTypes.func,
   },
 
@@ -56,9 +56,14 @@ const LiveModal = React.createClass({
   componentWillMount() {
     // TODO: will need to check cookie id with current event
     this.props.fetchContestPoolEntries();
+    this.interval = setInterval(() => {this.tick();}, 1500);
     this.setState({
       isOpen: true,
     });
+  },
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   },
 
   onClose() {
@@ -73,11 +78,16 @@ const LiveModal = React.createClass({
       if (entrypools.entries.hasOwnProperty(entryid)) {
         const sportasset = getArenaAsset(entrypools.entries[entryid].sport);
         const start = moment(entrypools.entries[entryid].start, moment.ISO_8601).format('h:mma');
-        log.info({ start });
-        log.info({ sportasset });
+        const entry = entrypools.entries[entryid];
+
+        return { sportasset, entry, start };
       }
     }
-    // moment(game.start, moment.ISO_8601).format('h:mma');
+  },
+
+  tick() {
+    const pools = this.getUpcomingGame(this.props.gamepools);
+    log.info({ pools });
   },
 
   isOpen() {
@@ -88,8 +98,6 @@ const LiveModal = React.createClass({
   },
 
   render() {
-    const pools = this.props.gamepools;
-    const game = this.getUpcomingGame(pools);
     return (
       <Modal
         showCloseBtn={this.props.showCloseButton}
@@ -100,7 +108,7 @@ const LiveModal = React.createClass({
         <div>
           <header className="cmp-modal__header">IT’S GAME TIME!</header>
           <div className="content">
-            <p>Your {game.sport} contest(s) is(are) starting! Follow all the
+            <p>Your  contest(s) is(are) starting! Follow all the
 action in our live section or head back to the
 lobby and draft a team for tomorrow's contests.</p>
           </div>
