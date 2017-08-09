@@ -73,10 +73,6 @@ export default class ClipWithAvatar {
     return this._clip.registrationY;
   }
 
-  get clipData() {
-    return this._clip.clipData;
-  }
-
   getElement() {
     return this._clip.getElement();
   }

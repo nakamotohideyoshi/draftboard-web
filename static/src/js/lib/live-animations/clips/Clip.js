@@ -27,9 +27,12 @@ export default class Clip {
         x = this.data.frame_width - x;
       }
       debugPoints.push([x * 0.5, avatarPos.y * 0.5, '#CCCCCC']);
+    });
 
-      if (this.clipData.pass) {
-        debugPoints.push([this.clipData.pass[0], this.clipData.pass[1], '#FFFF00']);
+    this.data.cuepoints.forEach(cuepoint => {
+      const { x, y } = cuepoint.data;
+      if (x && y) {
+        debugPoints.push([x * 0.5, y * 0.5, '#FF00FF']);
       }
     });
 
@@ -75,10 +78,6 @@ export default class Clip {
 
   get length() {
     return this.data.length;
-  }
-
-  get clipData() {
-    return this.data.data || {};
   }
 
   getFile(name) {
