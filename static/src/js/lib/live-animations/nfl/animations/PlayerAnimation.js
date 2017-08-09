@@ -77,7 +77,7 @@ export default class PlayerAnimation extends LiveAnimation {
       this._clip.flipH();
     }
 
-    if (window.is_debugging_live_animation) {
+    if (window.DEBUG_LIVE_ANIMATIONS_CLIPS) {
       this._clip.debug();
     }
 
