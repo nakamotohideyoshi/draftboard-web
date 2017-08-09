@@ -7,13 +7,13 @@ export const clip = {
   cuepoints: [
     {
       name: 'avatar',
-      in: 101,
-      data: { x: 141, y: 20, in: 101, name: 'quarterback' },
+      in: 84,
+      data: { x: 80, y: 20, in: 84, name: 'quarterback' },
     },
     {
       name: 'pass',
-      in: 102,
-      data: { x: 20, y: 20 },
+      in: 90,
+      data: { x: 80, y: 20 },
     },
   ],
   files: {
