@@ -5,16 +5,36 @@ import renderComponent from '../../lib/render-component';
 import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
 import AppStateStore from '../../stores/app-state-store.js';
 import Modal from './modal.jsx';
-// import log from '../../lib/logging';
+import log from '../../lib/logging';
+import moment from 'moment';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
+const { Provider, connect } = ReactRedux;
 // import Cookies from 'js-cookie';
 
-const { Provider, connect } = ReactRedux;
+const nbaarena = require('../../../img/blocks/live-animation-stage/nba-court.png');
+const nflarena = require('../../../img/blocks/live-animation-stage/nfl-field.png');
+const nhlarena = require('../../../img/blocks/live-animation-stage/nhl-rink.png');
+// const mlbarena = require('../../../img/blocks/live-animation-stage/mlb-field.png');
+
+const arenamap = [
+  { sport: 'nfl', asset: nflarena },
+  { sport: 'nba', asset: nbaarena },
+  { sport: 'nhl', asset: nhlarena },
+  // { sport: 'mlb', asset: mlbarena },
+];
+
+const getArenaAsset = (sport) => {
+  for (let i = 0; i < arenamap.length; i++) {
+    if (arenamap[i].sport === sport) {
+      return arenamap[i].asset;
+    }
+  }
+};
+
 
 const mapStateToProps = (state) => ({
-  start: state.draftGroupPlayers.sport,
-  entries: state.contestPoolEntries,
+  gamepools: state.contestPoolEntries,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -25,36 +45,51 @@ const LiveModal = React.createClass({
   propTypes: {
     onClose: React.PropTypes.func,
     showCloseButton: React.PropTypes.bool,
-    entries: React.PropTypes.object,
+    gamepools: React.PropTypes.array,
     fetchContestPoolEntries: React.PropTypes.func,
   },
+
   defaultProps: {
     showCloseButton: true,
   },
+
   componentWillMount() {
     // TODO: will need to check cookie id with current event
     this.props.fetchContestPoolEntries();
-    // log.info({`{ $this.props.entries }`});
-
     this.setState({
-      isOpen: false,
+      isOpen: true,
     });
-
-    // log.info({entries});
   },
+
   onClose() {
     this.setState({
       isOpen: false,
     });
     AppStateStore.modalClosed();
   },
+
+  getUpcomingGame(entrypools) {
+    for (const entryid in entrypools.entries) {
+      if (entrypools.entries.hasOwnProperty(entryid)) {
+        const sportasset = getArenaAsset(entrypools.entries[entryid].sport);
+        const start = moment(entrypools.entries[entryid].start, moment.ISO_8601).format('h:mma');
+        log.info({ start });
+        log.info({ sportasset });
+      }
+    }
+    // moment(game.start, moment.ISO_8601).format('h:mma');
+  },
+
   isOpen() {
     this.setState({
       isOpen: true,
     });
     AppStateStore.modalOpened();
   },
+
   render() {
+    const pools = this.props.gamepools;
+    const game = this.getUpcomingGame(pools);
     return (
       <Modal
         showCloseBtn={this.props.showCloseButton}
@@ -63,9 +98,11 @@ const LiveModal = React.createClass({
         className="live-notice"
       >
         <div>
-          <header className="cmp-modal__header">hello world</header>
-          <div className="cmp-draft-group-select">
-            <p>hello world</p>
+          <header className="cmp-modal__header">IT’S GAME TIME!</header>
+          <div className="content">
+            <p>Your {game.sport} contest(s) is(are) starting! Follow all the
+action in our live section or head back to the
+lobby and draft a team for tomorrow's contests.</p>
           </div>
         </div>
       </Modal>
