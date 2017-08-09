@@ -21,14 +21,17 @@ export default class Clip {
     ];
 
     this.data.cuepoints.forEach(cuepoint => {
-      let x = cuepoint.data;
-      const y = cuepoint.data.y;
-      if (x && y) {
-        if (this.isFlipped()) {
-          x = this.data.frame_width - x;
-        }
-        debugPoints.push([x * 0.5, y * 0.5, '#FF00FF']);
+      if (!cuepoint.data.x || !cuepoint.data.y) {
+        return;
       }
+
+      const color = cuepoint.name === 'avatar' ? '#EEEEEE' : '#FF00FF';
+
+      const x = !this.isFlipped()
+      ? cuepoint.data.x
+      : this.data.frame_width - cuepoint.data.x;
+
+      debugPoints.push([x * 0.5, cuepoint.data.y * 0.5, color]);
     });
 
     debugPoints.forEach((pt) => {
