@@ -16,8 +16,8 @@ export const clip = {
   cuepoints: [
     {
       name: 'catch',
-      in: 30,
-      data: { x: 20, y: 20 },
+      in: 31,
+      data: { x: 110, y: 10 },
     },
   ],
   files: {

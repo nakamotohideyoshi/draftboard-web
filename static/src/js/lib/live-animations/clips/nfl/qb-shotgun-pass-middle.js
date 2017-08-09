@@ -16,7 +16,7 @@ export const clip = {
     {
       name: 'pass',
       in: 87,
-      data: { x: 20, y: 20 },
+      data: { x: 90, y: 25 },
     },
   ],
   files: {
