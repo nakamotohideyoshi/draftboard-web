@@ -84,8 +84,8 @@ class MyUserAdmin(UserAdmin):
     actions = [sent_reset_password]
 
     # Don't let this be deleted via the admin panel
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
 
 admin.site.unregister(User)
