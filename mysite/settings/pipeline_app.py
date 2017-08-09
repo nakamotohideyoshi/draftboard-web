@@ -8,3 +8,5 @@ ENVIRONMENT_COLOR = "#9ea548"
 
 
 DEFAULT_FROM_EMAIL = 'support+PIPELINE@draftboard.com'
+
+PUSHER_CHANNEL_PREFIX = 'pipeline_app__'
