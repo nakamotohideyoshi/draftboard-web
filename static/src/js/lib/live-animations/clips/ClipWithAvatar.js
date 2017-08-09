@@ -94,25 +94,28 @@ export default class ClipWithAvatar {
   /**
    * ...
    */
-  play() {
-    // Play through the clip and the corresponding avatars chronologically
-    const sequences = this._avatars.map(avatar => () => {
-      const avatarIn = avatar.in;
-      const avatarEl = avatar.animation.getElement();
+  playAvatar(avatarName) {
+    const avatar = this._avatars.find(avatarData =>
+      avatarData.name === avatarName
+    );
 
-      // Play the clip to the avatar's "in" frame, then trigger the avatar's
-      // animation sequence.
-      return this._clip.playTo(avatarIn).then(() => {
-        this._clip.getElement().appendChild(avatarEl);
-        return avatar.animation.play();
-      }).then(() => {
-        this._clip.getElement().removeChild(avatarEl);
-        return avatar;
-      });
+    if (!avatar) {
+      return Promise.resolve();
+    }
+
+    const avatarEl = avatar.animation.getElement();
+    this._clip.getElement().appendChild(avatarEl);
+
+    return avatar.animation.play().then(() => {
+      this._clip.getElement().removeChild(avatarEl);
+      return avatar;
     });
+  }
 
-    return sequences.reduce((promise, fn) =>
-      promise.then(fn), Promise.resolve()
-    ).then(() => this._clip.playTo(this._clip.length));
+  /**
+   * ...
+   */
+  goto(frame) {
+    this._clip.goto(frame);
   }
 }

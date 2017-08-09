@@ -1,3 +1,4 @@
+import { Timeline } from '../../utils/animate';
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import { getKickReturnClip, getQBClip, getReceptionClip, getQBSackClip } from '../getClip';
@@ -48,6 +49,51 @@ export default class PlayerAnimation extends LiveAnimation {
     : recap.side();
   }
 
+  getSequence(from, clip, timeline) {
+    return {
+      from,
+      length: clip._data.length,
+      onUpdate: frame => {
+        for (let i = 0; i < clip._avatars.length; i++) {
+          const avatar = clip._avatars[i];
+          if (frame === avatar.in) {
+            timeline.pause();
+            clip.playAvatar(avatar.name).then(() => {
+              timeline.resume();
+              return clip;
+            });
+            break;
+          }
+        }
+        clip.goto(frame);
+      },
+    };
+  }
+
+  load(recap, field, type) {
+    this._clip = this.getPlayerClip(type, recap);
+
+    if (recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT) {
+      this._clip.flipH();
+    }
+
+    if (window.is_debugging_live_animation) {
+      this._clip.debug();
+    }
+
+    this._clip.setPlayers(recap.players(), 'nfl');
+
+    return this._clip.load(recap.whichSide()).then(() => {
+      // Set the X position to where the player snaps the ball
+      // by setting the initial position to the starting yard line.
+      const yardline = this.getYardline(type, recap);
+      const side = this.getSide(type, recap);
+      field.setYardLine(yardline);
+      field.addChildAtYardLine(this._clip.getElement(), yardline, side, this._clip.offsetX, this._clip.offsetY);
+      return this;
+    });
+  }
+
   /**
    * Plays the quarterback animation.
    * @param {NFLPlayRecapVO}   The recap data.
@@ -55,30 +101,10 @@ export default class PlayerAnimation extends LiveAnimation {
    * @return {Promise}
    */
   play(recap, field, type) {
-    const clip = this.getPlayerClip(type, recap);
-
-    if (recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT) {
-      clip.flipH();
-    }
-
-    clip.setPlayers(recap.players(), 'nfl');
-
-    return clip.load(recap.whichSide()).then(() => {
-      if (window.is_debugging_live_animation) {
-        clip.debug();
-      }
-
-      // Set the X position to where the player snaps the ball
-      // by setting the initial position to the starting yard line.
-      const yardline = this.getYardline(type, recap);
-
-      const side = this.getSide(type, recap);
-
-      field.setYardLine(yardline);
-
-      field.addChildAtYardLine(clip.getElement(), yardline, side, clip.offsetX, clip.offsetY);
-
-      return clip.play();
+    return this.load(recap, field, type).then(() => {
+      const timeline = new Timeline();
+      timeline.add(this.getSequence(1, this._clip, timeline));
+      return new Promise(resolve => timeline.play(resolve));
     });
   }
 }
