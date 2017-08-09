@@ -40,7 +40,7 @@
     "MONGO_USER": {
       "required": true
     },
-    "NEW_RELIC_APP_NAME": "Draftboard - Pipeline App",
+    "NEW_RELIC_APP_NAME": "Draftboard - Pipeline - Pipeline App",
     "NEW_RELIC_LICENSE_KEY": {
       "required": true
     },
@@ -77,18 +77,8 @@
     "PYTHONUNBUFFERED": {
       "required": true
     },
-    "REDISCLOUD_URL": {
-      "required": true
-    },
-    "REDISCLOUD_URL_CELERY": {
-      "required": true
-    },
-    "SENTRY_DSN": {
-      "required": true
-    },
-    "SLACK_UPDATES": {
-      "required": true
-    },
+    "SENTRY_DSN": "https://865d824ac2964ae78d16cdd5eec47643:9865cbbcb8ce4a03b9d97757885ed9e7@sentry.io/201877",
+    "SLACK_UPDATES": false,
     "TRULIOO_API_BASE_URL": {
       "required": true
     },
@@ -106,12 +96,14 @@
     }
   },
   "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "standard-1x"
+    }
   },
   "addons": [
     "heroku-postgresql",
-    "pusher",
-    "rediscloud",
-    "heroku-redis"
+    "rediscloud"
   ],
   "buildpacks": [
     {
