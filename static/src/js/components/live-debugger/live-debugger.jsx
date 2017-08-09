@@ -49,6 +49,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
 
   componentWillMount() {
     window.is_debugging_live_animation = true;
+    window.DEBUG_LIVE_ANIMATIONS_CLIPS = true;
   },
 
   componentDidMount() {
