@@ -15,6 +15,12 @@ export const clip = {
   data: {
     pass: [0, 0],
   },
+  cuepoints: [
+    {
+      name: 'pass',
+      in: 94,
+    },
+  ],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-right-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-right-red.png'),

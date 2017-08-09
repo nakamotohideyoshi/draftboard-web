@@ -13,6 +13,7 @@ export const clip = {
     },
   ],
   data: {},
+  cuepoints: [],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-red.png'),

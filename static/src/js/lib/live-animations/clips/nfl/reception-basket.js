@@ -13,6 +13,12 @@ export const clip = {
     },
   ],
   data: {},
+  cuepoints: [
+    {
+      name: 'catch',
+      in: 30,
+    },
+  ],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-red.png'),
