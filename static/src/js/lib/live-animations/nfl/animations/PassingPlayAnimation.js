@@ -1,6 +1,7 @@
+import { Timeline } from '../../utils/animate';
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import FlightArrowAnimation from './FlightArrowAnimation';
+import FlightArrow from '../graphics/FlightArrow';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
@@ -28,16 +29,10 @@ export default class PassingPlayAnimation extends LiveAnimation {
    * Returns the field position of the throw.
    */
   getThrowPos(recap, field) {
-    // Shotguns originate a little further back than default formations.
-    const xOffset = recap.playFormation() === 'shotgun' ? 0.05 : 0.04;
-
-    // Returns the position of the throw with a slight offset to account for
-    // the QB's hand position.
-    const x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
-    ? recap.startingYardLine() + xOffset
-    : recap.startingYardLine() - xOffset;
-
-    return { x, y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE) };
+    return {
+      x: recap.startingYardLine(),
+      y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE),
+    };
   }
 
   /**
@@ -58,9 +53,9 @@ export default class PassingPlayAnimation extends LiveAnimation {
    */
   getPassDuration(recap) {
     if (recap.passingYards() >= 0.4) {
-      return 1.8;
-    } else if (recap.passingYards() >= 0.3) {
       return 1.4;
+    } else if (recap.passingYards() >= 0.3) {
+      return 1.2;
     } else if (recap.passingYards() >= 0.2) {
       return 1;
     }
@@ -90,9 +85,64 @@ export default class PassingPlayAnimation extends LiveAnimation {
     };
   }
 
+  /**
+   * Returns a promise containing the QB, ball, and receiver animations.
+   */
+  animatePassToReceiver(recap, field) {
+    const quarterback = new PlayerAnimation();
+    const receiver = new PlayerAnimation();
+
+    const loadClips = () => Promise.all([
+      quarterback.load(recap, field, 'quarterback'),
+      receiver.load(recap, field, 'reception'),
+    ]);
+
+    return loadClips().then(() => {
+      const timeline = new Timeline();
+      const throwPos = this.getThrowPos(recap, field);
+      const catchPos = this.getCatchPos(recap, field);
+      const ballDuration = this.getPassDuration(recap) * 30;
+
+      const throwCP = quarterback._clip.clip.getCuepoint('pass');
+      const catchCP = receiver._clip.clip.getCuepoint('catch');
+
+      // Quarterback snaps the ball
+      timeline.add(quarterback.getSequence(1, quarterback._clip, timeline));
+
+      // Fly the ball
+      if (recap.passingYards() > 0.03) {
+        // TODO align ball position to catch/pass cuepoints. This is especially
+        // broken when the clip is flipped at the moment. Also make sure to consider
+        // interceptions - there registration point is behind the cuepoint's `x`
+        const ballStart = throwPos;
+        ballStart.x -= field.pixelsToYards(quarterback._clip.clip.registrationX - throwCP.data.x * 0.5);
+
+        const ballEnd = catchPos;
+        ballEnd.x -= field.pixelsToYards(receiver._clip.clip.registrationX - catchCP.data.x * 0.5);
+
+        const ball = new FlightArrow(field, ballStart, ballEnd, this.getPassArc(recap), 0, 0);
+        ball.progress = 0;
+        field.addChild(ball.el, 0, 0, 30);
+
+        timeline.add({
+          from: throwCP.in,
+          length: ballDuration,
+          onUpdate: (frame, len) => (ball.progress = frame / len),
+        });
+      }
+
+      // Receiver catches ball.
+      const catchIn = throwCP.in + ballDuration - catchCP.in + 1;
+      timeline.add(receiver.getSequence(catchIn, receiver._clip, timeline));
+
+      return new Promise(resolve => {
+        timeline.play(resolve);
+      });
+    });
+  }
+
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
-    const throwPos = this.getThrowPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
     const downPos = this.getDownPos(recap, field);
     const sequence = [];
@@ -104,28 +154,10 @@ export default class PassingPlayAnimation extends LiveAnimation {
       return animation.play(recap, field, snapPos.x, color);
     });
 
-    // Snap the ball
-    sequence.push(() => {
-      const animation = new PlayerAnimation();
-      return animation.play(recap, field, 'quarterback');
-    });
-
-    // Throw the ball (but only if it's more than a few yards)
-    if (recap.passingYards() > 0.03) {
-      sequence.push(() => {
-        const animation = new FlightArrowAnimation();
-        return animation.play(recap, field, throwPos, catchPos, {
-          arc: this.getPassArc(recap),
-          duration: this.getPassDuration(recap),
-        });
-      });
-    }
-
-    // Catch the ball
-    sequence.push(() => {
-      const animation = new PlayerAnimation();
-      return animation.play(recap, field, 'reception');
-    });
+    // Pass and catch the ball
+    sequence.push(() =>
+      this.animatePassToReceiver(recap, field)
+    );
 
     if (recap.isIncompletePass()) {
       sequence.push(() => {
