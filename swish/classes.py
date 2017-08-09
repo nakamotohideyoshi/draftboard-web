@@ -333,10 +333,10 @@ class RotoWire(object):
             data['Player']['LastName'] = update_data.get('LastName')
             if self.sport == 'mlb':
                 data['Player']['Injury'] = {}
-                data['Player']['Injury']['Status'] = update_data.get('InjuryStatus')
+                data['Player']['Injury']['Status'] = update_data.get('Injury').get('Status')
             else:
                 data['Injury'] = {}
-                data['Injury']['Status'] = update_data.get('InjuryStatus')
+                data['Injury']['Status'] = update_data.get('Injury').get('Status')
             self.updates.append(UpdateData(data))
 
         logger.info('%s UpdateData(s)' % len(self.updates))
