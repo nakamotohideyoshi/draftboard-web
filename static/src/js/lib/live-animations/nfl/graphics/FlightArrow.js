@@ -14,8 +14,8 @@ export default class FlightArrow {
       y: endPt.y - endOffsetY,
     };
 
-    const arrowPoints = this.getPoints(field, startPtWithOffset, endPtWithOffset);
-    const shadowPoints = this.getPoints(field, startPt, endPt);
+    const arrowPoints = this.getPoints(startPtWithOffset, endPtWithOffset);
+    const shadowPoints = this.getPoints(startPt, endPt);
 
     this._progress = 1;
     this._start = startPt;
@@ -28,12 +28,12 @@ export default class FlightArrow {
     this.path.setAttribute('d', this.getPath(arrowPoints, arc));
     this.path.setAttribute('style', 'fill:#dedede; fill-opacity:0.75');
     this.path.setAttribute('mask', 'url(#mask)');
-    this.path.setAttribute('transform', 'translate(0, -25)');
+    this.path.setAttribute('transform', 'translate(0,0)');
 
     this.shadow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     this.shadow.setAttribute('d', this.getPath(shadowPoints, -(arc * 0.5)));
     this.shadow.setAttribute('style', 'fill:#000;fill-opacity:.1;');
-    this.shadow.setAttribute('transform', 'translate(-2,0)');
+    this.shadow.setAttribute('transform', 'translate(-2, 20)');
     this.shadow.setAttribute('mask', 'url(#mask)');
 
     this.maskRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -84,25 +84,25 @@ export default class FlightArrow {
    * Returns an array of x,y pairs describing all points neccessary to
    * create the arrow.
    */
-  getPoints(field, ptA, ptB) {
-    const thickness = 0.03;
-    const taper = 0.01;
+  getPoints(ptA, ptB) {
+    const thickness = 4;
+    const taper = 1;
     const arcX = ptA.x + (ptB.x - ptA.x) * 0.5;
     const arcY = ptA.y + (ptB.y - ptA.y) * 0.5;
 
     return {
       // Top left
-      tl: field.getFieldPos(ptA.x, ptA.y - thickness * 0.5),
+      tl: { x: ptA.x, y: ptA.y - thickness * 0.5 },
       // Top right
-      tr: field.getFieldPos(ptB.x, ptB.y - thickness * 0.5),
+      tr: { x: ptB.x, y: ptB.y - thickness * 0.5 },
       // Top control point
-      tcp: field.getFieldPos(arcX, arcY - thickness * 0.5),
+      tcp: { x: arcX, y: arcY - thickness * 0.5 },
       // Bottom right
-      br: field.getFieldPos(ptB.x, ptB.y + taper * 0.5),
+      br: { x: ptB.x, y: ptB.y + taper * 0.5 },
       // Bottom left
-      bl: field.getFieldPos(ptA.x, ptA.y + taper * 0.5),
+      bl: { x: ptA.x, y: ptA.y + taper * 0.5 },
       // Bottom control point
-      bcp: field.getFieldPos(arcX, arcY + thickness * 0.5),
+      bcp: { x: arcX, y: arcY + thickness * 0.5 },
     };
   }
 
