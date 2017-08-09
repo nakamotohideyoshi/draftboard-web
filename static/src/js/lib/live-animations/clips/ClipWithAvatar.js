@@ -14,11 +14,9 @@ export default class ClipWithAvatar {
   }
 
   setPlayers(players, sport) {
-    console.log('setPlayers');
     const getAvatarData = name => {
       const cp = this._data.cuepoints.find(cuepoint => cuepoint.data.name === name);
       if (cp) {
-        console.log('FOUND!');
         return cp.data;
       }
       return null;
