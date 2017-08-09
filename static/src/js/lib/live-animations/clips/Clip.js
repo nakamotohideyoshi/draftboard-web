@@ -4,7 +4,6 @@ export default class Clip {
 
   constructor(data) {
     this.data = data;
-    this._curFrame = 1;
     this.sprite = new Sprite();
 
     this._el = document.createElement('SPAN');
@@ -106,25 +105,19 @@ export default class Clip {
   }
 
   load(file = 'mine') {
-    this._curFrame = 1;
     const fileUri = this.getFile(file);
     return this.sprite.load(fileUri, this.frameWidth, this.frameHeight).then(
-      () => this._el.appendChild(this.sprite.getElement())
+      () => {
+        this._el.appendChild(this.sprite.getElement());
+        return this.sprite.goto(1);
+      }
     );
   }
 
   /**
-   * Plays the clip to the specified frame. Optionally it can be started from
-   * a specified frame.
+   * Move the playhead to the specified frame.
    */
-  playTo(stop = -1, start = -1) {
-    const stopFrame = stop === -1 ? this.length : stop;
-    const startFrame = start === -1 ? this._curFrame : start;
-
-    // Record the final frame as the clip's current frame. This allows the clip
-    // to be resumed.
-    this._curFrame = stop;
-
-    return this.sprite.playOnce(startFrame, stopFrame).then(() => this);
+  goto(frame) {
+    this.sprite.goto(frame);
   }
 }
