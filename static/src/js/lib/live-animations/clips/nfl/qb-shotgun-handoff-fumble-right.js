@@ -13,6 +13,7 @@ export const clip = {
     },
   ],
   data: {},
+  cuepoints: [],
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-right-blue.png'),

@@ -86,6 +86,13 @@ export default class Clip {
     return this.data.files[name];
   }
 
+  /**
+   * Returns the Cuepoint with the provided name.
+   */
+  getCuepoint(name) {
+    return this.data.cuepoints.find(cuepoint => cuepoint.name === name);
+  }
+
   getElement() {
     return this._el;
   }

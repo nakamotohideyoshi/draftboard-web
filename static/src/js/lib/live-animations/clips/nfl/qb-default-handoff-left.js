@@ -13,6 +13,7 @@ export const clip = {
     },
   ],
   data: {},
+  cuepoints: [],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-left-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-left-red.png'),

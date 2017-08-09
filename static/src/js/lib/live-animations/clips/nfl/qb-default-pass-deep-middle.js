@@ -15,6 +15,12 @@ export const clip = {
   data: {
     pass: [20, 20],
   },
+  cuepoints: [
+    {
+      name: 'pass',
+      in: 104,
+    },
+  ],
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-deep-middle-blue.png'),

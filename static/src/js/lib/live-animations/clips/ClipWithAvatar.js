@@ -62,6 +62,9 @@ export default class ClipWithAvatar {
     this._clip.flipH();
   }
 
+  get clip() {
+    return this._clip;
+  }
   get offsetX() {
     return this._clip.registrationX;
   }

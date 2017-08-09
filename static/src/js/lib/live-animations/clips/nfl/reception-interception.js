@@ -12,7 +12,12 @@ export const clip = {
       in: 30,
     },
   ],
-  data: {},
+  cuepoints: [
+    {
+      name: 'catch',
+      in: 30,
+    },
+  ],
   files: {
     both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
   },
