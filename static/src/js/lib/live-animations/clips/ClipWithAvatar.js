@@ -14,9 +14,15 @@ export default class ClipWithAvatar {
   }
 
   setPlayers(players, sport) {
-    const getAvatarData = name => (
-      this._data.avatars.find(avatar => avatar.name === name) || null
-    );
+    console.log('setPlayers');
+    const getAvatarData = name => {
+      const cp = this._data.cuepoints.find(cuepoint => cuepoint.data.name === name);
+      if (cp) {
+        console.log('FOUND!');
+        return cp.data;
+      }
+      return null;
+    };
 
     // Create a collection of PlayerAvatars based on the provided recap
     // and clip. Only player types defined in both the clip and recap result in

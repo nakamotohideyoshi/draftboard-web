@@ -4,16 +4,13 @@ export const clip = {
   length: 63,
   registration_x: 148,
   registration_y: 80,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 74,
-      y: 12,
+      name: 'avatar',
       in: 44,
+      data: { x: 74, y: 12, in: 44, name: 'receiver' },
     },
   ],
-  data: {},
-  cuepoints: [],
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-left-blue.png'),

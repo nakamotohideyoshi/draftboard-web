@@ -4,16 +4,13 @@ export const clip = {
   length: 79,
   registration_x: 134,
   registration_y: 72,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 66,
-      y: 24,
+      name: 'avatar',
       in: 52,
+      data: { x: 66, y: 24, in: 52, name: 'receiver' },
     },
   ],
-  data: {},
-  cuepoints: [],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-right-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-right-red.png'),

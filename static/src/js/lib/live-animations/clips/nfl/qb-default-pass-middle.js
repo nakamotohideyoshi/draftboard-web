@@ -4,15 +4,12 @@ export const clip = {
   length: 102,
   registration_x: 160,
   registration_y: 72,
-  avatars: [
-    {
-      name: 'quarterback',
-      x: 142,
-      y: 26,
-      in: 30,
-    },
-  ],
   cuepoints: [
+    {
+      name: 'avatar',
+      in: 101,
+      data: { x: 142, y: 26, in: 30, name: 'quarterback' },
+    },
     {
       name: 'pass',
       in: 102,

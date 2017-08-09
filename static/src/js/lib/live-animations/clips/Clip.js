@@ -20,18 +20,13 @@ export default class Clip {
       [this.registrationX, this.registrationY, '#00FF00'],
     ];
 
-    this.data.avatars.forEach(avatarPos => {
-      let x = avatarPos.x;
-
-      if (this.isFlipped()) {
-        x = this.data.frame_width - x;
-      }
-      debugPoints.push([x * 0.5, avatarPos.y * 0.5, '#CCCCCC']);
-    });
-
     this.data.cuepoints.forEach(cuepoint => {
-      const { x, y } = cuepoint.data;
+      let x = cuepoint.data;
+      const y = cuepoint.data.y;
       if (x && y) {
+        if (this.isFlipped()) {
+          x = this.data.frame_width - x;
+        }
         debugPoints.push([x * 0.5, y * 0.5, '#FF00FF']);
       }
     });
