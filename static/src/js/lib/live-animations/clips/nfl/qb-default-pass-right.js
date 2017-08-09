@@ -12,13 +12,11 @@ export const clip = {
       in: 30,
     },
   ],
-  data: {
-    pass: [0, 0],
-  },
   cuepoints: [
     {
       name: 'pass',
       in: 94,
+      data: { x: 20, y: 20 },
     },
   ],
   files: {
