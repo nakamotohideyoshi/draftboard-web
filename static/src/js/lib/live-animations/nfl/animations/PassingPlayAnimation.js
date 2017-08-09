@@ -115,10 +115,15 @@ export default class PassingPlayAnimation extends LiveAnimation {
         // broken when the clip is flipped at the moment. Also make sure to consider
         // interceptions - there registration point is behind the cuepoint's `x`
         const ballStart = throwPos;
-        ballStart.x -= field.pixelsToYards(quarterback._clip.clip.registrationX - throwCP.data.x * 0.5);
-
         const ballEnd = catchPos;
-        ballEnd.x -= field.pixelsToYards(receiver._clip.clip.registrationX - catchCP.data.x * 0.5);
+
+        if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
+          ballStart.x -= field.pixelsToYards(quarterback._clip.clip.registrationX - throwCP.data.x * 0.5);
+          ballEnd.x -= field.pixelsToYards(receiver._clip.clip.registrationX - catchCP.data.x * 0.5);
+        } else {
+          ballStart.x += field.pixelsToYards(quarterback._clip.clip.registrationX + throwCP.data.x * 0.5);
+          ballEnd.x += field.pixelsToYards(receiver._clip.clip.registrationX - catchCP.data.x * 0.5);
+        }
 
         const ball = new FlightArrow(field, ballStart, ballEnd, this.getPassArc(recap), 0, 0);
         ball.progress = 0;
