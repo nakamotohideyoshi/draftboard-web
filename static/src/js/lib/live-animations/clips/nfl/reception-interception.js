@@ -7,16 +7,18 @@ export const clip = {
   cuepoints: [
     {
       name: 'avatar',
-      in: 29,
-      data: { x: 100, y: 30, in: 29, name: 'receiver' },
+      in: 36,
+      data: { x: 86, y: 30, in: 36, name: 'receiver' },
     },
     {
       name: 'catch',
-      in: 30,
-      data: { x: 20, y: 20 },
+      in: 34,
+      data: { x: 76, y: 20 },
     },
   ],
   files: {
+    mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
     both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
+    opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
   },
 };
