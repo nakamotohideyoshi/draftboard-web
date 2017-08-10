@@ -39,13 +39,11 @@ const ResultsStatic = (props) => {
     statsAndLineups = (
       <div key="past-lineups">
         <ResultsStats stats={dayResults.overall} />
-        <div className="results-page--data">
-          <ResultsLineups
-            isWatchingLive={isWatchingLive}
-            lineups={dayResults.lineups}
-            fetchEntryResults={props.fetchEntryResults}
-          />
-        </div>
+        <ResultsLineups
+          isWatchingLive={isWatchingLive}
+          lineups={dayResults.lineups}
+          fetchEntryResults={props.fetchEntryResults}
+        />
       </div>
     );
   } else {
@@ -67,13 +65,13 @@ const ResultsStatic = (props) => {
         onSelectDate={props.onSelectDate}
         watchLiveLineups={props.watchLiveLineups}
       />
-
-      {statsAndLineups}
-
-      <div key="live-lineups">
-        <h3>Live Lineups</h3>
-        <div className="results-page--lineups">
-          {liveLineupsComponent}
+      <div className="results-page--data">
+        {statsAndLineups}
+        <div key="live-lineups">
+          <h3>Live Lineups</h3>
+          <div className="results-page--lineups">
+            {liveLineupsComponent}
+          </div>
         </div>
       </div>
     </div>
