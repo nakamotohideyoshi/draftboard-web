@@ -10,7 +10,7 @@ import moment from 'moment';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 const { Provider, connect } = ReactRedux;
-// import Cookies from 'js-cookie';
+import Cookies from 'js-cookie';
 
 const nbaarena = require('../../../img/blocks/live-animation-stage/nba-court.png');
 const nflarena = require('../../../img/blocks/live-animation-stage/nfl-field.png');
@@ -31,7 +31,6 @@ const getArenaAsset = (sport) => {
     }
   }
 };
-
 
 const mapStateToProps = (state) => ({
   gamepools: state.contestPoolEntries,
@@ -87,6 +86,9 @@ const LiveModal = React.createClass({
 
   tick() {
     const pools = this.getUpcomingGame(this.props.gamepools);
+    Cookies.set({
+      id: 'theid',
+    });
     log.info({ pools });
   },
 
