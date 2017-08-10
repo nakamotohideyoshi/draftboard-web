@@ -1,3 +1,8 @@
+/*
+ * FIXME: this file needs to be refactored. component state can be decupled from
+ * the component. we don't need ot change the composition just for if something is live or not.
+ */
+
 import React from 'react';
 import ResultsHeader from './results-header.jsx';
 import ResultsLineups from './results-lineups.jsx';
@@ -35,16 +40,17 @@ const ResultsStatic = (props) => {
   }
 
   let statsAndLineups;
+  let statsresults;
   if (dayResults !== null) {
+    statsresults = (
+      <ResultsStats stats={dayResults.overall} />
+    );
     statsAndLineups = (
-      <div key="past-lineups">
-        <ResultsStats stats={dayResults.overall} />
-        <ResultsLineups
-          isWatchingLive={isWatchingLive}
-          lineups={dayResults.lineups}
-          fetchEntryResults={props.fetchEntryResults}
-        />
-      </div>
+      <ResultsLineups
+        isWatchingLive={isWatchingLive}
+        lineups={dayResults.lineups}
+        fetchEntryResults={props.fetchEntryResults}
+      />
     );
   } else {
     // Show empty stats line to prevent rendering glitches.
@@ -66,13 +72,9 @@ const ResultsStatic = (props) => {
         watchLiveLineups={props.watchLiveLineups}
       />
       <div className="results-page--data">
+        {statsresults}
         {statsAndLineups}
-        <div key="live-lineups">
-          <h3>Live Lineups</h3>
-          <div className="results-page--lineups">
-            {liveLineupsComponent}
-          </div>
-        </div>
+        {liveLineupsComponent}
       </div>
     </div>
   );
