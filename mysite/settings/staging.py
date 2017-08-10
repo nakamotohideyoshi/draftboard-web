@@ -98,5 +98,7 @@ VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 DATETIME_DELTA_ENABLE = False
 
 MIDDLEWARE_CLASSES += (
-    'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
+    # Instead of this cookie middleware, we're goign to use lockdown on the
+    # staging site since it's easier for non-technical users.
+    # 'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
 )
