@@ -46,7 +46,7 @@ const events = {
 
 const renderRow = (part) =>
   part.map((event) => (
-    <dd>
+    <dd key={event.title}>
       <dl>
         <dt>{event.title}</dt>
         <dd className={(event.value.indexOf('-') === 0 ? 'negative' : '')}>{event.value}</dd>
@@ -113,9 +113,9 @@ const ScoringInfoModal = (props) => (
 const renderEvents = (sport) => {
   if (sport in events) {
     return events[sport].map((event, i) => (
-      <tr key={i}>
-      <td>{event.title}</td>
-      <td>{event.value}</td>
+      <tr key={event.title}>
+        <td>{event.title}</td>
+        <td>{event.value}</td>
       </tr>
     ));
   }
@@ -126,6 +126,10 @@ const renderEvents = (sport) => {
  * Print out a table of fantasy points awarded for each type of player action.
  */
 const ScoringInfo = (props) => {
+  if (!props.sport) {
+    return (<div></div>);
+  }
+
   let res;
   if (props.isModal === true) {
     res = (
@@ -153,7 +157,7 @@ const ScoringInfo = (props) => {
 
 
 ScoringInfo.propTypes = {
-  sport: React.PropTypes.string.isRequired,
+  sport: React.PropTypes.string,
   isModal: React.PropTypes.bool,
 };
 
