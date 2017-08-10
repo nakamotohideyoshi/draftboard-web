@@ -102,7 +102,7 @@
     }
   },
   "addons": [
-    "heroku-postgresql",
+    "heroku-postgresql:standard-0",
     "rediscloud"
   ],
   "buildpacks": [
