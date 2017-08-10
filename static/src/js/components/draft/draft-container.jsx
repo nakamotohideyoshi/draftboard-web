@@ -444,11 +444,13 @@ const DraftContainer = React.createClass({
                 scoringModalState: false,
               })}
             >
-              <div className="arena">
-                <img src={getArenaAsset(this.props.sport)} role="presentation" />
-              </div>
+              <div>
+                <div className="arena">
+                  <img src={getArenaAsset(this.props.sport)} role="presentation" />
+                </div>
 
-              <ScoringInfo sport={this.props.sport} isModal />
+                <ScoringInfo sport={this.props.sport} isModal />
+              </div>
             </DraftScoringModal>
 
             <div

@@ -229,7 +229,21 @@ export function enterContest(contestPoolId, lineupId) {
     lineup: lineupId,
   };
 
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const identityVerified = state.user.user.identity_verified;
+
+    // If the user hasn't verified their identity, throw up a message directing to the
+    // deposits page which will have the gidx form.
+    if (!identityVerified) {
+      return dispatch(addMessage({
+        header: 'You must verify your account before entering contests',
+        level: 'warning',
+        content: '<a href="/account/deposits/">Verify Account Here</a>',
+        id: 'verifyAccount',
+      }));
+    }
+
     // Tell the state that we are entering a contest.
     dispatch({
       type: actionTypes.ENTERING_CONTEST_POOL,
