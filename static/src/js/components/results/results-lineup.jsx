@@ -242,23 +242,23 @@ const ResultsLineup = React.createClass({
       // otherwise it's live
       } else {
         lineupStats = (
-          <div className="footer-live">
-            <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
-              Watch Live
-            </a>
-            <div className="item">
-              <span className="title">Winning</span>
+          <footer className="cmp-lineup-card__footer">
+            <div className="cmp-lineup-card__footer-section">
+              <span className="cmp-lineup-card__footer-title">Winning</span>
               <span className="value">
                 {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
               </span>
             </div>
-            <div className="item">
-              <span className="title">Points</span>
+            <div className="cmp-lineup-card__footer-section">
+              <span className="cmp-lineup-card__footer-title">Points</span>
               <span className="value">
                 {humanizeFP(this.props.liveStats.points)}
               </span>
             </div>
-          </div>
+            <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
+              Watch Live
+            </a>
+          </footer>
         );
 
         popup = (
@@ -341,26 +341,26 @@ const ResultsLineup = React.createClass({
     for (let i = 0; i < this.props.players.length; i++) {
       totalFP += this.props.players[i].fantasy_points;
     }
-
+    
     if (isLive) {
       footer = (
-        <div className="footer-live">
-          <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
-            Watch Live
-          </a>
-          <div className="item">
-            <span className="title">Winning</span>
+        <footer className="cmp-lineup-card__footer">
+          <div className="cmp-lineup-card__footer-section">
+            <span className="cmp-lineup-card__footer-title">Winning</span>
             <span className="value">
               {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
             </span>
           </div>
-          <div className="item">
-            <span className="title">Pts</span>
+          <div className="cmp-lineup-card__footer-section">
+            <span className="cmp-lineup-card__footer-title">Pts</span>
             <span className="value">
               {humanizeFP(this.props.liveStats.points)}
             </span>
           </div>
-        </div>
+          <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
+            Watch Live
+          </a>
+        </footer>
       );
     } else {
       footer = (

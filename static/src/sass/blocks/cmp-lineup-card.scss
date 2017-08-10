@@ -351,6 +351,7 @@ category: Lineup
   &__footer {
     padding: 15px 0;
     display: flex;
+    flex-wrap: wrap;
     flex-justify: center;
     align-items: stretch;
     box-shadow: 0 -5px 50px 0 rgba(0,0,0,.05);
@@ -382,6 +383,9 @@ category: Lineup
     .hours {
       color: #9c9faf;
     }
+  }
+  .watch-live{
+    width: 100%;
   }
 
   // Expanded CTA version.

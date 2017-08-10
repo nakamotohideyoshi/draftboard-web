@@ -56,8 +56,8 @@ const PlayerPmrHeadshotComponent = (props) => {
           }
         >
         </span>
+        {renderPmr()}
       </div>
-      {renderPmr()}
     </div>
   );
 };
