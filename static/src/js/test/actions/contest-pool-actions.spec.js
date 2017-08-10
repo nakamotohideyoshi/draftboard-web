@@ -11,6 +11,8 @@ import contestPoolEntriesFix from '../../fixtures/json/contest--current-entries'
 import contestPoolFix from '../../fixtures/json/contest-pools';
 import find from 'lodash/find';
 
+import merge from 'lodash/merge';
+
 
 describe('actions.contestPoolActions.fetchContestPoolEntries', () => {
   let store = {};
@@ -221,10 +223,15 @@ describe('actions.contestPoolActions.enterContest', () => {
   });
 
   beforeEach(() => {
+    const verifiedUserState = merge(
+      {},
+      userReducer(undefined, {}),
+      { user: { identity_verified: true } }
+    );
     // initial store, state
     store = mockStore({
       contestPoolEntries: contestPoolEntriesReducer(undefined, {}),
-      user: userReducer(undefined, {}),
+      user: userReducer(verifiedUserState, {}),
       contestPools: contestPoolsReducer(undefined, {}),
     });
   });
