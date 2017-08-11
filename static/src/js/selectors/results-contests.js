@@ -1,14 +1,29 @@
 import { createSelector } from 'reselect';
 
+//
+// const focusedEntryIdSelector = (state) => state.results.focusedEntryId;
+// const entryResultsSelector = (state) => state.results.entryResults;
+//
+// export const focusedEntryResultSelector = createSelector(
+//   [focusedEntryIdSelector, entryResultsSelector],
+//   (focusedEntry, entryResults) => {
+//     if (focusedEntry in entryResults) {
+//       return entryResults[focusedEntry];
+//     }
+//
+//     return {};
+//   }
+// );
 
-const focusedEntryIdSelector = (state) => state.results.focusedEntryId;
-const entryResultsSelector = (state) => state.results.entryResults;
 
-export const focusedEntryResultSelector = createSelector(
-  [focusedEntryIdSelector, entryResultsSelector],
-  (focusedEntry, entryResults) => {
-    if (focusedEntry in entryResults) {
-      return entryResults[focusedEntry];
+const focusedContestIdSelector = (state) => state.results.focusedContestId;
+const entryContestSelector = (state) => state.results.contestResults;
+
+export const focusedContestResultSelector = createSelector(
+  [focusedContestIdSelector, entryContestSelector],
+  (focusedContest, contestResults) => {
+    if (focusedContest in contestResults) {
+      return contestResults[focusedContest];
     }
 
     return {};

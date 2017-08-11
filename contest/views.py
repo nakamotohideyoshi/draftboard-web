@@ -68,6 +68,7 @@ from contest.serializers import (
     UserLineupHistorySerializer,
     RankedEntrySerializer,
     ContestPoolSerializer,
+    ContestResultSerializer
 )
 from lineup.models import Lineup
 from ticket.exceptions import UserDoesNotHaveTicketException
@@ -415,7 +416,7 @@ class RegisteredUsersAPIView(generics.ListAPIView):
 
 class ContestRanksAPIView(generics.GenericAPIView):
     """
-    get the lineup Players
+    Get a ranked list of entries in a contest that has ended.
     """
     serializer_class = RankedEntrySerializer
 
@@ -541,8 +542,24 @@ class EntryResultAPIView(generics.RetrieveAPIView):
     serializer_class = EntryResultSerializer
 
     def get_object(self):
-        obj = get_object_or_404(Entry.objects.select_related('contest', 'contest__prize_structure'),
-                                id=self.kwargs['entry_id'])
+        obj = get_object_or_404(
+            Entry.objects.select_related(
+                'contest',
+                'contest__prize_structure',
+                # 'contest__contest_entries'
+                'contest__draft_group',
+                'contest__site_sport'
+            ).prefetch_related(
+                #  These all result in MORE queries???
+                # 'contest__contest_entries',
+                # 'contest__contest_entries__lineup',
+                # 'contest__contest_entries__lineup__user',
+                # 'contest__contest_entries__lineup__players',
+                # 'contest__contest_entries__lineup__draft_group',
+                # 'contest__contest_entries__lineup__draft_group__salary_pool',
+            ),
+            id=self.kwargs['entry_id']
+        )
         if not (obj.user == self.request.user):
             raise PermissionDenied()
 
@@ -769,3 +786,30 @@ class UserPlayHistoryWithCurrentAPIView(UserPlayHistoryAPIView):
 
         # return http response with the data
         return Response(data, status=status.HTTP_200_OK)
+
+
+class ContestResultsAPIView(generics.RetrieveAPIView):
+    """
+    Returns everything we need to display the results of the specified contest entry.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ContestResultSerializer
+
+    def get_object(self):
+        # TODO: select_related entries
+        # options are: site_sport, prize_structure, draft_group, skill_level
+        obj = get_object_or_404(
+            Contest.objects.select_related(
+                'draft_group', 'prize_structure'
+            ).prefetch_related(
+                'contest_entries'
+            ),
+            id=self.kwargs['contest_id']
+        )
+
+        # if not (obj.user == self.request.user):
+        #     raise PermissionDenied()
+
+        self.check_object_permissions(self.request, obj)
+        return obj
+

@@ -3,8 +3,8 @@ import merge from 'lodash/merge';
 
 
 const initialState = {
-  entryResults: {},
-  focusedEntryId: null,
+  contestResults: {},
+  focusedContestId: null,
 };
 
 module.exports = (state = initialState, action = {}) => {
@@ -17,22 +17,22 @@ module.exports = (state = initialState, action = {}) => {
       });
     }
 
-    // Request the detailed results of an entry.
-    case ActionTypes.ENTRY_RESULTS__REQUEST: {
-      // set the requested entryId as the focused one.
+    // Request the detailed results of a contest.
+    case ActionTypes.CONTEST_RESULTS__REQUEST: {
+      // set the requested contestId as the focused one.
       // This is used to tell the results pane which result to display.
-      return merge({}, state, { focusedEntryId: action.entryId });
+      return merge({}, state, { focusedContestId: action.contestId });
     }
 
-    case ActionTypes.ENTRY_RESULTS__SUCCESS: {
+    case ActionTypes.CONTEST_RESULTS__SUCCESS: {
       return merge({}, state, {
-        entryResults: {
+        contestResults: {
           [action.response.id]: action.response,
         },
       });
     }
 
-    case ActionTypes.ENTRY_RESULTS__FAIL: {
+    case ActionTypes.CONTEST_RESULTS__FAIL: {
       return state;
     }
 

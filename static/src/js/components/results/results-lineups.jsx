@@ -19,7 +19,7 @@ const ResultsLineups = (props) => {
           {
             key: lineup.id,
             isWatchingLive: props.isWatchingLive,
-            fetchEntryResults: props.fetchEntryResults,
+            fetchContestResults: props.fetchContestResults,
           }
         ))
       )}
@@ -30,7 +30,7 @@ const ResultsLineups = (props) => {
 ResultsLineups.propTypes = {
   isWatchingLive: React.PropTypes.bool,
   lineups: React.PropTypes.array.isRequired,
-  fetchEntryResults: React.PropTypes.func.isRequired,
+  fetchContestResults: React.PropTypes.func.isRequired,
 };
 
 export default ResultsLineups;
