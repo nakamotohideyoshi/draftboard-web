@@ -24,6 +24,7 @@ import { clip as qbShotgunScramble } from '../clips/nfl/qb-shotgun-scramble';
 import { clip as receptionSide } from '../clips/nfl/reception-side';
 import { clip as receptionInterception } from '../clips/nfl/reception-interception';
 import { clip as receptionBasket } from '../clips/nfl/reception-basket';
+import { clip as receptionBasketIncomplete } from '../clips/nfl/reception-basket-incomplete';
 import { clip as receptionShortBasket } from '../clips/nfl/reception-short-basket';
 import { clip as receptionShortSide } from '../clips/nfl/reception-short-side';
 
@@ -31,13 +32,17 @@ const plays = {
   kick_reception: kickReception,
   reception_pass_left: receptionSide,
   reception_pass_middle: receptionBasket,
+  reception_pass_middle_incomplete: receptionBasketIncomplete,
   reception_pass_right: receptionSide,
   reception_pass_short_left: receptionShortSide,
   reception_pass_short_middle: receptionShortBasket,
   reception_pass_short_right: receptionShortSide,
   reception_pass_deep_left: receptionBasket,
+  reception_pass_deep_left_incomplete: receptionBasketIncomplete,
   reception_pass_deep_middle: receptionBasket,
+  reception_pass_deep_middle_incomplete: receptionBasketIncomplete,
   reception_pass_deep_right: receptionBasket,
+  reception_pass_deep_right_incomplete: receptionBasketIncomplete,
   reception_interception: receptionInterception,
   qb_shotgun_sack: qbShotgunSack,
   qb_shotgun_scramble_left: qbShotgunScramble,
@@ -133,6 +138,14 @@ export function getReceptionClip(passType, side, isIntercepted = false) {
     return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
   } catch (error) {
     throw new Error(`Unknown reception animation "${passType}", "${side}", "${isIntercepted}".`);
+  }
+}
+
+export function getIncompleteReceptionClip(passType, side) {
+  try {
+    return getClip(`reception_${passType}_${side}_incomplete`);
+  } catch (error) {
+    return getReceptionClip(passType, side, false);
   }
 }
 
