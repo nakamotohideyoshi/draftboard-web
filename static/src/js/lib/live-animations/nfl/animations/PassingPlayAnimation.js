@@ -99,9 +99,7 @@ export default class PassingPlayAnimation extends LiveAnimation {
 
     return loadClips().then(() => {
       const timeline = new Timeline();
-      const catchPos = this.getCatchPos(recap, field);
       const ballDuration = this.getPassDuration(recap) * 30;
-
       const throwCP = quarterback._clip.clip.getCuepoint('pass');
       const catchCP = receiver._clip.clip.getCuepoint('catch');
 

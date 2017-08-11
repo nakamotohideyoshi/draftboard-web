@@ -10,6 +10,11 @@ export const clip = {
       in: 12,
       data: { x: 96, y: 32, in: 12, name: 'receiver' },
     },
+    {
+      name: 'catch',
+      in: 10,
+      data: { x: 110, y: 42 },
+    },
   ],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/kick-reception-blue.png'),
