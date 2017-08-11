@@ -78,7 +78,7 @@
       "required": true
     },
     "SENTRY_DSN": "https://865d824ac2964ae78d16cdd5eec47643:9865cbbcb8ce4a03b9d97757885ed9e7@sentry.io/201877",
-    "SLACK_UPDATES": false,
+    "SLACK_UPDATES": "false",
     "TRULIOO_API_BASE_URL": {
       "required": true
     },
