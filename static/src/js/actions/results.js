@@ -83,25 +83,25 @@ export const fetchResultsIfNeeded = (when) => (dispatch, getState) => {
 
 
 /**
- * Fetch the detailed results for a single entry. This will get us everything we
+ * Fetch the detailed results for a completed contest. This will get us everything we
  * need to render the results detail pane.
  * @param  {[type]} whenStr [description]
  * @return {[type]}         [description]
  */
-export const fetchEntryResults = (entryId) => (dispatch) => {
+export const fetchContestResults = (contestId) => (dispatch) => {
   dispatch({
-    type: ActionTypes.ENTRY_RESULTS__REQUEST,
-    entryId,
+    type: ActionTypes.CONTEST_RESULTS__REQUEST,
+    contestId,
   });
 
   const apiResponse = dispatch({
     [CALL_API]: {
       types: [
         ActionTypes.NULL,
-        ActionTypes.ENTRY_RESULTS__SUCCESS,
+        ActionTypes.CONTEST_RESULTS__SUCCESS,
         ActionTypes.ADD_MESSAGE,
       ],
-      endpoint: `/api/contest/entries/${entryId}/results/`,
+      endpoint: `/api/contest/${contestId}/results/`,
     },
   });
 
@@ -109,7 +109,7 @@ export const fetchEntryResults = (entryId) => (dispatch) => {
     // If something fails, the 3rd action is dispatched, then this.
     if (action.error) {
       return dispatch({
-        type: ActionTypes.ENTRY_RESULTS__FAIL,
+        type: ActionTypes.CONTEST_RESULTS__FAIL,
         response: action.error,
       });
     }

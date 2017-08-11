@@ -15,10 +15,11 @@ from lineup.models import (
 )
 from lineup.serializers import (
     PlayerSerializer,
+    LineupSerializer,
 )
 from prize.models import PrizeStructure, Rank
 from sports.classes import TeamNameCache
-
+from lineup.classes import LineupManager
 
 class SkillLevelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -276,9 +277,11 @@ class EntryResultSerializer(serializers.ModelSerializer):
         """
         Get a ranked list of all entries in the contest
         """
-        entries = Entry.objects.filter(
-            contest=entry.contest).order_by('final_rank').select_related('lineup', 'user')
-        ranked_entries = RankedEntrySerializer(entries, many=True)
+        entries = entry.contest.contest_entries.order_by(
+            'final_rank'
+        )
+        # .select_related('lineup', 'user')
+        ranked_entries = RankedEntryWithLineupSerializer(entries, many=True)
         return ranked_entries.data
 
     class Meta:
@@ -286,6 +289,59 @@ class EntryResultSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'final_rank', 'lineup', 'contest', 'prize_structure', 'ranked_entries',
             'games')
+
+
+class ContestResultSerializer(serializers.ModelSerializer):
+    """
+        This is very similar to `EntryResultSerializer` but it is from the perspective of
+        the contest rather than the entry.
+
+        Everything we need to show the results of a contest for a single contest.
+        This includes the contest details, prize structure, and other entries
+        in the contest.
+    """
+    # contest = ContestSerializer()
+    prize_structure = serializers.SerializerMethodField()
+    ranked_entries = serializers.SerializerMethodField()
+    games = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_games(contest):
+        """
+        Grab the boxscore for this entry's draftgroup and run it through a very simplified
+        serializers, all we need is the team names.
+        """
+        dgm = DraftGroupManager()
+        boxscores = dgm.get_game_boxscores(contest.draft_group)
+        games = SimpleBoxscoreSerialzer(boxscores, many=True)
+        return games.data
+
+    @staticmethod
+    def get_prize_structure(contest):
+        prize = PrizeStructureSerializer(contest.prize_structure)
+        return prize.data
+
+    @staticmethod
+    def get_ranked_entries(contest):
+        """
+        Get a ranked list of all entries in the contest
+        """
+        entries = contest.contest_entries.order_by(
+            'final_rank'
+        )
+        # .select_related('lineup', 'user')
+        ranked_entries = RankedEntryWithLineupSerializer(entries, many=True)
+        return ranked_entries.data
+
+    class Meta:
+        model = Contest
+        fields = (
+            # 'id', 'final_rank', 'lineup', 'contest', 'prize_structure', 'ranked_entries', 'games'
+            'id', 'name', 'sport', 'status', 'start', 'buyin',
+            'draft_group', 'max_entries', 'prize_structure', 'prize_pool',
+            'entries', 'current_entries', 'gpp', 'doubleup',
+            'respawn', 'skill_level', 'games', 'ranked_entries'
+        )
 
 
 class RemoveAndRefundEntrySerializer(serializers.Serializer):
@@ -366,3 +422,38 @@ class RankedEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Entry
         fields = ('username', 'final_rank', 'payout', 'fantasy_points')
+
+
+class RankedEntryWithLineupSerializer(RankedEntrySerializer):
+    """
+    for an entry in a contest that has been paid out.
+    there may or may not be a payout, but this entry
+    should be ranked and have fantasy points for the lineup
+    """
+    lineup = serializers.SerializerMethodField()
+
+    player_stats = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_lineup(entry):
+        lineup = LineupSerializer(entry.lineup)
+        return lineup.data
+
+
+    @staticmethod
+    def get_player_stats(entry):
+        lm = LineupManager(entry.user)
+        return lm.get_lineup_from_id(entry.lineup.id, entry.contest)
+
+
+    class Meta:
+        model = Entry
+        fields = (
+            'id',
+            'username',
+            'final_rank',
+            'payout',
+            'fantasy_points',
+            'lineup',
+            'player_stats',
+        )

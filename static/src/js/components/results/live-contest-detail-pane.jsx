@@ -8,8 +8,7 @@ import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
 
-
-const ResultsPane = React.createClass({
+const LiveContestDetailPane = React.createClass({
 
   propTypes: {
     contestId: React.PropTypes.number,
@@ -170,7 +169,7 @@ const ResultsPane = React.createClass({
 
   render() {
     const contest = this.props.contestResult || {};
-    const entry = find(this.props.contestResult, { id: this.props.entry.id });
+    const entry = this.props.contestResult;
     const tabNav = this.getTabNav();
     const prizeStructure = this.props.contestResult.prize_structure;
 
@@ -257,15 +256,15 @@ const mapStateToProps = (state) => ({
 });
 
 // Wrap the component to inject dispatch and selected state into it.
-const ResultsPaneConnected = connect(
+const LiveContestDetailPaneConnected = connect(
   mapStateToProps
-)(ResultsPane);
+)(LiveContestDetailPane);
 
 
 renderComponent(
   <Provider store={store}>
-    <ResultsPaneConnected />
+    <LiveContestDetailPaneConnected />
   </Provider>
 );
 
-export default ResultsPaneConnected;
+export default LiveContestDetailPaneConnected;

@@ -62,3 +62,7 @@ class Player(models.Model):
     @property
     def full_name(self):
         return '%s %s' % (self.player.first_name, self.player.last_name)
+
+    def __str__(self):
+        return '<Lineup.Player id: %s | full_name: %s | lineup: %s>' % (
+            self.id, self.full_name, self.lineup)

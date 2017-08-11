@@ -22,6 +22,7 @@ from contest.views import (
     UserPlayHistoryWithCurrentAPIView,
     ContestRanksAPIView,
     UserUpcomingContestPoolAndLiveContestEntriesAPIView,
+    ContestResultsAPIView,
 )
 
 urlpatterns = [
@@ -112,5 +113,9 @@ urlpatterns = [
     # Request to remove a contest pool Entry, and refund the user
     url(r'^unregister-entry/(?P<entry_id>[0-9]+)/$', RemoveAndRefundEntryAPIView.as_view()),
 
+    # results of a contest - by  entry.id
     url(r'^entries/(?P<entry_id>[0-9]+)/results/$', EntryResultAPIView.as_view()),
+
+    # results of a contest - by contest.id
+    url(r'^(?P<contest_id>[0-9]+)/results/$', ContestResultsAPIView.as_view())
 ]

@@ -29,7 +29,7 @@ const ResultsStatic = (props) => {
       <ResultsLineups
         isWatchingLive
         lineups={liveLineups}
-        fetchEntryResults={props.fetchEntryResults}
+        fetchContestResults={props.fetchContestResults}
       />
     );
   }
@@ -43,7 +43,7 @@ const ResultsStatic = (props) => {
           <ResultsLineups
             isWatchingLive={isWatchingLive}
             lineups={dayResults.lineups}
-            fetchEntryResults={props.fetchEntryResults}
+            fetchContestResults={props.fetchContestResults}
           />
         </div>
       </div>
@@ -93,7 +93,7 @@ ResultsStatic.propTypes = {
   onSelectDate: React.PropTypes.func.isRequired,
   resultsWithLive: React.PropTypes.object.isRequired,
   watchLiveLineups: React.PropTypes.func,
-  fetchEntryResults: React.PropTypes.func.isRequired,
+  fetchContestResults: React.PropTypes.func.isRequired,
   draftGroupInfo: React.PropTypes.object,
   currentLineups: React.PropTypes.array,
 };

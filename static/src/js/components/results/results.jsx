@@ -7,7 +7,7 @@ import store from '../../store';
 import uniqBy from 'lodash/uniqBy';
 import { dateNow } from '../../lib/utils';
 import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
-import { fetchResultsIfNeeded, fetchEntryResults } from '../../actions/results';
+import { fetchResultsIfNeeded, fetchContestResults } from '../../actions/results';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
@@ -45,7 +45,7 @@ function mapDispatchToProps(dispatch) {
     fetchResultsIfNeeded: (when) => dispatch(fetchResultsIfNeeded(when)),
     fetchCurrentLineupsAndRelated: (force) => dispatch(fetchCurrentLineupsAndRelated(force)),
     routerPush: (path) => dispatch(routerPush(path)),
-    fetchEntryResults: (entryId) => dispatch(fetchEntryResults(entryId)),
+    fetchContestResults: (entryId) => dispatch(fetchContestResults(entryId)),
     fetchContestPools: () => dispatch(fetchContestPools()),
     fetchContestPoolEntries: () => dispatch(fetchContestPoolEntries()),
     checkForLiveUpdatesResultsPage: () => dispatch(checkForLiveUpdatesResultsPage()),
@@ -69,7 +69,7 @@ export const Results = React.createClass({
     sportsSelector: React.PropTypes.object.isRequired,
     updateLiveMode: React.PropTypes.func.isRequired,
     fetchResultsIfNeeded: React.PropTypes.func.isRequired,
-    fetchEntryResults: React.PropTypes.func.isRequired,
+    fetchContestResults: React.PropTypes.func.isRequired,
     routerPush: React.PropTypes.func.isRequired,
     fetchCurrentLineupsAndRelated: React.PropTypes.func.isRequired,
     fetchContestPools: React.PropTypes.func.isRequired,
@@ -201,7 +201,7 @@ export const Results = React.createClass({
           onSelectDate={this.handleSelectDate}
           date={this.state}
           watchLiveLineups={this.watchLiveLineups}
-          fetchEntryResults={(entryId) => this.props.fetchEntryResults(entryId)}
+          fetchContestResults={(entryId) => this.props.fetchContestResults(entryId)}
           draftGroupInfo={this.props.draftGroupInfo}
           currentLineups={this.props.resultsWithLive.lineups}
         />
