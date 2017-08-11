@@ -20,6 +20,7 @@ from sports.nfl.parser import (
     SeasonSchedule,
     TeamHierarchy,
     PbpEventParser,
+    GameBoxscoreParser,
 
     # reducers, shrinkers, managers
     PlayReducer,
@@ -384,14 +385,17 @@ class TestGameBoxscoreParser(AbstractTest):
     """ tests the send() part only """
 
     def setUp(self):
-        self.parser = DataDenNfl()
+        cache.clear()
+        super().setUp()
+        self.parser = GameBoxscoreParser()
 
     def __parse_and_send(self, unwrapped_obj, target):
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-        self.parser.parse(oplog_obj)
+        self.parser.parse(oplog_obj, target=target)
+        return self.parser
         # self.parser.send()
 
     def test_1(self):
@@ -461,13 +465,32 @@ class TestGameBoxscoreParser(AbstractTest):
             ]
         }
 
+        home_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="DEN",
+            srid="22052ff7-c065-42ee-bc8f-c4691c50e624"
+        )
+
+        away_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="OKC",
+            srid="4809ecb0-abd3-451d-9c4a-92a90b83ca06"
+        )
+
         # Create a Game model so this boxcore can be parsed.
         mommy.make(
             Game,
-            srid=data['id']
+            srid=data['id'],
+            away=away_team,
+            srid_away=away_team.srid,
+            home=home_team,
+            srid_home=home_team.srid
         )
 
-        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+        parser = self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
 
 
 class TestPlayParser(AbstractTest):
