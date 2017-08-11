@@ -25,13 +25,14 @@ export default React.createClass({
    * Formats the specified `quarter` and `clock` into a human readable gametime.
    */
   formatGameTime(quarter, clock) {
-    if (quarter > 5) {
-      return `${quarter - 4}OT ${clock}`;
+    const q = parseInt(quarter, 10);
+    if (q > 5) {
+      return `${q - 4}OT ${clock}`;
     }
 
-    return quarter === 5
+    return q === 5
       ? `OT ${clock}`
-      : `Q${quarter} ${clock}`;
+      : `Q${q} ${clock}`;
   },
 
   /**
@@ -60,17 +61,15 @@ export default React.createClass({
   /**
    * Renders the avatar and points for each featured player.
    */
-  renderPlayersDOM(playerStats) {
+  renderPlayersDOM(playerStats, fpValues) {
     const players = playerStats.map(player => {
-      const {
-        fp_change: fpChange,
-        srid_player: srPlayerID,
-      } = player;
+      const { srid_player: srPlayerID } = player;
+      const fp = fpValues[srPlayerID] || 0;
 
       return (
         <li key={srPlayerID} className={`${block}__player`}>
           <div className={`${block}__player-points`}>
-            {!fpChange ? '' : humanizeFP(fpChange, true)}
+            {!fp ? '' : humanizeFP(fp, true)}
           </div>
           { this.renderPlayerHeadShotImg(srPlayerID) }
         </li>
@@ -85,15 +84,15 @@ export default React.createClass({
   },
 
   render() {
-    const { pbp, game, stats, sport, quarter } = this.props.event;
+    const { pbp, game, stats, sport, fp_values } = this.props.event;
     const score = `${game.away.alias} @ ${game.home.alias}`;
-    const time = this.formatGameTime(quarter, pbp.clock);
+    const time = this.formatGameTime(game.period, pbp.clock);
 
     return (
       <article className={`${block} ${block}--${sport}`}>
         <div className={`${block}__body`}>
           <p className={`${block}__description`}>{cleanDescription(pbp.description)}</p>
-          {this.renderPlayersDOM(stats)}
+          {this.renderPlayersDOM(stats, fp_values)}
         </div>
         <footer className={`${block}__footer`}>
           <div className={`${block}__score`}>{score}</div>
