@@ -29,6 +29,7 @@ describe('<LiveHistoryListPBP /> Component', () => {
       game: {
         away: 'OKC',
         home: 'MIL',
+        period: 1,
       },
       stats: [],
     },
@@ -41,14 +42,14 @@ describe('<LiveHistoryListPBP /> Component', () => {
 
   it('should render the correct game time during overtime', () => {
     const props = merge({}, defaultProps);
-    props.event.quarter = 5;
+    props.event.game.period = 5;
     const wrapper = mount(<LiveHistoryListPBP {...props} />);
     expect(wrapper.find('.live-history-list-pbp__when').text()).to.equal('OT 9:59');
   });
 
   it('should render the correct game time during double overtime', () => {
     const props = merge({}, defaultProps);
-    props.event.quarter = 6;
+    props.event.game.period = 6;
     const wrapper = mount(<LiveHistoryListPBP {...props} />);
     expect(wrapper.find('.live-history-list-pbp__when').text()).to.equal('2OT 9:59');
   });
