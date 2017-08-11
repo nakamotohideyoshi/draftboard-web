@@ -142,8 +142,7 @@ export default store => next => action => {
         header: 'Failed to connect to API.',
         // Added some detailed info for non-production purposes
         // TODO: remove these when we go public.
-        content: `Please refresh the page to reconnect.<br /> ${error.url || ''}<br />
-                  ${error.detail || ''} ${error.status || ''} ${error.statusText || error} `,
+        content: 'Please refresh the page to reconnect.',
         response: error,
         level: 'warning',
         id: 'apiFailure',
