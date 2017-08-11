@@ -220,8 +220,9 @@ def flush_pyc():
 
 def generate_replayer():
     """
-    fab [virtual_machine_type] generate_replayer --set start=2016-03-01,end=2016-03-02,[sport=mlb],[download=true]
-    fab local docker generate_replayer --set start=2016-10-19,end=2016-10-20,sport=nba
+    to run this.. use something like this. You can get the filenames from our s3 db dump bucket.
+
+    fab local docker generate_replayer --set start=2017-08-10-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz,end=2017-08-11-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz,sport=nfl,download=true
 
     Command that generates a database dump consisting of data between two dates, and TimeMachine instances for every
     draft group between the two.
@@ -255,16 +256,16 @@ def generate_replayer():
         # download start
         startS3Filename = '%s' % env.start
         print("Downloading: %s" % startS3Filename)
-        keyStart = bucket.get_key('pgbackups/%s' % startS3Filename)
-        keyStart.get_contents_to_filename('%s/%s' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
-        # operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
+        keyStart = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
+        keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
+        operations.local('gunzip -f %s/%s.gz' % (tmp_dir, startFilename))
 
         # download end
         endS3Filename = '%s' % env.end
-        print("Downloading: %s" % startS3Filename)
-        keyEnd = bucket.get_key('pgbackups/%s' % endS3Filename)
-        keyEnd.get_contents_to_filename('%s/%s' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
-        # operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
+        print("Downloading: %s" % endS3Filename)
+        keyEnd = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
+        keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
+        operations.local('gunzip -f %s/%s.gz' % (tmp_dir, endFilename))
 
     temp_db = 'generate_replayer'
 

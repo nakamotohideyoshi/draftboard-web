@@ -20,6 +20,7 @@ from sports.nfl.parser import (
     SeasonSchedule,
     TeamHierarchy,
     PbpEventParser,
+    GameBoxscoreParser,
 
     # reducers, shrinkers, managers
     PlayReducer,
@@ -30,6 +31,8 @@ from sports.nfl.parser import (
     ExtraInfo,
 )
 from test.classes import AbstractTest
+
+from .pbp_mock_data import PbpMockData
 
 
 class TeamHierarchyParserTest(AbstractTest):
@@ -382,14 +385,17 @@ class TestGameBoxscoreParser(AbstractTest):
     """ tests the send() part only """
 
     def setUp(self):
-        self.parser = DataDenNfl()
+        cache.clear()
+        super().setUp()
+        self.parser = GameBoxscoreParser()
 
     def __parse_and_send(self, unwrapped_obj, target):
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-        self.parser.parse(oplog_obj)
+        self.parser.parse(oplog_obj, target=target)
+        return self.parser
         # self.parser.send()
 
     def test_1(self):
@@ -459,13 +465,32 @@ class TestGameBoxscoreParser(AbstractTest):
             ]
         }
 
+        home_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="DEN",
+            srid="22052ff7-c065-42ee-bc8f-c4691c50e624"
+        )
+
+        away_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="OKC",
+            srid="4809ecb0-abd3-451d-9c4a-92a90b83ca06"
+        )
+
         # Create a Game model so this boxcore can be parsed.
         mommy.make(
             Game,
-            srid=data['id']
+            srid=data['id'],
+            away=away_team,
+            srid_away=away_team.srid,
+            home=home_team,
+            srid_home=home_team.srid
         )
 
-        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+        parser = self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
 
 
 class TestPlayParser(AbstractTest):
@@ -475,91 +500,6 @@ class TestPlayParser(AbstractTest):
     NOTE: because the test database does parse the stats previously,
     we will NOT HAVE the PlayerStats objects.
     """
-    pass_play = {
-        'start_situation__list': {'yfd': 5.0,
-                                  'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                                  'clock': '14:30',
-                                  'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                                  'down': 2.0},
-        'away_points': 0.0, 'reference': 103.0,
-        'end_situation__list': {'yfd': 1.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                                'clock': '13:56',
-                                'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                                'down': 3.0},
-        'alt_description': '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
-        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp',
-        'clock': '14:30',
-        'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
-        'id': '7e49db54-68d0-444d-b244-690f3930b77b',
-        'sequence': 103.0, 'parent_list__id': 'play_by_play__list', 'home_points': 0.0,
-        'description': '(14:30) (Shotgun) 8-K.Cousins pass short right to 12-A.Roberts to WAS 29 for 4 yards (21-B.Grimes).',
-        '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2I=',
-        'type': 'pass', 'statistics__list': {
-            'receive__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0,
-                              'goaltogo': 0.0,
-                              'player': '9691f874-be36-4529-a7eb-dde22ee4a848',
-                              'confirmed': 'true',
-                              'reception': 1.0, 'yards_after_catch': 2.0, 'inside_20': 0.0,
-                              'target': 1.0},
-            'pass__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0,
-                           'goaltogo': 0.0,
-                           'att_yards': 2.0, 'attempt': 1.0,
-                           'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
-                           'complete': 1.0, 'inside_20': 0.0, 'confirmed': 'true'},
-            'defense__list': {'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'tackle': 1.0,
-                              'player': '7979b613-6dbf-4534-8166-6430433c1ec3',
-                              'confirmed': 'true'}},
-        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'dd_updated__id': 1464841517401,
-        'wall_clock': '2015-09-13T17:03:57+00:00'}
-
-    sack_play = {
-        '_id': 'UID1',
-        'away_points': 0.0,
-        'end_situation__list': {
-            'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-            'yfd': 18.0,
-            'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-            'down': 2.0, 'clock': '9:00'},
-        'alt_description': '(9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).',
-        'play_clock': 6.0,
-        'clock': '9:40',
-        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
-        'reference': 315.0,
-        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
-        'type': 'pass',
-        'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff',
-        'home_points': 0.0,
-        'id': 'UID-556b318a-f944-4b37-86dd-4b0dba4d0644',
-        'start_situation__list': {
-            'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-            'yfd': 10.0,
-            'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-            'down': 1.0,
-            'clock': '9:40'},
-        'description': '(9:40) 8-K.Cousins sacked at MIA 34 for -8 yards (97-J.Phillips).',
-        'wall_clock': '2015-09-13T17:09:46+00:00', 'sequence': 315.0,
-        'dd_updated__id': 1464841517401,
-        'statistics__list': {
-            'pass__list': {
-                'sack': 1.0, 'goaltogo': 0.0,
-                'team': '22052ff7-c065-42ee-bc8f-c4691c50e624',
-                'sack_yards': -8.0,
-                'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
-                'inside_20': 0.0,
-                'confirmed': 'true'},
-            'defense__list': {
-                'sack': 1.0,
-                'tlost': 1.0,
-                'tlost_yards': 8.0,
-                'qb_hit': 1.0,
-                'player': '023af11a-3aa1-4266-b163-31cf6369ef3b',
-                'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
-                'sack_yards': -8.0, 'tackle': 1.0,
-                'confirmed': 'true'}
-        },
-        'parent_api__id': 'pbp',
-        'parent_list__id': 'play_by_play__list'
-    }
 
     def setUp(self):
         cache.clear()
@@ -1091,13 +1031,13 @@ class TestPlayParser(AbstractTest):
 
         player = mommy.make(
             Player,
-            srid=self.sack_play['statistics__list']['pass__list']['player'],
+            srid=PbpMockData.sack_play['statistics__list']['pass__list']['player'],
             make_m2m=True
         )
 
         player_stats = mommy.make(
             PlayerStats,
-            srid_game=self.sack_play['game__id'],
+            srid_game=PbpMockData.sack_play['game__id'],
             srid_player=player.srid,
             make_m2m=True,
         )
@@ -1106,10 +1046,10 @@ class TestPlayParser(AbstractTest):
 
         self.assertEqual(
             player_stats.player.srid,
-            self.sack_play['statistics__list']['pass__list']['player']
+            PbpMockData.sack_play['statistics__list']['pass__list']['player']
         )
 
-        parser = self.__parse_and_send(self.sack_play, (sport_db + '.' + 'play', parent_api))
+        parser = self.__parse_and_send(PbpMockData.sack_play, (sport_db + '.' + 'play', parent_api))
         parser.send()
         sent_data = parser.get_send_data()
         # for NFL, We can also use `parser.send_data`. None of the others
@@ -1137,11 +1077,11 @@ class TestPlayParser(AbstractTest):
         # Ensure home + away scores are in PBP
         self.assertEqual(
             sent_data['pbp']['away_points'],
-            self.sack_play['away_points']
+            PbpMockData.sack_play['away_points']
         )
         self.assertEqual(
             sent_data['pbp']['home_points'],
-            self.sack_play['home_points']
+            PbpMockData.sack_play['home_points']
         )
 
     def test_fp_value_pass_play(self):
@@ -1152,7 +1092,7 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        parser = self.__parse_and_send(self.pass_play, (sport_db + '.' + 'play', parent_api))
+        parser = self.__parse_and_send(PbpMockData.pass_play, (sport_db + '.' + 'play', parent_api))
 
         parser.send()
         sent_data = parser.get_send_data()
@@ -1162,6 +1102,56 @@ class TestPlayParser(AbstractTest):
         self.assertEqual(sent_data['pbp']['statistics']['pass__list']['fp_value'], .16)
         self.assertEqual(sent_data['pbp']['statistics']['receive__list']['fp_value'], .9)
 
+        # check the fp_values dict
+        pass_player_srid = sent_data['pbp']['statistics']['pass__list']['player']
+        self.assertEqual(
+            sent_data['fp_values'][pass_player_srid], .16)
+        recieve_player_srid = sent_data['pbp']['statistics']['receive__list']['player']
+        self.assertEqual(
+            sent_data['fp_values'][recieve_player_srid], .9)
+
+
+    def test_fp_value_pass_intercepted(self):
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        parser = self.__parse_and_send(PbpMockData.interception_pass, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        # These are hard-coded stat value calculations, so if we ever change the value of
+        # statPoints, these will fail (and that's probably fine)
+        self.assertEqual(sent_data['pbp']['statistics']['pass__list']['fp_value'], -1)
+        self.assertEqual(sent_data['pbp']['statistics']['receive__list']['fp_value'], 0)
+
+    def test_fp_value_pass_incomplete(self):
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        parser = self.__parse_and_send(PbpMockData.incomplete_pass, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        # These are hard-coded stat value calculations, so if we ever change the value of
+        # statPoints, these will fail (and that's probably fine)
+        self.assertEqual(sent_data['pbp']['statistics']['pass__list']['fp_value'], 0)
+        self.assertEqual(sent_data['pbp']['statistics']['receive__list']['fp_value'], 0)
+
+    def test_fp_value_qb_sneak(self):
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        parser = self.__parse_and_send(PbpMockData.qb_sneak, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        # These are hard-coded stat value calculations, so if we ever change the value of
+        # statPoints, these will fail (and that's probably fine)
+        self.assertEqual(sent_data['pbp']['statistics']['rush__list']['fp_value'], .9)
+
     def test_pbp_has_necessary_fields(self):
         """
         A quick test to make sure that these various fields exist in the pbp object.
@@ -1170,7 +1160,7 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-        parser = self.__parse_and_send(self.pass_play, (sport_db + '.' + 'play', parent_api))
+        parser = self.__parse_and_send(PbpMockData.pass_play, (sport_db + '.' + 'play', parent_api))
 
         parser.send()
         sent_data = parser.get_send_data()
@@ -1202,7 +1192,7 @@ class TestPlayParser(AbstractTest):
         )
         game = mommy.make(
             sports.nfl.models.Game,
-            srid=self.sack_play['game__id'],
+            srid=PbpMockData.sack_play['game__id'],
             srid_home=home_team.srid,
             home=home_team,
             srid_away=away_team.srid,
@@ -1218,7 +1208,7 @@ class TestPlayParser(AbstractTest):
         )
 
         # Parse the event
-        parser = self.__parse_and_send(self.sack_play, (sport_db + '.' + 'play', parent_api))
+        parser = self.__parse_and_send(PbpMockData.sack_play, (sport_db + '.' + 'play', parent_api))
         parser.send()
         sent_data = parser.get_send_data()
 
