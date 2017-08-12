@@ -84,7 +84,7 @@ export default React.createClass({
   },
 
   render() {
-    const { pbp, game, stats, sport, fp_values } = this.props.event;
+    const { pbp, game, stats, sport, fp_values: fpValues } = this.props.event;
     const score = `${game.away.alias} @ ${game.home.alias}`;
     const time = this.formatGameTime(game.period, pbp.clock);
 
@@ -92,7 +92,7 @@ export default React.createClass({
       <article className={`${block} ${block}--${sport}`}>
         <div className={`${block}__body`}>
           <p className={`${block}__description`}>{cleanDescription(pbp.description)}</p>
-          {this.renderPlayersDOM(stats, fp_values)}
+          {this.renderPlayersDOM(stats, fpValues || {})}
         </div>
         <footer className={`${block}__footer`}>
           <div className={`${block}__score`}>{score}</div>

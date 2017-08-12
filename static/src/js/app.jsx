@@ -16,7 +16,7 @@ const logApp = log.getLogger('app');
 let sentryDSN = 'https://bbae8e8654e34a80b02999b5ade6fd81@sentry.io/72241';
 
 if (process.env.NODE_ENV === 'production') {
-  // the DSN for the Draftboard - Staging Sentry Project
+  // the DSN for the Draftboard - Production Sentry Project
   sentryDSN = 'https://698f3f69f1e446cea667c680c4e1931b@sentry.io/40103';
 }
 
