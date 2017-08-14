@@ -80,18 +80,28 @@ const ResultsPane = React.createClass({
 
 
   renderStandings(rankedEntries) {
-    const standings = rankedEntries.map((lineup) => {
+    const standings = rankedEntries.map((entry) => {
+      let lineupPlayers = [];
+      if (entry.lineup) {
+        lineupPlayers = entry.lineup.players.map((player) => {
+          return (<span key={player.idx}>{player.full_name} - {player.fantasy_points} FP</span>);
+        });
+      }
       let payout = 0.0;
 
-      if (lineup.payout) {
-        payout = lineup.payout.amount;
+      if (entry.payout) {
+        payout = entry.payout.amount;
       }
 
       return (
-        <tr key={lineup.username}>
-          <td>{lineup.username}</td>
+        <tr key={entry.username}>
+          <td>{entry.username}</td>
           <td>{humanizeCurrency(payout)}</td>
-          <td>{lineup.fantasy_points}</td>
+          <td>{entry.fantasy_points}</td>
+          <td>
+            <h4>Players</h4>
+            {lineupPlayers}
+          </td>
         </tr>
       );
     });
