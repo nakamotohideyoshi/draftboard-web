@@ -15,10 +15,10 @@ class Command(BaseCommand):
     In the off chance that we don't have final player stats for a game, due to a crashing trigger
     or something like that, this command will query the mongodb directly and parse the latest
     stats.
-    
+
     It takes the supplied `game_srid` and queries the proper `sport` table in mongo, runs the
     results through the UpdateWorker, which then sends the events off to be parsed and saved.
-    
+
     This should result in all final PlayerStats being up-to-date. Once this is done, we can
     manually close a game by setting it's status to closed, then paying out the contest.
 
@@ -39,6 +39,8 @@ class Command(BaseCommand):
         parser.add_argument('game_srid', nargs=1, type=str)
 
     def handle(self, *args, **options):
+        if options['sport'][0] == 'nfl':
+            logger.warning("\n\nYou inputted 'nfl'. you probably mean 'nflo'!\n")
         # Disable any pusher updates. We don't want to send parsed events to any connected clients.
         settings.PUSHER_ENABLED = False
         # Run celery in synchronous mode so we don't need to fire up a celery worker to run this.
