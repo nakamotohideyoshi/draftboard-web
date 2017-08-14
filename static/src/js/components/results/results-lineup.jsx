@@ -341,7 +341,6 @@ const ResultsLineup = React.createClass({
     for (let i = 0; i < this.props.players.length; i++) {
       totalFP += this.props.players[i].fantasy_points;
     }
-    
     if (isLive) {
       footer = (
         <footer className="cmp-lineup-card__footer">
