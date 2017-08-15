@@ -796,8 +796,6 @@ class ContestResultsAPIView(generics.RetrieveAPIView):
     serializer_class = ContestResultSerializer
 
     def get_object(self):
-        # TODO: select_related entries
-        # options are: site_sport, prize_structure, draft_group, skill_level
         obj = get_object_or_404(
             Contest.objects.select_related(
                 'draft_group', 'prize_structure'
@@ -807,8 +805,18 @@ class ContestResultsAPIView(generics.RetrieveAPIView):
             id=self.kwargs['contest_id']
         )
 
-        # if not (obj.user == self.request.user):
-        #     raise PermissionDenied()
+        # We want to make sure that only users that were entered into this contest can see
+        # results. This is so all of our results (and thus financials) aren't essentially
+        # public to any logged in user.
+        user_has_entry_in_contest = False
+
+        for entry in obj.contest_entries.all():
+            if entry.user == self.request.user:
+                user_has_entry_in_contest = True
+                break
+
+        if not user_has_entry_in_contest:
+            raise PermissionDenied()
 
         self.check_object_permissions(self.request, obj)
         return obj
