@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-handoff-fumble-right',
   frame_width: 190,
   frame_height: 100,
   length: 63,
@@ -15,7 +16,7 @@ export const clip = {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-white.png'),
     /* eslint-enable max-len */
   },
 };

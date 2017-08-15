@@ -7,13 +7,11 @@ import { updateGameTeam, updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
 import { updateLiveMode } from './watching';
 import { sportsSelector } from '../selectors/sports';
-import {
-  removeEventMultipart,
-  storeEventMultipart,
-} from './events-multipart';
+import { removeEventMultipart, storeEventMultipart } from './events-multipart';
 import {
   relevantGamesPlayersSelector,
   watchingOpponentLineupSelector,
+  watchingMyLineupSelector,
 } from '../selectors/watching';
 
 // get custom logger for actions
@@ -66,26 +64,48 @@ export const updatePBPPlayersStats = (sport, playersStats) => (dispatch) => {
   });
 };
 
-const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers) => {
-  logAction.debug('actions.whichSide');
-
-  // if (relevantPlayersInEvent.length === 0) return 'bigPlay';
-  if (relevantPlayersInEvent.length === 0) return 'both';  // until we get updated animations
-
-  // determine what color the animation should be, based on which lineup(s) the player(s) are in
-  if (watching.opponentLineupId && opponentLineup.isLoading === false) {
-    const rosterBySRID = opponentLineup.rosterBySRID;
-    const playersInBothLineups = relevantGamesPlayers.playersInBothLineups;
-
-    if (intersection(rosterBySRID, relevantPlayersInEvent).length > 0) {
-      return 'opponent';
+/**
+ * Returns the side representing all players provided.
+ */
+const whichSide = playersWithLineup => (
+  playersWithLineup.reduce((side, player) => {
+    if (side === 'none') {
+      return player.lineup;
     }
-    if (intersection(playersInBothLineups, relevantPlayersInEvent).length > 0) {
-      return 'both';
-    }
-  }
+    const isMixed = side !== player.lineup || side === 'both';
+    return isMixed ? 'both' : player.lineup;
+  }, 'none')
+);
 
-  return 'mine';
+/**
+ * Returns an array of player SRIDs and their associated lineup ("mine",
+ * "opponent", or "both").
+ */
+const whichSidePlayers = (players, state) => {
+  const opponentLineup = watchingOpponentLineupSelector(state);
+  const currentLineup = watchingMyLineupSelector(state);
+
+  const isPlayerInLineup = (lineup, playerId) => {
+    // A lot goes into making sure the lineup is loaded and contains all of
+    // it's information so we're bailing if anything required is missing.
+    if (!lineup || lineup.isLoading || !lineup.roster) {
+      return false;
+    }
+
+    return lineup.roster.indexOf(playerId) !== -1;
+  };
+
+  return players.map(playerId => {
+    const opponent = isPlayerInLineup(opponentLineup, playerId);
+    const mine = isPlayerInLineup(currentLineup, playerId);
+    let lineup = 'none';
+
+    if (mine || opponent) {
+      lineup = mine ? 'mine' : 'oppponent';
+    }
+
+    return { playerId, lineup };
+  });
 };
 
 /**
@@ -160,7 +180,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       // show event beside player and in their history
       forEach(relevantPlayersInEvent, (playerId) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
-
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
       });
 
@@ -175,7 +194,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
       // show event beside player and in their history
       forEach(relevantPlayersInEvent, (playerId) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
-
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
       });
 
@@ -222,12 +240,26 @@ export const showGameEvent = (message) => (dispatch, getState) => {
     names = getPlayerNames(eventPlayers, draftGroup);
   }
 
+  const playersBySide = whichSidePlayers(message.stats.map(stat => stat.player_id), state);
+
   // update message to reflect current lineups the user is watching
   const animationEvent = merge({}, message, {
     playerNames: names,
     relevantPlayersInEvent,
-    whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
+    whichSide: whichSide(playersBySide),
+    whichSidePlayers: playersBySide,
   });
+
+  // Remap the whichSide flags based on our debugging settings.
+  if (window.debug_live_animations_which_side) {
+    animationEvent.whichSide = window.debug_live_animations_which_side;
+    animationEvent.whichSidePlayers = animationEvent.whichSidePlayers.map(player => {
+      /* eslint-disable */
+      player.lineup = animationEvent.whichSide
+      /* eslint-enable */
+      return player;
+    });
+  }
 
   switch (sport) {
     case 'mlb': {

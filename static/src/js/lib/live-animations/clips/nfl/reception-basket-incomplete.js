@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'reception-basket-incomplete',
   frame_width: 225,
   frame_height: 110,
   length: 46,
@@ -20,7 +21,7 @@ export const clip = {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
     /* eslint-enable max-len */
   },
 };

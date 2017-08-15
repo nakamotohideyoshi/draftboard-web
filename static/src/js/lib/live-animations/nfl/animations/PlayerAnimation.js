@@ -83,9 +83,7 @@ export default class PlayerAnimation extends LiveAnimation {
       this._clip.debug();
     }
 
-    this._clip.setPlayers(recap.players(), 'nfl');
-
-    return this._clip.load(recap.whichSide()).then(() => {
+    return this._clip.load(recap.players(), 'nfl').then(() => {
       // Set the X position to where the player snaps the ball
       // by setting the initial position to the starting yard line.
       const yardline = this.getYardline(type, recap);

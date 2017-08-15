@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-scramble',
   frame_width: 200,
   frame_height: 90,
   length: 90,

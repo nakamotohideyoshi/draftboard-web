@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-handoff-fumble-left',
   frame_width: 190,
   frame_height: 120,
   length: 90,
@@ -15,7 +16,7 @@ export const clip = {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-left-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-left-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-left-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-left-white.png'),
     /* eslint-enable max-len */
   },
 };

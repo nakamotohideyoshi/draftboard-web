@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-scramble',
   frame_width: 170,
   frame_height: 80,
   length: 103,

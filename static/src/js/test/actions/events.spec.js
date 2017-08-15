@@ -106,6 +106,7 @@ describe('actions.events.showGameEvent', () => {
 
   const defaultMessage = {
     description: '',
+    stats: [],
     eventPlayers: ['player1', 'player4'],
     gameId,
     hitter: {
@@ -153,7 +154,8 @@ describe('actions.events.showGameEvent', () => {
             awayScoreStr: 'Team2 2',
             homeScoreStr: 'Team1 3',
             relevantPlayersInEvent: ['player1'],
-            whichSide: 'mine',
+            whichSide: 'none', // because we can't mock the players with the new whichSide logic.
+            whichSidePlayers: [],
             winning: 'home',
             playerNames: {},
           }),
