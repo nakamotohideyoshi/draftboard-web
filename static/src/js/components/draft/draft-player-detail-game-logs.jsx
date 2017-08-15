@@ -1,5 +1,6 @@
 import React from 'react';
 import moment from 'moment';
+import log from '../../lib/logging';
 
 /**
  * Render a list of <th> headers from the provided column array.
@@ -20,7 +21,7 @@ const DraftPlayerDetailGameLogs = (props) => {
     'splitsHistory' in props.player
     && !Object.keys(props.player.splitsHistory).length
   ) {
-    return (<div className="player-stats">No Game Logs</div>);
+    return (<div className="player-splits"><h5>No game logs available.</h5></div>);
   }
 
   switch (props.player.sport) {
@@ -68,8 +69,8 @@ const DraftPlayerDetailGameLogs = (props) => {
         );
       }
 
-      // RB, WR, TE
-      if (props.player.position in ['RB', 'WR', 'TE']) {
+      // RB, WR, TE, FB
+      if (['RB', 'WR', 'TE', 'FB'].includes(props.player.position)) {
         const gameLogs = props.player.splitsHistory.map((game, index) => (
           <tr key={index}>
             <td key="1">{game.opp}</td>
@@ -106,6 +107,8 @@ const DraftPlayerDetailGameLogs = (props) => {
           </div>
         );
       }
+
+      log.warn(`Unsupported player position: ${props.player.position}`);
 
       // Unsupported player position
       return (<div></div>);
@@ -188,7 +191,7 @@ const DraftPlayerDetailGameLogs = (props) => {
 
 
     default: {
-      return (<div></div>);
+      return (<div className="player-splits"></div>);
     }
   }
 };

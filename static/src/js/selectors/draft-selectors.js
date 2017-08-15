@@ -112,6 +112,7 @@ export const focusedPlayerSelector = createSelector(
                 rec_yds: player.boxScoreHistory.rec_yds[i],
                 off_fum_lost: player.boxScoreHistory.off_fum_lost[i],
                 opp: oppTeam.alias,
+                date: player.boxScoreHistory.start[i],
               };
             });
 

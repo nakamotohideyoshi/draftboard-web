@@ -1243,7 +1243,16 @@ class PbpEventParser(DataDenPbpDescription):
             # 'pass__list', 'punt__list', 'rush__list', 'receive__list' 'fumble'
             # determine if the stats are passing yards or rushing  yards.
             if 'pass' in stat_list_type:
-                stat_type = 'pass'
+                # we only want to award passing points for completed passes.
+                # a `complete` value of 0.0 is incomplete, 1.0 is complete.
+                #
+                # ignore any incomplete passes.
+                # They will still have yards attached and we don't want those to tally.
+                if stats_list.get('complete', None) == 0.0:
+                    stat_type = ''
+                # Everything else should be scored appropriately.
+                else:
+                    stat_type = 'pass'
             if 'rush' in stat_list_type:
                 stat_type = 'rush'
             if 'receive' in stat_list_type:
@@ -1273,6 +1282,30 @@ class PbpEventParser(DataDenPbpDescription):
 
         # Return our original pbp data with the FP values added.
         return pbp
+
+    @staticmethod
+    def collect_fp_vales_by_player(pbp):
+        """
+        Create a dict mapping player_srids to fp_value of the play.
+
+        {
+            <player_srid>: <fp for the play>,
+            <player_srid>: <fp for the play>,
+        }
+
+        :param pbp:
+        :return: Dict
+        """
+        fp_values = {}
+
+        # For each `XXXX__list` in `pbp['statistics']` (rush, pass, etc)...
+        for stat_list_type, stats_list in pbp['statistics'].items():
+            # look for fp_value fields.
+            if isinstance(stats_list, dict):
+                if 'player' in stats_list and 'fp_value' in stats_list:
+                    fp_values[stats_list['player']] = stats_list['fp_value']
+
+        return fp_values
 
     def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
@@ -1348,11 +1381,15 @@ class PbpEventParser(DataDenPbpDescription):
         # Now that we have the pbp `extra_info` we can calculate the change in fantasy points that
         # the play resulted in.
         pbp_data_with_fp_change = self.add_fp_value(pbp_data)
+        # Now take the calculated FP values and create a map of {<player_srid>: <fp_value>} for
+        # all stats in this PBP.
+        fp_values_by_player = self.collect_fp_vales_by_player(pbp_data_with_fp_change)
 
         data = {
             'pbp': pbp_data_with_fp_change,
             'stats': player_stats_json,
             'game': self.get_game_info(),
+            'fp_values': fp_values_by_player,
         }
 
         # print('get_send_data:', str(data))

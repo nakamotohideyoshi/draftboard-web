@@ -417,6 +417,12 @@ SITE_ADMIN_EMAIL = ['dan@draftboard.com', 'zach@draftboard.com', 'ryan@draftboar
 RAVEN_CONFIG = {
     'dsn': environ.get('SENTRY_DSN')
 }
+# This is the Sentry client key "DSN (Public)" to be used on the web client.
+# It is different than the RAVEN_CONFIG one above. Any staging/production environments should
+# have this set via environment variable, if none it set, default to this one which
+# is for the "Draftboard - Local" Sentry app.
+SENTRY_PUBLIC_DSN = environ.get('SENTRY_PUBLIC_DSN', 'https://bbae8e8654e34a80b02999b5ade6fd81@sentry.io/72241')
+
 
 # access domain
 COOKIE_ACCESS_DOMAIN = '.draftboard.com'
