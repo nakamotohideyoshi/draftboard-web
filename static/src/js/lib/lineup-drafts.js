@@ -53,7 +53,7 @@ const localStoreKey = 'lineupDrafts';
  * @param lineup
  * @param draftGroupId
  */
-export const saveLineupDraft = (lineup, draftGroupId) => {
+export const setInProgressLocalLineup = (lineup, draftGroupId) => {
   if (!storageAvailable('localStorage')) {
     return;
   }
@@ -68,7 +68,7 @@ export const saveLineupDraft = (lineup, draftGroupId) => {
  *
  * @param draftGroupId
  */
-export const deleteLineupDraft = (draftGroupId) => {
+export const deleteInProgressLocalLineup = (draftGroupId) => {
   log.info(`Removing in-progress lineup from draftgroup ${draftGroupId} from localstorage.`);
   if (!storageAvailable('localStorage')) {
     return;
@@ -88,7 +88,7 @@ export const deleteLineupDraft = (draftGroupId) => {
  * @param draftGroupId
  * @returns {{}}
  */
-export const getLineupDraft = (draftGroupId) => {
+export const getInProgressLocalLineup = (draftGroupId) => {
   if (!draftGroupId) {
     return {};
   }

@@ -15,7 +15,7 @@ import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import { verifyLocation } from '../../actions/user';
 import { addMessage } from '../../actions/message-actions.js';
-import { getLineupDraft } from '../../lib/lineup-drafts';
+import { getInProgressLocalLineup } from '../../lib/lineup-drafts';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter } from
   '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId } from
@@ -282,7 +282,7 @@ const DraftContainer = React.createClass({
 
 
   lineupInProgress(draftGroupId) {
-    return getLineupDraft(draftGroupId);
+    return getInProgressLocalLineup(draftGroupId);
   },
 
 

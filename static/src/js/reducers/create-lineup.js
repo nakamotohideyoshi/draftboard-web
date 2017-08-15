@@ -4,7 +4,7 @@ import find from 'lodash/find';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
 import { rosterTemplates, salaryCaps } from '../lib/lineup.js';
-import { saveLineupDraft } from '../lib/lineup-drafts';
+import { setInProgressLocalLineup } from '../lib/lineup-drafts';
 
 const initialState = {
   errorMessage: null,
@@ -258,7 +258,7 @@ module.exports = (state = initialState, action) => {
           newState.lineupCanBeSaved = false;
         }
 
-        saveLineupDraft(newState.lineup, action.draftGroupId);
+        setInProgressLocalLineup(newState.lineup, action.draftGroupId);
         return newState;
       });
 
@@ -279,7 +279,7 @@ module.exports = (state = initialState, action) => {
         newState.lineupCanBeSaved = false;
       }
 
-      saveLineupDraft(newState.lineup, action.draftGroupId);
+      setInProgressLocalLineup(newState.lineup, action.draftGroupId);
       return newState;
 
 
