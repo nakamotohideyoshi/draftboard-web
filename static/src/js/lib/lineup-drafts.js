@@ -1,3 +1,6 @@
+import log from './logging';
+
+
 /**
  * When a user is creating a lineup in the draft section, we want to save their
  * progress in localstorage. This way if they refresh the page or navigate away
@@ -10,6 +13,37 @@
  * localStorage.
  */
 
+/**
+ * Check if localstorage is available.
+ *
+ * via: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+ * @param type
+ * @returns {boolean}
+ */
+function storageAvailable(type) {
+  const storage = window[type];
+  try {
+    const x = '__storage_test__';
+    storage.setItem(x, x);
+    storage.removeItem(x);
+    return true;
+  } catch (e) {
+    log.error(`${type} is not available!`);
+    log.error(e);
+    return e instanceof DOMException && (
+      // everything except Firefox
+      e.code === 22 ||
+      // Firefox
+      e.code === 1014 ||
+      // test name field too, because code might not be present
+      // everything except Firefox
+      e.name === 'QuotaExceededError' ||
+      // Firefox
+      e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+      // acknowledge QuotaExceededError only if there's something already stored
+      storage.length !== 0;
+  }
+}
 
 const localStoreKey = 'lineupDrafts';
 
@@ -20,6 +54,9 @@ const localStoreKey = 'lineupDrafts';
  * @param draftGroupId
  */
 export const saveLineupDraft = (lineup, draftGroupId) => {
+  if (!storageAvailable('localStorage')) {
+    return;
+  }
   window.localStorage.setItem(localStoreKey, JSON.stringify({
     [draftGroupId]: lineup,
   }));
@@ -32,8 +69,15 @@ export const saveLineupDraft = (lineup, draftGroupId) => {
  * @param draftGroupId
  */
 export const deleteLineupDraft = (draftGroupId) => {
+  log.info(`Removing in-progress lineup from draftgroup ${draftGroupId} from localstorage.`);
+  if (!storageAvailable('localStorage')) {
+    return;
+  }
+  // Get all of the drafts.
   const lineupDrafts = JSON.parse(window.localStorage.getItem(localStoreKey));
+  // Remove the current one.
   delete lineupDrafts[draftGroupId];
+  // Save the rest back.
   window.localStorage.setItem(localStoreKey, JSON.stringify(lineupDrafts));
 };
 
@@ -50,6 +94,9 @@ export const getLineupDraft = (draftGroupId) => {
   }
   let lineupDrafts = {};
 
+  if (!storageAvailable('localStorage')) {
+    return {};
+  }
   if (window.localStorage.getItem(localStoreKey)) {
     lineupDrafts = JSON.parse(window.localStorage.getItem(localStoreKey));
   }

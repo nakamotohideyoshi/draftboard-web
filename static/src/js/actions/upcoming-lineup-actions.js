@@ -263,6 +263,8 @@ export function saveLineupEdit(lineup, title, lineupId) {
             type: actionTypes.SAVE_LINEUP_EDIT_SUCCESS,
             lineupId,
           });
+          // Delete the lineup draft that is saved in localstorage.
+          deleteLineupDraft(lineup.draft_group);
           // Redirect to lobby with url param.
           window.location.href = `/contests/?action=lineup-saved&lineup=${lineupId}`;
         }
@@ -278,7 +280,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
  */
 export function editLineupInit(lineupId) {
   return (dispatch) => {
-    log.info(`Lineup #${lineupId} found, importing for editing.`);
+    log.info(`Lineup #${lineupId} retrieved via API, importing for editing.`);
 
     dispatch({
       type: actionTypes.EDIT_LINEUP_INIT,
