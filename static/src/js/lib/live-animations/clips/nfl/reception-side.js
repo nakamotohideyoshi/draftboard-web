@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'reception-side',
   frame_width: 180,
   frame_height: 100,
   length: 36,
@@ -19,6 +20,6 @@ export const clip = {
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-white.png'),
   },
 };

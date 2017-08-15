@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-handoff-right',
   frame_width: 200,
   frame_height: 120,
   length: 79,

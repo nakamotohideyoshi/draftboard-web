@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-handoff-left',
   frame_width: 190,
   frame_height: 100,
   length: 65,

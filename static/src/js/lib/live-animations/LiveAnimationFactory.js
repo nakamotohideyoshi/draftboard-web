@@ -31,10 +31,6 @@ export default class LiveAnimationFactory {
         throw new Error(`Unable to create LiveAnimation for unsupported sport ${data.sport}`);
     }
 
-    if (window.debug_live_animations_which_side) {
-      recap._obj.whichSide = window.debug_live_animations_which_side;
-    }
-
     return animation.play(recap, stage);
   }
 }

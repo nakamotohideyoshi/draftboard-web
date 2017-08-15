@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-pass-deep-middle',
   frame_width: 210,
   frame_height: 110,
   length: 104,
@@ -20,7 +21,7 @@ export const clip = {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-deep-middle-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-deep-middle-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-deep-middle-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-deep-middle-white.png'),
     /* eslint-enable max-len*/
   },
 };
