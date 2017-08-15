@@ -11,7 +11,6 @@ import classNames from 'classnames';
 const DraftTeamFilter = React.createClass({
   propTypes: {
     boxScores: React.PropTypes.object,
-    isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
     selectedTeams: React.PropTypes.array,
     teams: React.PropTypes.object.isRequired,
@@ -21,7 +20,6 @@ const DraftTeamFilter = React.createClass({
   getDefaultProps() {
     return {
       selectedTeams: [],
-      isVisible: false,
     };
   },
   componentWillMount() {
@@ -208,10 +206,6 @@ const DraftTeamFilter = React.createClass({
   },
 
   render() {
-    if (!this.props.isVisible) {
-      return <div></div>;
-    }
-
     return (
       <div className="cmp-draft-team-filter">
         <div className="slider" ref="container">

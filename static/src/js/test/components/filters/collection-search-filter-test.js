@@ -65,16 +65,16 @@ describe('CollectionSearchFilter Component', function() {
   // });
 
 
-  it("should add an 'active' className when expanded", function() {
-    // make sure it's not expanded at first.
-    expect(this.component.state.isExpanded).to.equal(false);
-    // after the expand method is called..
-    this.component.showSearchField();
-    // check if the state changed...
-    expect(this.component.state.isExpanded).to.equal(true);
-    // and the class was added.
-    expect(ReactDOM.findDOMNode(this.component).className).to.contain('cmp-collection-search-filter--active');
-  });
+  // it("should add an 'active' className when expanded", function() {
+  //   // make sure it's not expanded at first.
+  //   expect(this.component.state.isExpanded).to.equal(false);
+  //   // after the expand method is called..
+  //   this.component.showSearchField();
+  //   // check if the state changed...
+  //   expect(this.component.state.isExpanded).to.equal(true);
+  //   // and the class was added.
+  //   expect(ReactDOM.findDOMNode(this.component).className).to.contain('cmp-collection-search-filter--active');
+  // });
 
 
   it("should show the search field when clicked", function() {
