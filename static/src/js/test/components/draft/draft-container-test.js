@@ -147,7 +147,7 @@ describe('<DraftContainer /> Component', () => {
       // of this it's callCount should be 2.  -- add one more because of saved
       // draft imports.
       expect(wrapper.node.props.editLineupInit.callCount).to.equal(2);
-      expect(wrapper.node.props.importLineup.callCount).to.equal(3);
+      expect(wrapper.node.props.importLineup.callCount).to.equal(2);
       done();
     })
     .catch((err) => {

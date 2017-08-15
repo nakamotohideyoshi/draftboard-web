@@ -9,7 +9,7 @@ import sortBy from 'lodash/sortBy';
 import uniqWith from 'lodash/uniqWith';
 import { validateLineup } from '../lib/lineup.js';
 import log from '../lib/logging.js';
-import { deleteLineupDraft } from '../lib/lineup-drafts';
+import { deleteInProgressLocalLineup } from '../lib/lineup-drafts';
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -201,7 +201,7 @@ export function saveLineup(lineup, title, draftGroupId) {
           dispatch(saveLineupFail(res.body));
         } else {
           // Delete the lineup draft that is saved in localstorage.
-          deleteLineupDraft(draftGroupId);
+          deleteInProgressLocalLineup(draftGroupId);
           // Upon save success, send user to the lobby.
           window.location.href = `/contests/?action=lineup-saved&lineup=${res.body.lineup_id}`;
         }
@@ -264,7 +264,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
             lineupId,
           });
           // Delete the lineup draft that is saved in localstorage.
-          deleteLineupDraft(lineup.draft_group);
+          deleteInProgressLocalLineup(lineup.draft_group);
           // Redirect to lobby with url param.
           window.location.href = `/contests/?action=lineup-saved&lineup=${lineupId}`;
         }
