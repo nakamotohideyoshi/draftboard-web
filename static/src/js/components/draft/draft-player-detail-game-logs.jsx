@@ -21,7 +21,7 @@ const DraftPlayerDetailGameLogs = (props) => {
     'splitsHistory' in props.player
     && !Object.keys(props.player.splitsHistory).length
   ) {
-    return (<div className="player-stats">No Game Logs</div>);
+    return (<div className="player-splits"><h5>No game logs available.</h5></div>);
   }
 
   switch (props.player.sport) {
@@ -191,7 +191,7 @@ const DraftPlayerDetailGameLogs = (props) => {
 
 
     default: {
-      return (<div></div>);
+      return (<div className="player-splits"></div>);
     }
   }
 };
