@@ -346,7 +346,30 @@ category: Lineup
     }
   }
 
+  footer{
+    & > dl{
+      display: flex;
+      align-items: stretch;
+      & > dd{
+        width: 100%;
+        text-align: center;
+        border-right: 1px solid #ebedf2;
+        padding: 17px 0;
+        &:last-child{
+          border: none;
+        }
+      }
+    }
+    dl dd dt{
+      font-family: $font-open-sans;
+      color: #b4b7c4;
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+    dl dd dd{
 
+    }
+  }
   // Footer section.
   &__footer {
     padding: 15px 0;
