@@ -167,10 +167,14 @@ const DraftContainer = React.createClass({
     // load in draft group players and injuries and boxscores and stuff.
     // After that, look for an unsaved local lineup to import.
     this.loadData().then(() => {
-      const lineup = this.lineupInProgress(this.props.params.draftgroupId);
-      if (lineup) {
-        log.info('in-progress lineup found, attempting to import.');
-        this.props.importLineup({ players: lineup });
+      // Don't load in-progress lineups if we are editing an existing lineup.
+      if (this.props.params.lineupAction !== 'edit') {
+        log.info('Looking for in-progress lineup in localstorage to resume.');
+        const lineup = this.lineupInProgress(this.props.params.draftgroupId);
+        if (lineup) {
+          log.info('in-progress lineup found, attempting to import.');
+          this.props.importLineup({ players: lineup });
+        }
       }
       return true;
     });
