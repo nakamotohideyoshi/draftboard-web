@@ -151,7 +151,6 @@ const DraftContainer = React.createClass({
 
   getInitialState() {
     return ({
-      showTeamFilter: false,
       filteredPlayers: [],
       newLineup: {
         availablePositions: [],
@@ -288,11 +287,6 @@ const DraftContainer = React.createClass({
   },
 
 
-  handleGameCountClick() {
-    this.setState({ showTeamFilter: !this.state.showTeamFilter });
-  },
-
-
   handleSetOrderBy(propertyColumn) {
     // Determine sort direction based on current sort settings.
     let direction = 'desc';
@@ -404,7 +398,6 @@ const DraftContainer = React.createClass({
             <span className="player-list__header-divider">/</span>
             <span
               className="player-list__header-games"
-              onClick={this.handleGameCountClick}
             >{gameCount}</span>
           </h2>
 
@@ -466,7 +459,6 @@ const DraftContainer = React.createClass({
         <div>
           <DraftTeamFilter
             boxScores={this.props.activeDraftGroupBoxScores}
-            isVisible={this.state.showTeamFilter}
             onFilterChange={this.handleFilterChange}
             selectedTeams={this.props.filters.teamFilter.match}
             teams={this.props.teams}

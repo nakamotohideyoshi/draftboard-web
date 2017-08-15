@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
@@ -570,13 +571,16 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
       dispatch(fetchSportIfNeeded(sport));
     });
   } catch (err) {
-    // TODO: This is silently gobbling up any errors.
+    // Send to Sentry
+    Raven.captureException(err);
+
     dispatch(addMessage({
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',
       level: 'warning',
       id: 'apiFailure',
     }));
+
     log.error(err);
   }
 };
