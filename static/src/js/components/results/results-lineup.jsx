@@ -6,6 +6,7 @@ import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import React from 'react';
 import ResultsPane from './results-pane';
+import CardFooter from '../card/CardFooter';
 
 
 const ResultsLineup = React.createClass({
@@ -163,26 +164,11 @@ const ResultsLineup = React.createClass({
 
     if (isFinished) {
       lineupStats = (
-        <footer className="cmp-lineup-card__footer">
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Entries</span>
-            <span className="value">
-              {this.props.stats.entries}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Won</span>
-            <span className="value">
-              {humanizeCurrency(this.props.stats.won)}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Points</span>
-            <span className="value">
-              {humanizeFP(totalFP)}
-            </span>
-          </div>
-        </footer>
+        <CardFooter
+          entries={this.props.stats.entries}
+          won={humanizeCurrency(this.props.stats.won)}
+          points={humanizeFP(totalFP)}
+        />
       );
 
       popup = (
@@ -200,25 +186,18 @@ const ResultsLineup = React.createClass({
     } else if (isLive) {
       // if upcoming
       if (isUpcoming === true) {
+        const humanizecur = humanizeCurrency(this.props.liveStats.totalBuyin);
         lineupStats = (
-          <div className="footer-upcoming">
-            <div className="item">
-              <span className="cmp-lineup-card__footer-title">Live In</span>
-              <span className="value">
-                <CountdownClock
-                  time={ new Date(this.props.start).getTime() }
-                />
-              </span>
-            </div>
-            <div className="item">
-              <span className="cmp-lineup-card__footer-title">Fees&nbsp;/&nbsp;Entries</span>
-              <span className="value">
-                <span className="fees">{humanizeCurrency(this.props.liveStats.totalBuyin)}</span>
-                &nbsp;/&nbsp;
-                {this.props.liveStats.entries}
-              </span>
-            </div>
-          </div>
+          <CardFooter
+            start={
+              <CountdownClock
+                time={ new Date(this.props.start).getTime() }
+              />
+            }
+            feesentries={`${humanizecur}</span>&nbsp;/&nbsp;
+${this.props.liveStats.entries}`}
+          />
+
         );
 
         let editLineupURL = `/draft/${this.props.draftGroupId}/lineup/${this.props.id}/edit`;
@@ -242,23 +221,14 @@ const ResultsLineup = React.createClass({
       // otherwise it's live
       } else {
         lineupStats = (
-          <footer className="cmp-lineup-card__footer">
-            <div className="cmp-lineup-card__footer-section">
-              <span className="cmp-lineup-card__footer-title">Winning</span>
-              <span className="value">
-                {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
-              </span>
-            </div>
-            <div className="cmp-lineup-card__footer-section">
-              <span className="cmp-lineup-card__footer-title">Points</span>
-              <span className="value">
-                {humanizeFP(this.props.liveStats.points)}
-              </span>
-            </div>
+          <CardFooter
+            winning={humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
+            points={humanizeFP(this.props.liveStats.points)}
+          >
             <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
               Watch Live
             </a>
-          </footer>
+          </CardFooter>
         );
 
         popup = (
@@ -343,46 +313,22 @@ const ResultsLineup = React.createClass({
     }
     if (isLive) {
       footer = (
-        <footer className="cmp-lineup-card__footer">
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Winning</span>
-            <span className="value">
-              {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Pts</span>
-            <span className="value">
-              {humanizeFP(this.props.liveStats.points)}
-            </span>
-          </div>
+        <CardFooter
+          winning={humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
+          pts={humanizeFP(this.props.liveStats.points)}
+        >
           <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
             Watch Live
           </a>
-        </footer>
+        </CardFooter>
       );
     } else {
       footer = (
-        <footer className="cmp-lineup-card__footer">
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Entries</span>
-            <span className="value">
-              {this.props.stats.entries}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Won</span>
-            <span className="value">
-              {humanizeCurrency(this.props.stats.won)}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Points</span>
-            <span className="value">
-              {humanizeFP(totalFP)}
-            </span>
-          </div>
-        </footer>
+        <CardFooter
+          entries={this.props.stats.entries}
+          won={humanizeCurrency(this.props.stats.won)}
+          points={humanizeFP(totalFP)}
+        />
       );
     }
 
