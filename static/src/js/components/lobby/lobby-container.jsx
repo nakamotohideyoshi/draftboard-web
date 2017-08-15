@@ -156,6 +156,8 @@ const LobbyContainer = React.createClass({
       this.props.fetchUser();
     }
 
+    // Fetch featured contest banner image info.
+    this.props.fetchFeaturedContestsIfNeeded();
     this.listenToSockets();
   },
 
