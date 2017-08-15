@@ -270,8 +270,10 @@ ${this.props.liveStats.entries}`}
   },
 
   renderContests() {
+    // const isLive = true;
     const isLive = this.props.hasOwnProperty('liveStats');
-    const isUpcoming = this.props.isWatchingLive && isTimeInFuture(this.props.start);
+    // const isUpcoming = true
+    const isUpcoming = isTimeInFuture(this.props.start);
 
     const entries = this.props.entries.map((entry) => {
       const payout = entry.payout || {};
