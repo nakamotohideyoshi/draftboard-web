@@ -2,29 +2,32 @@
  * Featured contest row in the contest list of the lobby.
  */
 .featured-contests {
-  &:hover {
-    background: #fff !important;
-  }
-
   &--contest {
-    display: inline-block;
-    width: 32%;
-    max-width: 273px;
+    background: #0a192e;
+    display: block;
+    //width: 32%;
+    //max-width: 273px;
     margin-right: 2%;
+    margin-bottom: 15px;
     cursor: pointer;
 
     &:last-child {
       margin-right: 0;
     }
 
+    a {
+      display: block;
+    }
+
     img {
-      width: 100%;
+      width: auto;
       height: auto;
+      display: block;
+      margin: 0 auto;
     }
   }
 
   div {
     text-align: center !important;
-
   }
 }
