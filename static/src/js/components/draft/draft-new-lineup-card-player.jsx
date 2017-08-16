@@ -4,9 +4,9 @@ import moment from 'moment';
 const playerPlaceHolder = [
   { position: 'QB', placeholder: 'Select a Quarterback' },
   { position: 'RB', placeholder: 'Select a Running Back' },
-  { position: 'WR', placeholder: 'Select a Wide Reciever' },
+  { position: 'WR', placeholder: 'Select a Wide Receiver' },
   { position: 'TE', placeholder: 'Select a Tight End' },
-  { position: 'FX', placeholder: 'Select a Flex' },
+  { position: 'FX', placeholder: 'Select a Flex Player' },
   { position: 'SP', placeholder: 'Select a Pitcher' },
   { position: 'C', placeholder: 'Select a Catcher' },
   { position: '1B', placeholder: 'Select a First Baseman' },

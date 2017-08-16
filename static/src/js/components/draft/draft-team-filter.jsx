@@ -206,6 +206,15 @@ const DraftTeamFilter = React.createClass({
   },
 
   render() {
+    // Figure out x for the "All X Games" button, ignoring any 0 result.
+    let gameCount = '';
+    if (this.props.boxScores) {
+      const count = Object.keys(this.props.boxScores).length;
+      if (count > 0) {
+        gameCount = `${count} `;
+      }
+    }
+
     return (
       <div className="cmp-draft-team-filter">
         <div className="slider" ref="container">
@@ -221,7 +230,7 @@ const DraftTeamFilter = React.createClass({
                   className="game scroll-item allTeams"
                   onClick={this.handleAllClick}
                 >
-                  <span className={`teamName team ${this.state.selected}`}>All Games</span>
+                  <span className={`teamName team ${this.state.selected}`}>All {gameCount}Games</span>
                 </div>
                 <div className="separator half"></div>
                 {this.getGames()}
