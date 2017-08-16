@@ -59,7 +59,7 @@ const ContestListHeader = (props) => (
 
     <div className="icon-key">
       <a href="#" className="fairmatch button button--outline">
-        How FairMatch Works
+        How Draftboard Works
       </a>
     </div>
   </div>
