@@ -4,6 +4,7 @@ import CountdownClock from '../site/countdown-clock.jsx';
 import LineupCardEntries from './lineup-card-entries.jsx';
 import classNames from 'classnames';
 import SportIcon from '../site/sport-icon.jsx';
+import CardFooter from '../card/CardFooter.jsx';
 
 
 const LineupCard = React.createClass({
@@ -163,23 +164,11 @@ const LineupCard = React.createClass({
             <ul className="players">
               {players}
             </ul>
-
-            <footer className="cmp-lineup-card__footer">
-              <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Live In</span>
-                <CountdownClock time={this.props.draftGroupInfo.start} />
-              </div>
-
-              <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Fees</span>
-                ${this.props.lineupInfo.fees}
-              </div>
-
-               <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Entries</span>
-                {this.props.lineupInfo.totalEntryCount}
-              </div>
-            </footer>
+            <CardFooter
+              start={this.props.draftGroupInfo.start}
+              fees={this.props.lineupInfo.fees}
+              entries={this.props.lineupInfo.totalEntryCount}
+            />
           </div>
 
           <div className="back" ref="back">
@@ -213,23 +202,12 @@ const LineupCard = React.createClass({
               removeContestPoolEntry={this.props.removeContestPoolEntry}
               draftGroupInfo={this.props.draftGroupInfo}
             />
+            <CardFooter
+              start={this.props.draftGroupInfo.start}
+              fees={this.props.lineupInfo.fees}
+              entries={this.props.lineupInfo.totalEntryCount}
+            />
 
-            <footer className="cmp-lineup-card__footer">
-              <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Live In</span>
-                <CountdownClock time={this.props.draftGroupInfo.start} />
-              </div>
-
-              <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Fees</span>
-                ${this.props.lineupInfo.fees}
-              </div>
-
-               <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Entries</span>
-                {this.props.lineupInfo.totalEntryCount}
-              </div>
-            </footer>
           </div>
         </div>
 

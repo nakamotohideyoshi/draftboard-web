@@ -367,7 +367,11 @@ category: Lineup
       font-size: 9px;
     }
     dl dd dd{
-
+      font-family: $font-oswald;
+      font-size: 16px;
+      .hours {
+        color: #9c9faf;
+      }
     }
   }
   // Footer section.
