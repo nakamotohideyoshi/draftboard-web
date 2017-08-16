@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
   componentDidMount() {
@@ -26,9 +27,9 @@ class CardFooter extends React.Component {
     const dateobj = {};
 
     if (diffTime > 0) {
-      dateobj.hours = durationhours;
-      dateobj.minutes = durationminutes;
-      dateobj.seconds = durartionseconds;
+      dateobj.hours = durationhours < 10 ? `0${durationhours}` : durationhours;
+      dateobj.minutes = durationminutes < 10 ? `0${durationminutes}` : durationminutes;
+      dateobj.seconds = durartionseconds < 10 ? `0${durartionseconds}` : durartionseconds;
     } else {
       dateobj.hours = '00';
       dateobj.minutes = '00';
@@ -70,7 +71,7 @@ class CardFooter extends React.Component {
         // preformat time remaining
         if (key === 'start') {
           const remaining = this.getRemainingTime(value);
-          value = `${remaining.hours}:${remaining.minutes}:${remaining.seconds}`;
+          value = this.formatClock(remaining);
         }
 
         if (key !== 'children') {
@@ -89,15 +90,32 @@ class CardFooter extends React.Component {
   }
 
   startGameTimer(timestamp) {
+    log.info(this.refs.hours.content);
     const timer = setInterval(() => {
+      log.info('1 second');
       const remaining = this.getRemainingTime(timestamp);
-      this.refs.start.textContent = `${remaining.hours}:${remaining.minutes}:${remaining.seconds}`;
+      this.refs.hours.textContent = remaining.hours;
+      this.refs.minutes.textContent = remaining.minutes;
+      this.refs.seconds.textContent = remaining.seconds;
     }, 1000);
 
     this.setState({ timer });
   }
 
+  formatClock(time) {
+    return (
+      <span className="clock">
+        <span className="hours" ref="hours">{time.hours}</span>
+        <span>:</span>
+        <span className="minutes" ref="minutes">{time.minutes}</span>
+        <span>:</span>
+        <span className="seconds" ref="seconds">{time.seconds}</span>
+      </span>
+    );
+  }
+
   render() {
+    log.info(this.refs);
     return (
       <footer>
         <dl>
@@ -111,8 +129,8 @@ class CardFooter extends React.Component {
 
 CardFooter.propTypes = {
   children: PropTypes.element,
-  fees: PropTypes.integer,
-  entries: PropTypes.integer,
+  fees: PropTypes.number,
+  entries: PropTypes.number,
   start: PropTypes.string,
   playeravg: PropTypes.string,
   remsalary: PropTypes.string,
