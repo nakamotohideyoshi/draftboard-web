@@ -67,20 +67,16 @@ const ContestList = (props) => {
               className="table__sortable"
               // onClick={props.setOrderBy.bind(null, 'name')}
             >Contest Type</th>
-            <th>Details</th>
+            <th>Contest Size</th>
             <th
               className="table__sortable"
               // onClick={props.setOrderBy.bind(null, 'prize_pool')}
             >Prizes</th>
-            <th
-              className="table__sortable"
-              // onClick={props.setOrderBy.bind(null, 'entries')}
-            >Entries</th>
             <th>My Entries</th>
             <th
               className="table__sortable"
               // onClick={props.setOrderBy.bind(null, 'start')}
-            >Live In</th>
+            >Start Time</th>
 
             <th>&nbsp;</th>
           </tr>
