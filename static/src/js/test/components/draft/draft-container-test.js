@@ -81,7 +81,6 @@ describe('<DraftContainer /> Component', () => {
     expect(wrapper.find(DraftTeamFilter)).to.have.length(1);
     expect(wrapper.find(CollectionMatchFilter)).to.have.length(1);
     expect(wrapper.find(CollectionSearchFilter)).to.have.length(1);
-    expect(wrapper.find(CountdownClock)).to.have.length(1);
   });
 
   it('should load data once mounted.', () => {

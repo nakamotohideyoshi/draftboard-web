@@ -30,7 +30,6 @@ import './draft-player-detail.jsx';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
-import CountdownClock from '../../components/site/countdown-clock.jsx';
 import RestrictedLocationConfirmModal from '../account/restricted-location-confirm-modal';
 import DraftScoringModal from './draft-scoring-modal';
 import ScoringInfo from '../contest-list/scoring-info';
@@ -329,10 +328,6 @@ const DraftContainer = React.createClass({
   render() {
     const self = this;
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${self.props.sport}`;
-    let gameCount = '';
-    if (this.props.draftGroupTime) {
-      gameCount = `${Object.keys(this.props.activeDraftGroupBoxScores).length} Games`;
-    }
 
     let visibleRows = [];
 
@@ -399,10 +394,6 @@ const DraftContainer = React.createClass({
           <h5 className="contest-list__sub_title">AVAILABLE PLAYERS</h5>
           <h2 className="player-list__header">
             <span className="player-list__header-title">Draft Your Team</span>
-            <span className="player-list__header-divider">/</span>
-            <span
-              className="player-list__header-games"
-            >{gameCount}</span>
           </h2>
 
           <div className="player-list-filter-set">
@@ -426,13 +417,6 @@ const DraftContainer = React.createClass({
               newLineup={this.props.newLineup}
               activeFilter={this.props.filters.positionFilter}
             />
-
-            <div className="cmp-draft-countdown">
-              <CountdownClock
-                time={this.props.draftGroupTime}
-                timePassedDisplay="Live"
-              />
-            </div>
 
             <DraftScoringModal
               isOpen={this.state.scoringModalState}

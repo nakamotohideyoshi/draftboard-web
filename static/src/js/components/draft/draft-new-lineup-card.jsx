@@ -98,7 +98,7 @@ const DraftNewLineupCard = React.createClass({
     if (this.props.isSaving) {
       return (
         <span
-          className="cmp-lineup-card__save button button--outline buttom--sm button--disabled"
+          className="cmp-lineup-card__save button button--outline-alt1 buttom--sm button--disabled"
         >
           Save
         </span>
@@ -108,7 +108,7 @@ const DraftNewLineupCard = React.createClass({
     if (this.props.lineupCanBeSaved) {
       return (
         <span
-          className="cmp-lineup-card__save button button--outline buttom--sm"
+          className="cmp-lineup-card__save button button--gradient buttom--sm"
           onClick={this.saveLineup}
         >
           Save
@@ -118,7 +118,7 @@ const DraftNewLineupCard = React.createClass({
 
     return (
       <span
-        className="cmp-lineup-card__save button button--outline buttom--sm button--disabled"
+        className="cmp-lineup-card__save button button--outline-alt1 buttom--sm button--disabled"
         title="This lineup is incomplete."
       >
         Save
