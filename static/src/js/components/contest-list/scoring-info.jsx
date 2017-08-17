@@ -112,7 +112,7 @@ const ScoringInfoModal = (props) => (
  */
 const renderEvents = (sport) => {
   if (sport in events) {
-    return events[sport].map((event, i) => (
+    return events[sport].map((event) => (
       <tr key={event.title}>
         <td>{event.title}</td>
         <td>{event.value}</td>

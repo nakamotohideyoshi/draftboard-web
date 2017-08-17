@@ -5,13 +5,16 @@ import DraftNewLineupCard from './draft-new-lineup-card';
 import renderComponent from '../../lib/render-component';
 import * as AppActions from '../../stores/app-state-store';
 import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by-draftgroup';
-import { setFocusedPlayer } from '../../actions/draft-group-players-actions';
+import { setFocusedPlayer, updateFilter } from '../../actions/draft-group-players-actions';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
   from '../../actions/upcoming-lineup-actions';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-info-selector';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
+import playerPositionFilterData from '../filters/player-position-filter-data';
+import find from 'lodash/find';
+
 
 /*
  * Map selectors to the React component
@@ -44,6 +47,8 @@ function mapDispatchToProps(dispatch) {
     saveLineupEdit: (lineup, title, lineupId) => dispatch(saveLineupEdit(lineup, title, lineupId)),
     importLineup: (lineup) => dispatch(importLineup(lineup)),
     setFocusedPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
+    updateFilter: (filterName, filterProperty, match) => dispatch(
+      updateFilter(filterName, filterProperty, match)),
   };
 }
 
@@ -72,6 +77,7 @@ const DraftLineupCardList = React.createClass({
     draftGroupBoxScores: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
     draftGroupStart: React.PropTypes.string,
+    updateFilter: React.PropTypes.func.isRequired,
   },
 
 
@@ -106,6 +112,17 @@ const DraftLineupCardList = React.createClass({
     AppActions.openPane();
   },
 
+  /**
+   * When one of the empty slot "Select a Running back" gets clicked, change the player position
+   * filter to match that slot position.
+   *
+   * @param position String
+   */
+  handleEmtpySlotClick(position) {
+    const sportFilters = playerPositionFilterData[this.props.sport];
+    const filter = find(sportFilters, { title: position });
+    this.props.updateFilter('positionFilter', filter.column, filter.match);
+  },
 
   /**
    * Click handler for a lineupCard - imports the clicked lineup onto the new one.
@@ -157,6 +174,7 @@ const DraftLineupCardList = React.createClass({
           sport={this.props.sport}
           draftGroupBoxScores={this.props.draftGroupBoxScores}
           draftGroupStart={this.props.draftGroupStart}
+          handleEmtpySlotClick={this.handleEmtpySlotClick}
         />
       </div>
     );
