@@ -330,6 +330,7 @@ const getNFLData = (message, gameId, game) => {
     pbp: message.pbp,
     stats: message.stats,
     game: message.game,
+    fp_values: message.fp_values,
     when: {
       clock: message.pbp.clock,
       quarter: game.boxscore.quarter || 0,
