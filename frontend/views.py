@@ -29,6 +29,8 @@ class FrontendHomepageTemplateView(TemplateView):
 
         return super(FrontendHomepageTemplateView, self).get(request, *args, **kwargs)
 
+class RecordBreakerPageTemplateView(TemplateView):
+    template_name = 'frontend/recordbreaker.html'
 
 class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/live.html'
