@@ -13,7 +13,7 @@ urlpatterns = [
     url(
         r'^record-breaker/$',
         views.RecordBreakerPageTemplateView.as_view(),
-        name="record-breaker"
+        name='record-breaker'
     ),
 
     # Draft Page

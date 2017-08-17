@@ -24,8 +24,10 @@ const config = Object.assign(
         path.join(__dirname, 'static', 'src', 'js', 'app-logged-out.jsx'),
       ],
       // separated homepage
-      homepage: [
-        path.join(__dirname, 'static', 'src', 'sass', 'homepage.scss'),
+      marketing: [
+        // Enable Webpack's dev server hot reloads for this entry.
+        'webpack/hot/dev-server',
+        path.join(__dirname, 'static', 'src', 'sass', 'marketing.scss'),
       ],
       // Separate bundle for animation debugger
       'live-debugger-app': [
