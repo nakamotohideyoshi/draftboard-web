@@ -15,6 +15,8 @@ const defaultTestProps = {
   isActive: false,
   remainingSalary: 50000,
   avgRemainingPlayerSalary: 6250,
+  handleEmtpySlotClick: () => true,
+  handlePlayerClick: () => true,
   errorMessage: null,
   sport: 'nba',
   saveLineup: () => true,

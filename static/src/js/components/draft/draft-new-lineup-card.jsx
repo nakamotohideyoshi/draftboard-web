@@ -27,6 +27,7 @@ const DraftNewLineupCard = React.createClass({
     errorMessage: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.string]),
     saveLineup: React.PropTypes.func.isRequired,
     handlePlayerClick: React.PropTypes.func,
+    handleEmtpySlotClick: React.PropTypes.func,
     lineupCanBeSaved: React.PropTypes.bool,
     draftGroupBoxScores: React.PropTypes.object,
     draftGroupStart: React.PropTypes.string,
@@ -145,6 +146,7 @@ const DraftNewLineupCard = React.createClass({
           key={player.idx}
           removePlayer={self.props.removePlayer}
           onPlayerClick={self.props.handlePlayerClick}
+          onEmtpySlotClick={self.props.handleEmtpySlotClick}
           playerImagesBaseUrl={playerImagesBaseUrl}
           draftGroupBoxScores={this.props.draftGroupBoxScores}
         />
