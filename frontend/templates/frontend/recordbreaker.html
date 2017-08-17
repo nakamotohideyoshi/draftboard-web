@@ -1,0 +1,204 @@
+{% load pipeline %}
+{% load static %}
+{% load analytics %}
+{% load cache %}
+
+{% cache 0 tmpl-homepage using="django_templates" %}
+{% spaceless %}
+<!DOCTYPE html>
+<html lang="en" class="{% block html_class %}{% endblock %}">
+<head>
+  <title>Draftboard</title>
+
+  <meta http-equiv="content-type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+
+  <link rel="prefetch" href="{% static 'css/app.css' %}">
+  {% kissanalyticsjs %}
+  {% googleanalyticsjs %}
+  <link rel="prefetch" href="{% static 'js/app.js' %}">
+  <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400">
+</head>
+<body>
+  <section class="home-page" id="home-page">
+    {% include "frontend/partials/company-header.html" with modifiers="company-header--homepage" %}
+
+    <div class="home-page--hero">
+      <div class="home-page--hero--bg">
+        <div class="home-page--hero--inner">
+          <div class="home-page--hero--small-title">Daily fantasy sports leagues</div>
+          <div class="home-page--hero--title">
+            <div class="home-page--desktop">
+              For the love of the game.
+            </div>
+            <div class="home-page--ipad">
+              IT's anyone's game
+            </div>
+          </div>
+          <a href="/register" class="home-page--hero--start-btn">
+            Get in the action <div class="arrow"></div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="home-page--content">
+      <div class="home-page--content--group home-page--content--group-1">
+        <div class="home-page--content--group--bg">
+          <section class="home-page--content--section">
+            <h5>
+              <div class="home-page--desktop">
+                0.1 A Level playing field
+              </div>
+              <div class="home-page--ipad">
+                0.1 true bragging rights
+              </div>
+            </h5>
+            <h1>
+              <div class="home-page--desktop">
+                Fair Match <sup>TM</sup>
+              </div>
+              <div class="home-page--ipad">
+                Single Entry
+              </div>
+            </h1>
+            <hr />
+            <p>
+              <span class="home-page--desktop">
+                Traditional Multi-Enter DFS contests stack the deck against the single
+                entry user as they end up competing against multiple instances of the
+                same highly skilled opponent. Draftboard’s Fair Match system addresses
+                this problem by insuring that each additional entry a user makes into a
+                contest will face tougher opposition.
+              </span>
+              <span class="home-page--ipad">
+                <b>A game for the people.</b> Nulla id elementum ex, in consectetur
+                ante. Duis eu diam non velit dapibus viverra sit amet at
+                dui. Interdum et malesuada fames ac ante ipsum primis in
+                faucibus. Maecenas eget ipsum at justo feugiat venenatis. Vestibulum
+                suscipit lectus et turpis hendrerit elementum. Integer vulputate
+                turpis id metus malesuada rhoncus. Donec dictum sit amet velit vel
+                vulputate.
+              </span>
+            </p>
+          </section>
+        </div>
+        <div class="home-page--content--group--number">1</div>
+        <div class="home-page--content--section-separator">
+          <div class="arrow"></div>
+        </div>
+      </div>
+
+      <div class="home-page--content--group home-page--content--group-2">
+        <div class="home-page--content--group--bg">
+          <section class="home-page--content--section">
+            <h5>
+              <div class="home-page--desktop">
+                0.2 it’s All About You
+              </div>
+              <div class="home-page--ipad">
+                0.2 always connected
+              </div>
+            </h5>
+            <h1>
+              <div class="home-page--desktop">
+                For the players
+              </div>
+              <div class="home-page--ipad">
+                On the go
+              </div>
+            </h1>
+            <hr />
+            <p>
+              <span class="home-page--desktop">
+                If you could build your own DFS site, what would it look like? Would it
+                have a custom built iOS app that notifies you when star player is ruled
+                out just before lock? How about <u>fully insured player balances</u>, a
+                real <u>signup bonus</u>, and the best <u>VIP program</u> in the
+                business? We’ve got you covered, with all of that and more.
+              </span>
+              <span class="home-page--ipad">
+                <b>The best app in the industry.</b> Nulla id elementum ex, in consectetur
+                ante. Duis eu diam non velit dapibus viverra sit amet at dui. Interdum
+                et malesuada fames ac ante ipsum primis in faucibus. Maecenas eget ipsum
+                at justo feugiat venenatis. Vestibulum suscipit lectus et turpis
+                hendrerit elementum. Integer vulputate turpis id metus malesuada
+                rhoncus. Donec dictum sit amet velit vel vulputate.
+              </span>
+            </p>
+          </section>
+        </div>
+        <div class="home-page--content--group--number">2</div>
+        <div class="home-page--content--section-separator">
+          <div class="arrow"></div>
+        </div>
+      </div>
+
+      <div class="home-page--content--group home-page--content--group-3">
+        <div class="home-page--content--group--bg">
+          <section class="home-page--content--section">
+            <h5>
+              <div class="home-page--desktop">
+                0.3 unparalleled live experience
+              </div>
+              <div class="home-page--ipad">
+                0.3 an honest sweat
+              </div>
+            </h5>
+            <h1>
+              <div class="home-page--desktop">
+                Game On
+              </div>
+              <div class="home-page--ipad">
+                Live view
+              </div>
+            </h1>
+            <hr />
+            <p>
+              <span class="home-page--desktop">
+                When contests lock on Draftboard the action is just getting started. Our
+                fully customizable live section features jaw dropping animations that
+                track your players’ progress in real time. No need to open another
+                browser tab, we’ll show you every touchdown, alley oop, and home run as
+                they happen.
+              </span>
+              <span class="home-page--ipad">
+                <b>A game for the people.</b> Nulla id elementum ex, in consectetur
+                ante. Duis eu diam non velit dapibus viverra sit amet at dui. Interdum
+                et malesuada fames ac ante ipsum primis in faucibus. Maecenas eget ipsum
+                at justo feugiat venenatis. Vestibulum suscipit lectus et turpis
+                hendrerit elementum. Integer vulputate turpis id metus malesuada
+                rhoncus. Donec dictum sit amet velit vel vulputate.
+              </span>
+            </p>
+          </section>
+
+          <footer class="home-page--content--footer">
+            <h5>Start winning today</h5>
+            <h1>Play free or for money</h1>
+            <hr />
+            <p>
+              <strong>Get up to $200</strong> bonus cash when you deposit. etur
+              ante. Duis eu diam non velit dapibus viverra sit amet at dui.
+            </p>
+            <a href="#" class="getting-started-btn">Getting started!</a>
+          </footer>
+        </div>
+        <div class="home-page--content--group--number">3</div>
+      </div>
+
+      <div style="clear:both;"></div>
+    </div>
+
+    {% include "frontend/partials/company-footer.html" %}
+  </section>
+</body>
+</html>
+{% endspaceless %}
+{% endcache %}
