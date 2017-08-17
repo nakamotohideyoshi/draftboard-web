@@ -63,7 +63,10 @@ category: Lineup
       position: relative;
       overflow: hidden;
       border: 1px solid rgba(109, 113, 138, .5);
+      position: relative;
       .cmp-lineup-card {
+        position: relative;
+        z-index: 1;
         &__photo {
           overflow: hidden;
           padding: 0;
@@ -74,8 +77,15 @@ category: Lineup
           display: block;
           background-size: cover;
           background-position: center;
-
         }
+      }
+      .player-pmr-headshot__pmr{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
       }
     }
     .score{
