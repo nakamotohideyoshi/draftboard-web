@@ -11,7 +11,7 @@ urlpatterns = [
 
     #RecordBreaker
     url(
-        r'^recordbreaker/$',
+        r'^record-breaker/$',
         views.RecordBreakerPageTemplateView.as_view(),
         name="record-breaker"
     ),
