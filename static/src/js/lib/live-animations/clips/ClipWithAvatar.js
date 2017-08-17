@@ -14,18 +14,14 @@ export default class ClipWithAvatar {
   }
 
   setPlayers(players, sport) {
-    const getAvatarData = name => {
-      const cp = this.getCuepointForAvatar(name);
-      return !cp ? null : cp.data;
-    };
-
     // Create a collection of PlayerAvatars based on the provided recap
     // and clip. Only player types defined in both the clip and recap result in
     // the creation of a PlayerAvatar.
     this._avatars = players.filter(player =>
-      getAvatarData(player.type) !== null
+      this.getCuepointForAvatar(player.type) !== null
     ).map(player => {
-      const avData = getAvatarData(player.type);
+      const avCuepoint = this.getCuepointForAvatar(player.type);
+      const avData = avCuepoint.data;
       const avThumbnail = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.srid}.png`;
       const avAnimation = new PlayerAvatar(player.name, avThumbnail);
       const avAnimationEl = avAnimation.getElement();
@@ -45,7 +41,7 @@ export default class ClipWithAvatar {
 
       return {
         name: avData.name,
-        in: avData.in,
+        in: avCuepoint.in,
         x: avData.x,
         y: avData.y,
         animation: avAnimation,

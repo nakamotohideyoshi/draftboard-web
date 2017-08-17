@@ -9,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 30,
-      data: { x: 130, y: 32, in: 30, name: 'receiver' },
+      data: { x: 130, y: 32, name: 'receiver' },
     },
     {
       name: 'catch',

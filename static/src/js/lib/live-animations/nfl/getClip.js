@@ -21,22 +21,30 @@ import { clip as qbShotgunPassMiddle } from '../clips/nfl/qb-shotgun-pass-middle
 import { clip as qbShotgunPassRight } from '../clips/nfl/qb-shotgun-pass-right';
 import { clip as qbShotgunSack } from '../clips/nfl/qb-shotgun-sack';
 import { clip as qbShotgunScramble } from '../clips/nfl/qb-shotgun-scramble';
-import { clip as receptionSide } from '../clips/nfl/reception-side';
 import { clip as receptionInterception } from '../clips/nfl/reception-interception';
 import { clip as receptionBasket } from '../clips/nfl/reception-basket';
 import { clip as receptionBasketIncomplete } from '../clips/nfl/reception-basket-incomplete';
 import { clip as receptionShortBasket } from '../clips/nfl/reception-short-basket';
+import { clip as receptionShortBasketIncomplete } from '../clips/nfl/reception-short-basket-incomplete';
 import { clip as receptionShortSide } from '../clips/nfl/reception-short-side';
+import { clip as receptionShortSideIncomplete } from '../clips/nfl/reception-short-side-incomplete';
+import { clip as receptionSide } from '../clips/nfl/reception-side';
+import { clip as receptionSideIncomplete } from '../clips/nfl/reception-side-incomplete';
 
 const plays = {
   kick_reception: kickReception,
   reception_pass_left: receptionSide,
+  reception_pass_left_incomplete: receptionSideIncomplete,
   reception_pass_middle: receptionBasket,
   reception_pass_middle_incomplete: receptionBasketIncomplete,
   reception_pass_right: receptionSide,
+  reception_pass_right_incomplete: receptionSideIncomplete,
   reception_pass_short_left: receptionShortSide,
+  reception_pass_short_left_incomplete: receptionShortSideIncomplete,
   reception_pass_short_middle: receptionShortBasket,
+  reception_pass_short_middle_incomplete: receptionShortBasketIncomplete,
   reception_pass_short_right: receptionShortSide,
+  reception_pass_short_right_incomplete: receptionShortSideIncomplete,
   reception_pass_deep_left: receptionBasket,
   reception_pass_deep_left_incomplete: receptionBasketIncomplete,
   reception_pass_deep_middle: receptionBasket,
