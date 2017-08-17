@@ -6,6 +6,7 @@ import log from '../../lib/logging.js';
 import lazyLoadImage from '../../lib/lazy-load-image.js';
 import renderComponent from '../../lib/render-component';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
+import playerPositionFilterData from '../filters/player-position-filter-data';
 import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
 import DraftTableHeader from './draft-table-header.jsx';
@@ -200,42 +201,6 @@ const DraftContainer = React.createClass({
   lazyLoader: null,
 
 
-  // Position type filter data.
-  playerPositionFilters: {
-    nba: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'G', column: 'position', match: ['pg', 'sg'] },
-      { title: 'F', column: 'position', match: ['sf', 'pf'] },
-      { title: 'C', column: 'position', match: 'c' },
-    ],
-    nfl: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'QB', column: 'position', match: 'qb' },
-      { title: 'RB', column: 'position', match: ['rb', 'fb'] },
-      { title: 'WR', column: 'position', match: 'wr' },
-      { title: 'TE', column: 'position', match: 'te' },
-      { title: 'FX', column: 'position', match: ['rb', 'wr', 'te', 'fb'] },
-    ],
-    nhl: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'G', column: 'position', match: 'g' },
-      { title: 'C', column: 'position', match: 'c' },
-      { title: 'F', column: 'position', match: 'f' },
-      { title: 'D', column: 'position', match: 'd' },
-    ],
-    mlb: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'SP', column: 'position', match: 'sp' },
-      { title: 'C', column: 'position', match: 'c' },
-      { title: '1B', column: 'position', match: ['1b', 'dh'] },
-      { title: '2B', column: 'position', match: '2b' },
-      { title: '3B', column: 'position', match: '3b' },
-      { title: 'SS', column: 'position', match: 'ss' },
-      { title: 'OF', column: 'position', match: ['lf', 'rf', 'cf'] },
-    ],
-  },
-
-
   loadData() {
     this.props.setActiveDraftGroupId(this.props.params.draftgroupId);
     this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId);
@@ -389,8 +354,8 @@ const DraftContainer = React.createClass({
 
     let positions = [];
 
-    if (this.props.sport && this.playerPositionFilters.hasOwnProperty(this.props.sport)) {
-      positions = this.playerPositionFilters[this.props.sport];
+    if (this.props.sport && playerPositionFilterData.hasOwnProperty(this.props.sport)) {
+      positions = playerPositionFilterData[this.props.sport];
     }
 
     return (

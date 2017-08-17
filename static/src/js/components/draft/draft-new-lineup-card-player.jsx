@@ -1,12 +1,16 @@
 import React from 'react';
 import moment from 'moment';
 
+// These need to match up with the playerPositionFilters in draft-container.jsx in order
+// to filter properly when the row is clicked.
 const playerPlaceHolder = [
+  // NFL
   { position: 'QB', placeholder: 'Select a Quarterback' },
   { position: 'RB', placeholder: 'Select a Running Back' },
   { position: 'WR', placeholder: 'Select a Wide Reciever' },
   { position: 'TE', placeholder: 'Select a Tight End' },
   { position: 'FX', placeholder: 'Select a Flex' },
+  // MLB
   { position: 'SP', placeholder: 'Select a Pitcher' },
   { position: 'C', placeholder: 'Select a Catcher' },
   { position: '1B', placeholder: 'Select a First Baseman' },
@@ -53,6 +57,7 @@ const getFormattedGame = (gameSrid, playerTeamSrid, draftGroupBoxScores) => {
   }
   return '';
 };
+
 
 
 /**
@@ -122,7 +127,12 @@ const DraftNewLineupCardPlayer = (props) => {
 
       <span className="cmp-lineup-card__name-game">
         <span className="name">
-          <span className="placeholder">{getDefaultPlaceholder(props.player.name)}</span>
+          <span
+            className="placeholder"
+            onClick={props.onEmtpySlotClick.bind(null, props.player.name)}
+          >
+              {getDefaultPlaceholder(props.player.name)}
+          </span>
           <span className="cmp-lineup-card__team">&nbsp;</span>
         </span>
         <span className="salary">&nbsp;</span>
@@ -140,7 +150,9 @@ DraftNewLineupCardPlayer.propTypes = {
   playerImagesBaseUrl: React.PropTypes.string.isRequired,
   // What happens when the delete button is clicked.
   removePlayer: React.PropTypes.func.isRequired,
-  onPlayerClick: React.PropTypes.func,
+  onPlayerClick: React.PropTypes.func.isRequired,
+  // When an empty slot "Select a Quarterback" is clicked.
+  onEmtpySlotClick: React.PropTypes.func.isRequired,
   draftGroupBoxScores: React.PropTypes.object.isRequired,
 };
 
