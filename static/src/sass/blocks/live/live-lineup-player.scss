@@ -47,7 +47,7 @@ $block: '.live-lineup-player';
     }
 
     #{$block}__hover-stats {
-      left: 0;
+      left: -8px;
     }
 
     #{$block}__hover-area #{$block}__hover-stats {
@@ -81,7 +81,7 @@ $block: '.live-lineup-player';
 
     #{$block}__hover-stats {
       background-position: 210px center;
-      right: 0;
+      right: 8px;
       text-align: left;
     }
 
@@ -159,7 +159,7 @@ $block: '.live-lineup-player';
     height: 53px;
     overflow: hidden;
     position: absolute;
-    top: 0;
+    top: -26px;
     transition: all 150ms cubic-bezier(.8,.16,.18,.85);
     width: 330px;
 
