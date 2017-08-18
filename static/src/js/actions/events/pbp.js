@@ -20,43 +20,20 @@ const logAction = log.getLogger('action');
  * @param  {string} sport   Sport, based on available actions.sport.SPORT_CONST
  * @return {array}          List of players
  */
-const compileEventPlayers = (message, sport) => {
-  logAction.trace('actions.compileEventPlayers', sport);
+const compileMLBEventPlayers = (message, sport) => {
+  logAction.trace('actions.compileMLBEventPlayers', sport);
 
-  switch (sport) {
-    case 'mlb': {
-      const eventPlayers = [
-        message.pbp.srid_pitcher,  // pitcher
-        message.at_bat.srid_hitter,  // hitter
-      ];
+  const eventPlayers = [
+    message.pbp.srid_pitcher,  // pitcher
+    message.at_bat.srid_hitter,  // hitter
+  ];
 
-      // runners on base
-      if (Array.isArray(message.runners)) {
-        message.runners.map((runner) => eventPlayers.push(runner.srid));
-      }
-
-      return eventPlayers;
-    }
-    case 'nba':
-      return map(message.pbp.statistics__list, event => event.player);
-    case 'nfl': {
-      const eventPlayers = [];
-      const statsList = message.pbp.statistics || {};
-
-      // faster to not camelize the object
-      /* eslint-disable camelcase */
-      const { receive__list = {}, pass__list = {}, rush__list = {}, return__list = {} } = statsList;
-      if ('player' in receive__list) eventPlayers.push(receive__list.player);
-      if ('player' in pass__list) eventPlayers.push(pass__list.player);
-      if ('player' in rush__list) eventPlayers.push(rush__list.player);
-      if ('player' in return__list) eventPlayers.push(return__list.player);
-      /* eslint-enable camelcase */
-
-      return eventPlayers;
-    }
-    default:
-      return [];
+  // runners on base
+  if (Array.isArray(message.runners)) {
+    message.runners.map((runner) => eventPlayers.push(runner.srid));
   }
+
+  return eventPlayers;
 };
 
 const consolidateZonePitches = (zonePitches) => {
@@ -235,7 +212,7 @@ const getMLBData = (message, gameId, boxscore) => {
 
   return {
     description: at_bat.oid_description || '',
-    eventPlayers: compileEventPlayers(message, 'mlb'),
+    eventPlayers: compileMLBEventPlayers(message, 'mlb'),
     gameId,
     hitter: {
       atBatStats: stats_str,
@@ -271,47 +248,21 @@ const getMLBData = (message, gameId, boxscore) => {
 };
 
 /*
- * Converts `nba_pbp.linked` to the relevant data we need
- *
- * @param  {object} message  The received event from Pusher
- * @param  {string} gameId   Game SRID
- */
-const getNBAData = (message, gameId) => {
-  logAction.trace('actions.getNBAData');
-
-  const { pbp, stats } = message;
-
-  return {
-    description: pbp.description,
-    eventPlayers: compileEventPlayers(message, 'nba'),
-    gameId,
-    id: pbp.id,
-    location: pbp.location__list,
-    pbp,
-    playersStats: stats || [],
-    sport: 'nba',
-    type: pbp.event_type,
-    when: pbp.clock,
-  };
-};
-
-/*
  * Converts `nfl_pbp.linked` to the relevant data we need
  *
  * @param  {object} message  The received event from Pusher
  * @param  {string} gameId   Game SRID
+ * @param  {string} sport    The sport represented by the PBP.
  */
-const getNFLData = (message, gameId) => {
+const getPBPData = (message, gameId, sport) => {
   logAction.debug('actions.getNFLData', message);
 
   return {
-    sport: 'nfl',
-    description: message.pbp.description,
-    eventPlayers: compileEventPlayers(message, 'nfl'),
+    sport,
+    eventPlayers: message.stats.map(stat => stat.srid_player),
     gameId,
     id: dateNow(),  // since we don't pass through an ID, use timestamp
     playersStats: message.stats || [],
-    side: 'middle',  // hardcoding start position, vertically, to the middle
     type: message.pbp.type,
     pbp: message.pbp,
     stats: message.stats,
@@ -332,32 +283,21 @@ const getNFLData = (message, gameId) => {
 export const onPBPReceived = (message, sport) => (dispatch, getState) => {
   logAction.debug('actions.onPBPReceived', message, sport);
 
-  const state = getState();
+  let pbpData;
+  const gameId = message.pbp.srid_game;
 
-  let gameId = message.pbp.srid_game;
-  if (sport === 'nba') gameId = message.pbp.game__id;
-
-  let relevantData;
-  switch (sport) {
-    case 'mlb': {
-      if (!isGameReady(state, dispatch, sport, gameId)) return false;
-      if (!validateMLBMessage(message)) return false;
-      const boxscore = state.sports.games[gameId].boxscore;
-      relevantData = getMLBData(message, gameId, boxscore);
-      break;
+  if (sport !== 'mlb') {
+    pbpData = getPBPData(message, gameId, sport);
+  } else {
+    const state = getState();
+    if (!isGameReady(state, dispatch, sport, gameId) || !validateMLBMessage(message)) {
+      return false;
     }
-    case 'nba':
-      relevantData = getNBAData(message, gameId);
-      break;
-    case 'nfl': {
-      relevantData = getNFLData(message, gameId);
-      break;
-    }
-    default:
-      break;
+    const boxscore = state.sports.games[gameId].boxscore;
+    pbpData = getMLBData(message, gameId, boxscore);
   }
 
-  return dispatch(addEventAndStartQueue(gameId, relevantData, 'pbp', sport));
+  return dispatch(addEventAndStartQueue(gameId, pbpData, 'pbp', sport));
 };
 
 /*
