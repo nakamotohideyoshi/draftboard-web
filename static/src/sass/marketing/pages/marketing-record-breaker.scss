@@ -5,6 +5,12 @@
     font-weight: 300;
     margin-bottom: 60px;
     line-height: 1;
+    @media screen and (max-width: 800px) {
+      text-align: center;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      font-size: 30px;
+    }
   }
   h3{
     font-family: $font-oswald;
@@ -14,35 +20,40 @@
   .hero{
     background-image: url('../img/marketing/record-breaker/bg-recordbreaker-header.jpg');
   }
-  .final-details{
-    background-color: $blueish-white;
-    .inner{
-      max-width: 1024px;
-      margin: 0 auto;
-      padding: 50px 0;
-      h2{
-        text-align: center;
-        font-size: 40px;
-        font-weight: 300;
-        padding: 0;
-        margin-bottom: 60px;
-      }
-      .grid-col-3{
-        padding: 0 20px;
-      }
-    }
-  }
+
   .record-holder{
     background: url('../img/marketing/record-breaker/img-recordbreaker-field.jpg') no-repeat 100% 20%;
     background-size: 850px auto;
     margin-top: 50px;
     padding: 0 0 100px;
+    @media screen and (max-width: 1000px) {
+      background-size: 600px auto;
+      background-position: 140% 30%;
+      padding: 0;
+    }
+    @media screen and (max-width: 800px) {
+      background: none;
+      margin-top: 0;
+      padding: 0;
+    }
     .inner{
       max-width: 1024px;
       margin: 0 auto 100px;
       padding: 150px 20px;
       overflow: hidden;
       border-bottom: 1px solid #e5e8ed;
+      @media screen and (max-width: 1000px) {
+        &.grid{
+          grid-template-columns: repeat(7, 1fr);
+        }
+      }
+      @media screen and (max-width: 800px) {
+        &.grid{
+          grid-template-columns: repeat(3, 1fr);
+        }
+        padding: 50px 20px;
+        margin-bottom: 0;
+      }
     }
   }
   .how-works{
@@ -58,6 +69,12 @@
       bottom: 0;
       left: 0;
       z-index: 1;
+      @media screen and (max-width: 1000px) {
+        height: 40px;
+      }
+      @media screen and (max-width: 800px) {
+        display: none;
+      }
     }
     .bg{
       background: url('../img/marketing/record-breaker/img-recordbreaker-work.png') no-repeat bottom right;
@@ -65,11 +82,56 @@
       position: relative;
       z-index: 2;
       padding: 30px 0 180px;
+      @media screen and (max-width: 1000px) {
+        background-size: 500px auto;
+        padding: 50px 0;
+      }
+      @media screen and (max-width: 800px) {
+        background-position: bottom center;
+        padding-bottom: 300px;
+      }
     }
     .inner{
       max-width: 1024px;
       margin: 0 auto;
       padding: 0 20px 100px;
+      @media screen and (max-width: 1000px) {
+        padding: 0 20px 0;
+      }
+      @media screen and (max-width: 800px) {
+        &.grid{
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+    }
+  }
+  .final-details{
+    background-color: $blueish-white;
+    .inner{
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: 50px 0;
+      @media screen and (max-width: 800px) {
+        &.grid{
+          display: block;
+
+        }
+      }
+      h2{
+        text-align: center;
+        font-size: 40px;
+        font-weight: 300;
+        padding: 0;
+        margin-bottom: 60px;
+        @media screen and (max-width: 1000px) {
+          font-size: 30px;
+          line-height: 1.4;
+          margin-bottom: 30px;
+        }
+      }
+      .grid-col-3{
+        padding: 0 20px;
+      }
     }
   }
 }
