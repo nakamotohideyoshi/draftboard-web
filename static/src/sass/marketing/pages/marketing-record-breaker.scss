@@ -19,6 +19,10 @@
   }
   .hero{
     background-image: url('../img/marketing/record-breaker/bg-recordbreaker-header.jpg');
+    margin-bottom: 50px;
+    @media screen and (max-width: 800px){
+      margin-bottom: 0;
+    }
   }
 
   .record-holder{
@@ -26,6 +30,7 @@
     background-size: 850px auto;
     margin-top: 50px;
     padding: 0 0 100px;
+    display: none;
     @media screen and (max-width: 1000px) {
       background-size: 600px auto;
       background-position: 140% 30%;
