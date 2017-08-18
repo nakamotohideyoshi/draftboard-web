@@ -2,6 +2,7 @@
 import filter from 'lodash/filter';
 import log from '../../lib/logging';
 import map from 'lodash/map';
+import merge from 'lodash/merge';
 import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
 import { addEventAndStartQueue } from '../events';
@@ -252,23 +253,19 @@ const getMLBData = (message, gameId, boxscore) => {
  *
  * @param  {object} message  The received event from Pusher
  * @param  {string} gameId   Game SRID
- * @param  {string} sport    The sport represented by the PBP.
+ * @param  {string} sport    The sport associated with the PBP.
  */
 const getPBPData = (message, gameId, sport) => {
   logAction.debug('actions.getNFLData', message);
 
-  return {
+  return merge(message, {
     sport,
-    eventPlayers: message.stats.map(stat => stat.srid_player),
     gameId,
-    id: dateNow(),  // since we don't pass through an ID, use timestamp
+    id: dateNow(),
+    eventPlayers: message.stats.map(stat => stat.srid_player),
     playersStats: message.stats || [],
     type: message.pbp.type,
-    pbp: message.pbp,
-    stats: message.stats,
-    game: message.game,
-    fp_values: message.fp_values,
-  };
+  });
 };
 
 /*
