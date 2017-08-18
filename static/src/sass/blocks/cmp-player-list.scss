@@ -107,6 +107,17 @@
         background-position: top right;
       }
     }
+
+    // an undraftable player should not have a pointer cursor on the button.
+    &.fade {
+      .draft-button {
+        cursor: default;
+
+        &.remove {
+          cursor: pointer;
+        }
+      }
+    }
   }
 }
 

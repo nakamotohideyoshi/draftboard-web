@@ -40,7 +40,7 @@ class InvalidLineupSalaryException(Exception):
 
     def __init__(self, username, salary, max_team_salary):
         super().__init__(
-            "Lineup is over the maximum salary of $%s." % str(max_team_salary))
+            "Please adjust your lineup so it fits under the %s salary cap." % max_team_salary)
 
 
 class DuplicatePlayerException(Exception):
@@ -82,7 +82,7 @@ class NotEnoughTeamsException(Exception):
 
     def __init__(self):
         super().__init__(
-            "Lineup must consist of players from at least three different teams.")
+            "Please select players from more than one game.")
 
 
 class DraftgroupLineupLimitExceeded(Exception):
