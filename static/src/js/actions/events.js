@@ -222,7 +222,8 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
 
-  const { eventPlayers, playersStats, sport } = message;
+  const { playersStats, sport } = message;
+  const eventPlayers = message.stats.map(stat => stat.srid_player);
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
   // if there are no more relevant players, just update stats

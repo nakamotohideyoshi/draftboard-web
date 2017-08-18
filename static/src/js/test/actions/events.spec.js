@@ -2,7 +2,6 @@ import mockStore from '../mock-store-with-middleware';
 import merge from 'lodash/merge';
 import proxyquire from 'proxyquire';
 import { assert } from 'chai';
-
 import * as actions from '../../actions/events';
 import * as types from '../../action-types';
 import currentLineupsReducer from '../../reducers/current-lineups';
@@ -106,7 +105,16 @@ describe('actions.events.showGameEvent', () => {
 
   const defaultMessage = {
     description: '',
-    stats: [],
+    stats: [
+      {
+        player_id: 1,
+        srid_player: 'player1',
+      },
+      {
+        player_id: 4,
+        srid_player: 'player4',
+      },
+    ],
     eventPlayers: ['player1', 'player4'],
     gameId,
     hitter: {
@@ -155,7 +163,16 @@ describe('actions.events.showGameEvent', () => {
             homeScoreStr: 'Team1 3',
             relevantPlayersInEvent: ['player1'],
             whichSide: 'none', // because we can't mock the players with the new whichSide logic.
-            whichSidePlayers: [],
+            whichSidePlayers: [
+              {
+                lineup: 'none',
+                playerId: 1,
+              },
+              {
+                lineup: 'none',
+                playerId: 4,
+              },
+            ],
             winning: 'home',
             playerNames: {},
           }),
