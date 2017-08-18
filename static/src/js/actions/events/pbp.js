@@ -199,35 +199,21 @@ export const stringifyMLBWhen = (inning, half) => {
  * @param  {string} sport   Sport, based on available actions.sport.SPORT_CONST
  * @return {boolean}        True if we want to use, false if we don't
  */
-const isMessageUsed = (message, sport) => {
+const validateMLBMessage = (message) => {
   logAction.debug('actions.isMessageUsed');
 
   const reasons = [];
 
-  switch (sport) {
-    case 'mlb':
-      // only working with at bats
-      if (!('srid_at_bat' in message.pbp)) reasons.push('!message.pbp.srid_at_bat');
-      if (typeof message.at_bat !== 'object' || !('srid_hitter' in message.at_bat)) {
-        reasons.push('!message.at_bat.srid_hitter');
-      }
-      // if the at bat is over, then there must be a description
-      // if (message.pbp.flags.is_ab_over === true && !message.at_bat.oid_description) {
-      //   reasons.push('!message.at_bat.oid_description');
-      // }
-      break;
-    case 'nba':
-      if (typeof message.pbp.statistics__list !== 'object') reasons.push('!message.pbp.statistics__list');
-      if (typeof message.pbp.location__list !== 'object') reasons.push('!message.pbp.location__list');
-      break;
-    default:
-      break;
+  // only working with at bats
+  if (!('srid_at_bat' in message.pbp)) reasons.push('!message.pbp.srid_at_bat');
+  if (typeof message.at_bat !== 'object' || !('srid_hitter' in message.at_bat)) {
+    reasons.push('!message.at_bat.srid_hitter');
   }
-
-  // returns false
-  if (reasons.length > 0) return false;
-
-  return true;
+  // if the at bat is over, then there must be a description
+  // if (message.pbp.flags.is_ab_over === true && !message.at_bat.oid_description) {
+  //   reasons.push('!message.at_bat.oid_description');
+  // }
+  return reasons.length < 1;
 };
 
 /*
@@ -351,12 +337,11 @@ export const onPBPReceived = (message, sport) => (dispatch, getState) => {
   let gameId = message.pbp.srid_game;
   if (sport === 'nba') gameId = message.pbp.game__id;
 
-  if (!isGameReady(state, dispatch, sport, gameId)) return false;
-  if (!isMessageUsed(message, sport)) return false;
-
   let relevantData;
   switch (sport) {
     case 'mlb': {
+      if (!isGameReady(state, dispatch, sport, gameId)) return false;
+      if (!validateMLBMessage(message)) return false;
       const boxscore = state.sports.games[gameId].boxscore;
       relevantData = getMLBData(message, gameId, boxscore);
       break;
