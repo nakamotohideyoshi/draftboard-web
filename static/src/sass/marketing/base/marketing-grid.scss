@@ -1,0 +1,11 @@
+.grid{
+  // display: block;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+
+  @for $i from 1 through 9{
+    .grid-col-#{$i}{
+      grid-column: span #{$i}
+    }
+  }
+}
