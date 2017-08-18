@@ -101,7 +101,7 @@ const whichSidePlayers = (players, state) => {
     let lineup = 'none';
 
     if (mine || opponent) {
-      lineup = mine ? 'mine' : 'oppponent';
+      lineup = mine ? 'mine' : 'opponent';
     }
 
     return { playerId, lineup };
