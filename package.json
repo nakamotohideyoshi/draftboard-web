@@ -75,6 +75,7 @@
     "redux-thunk": "^2.0.1",
     "require-dir": "^0.3.0",
     "reselect": "^2.4.0",
+    "sass-graph": "^2.2.4",
     "sass-loader": "^4.0.2",
     "sinon": "^1.16.1",
     "skin-deep": "^0.16.0",

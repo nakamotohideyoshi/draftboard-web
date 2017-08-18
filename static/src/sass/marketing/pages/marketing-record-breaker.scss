@@ -1,0 +1,13 @@
+.record-breaker{
+  .hero{
+    background-image: url('../img/marketing/record-breaker/bg-recordbreaker-header.jpg');
+  }
+  .final-details{
+    background: $blueish-white;
+    .inner{
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 50px 0;
+    }
+  }
+}
