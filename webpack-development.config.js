@@ -19,12 +19,6 @@ const config = Object.assign(
         'webpack/hot/dev-server',
         path.join(__dirname, 'static', 'src', 'js', 'app.jsx'),
       ],
-      // unauthenticated users - they get a slimmed down set of static files.
-      'logged-out': [
-        // Enable Webpack's dev server hot reloads for this entry.
-        'webpack/hot/dev-server',
-        path.join(__dirname, 'static', 'src', 'js', 'app-logged-out.jsx'),
-      ],
       // separated homepage
       homepage: [
         // Enable Webpack's dev server hot reloads for this entry.
