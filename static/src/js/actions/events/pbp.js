@@ -315,7 +315,7 @@ const getNBAData = (message, gameId) => {
  * @param  {object} message  The received event from Pusher
  * @param  {string} gameId   Game SRID
  */
-const getNFLData = (message, gameId, game) => {
+const getNFLData = (message, gameId) => {
   logAction.debug('actions.getNFLData', message);
 
   return {
@@ -331,10 +331,6 @@ const getNFLData = (message, gameId, game) => {
     stats: message.stats,
     game: message.game,
     fp_values: message.fp_values,
-    when: {
-      clock: message.pbp.clock,
-      quarter: game.boxscore.quarter || 0,
-    },
   };
 };
 
@@ -369,8 +365,7 @@ export const onPBPReceived = (message, sport) => (dispatch, getState) => {
       relevantData = getNBAData(message, gameId);
       break;
     case 'nfl': {
-      const game = state.sports.games[gameId];
-      relevantData = getNFLData(message, gameId, game);
+      relevantData = getNFLData(message, gameId);
       break;
     }
     default:
