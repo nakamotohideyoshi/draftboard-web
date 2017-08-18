@@ -17,7 +17,7 @@
   .final-details{
     background-color: $blueish-white;
     .inner{
-      max-width: 960px;
+      max-width: 1024px;
       margin: 0 auto;
       padding: 50px 0;
       h2{
@@ -33,13 +33,15 @@
     }
   }
   .record-holder{
-    background: url('../img/marketing/record-breaker/img-recordbreaker-field.jpg') no-repeat center right;
-    background-size: 900px auto;
-    padding-bottom: 100px;
+    background: url('../img/marketing/record-breaker/img-recordbreaker-field.jpg') no-repeat 100% 20%;
+    background-size: 850px auto;
+    margin-top: 50px;
+    padding: 0 0 100px;
     .inner{
-      max-width: 960px;
+      max-width: 1024px;
       margin: 0 auto 100px;
-      padding: 150px 0;
+      padding: 150px 20px;
+      overflow: hidden;
       border-bottom: 1px solid #e5e8ed;
     }
   }
@@ -65,9 +67,9 @@
       padding: 30px 0 180px;
     }
     .inner{
-      max-width: 960px;
+      max-width: 1024px;
       margin: 0 auto;
-      padding-bottom: 100px;
+      padding: 0 20px 100px;
     }
   }
 }
