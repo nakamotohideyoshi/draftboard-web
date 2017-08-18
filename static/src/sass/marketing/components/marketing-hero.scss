@@ -20,6 +20,9 @@
       letter-spacing: .25em;
       text-align: center;
       padding: 0;
+      @media screen and (max-width: 900px){
+        font-size: 40px;
+      }
       span{
         display: inline-block;
       }
@@ -29,6 +32,10 @@
         width: 45px;
         height: 45px;
         margin: 0 20px 0 10px;
+        @media screen and (max-width: 900px){
+          width: 30px;
+          height: 30px;
+        }
       }
       margin-bottom: 30px;
     }
