@@ -21,6 +21,7 @@ export function addMessage(options) {
     ttl: options.ttl,
     // Create a probably-unique-enough ID
     id: options.id || Math.random().toString(36).substr(2, 9),
+    replace: options.replace || false,
   };
 }
 

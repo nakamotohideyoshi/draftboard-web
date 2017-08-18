@@ -18,7 +18,7 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.ADD_MESSAGE:
 
-      if (state[action.id]) {
+      if (state[action.id] && !action.replace) {
         log.warn('not displaying user message, message.id already exists.', action.id);
         return state;
       }

@@ -1,5 +1,4 @@
 import React from 'react';
-import Tooltip from '../site/tooltip.jsx';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
@@ -129,7 +128,6 @@ const DraftNewLineupCard = React.createClass({
 
 
   render() {
-    const showError = !!(this.props.errorMessage && this.props.errorMessage.length > 0);
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
     const self = this;
 
@@ -166,14 +164,6 @@ const DraftNewLineupCard = React.createClass({
 
               {this.renderSaveButton()}
 
-              <Tooltip
-                position="right"
-                isVisible={showError}
-                ref="lineupCardTip"
-                clickToClose
-              >
-                <span>{this.renderErrors(this.props.errorMessage)}</span>
-              </Tooltip>
               <div className="cmp-lineup-card__list-header">
                 <span className="cmp-lineup-card__list-header-salary">Salary</span>
               </div>

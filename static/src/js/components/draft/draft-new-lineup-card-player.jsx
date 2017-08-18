@@ -9,7 +9,7 @@ const playerPlaceHolder = [
   { position: 'RB', placeholder: 'Select a Running Back' },
   { position: 'WR', placeholder: 'Select a Wide Receiver' },
   { position: 'TE', placeholder: 'Select a Tight End' },
-  { position: 'FX', placeholder: 'Select a Flex Player' },
+  { position: 'FX', placeholder: 'Select a RB, WR, or TE' },
   // MLB
   { position: 'SP', placeholder: 'Select a Pitcher' },
   { position: 'C', placeholder: 'Select a Catcher' },
