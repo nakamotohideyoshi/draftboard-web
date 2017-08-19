@@ -406,7 +406,10 @@ export function verifyIdentity(postData) {
         if (err) {
           // Is the response a general error, with a detail message?
           // If it isn't, we need to show the error banner.
-          if (isExceptionDetail(res) || isListOfErrors(res) || res.statusCode === 500) {
+          if (
+              isExceptionDetail(res) || isListOfErrors(res) || res.statusCode === 500 ||
+              res.body.status === 'FAIL_FINAL'
+          ) {
             const message = getErrorMessage(res);
 
             dispatch(addMessage({
