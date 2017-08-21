@@ -14,31 +14,46 @@ const block = 'live-history-list-pbp';
 
 export default React.createClass({
   propTypes: {
-    event: React.PropTypes.object.isRequired,
+    id: React.PropTypes.number.isRequired,
+    sport: React.PropTypes.string.isRequired,
+    description: React.PropTypes.string.isRequired,
+    lineup: React.PropTypes.string.isRequired,
+    game: React.PropTypes.shape({
+      homeTeamAlias: React.PropTypes.string.isRequired,
+      awayTeamAlias: React.PropTypes.string.isRequired,
+      period: React.PropTypes.number.isRequired,
+      clock: React.PropTypes.string.isRequired,
+    }).isRequired,
+    players: React.PropTypes.arrayOf(React.PropTypes.shape({
+      lineup: React.PropTypes.string.isRequired,
+      fp: React.PropTypes.number.isRequired,
+      srid: React.PropTypes.string.isRequired,
+    })),
   },
 
   shouldComponentUpdate(newProps) {
-    return this.props.event.id !== newProps.event.id;
+    return this.props.id !== newProps.id;
   },
 
   /**
    * Formats the specified `quarter` and `clock` into a human readable gametime.
    */
   formatGameTime(quarter, clock) {
-    if (quarter > 5) {
-      return `${quarter - 4}OT ${clock}`;
+    const q = parseInt(quarter, 10);
+    if (q > 5) {
+      return `${q - 4}OT ${clock}`;
     }
 
-    return quarter === 5
+    return q === 5
       ? `OT ${clock}`
-      : `Q${quarter} ${clock}`;
+      : `Q${q} ${clock}`;
   },
 
   /**
    *  Renders the IMG element for a player's headshot.
    */
-  renderPlayerHeadShotImg(playerId) {
-    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.event.sport}`;
+  renderPlayerHeadShotImg(player) {
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
 
     const onError = (e) => {
       /* eslint-disable no-param-reassign */
@@ -51,7 +66,7 @@ export default React.createClass({
       <img
         className={`${block}__player-photo`}
         onError={ onError }
-        src={`${playerImagesBaseUrl}/120/${playerId}.png`}
+        src={`${playerImagesBaseUrl}/120/${player.srid}.png`}
         alt="Player Headshot"
       />
     );
@@ -60,44 +75,31 @@ export default React.createClass({
   /**
    * Renders the avatar and points for each featured player.
    */
-  renderPlayersDOM(playerStats) {
-    const players = playerStats.map(player => {
-      const {
-        fp_change: fpChange,
-        srid_player: srPlayerID,
-      } = player;
-
-      return (
-        <li key={srPlayerID} className={`${block}__player`}>
-          <div className={`${block}__player-points`}>
-            {!fpChange ? '' : humanizeFP(fpChange, true)}
-          </div>
-          { this.renderPlayerHeadShotImg(srPlayerID) }
-        </li>
-      );
-    });
-
-    return (
-      <ul className={`${block}__players`}>
-        {players}
-      </ul>
-    );
+  renderPlayersDOM(players) {
+    return players.map(player => (
+      <li key={player.srid} className={`${block}__player ${block}__player--${player.lineup}`}>
+        <div className={`${block}__player-points`}>
+          {humanizeFP(player.fp, true)}
+        </div>
+        { this.renderPlayerHeadShotImg(player) }
+      </li>
+    ));
   },
 
   render() {
-    const { pbp, game, stats, sport, quarter } = this.props.event;
-    const score = `${game.away.alias} @ ${game.home.alias}`;
-    const time = this.formatGameTime(quarter, pbp.clock);
+    const { sport, description, players, game, lineup } = this.props;
 
     return (
-      <article className={`${block} ${block}--${sport}`}>
+      <article className={`${block} ${block}--${sport} ${block}--${lineup}`}>
         <div className={`${block}__body`}>
-          <p className={`${block}__description`}>{cleanDescription(pbp.description)}</p>
-          {this.renderPlayersDOM(stats)}
+          <p className={`${block}__description`}>{cleanDescription(description)}</p>
+          <ul className={`${block}__players`}>
+            {this.renderPlayersDOM(players)}
+          </ul>
         </div>
         <footer className={`${block}__footer`}>
-          <div className={`${block}__score`}>{score}</div>
-          <div className={`${block}__when`}>{time}</div>
+          <div className={`${block}__score`}>{`${game.awayTeamAlias} @ ${game.homeTeamAlias}`}</div>
+          <div className={`${block}__when`}>{this.formatGameTime(game.period, game.clock)}</div>
         </footer>
       </article>
     );

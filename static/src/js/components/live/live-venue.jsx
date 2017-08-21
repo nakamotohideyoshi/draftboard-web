@@ -33,9 +33,9 @@ export default React.createClass({
     // Helper method for delaying callbacks within a promise chain.
     const wait = time => new Promise(resolve => setTimeout(resolve, time));
 
-    animationCompletedPromise.then(() => this.setState({ showPBPInfo: true }))
+    animationCompletedPromise.then(() => this.setState({ showPBPInfo: false }))
     // Wait for the description to be intro'd and displayed
-    .then(() => wait(3000))
+    // .then(() => wait(3000))
     // Clear the description
     .then(() => this.setState({ showPBPInfo: false, currentEvent: null }))
     // Wait for the stage and description to be removed

@@ -6,6 +6,8 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import React from 'react';
 import ResultsPane from './results-pane';
 import LiveContestDetailPane from './live-contest-detail-pane';
+import CardFooter from '../card/CardFooter';
+import CountdownClock from '../site/countdown-clock';
 
 
 const ResultsLineup = React.createClass({
@@ -143,7 +145,7 @@ const ResultsLineup = React.createClass({
     if (!isFinished && isUpcoming === true) {
       rightStatTitle = 'Salary';
     }
-
+    const isLive = this.props.hasOwnProperty('liveStats');
     let lineupStats = (<div />);
     let popup = (<div />);
 
@@ -152,26 +154,11 @@ const ResultsLineup = React.createClass({
     // Is this lineup finished? If not it is a live lineup.
     if (isFinished) {
       lineupStats = (
-        <footer className="cmp-lineup-card__footer">
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Entries</span>
-            <span className="value">
-              {this.props.stats.entries}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Won</span>
-            <span className="value">
-              {humanizeCurrency(this.props.stats.won)}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Points</span>
-            <span className="value">
-              {humanizeFP(totalFP)}
-            </span>
-          </div>
-        </footer>
+        <CardFooter
+          entries={this.props.stats.entries}
+          won={humanizeCurrency(this.props.stats.won)}
+          points={humanizeFP(totalFP)}
+        />
       );
 
       popup = (
@@ -186,40 +173,67 @@ const ResultsLineup = React.createClass({
           </ul>
         </div>
       );
-    } else {
-      // It's a live lineup
-      lineupStats = (
-        <div className="footer-live">
-          <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
-            Watch Live
-          </a>
-          <div className="item">
-            <span className="title">Winning</span>
-            <span className="value">
-              {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
-            </span>
-          </div>
-          <div className="item">
-            <span className="title">Points</span>
-            <span className="value">
-              {humanizeFP(this.props.liveStats.points)}
-            </span>
-          </div>
-        </div>
-      );
+    } else if (isLive) {
+      // if upcoming
+      if (isUpcoming === true) {
+        const humanizecur = humanizeCurrency(this.props.liveStats.totalBuyin);
+        lineupStats = (
+          <CardFooter
+            start={
+              <CountdownClock
+                time={ new Date(this.props.start).getTime() }
+              />
+            }
+            feesentries={`${humanizecur}</span>&nbsp;/&nbsp;
+${this.props.liveStats.entries}`}
+          />
 
-      popup = (
-        <div className="actions-menu-container">
-          <ul className="actions">
-            <li>
-              <div
-                className="icon-flip action"
-                onClick={this.handleSwitchToContests}
-              ></div>
-            </li>
-          </ul>
-        </div>
-      );
+        );
+
+        let editLineupURL = `/draft/${this.props.draftGroupId}/lineup/${this.props.id}/edit`;
+        popup = (
+          <div className="actions-menu-container">
+            <ul className="actions">
+              <li>
+                <a className="icon-edit action" href={editLineupURL} />
+              </li>
+
+              <li>
+                <div
+                  className="icon-flip action"
+                  onClick={this.handleSwitchToContests}
+                ></div>
+              </li>
+            </ul>
+          </div>
+        );
+
+      // otherwise it's live
+      } else {
+        lineupStats = (
+          <CardFooter
+            winning={humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
+            points={humanizeFP(this.props.liveStats.points)}
+          >
+            <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
+              Watch Live
+            </a>
+          </CardFooter>
+        );
+
+        popup = (
+          <div className="actions-menu-container">
+            <ul className="actions">
+              <li>
+                <div
+                  className="icon-flip action"
+                  onClick={this.handleSwitchToContests}
+                ></div>
+              </li>
+            </ul>
+          </div>
+        );
+      }
     }
 
     // Return the lineup card with the proper footer.
@@ -247,7 +261,11 @@ const ResultsLineup = React.createClass({
   },
 
   renderContests() {
+    // const isLive = true;
     const isLive = this.props.hasOwnProperty('liveStats');
+
+    // const isUpcoming = true
+    // const isUpcoming = isTimeInFuture(this.props.start);
 
     const entries = this.props.entries.map((entry) => {
       const payout = entry.payout || {};
@@ -276,53 +294,24 @@ const ResultsLineup = React.createClass({
     for (let i = 0; i < this.props.players.length; i++) {
       totalFP += this.props.players[i].fantasy_points;
     }
-
     if (isLive) {
       footer = (
-        <div className="footer-live">
-          <a
-            className="watch-live"
-            target="_blank"
-            href={`/live/${this.props.sport}/lineups/${this.props.id}/`}
-          >
+        <CardFooter
+          winning={humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
+          pts={humanizeFP(this.props.liveStats.points)}
+        >
+          <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
             Watch Live
           </a>
-          <div className="item">
-            <span className="title">Winning</span>
-            <span className="value">
-              {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
-            </span>
-          </div>
-          <div className="item">
-            <span className="title">Pts</span>
-            <span className="value">
-              {humanizeFP(this.props.liveStats.points)}
-            </span>
-          </div>
-        </div>
+        </CardFooter>
       );
     } else {
       footer = (
-        <footer className="cmp-lineup-card__footer">
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Entries</span>
-            <span className="value">
-              {this.props.stats.entries}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Won</span>
-            <span className="value">
-              {humanizeCurrency(this.props.stats.won)}
-            </span>
-          </div>
-          <div className="cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Points</span>
-            <span className="value">
-              {humanizeFP(totalFP)}
-            </span>
-          </div>
-        </footer>
+        <CardFooter
+          entries={this.props.stats.entries}
+          won={humanizeCurrency(this.props.stats.won)}
+          points={humanizeFP(totalFP)}
+        />
       );
     }
 

@@ -11,7 +11,6 @@ import classNames from 'classnames';
 const DraftTeamFilter = React.createClass({
   propTypes: {
     boxScores: React.PropTypes.object,
-    isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
     selectedTeams: React.PropTypes.array,
     teams: React.PropTypes.object.isRequired,
@@ -21,7 +20,6 @@ const DraftTeamFilter = React.createClass({
   getDefaultProps() {
     return {
       selectedTeams: [],
-      isVisible: false,
     };
   },
   componentWillMount() {
@@ -208,8 +206,13 @@ const DraftTeamFilter = React.createClass({
   },
 
   render() {
-    if (!this.props.isVisible) {
-      return <div></div>;
+    // Figure out x for the "All X Games" button, ignoring any 0 result.
+    let gameCount = '';
+    if (this.props.boxScores) {
+      const count = Object.keys(this.props.boxScores).length;
+      if (count > 0) {
+        gameCount = `${count} `;
+      }
     }
 
     return (
@@ -227,7 +230,7 @@ const DraftTeamFilter = React.createClass({
                   className="game scroll-item allTeams"
                   onClick={this.handleAllClick}
                 >
-                  <span className={`teamName team ${this.state.selected}`}>All Games</span>
+                  <span className={`teamName team ${this.state.selected}`}>All {gameCount}Games</span>
                 </div>
                 <div className="separator half"></div>
                 {this.getGames()}

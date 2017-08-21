@@ -137,8 +137,8 @@ def db2s3():
         $> sudo pip3 install awscli
         $> sudo pip3 install --upgrade awscli
         $> aws configure
-        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
-        AWS Secret Access Key [None]: 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
+        AWS Access Key ID [None]: AKIAJ2A6KDINXV6ODBKQ
+        AWS Secret Access Key [None]: tlJePQVDaD4WVoE95YxrHhhrJpPa2a5ksHpCi8mP
         Default region name [None]: us-east-1
         Default output format [None]:
         $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump    # <--- db2s3 does this cmd
@@ -220,8 +220,9 @@ def flush_pyc():
 
 def generate_replayer():
     """
-    fab [virtual_machine_type] generate_replayer --set start=2016-03-01,end=2016-03-02,[sport=mlb],[download=true]
-    fab local docker generate_replayer --set start=2016-10-19,end=2016-10-20,sport=nba
+    to run this.. use something like this. You can get the filenames from our s3 db dump bucket.
+
+    fab local docker generate_replayer --set start=2017-08-10-10-01-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz,end=2017-08-11-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz,sport=nfl,download=true
 
     Command that generates a database dump consisting of data between two dates, and TimeMachine instances for every
     draft group between the two.
@@ -242,8 +243,8 @@ def generate_replayer():
 
     if 'download' in env and env.download == 'true':
         # this key/value gives full access to s3, need to pare down to just the right bucket.
-        AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
-        AWS_SECRET_ACCESS_KEY = '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'
+        AWS_ACCESS_KEY_ID = 'AKIAJ2A6KDINXV6ODBKQ'
+        AWS_SECRET_ACCESS_KEY = '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'
         AWS_STORAGE_BUCKET_NAME = 'k6yjtzz2xuccqyn'
 
         c = S3Connection(
@@ -255,16 +256,16 @@ def generate_replayer():
         # download start
         startS3Filename = '%s' % env.start
         print("Downloading: %s" % startS3Filename)
-        keyStart = bucket.get_key('pgbackups/%s' % startS3Filename)
-        keyStart.get_contents_to_filename('%s/%s' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
-        # operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
+        keyStart = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
+        keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
+        operations.local('gunzip -f %s/%s.gz' % (tmp_dir, startFilename))
 
         # download end
         endS3Filename = '%s' % env.end
-        print("Downloading: %s" % startS3Filename)
-        keyEnd = bucket.get_key('pgbackups/%s' % endS3Filename)
-        keyEnd.get_contents_to_filename('%s/%s' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
-        # operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
+        print("Downloading: %s" % endS3Filename)
+        keyEnd = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
+        keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
+        operations.local('gunzip -f %s/%s.gz' % (tmp_dir, endFilename))
 
     temp_db = 'generate_replayer'
 
@@ -346,7 +347,7 @@ def heroku_restore_db():
     # operations.local("sudo apt-get update -y")
     operations.local("sudo pip3 install awscli")
     operations.local("sudo pip3 install --upgrade awscli")
-    operations.local("aws configure <<< 'AKIAIJC5GEI5Y3BEMETQ\nAjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1\nus-east-1\n\n'")
+    operations.local("aws configure <<< 'AKIAJ2A6KDINXV6ODBKQ\ntlJePQVDaD4WVoE95YxrHhhrJpPa2a5ksHpCi8mP\nus-east-1\n\n'")
 
 
 def importdb():
@@ -407,8 +408,8 @@ def restore_db():
         $> sudo pip3 install awscli
         $> sudo pip3 install --upgrade awscli
         $> aws configure
-        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
-        AWS Secret Access Key [None]: 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
+        AWS Access Key ID [None]: AKIAJ2A6KDINXV6ODBKQ
+        AWS Secret Access Key [None]: tlJePQVDaD4WVoE95YxrHhhrJpPa2a5ksHpCi8mP
         Default region name [None]: us-east-1
         Default output format [None]:
         $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump
@@ -421,8 +422,8 @@ def restore_db():
     # filename on s3
     S3_FILE = env.s3file  # 'dfs_master_example.dump'
 
-    AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
-    AWS_SECRET_ACCESS_KEY = 'AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1'
+    AWS_ACCESS_KEY_ID = 'AKIAJ2A6KDINXV6ODBKQ'
+    AWS_SECRET_ACCESS_KEY = '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'
     AWS_STORAGE_BUCKET_NAME = 'draftboard-db-dumps'
 
     connection = S3Connection(
@@ -441,7 +442,7 @@ def restore_db():
 
     _puts('s3 url -> %s' % url)
 
-    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-prod --confirm draftboard-prod
+    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAJ2A6KDINXV6ODBKQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-prod --confirm draftboard-prod
     operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-delorean --confirm draftboard-delorean" % url)
 
 def reset_replay():

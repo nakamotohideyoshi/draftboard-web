@@ -1,23 +1,25 @@
 export const clip = {
+  name: 'qb-shotgun-pass-left',
   frame_width: 160,
   frame_height: 100,
   length: 96,
   registration_x: 158,
   registration_y: 76,
-  avatars: [
+  cuepoints: [
     {
-      name: 'quarterback',
-      x: 96,
-      y: 26,
-      in: 30,
+      name: 'avatar',
+      in: 80,
+      data: { x: 68, y: 20, name: 'quarterback' },
+    },
+    {
+      name: 'pass',
+      in: 94,
+      data: { x: 84, y: 15 },
     },
   ],
-  data: {
-    pass: [20, 20],
-  },
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-white.png'),
   },
 };

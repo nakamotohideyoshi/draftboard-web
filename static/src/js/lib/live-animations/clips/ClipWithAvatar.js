@@ -14,18 +14,15 @@ export default class ClipWithAvatar {
   }
 
   setPlayers(players, sport) {
-    const getAvatarData = name => (
-      this._data.avatars.find(avatar => avatar.name === name) || null
-    );
-
     // Create a collection of PlayerAvatars based on the provided recap
     // and clip. Only player types defined in both the clip and recap result in
     // the creation of a PlayerAvatar.
     this._avatars = players.filter(player =>
-      getAvatarData(player.type) !== null
+      this.getCuepointForAvatar(player.type) !== null
     ).map(player => {
-      const avData = getAvatarData(player.type);
-      const avThumbnail = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.id}.png`;
+      const avCuepoint = this.getCuepointForAvatar(player.type);
+      const avData = avCuepoint.data;
+      const avThumbnail = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.srid}.png`;
       const avAnimation = new PlayerAvatar(player.name, avThumbnail);
       const avAnimationEl = avAnimation.getElement();
       const avWidth = avAnimation.getWidth();
@@ -44,7 +41,7 @@ export default class ClipWithAvatar {
 
       return {
         name: avData.name,
-        in: avData.in,
+        in: avCuepoint.in,
         x: avData.x,
         y: avData.y,
         animation: avAnimation,
@@ -62,6 +59,9 @@ export default class ClipWithAvatar {
     this._clip.flipH();
   }
 
+  get clip() {
+    return this._clip;
+  }
   get offsetX() {
     return this._clip.registrationX;
   }
@@ -70,20 +70,33 @@ export default class ClipWithAvatar {
     return this._clip.registrationY;
   }
 
-  get clipData() {
-    return this._clip.clipData;
-  }
-
   getElement() {
     return this._clip.getElement();
   }
 
   /**
-   * ...
+   * Returns the cuepoint associated with the provided avatar.
    */
-  load(file = 'mine') {
+  getCuepointForAvatar(type) {
+    return this._data.cuepoints.find(cuepoint => cuepoint.data.name === type) || null;
+  }
+
+  /**
+   * Loads the clip with avatars for the provided list of players.
+   */
+  load(players, sport) {
+    const relevantPlayers = players.filter(player => (
+      this.getCuepointForAvatar(player.type) !== null
+    ));
+
+    this.setPlayers(relevantPlayers, sport);
+
+    const color = relevantPlayers.reduce((lineup, player) => (
+      lineup === null ? player.lineup : lineup
+    ), null);
+
     return Promise.all([
-      this._clip.load(file),
+      this._clip.load(color || 'none'),
       Promise.all(this._avatars.map(avatar => avatar.animation.load())),
     ]).then(() => this);
   }
@@ -91,25 +104,28 @@ export default class ClipWithAvatar {
   /**
    * ...
    */
-  play() {
-    // Play through the clip and the corresponding avatars chronologically
-    const sequences = this._avatars.map(avatar => () => {
-      const avatarIn = avatar.in;
-      const avatarEl = avatar.animation.getElement();
+  playAvatar(avatarName) {
+    const avatar = this._avatars.find(avatarData =>
+      avatarData.name === avatarName
+    );
 
-      // Play the clip to the avatar's "in" frame, then trigger the avatar's
-      // animation sequence.
-      return this._clip.playTo(avatarIn).then(() => {
-        this._clip.getElement().appendChild(avatarEl);
-        return avatar.animation.play();
-      }).then(() => {
-        this._clip.getElement().removeChild(avatarEl);
-        return avatar;
-      });
+    if (!avatar) {
+      return Promise.resolve();
+    }
+
+    const avatarEl = avatar.animation.getElement();
+    this._clip.getElement().appendChild(avatarEl);
+
+    return avatar.animation.play().then(() => {
+      this._clip.getElement().removeChild(avatarEl);
+      return avatar;
     });
+  }
 
-    return sequences.reduce((promise, fn) =>
-      promise.then(fn), Promise.resolve()
-    ).then(() => this._clip.playTo(this._clip.length));
+  /**
+   * ...
+   */
+  goto(frame) {
+    this._clip.goto(frame);
   }
 }

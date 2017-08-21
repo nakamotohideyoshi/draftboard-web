@@ -41,7 +41,7 @@ const PlayerPmrHeadshotComponent = (props) => {
   };
 
   return (
-    <div>
+    <div className={block}>
       <div className="circle">
         <span
           className={`cmp-lineup-card__photo ${block}__headshot ${block}__headshot--${sport}`}
@@ -56,8 +56,8 @@ const PlayerPmrHeadshotComponent = (props) => {
           }
         >
         </span>
+        {renderPmr()}
       </div>
-      {renderPmr()}
     </div>
   );
 };

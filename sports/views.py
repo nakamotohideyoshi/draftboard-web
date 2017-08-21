@@ -60,7 +60,8 @@ class PlayerRetrieveAPIView(generics.ListAPIView):
         player_srid = self.kwargs['player_srid']
 
         filters = {
-            'player_srid': player_srid
+            'player_srid': player_srid,
+            'type': 'rotowire'
         }
         if category:
             filters['category'] = category

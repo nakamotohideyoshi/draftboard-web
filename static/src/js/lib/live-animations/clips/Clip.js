@@ -4,7 +4,6 @@ export default class Clip {
 
   constructor(data) {
     this.data = data;
-    this._curFrame = 1;
     this.sprite = new Sprite();
 
     this._el = document.createElement('SPAN');
@@ -21,17 +20,18 @@ export default class Clip {
       [this.registrationX, this.registrationY, '#00FF00'],
     ];
 
-    this.data.avatars.forEach(avatarPos => {
-      let x = avatarPos.x;
-
-      if (this.isFlipped()) {
-        x = this.data.frame_width - x;
+    this.data.cuepoints.forEach(cuepoint => {
+      if (!cuepoint.data.x || !cuepoint.data.y) {
+        return;
       }
-      debugPoints.push([x * 0.5, avatarPos.y * 0.5, '#CCCCCC']);
 
-      if (this.clipData.pass) {
-        debugPoints.push([this.clipData.pass[0], this.clipData.pass[1], '#FFFF00']);
-      }
+      const color = cuepoint.name === 'avatar' ? '#EEEEEE' : '#FF00FF';
+
+      const x = !this.isFlipped()
+      ? cuepoint.data.x
+      : this.data.frame_width - cuepoint.data.x;
+
+      debugPoints.push([x * 0.5, cuepoint.data.y * 0.5, color]);
     });
 
     debugPoints.forEach((pt) => {
@@ -78,12 +78,15 @@ export default class Clip {
     return this.data.length;
   }
 
-  get clipData() {
-    return this.data.data || {};
-  }
-
   getFile(name) {
     return this.data.files[name];
+  }
+
+  /**
+   * Returns the Cuepoint with the provided name.
+   */
+  getCuepoint(name) {
+    return this.data.cuepoints.find(cuepoint => cuepoint.name === name);
   }
 
   getElement() {
@@ -99,25 +102,19 @@ export default class Clip {
   }
 
   load(file = 'mine') {
-    this._curFrame = 1;
     const fileUri = this.getFile(file);
     return this.sprite.load(fileUri, this.frameWidth, this.frameHeight).then(
-      () => this._el.appendChild(this.sprite.getElement())
+      () => {
+        this._el.appendChild(this.sprite.getElement());
+        return this.sprite.goto(1);
+      }
     );
   }
 
   /**
-   * Plays the clip to the specified frame. Optionally it can be started from
-   * a specified frame.
+   * Move the playhead to the specified frame.
    */
-  playTo(stop = -1, start = -1) {
-    const stopFrame = stop === -1 ? this.length : stop;
-    const startFrame = start === -1 ? this._curFrame : start;
-
-    // Record the final frame as the clip's current frame. This allows the clip
-    // to be resumed.
-    this._curFrame = stop;
-
-    return this.sprite.playOnce(startFrame, stopFrame).then(() => this);
+  goto(frame) {
+    this.sprite.goto(frame);
   }
 }

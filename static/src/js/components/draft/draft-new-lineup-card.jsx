@@ -1,5 +1,4 @@
 import React from 'react';
-import Tooltip from '../site/tooltip.jsx';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
@@ -27,6 +26,7 @@ const DraftNewLineupCard = React.createClass({
     errorMessage: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.string]),
     saveLineup: React.PropTypes.func.isRequired,
     handlePlayerClick: React.PropTypes.func,
+    handleEmtpySlotClick: React.PropTypes.func,
     lineupCanBeSaved: React.PropTypes.bool,
     draftGroupBoxScores: React.PropTypes.object,
     draftGroupStart: React.PropTypes.string,
@@ -98,7 +98,7 @@ const DraftNewLineupCard = React.createClass({
     if (this.props.isSaving) {
       return (
         <span
-          className="cmp-lineup-card__save button button--outline buttom--sm button--disabled"
+          className="cmp-lineup-card__save button button--outline-alt1 buttom--sm button--disabled"
         >
           Save
         </span>
@@ -108,7 +108,7 @@ const DraftNewLineupCard = React.createClass({
     if (this.props.lineupCanBeSaved) {
       return (
         <span
-          className="cmp-lineup-card__save button button--outline buttom--sm"
+          className="cmp-lineup-card__save button button--gradient buttom--sm"
           onClick={this.saveLineup}
         >
           Save
@@ -118,7 +118,7 @@ const DraftNewLineupCard = React.createClass({
 
     return (
       <span
-        className="cmp-lineup-card__save button button--outline buttom--sm button--disabled"
+        className="cmp-lineup-card__save button button--outline-alt1 buttom--sm button--disabled"
         title="This lineup is incomplete."
       >
         Save
@@ -128,7 +128,6 @@ const DraftNewLineupCard = React.createClass({
 
 
   render() {
-    const showError = !!(this.props.errorMessage && this.props.errorMessage.length > 0);
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
     const self = this;
 
@@ -145,6 +144,7 @@ const DraftNewLineupCard = React.createClass({
           key={player.idx}
           removePlayer={self.props.removePlayer}
           onPlayerClick={self.props.handlePlayerClick}
+          onEmtpySlotClick={self.props.handleEmtpySlotClick}
           playerImagesBaseUrl={playerImagesBaseUrl}
           draftGroupBoxScores={this.props.draftGroupBoxScores}
         />
@@ -164,14 +164,6 @@ const DraftNewLineupCard = React.createClass({
 
               {this.renderSaveButton()}
 
-              <Tooltip
-                position="right"
-                isVisible={showError}
-                ref="lineupCardTip"
-                clickToClose
-              >
-                <span>{this.renderErrors(this.props.errorMessage)}</span>
-              </Tooltip>
               <div className="cmp-lineup-card__list-header">
                 <span className="cmp-lineup-card__list-header-salary">Salary</span>
               </div>

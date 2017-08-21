@@ -4,7 +4,7 @@ import AppStateStore from '../../stores/app-state-store.js';
 
 
 /**
- * When a user attempts to enter a contest, prompt them to confirm.
+ * Show a modal that lists out how much FP each IRL stat is worth.
  */
 const DraftScoringModal = React.createClass({
 
@@ -12,7 +12,7 @@ const DraftScoringModal = React.createClass({
     onClose: React.PropTypes.func.isRequired,
     isOpen: React.PropTypes.bool,
     children: React.PropTypes.element.isRequired,
-    sport: React.PropTypes.string.isRequired,
+    sport: React.PropTypes.string,
   },
 
 
@@ -55,6 +55,10 @@ const DraftScoringModal = React.createClass({
 
 
   render() {
+    if (!this.props.sport) {
+      return null;
+    }
+
     return (
       <Modal
         isOpen={this.state.isOpen}

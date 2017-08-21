@@ -9,7 +9,8 @@ import sortBy from 'lodash/sortBy';
 import uniqWith from 'lodash/uniqWith';
 import { validateLineup } from '../lib/lineup.js';
 import log from '../lib/logging.js';
-import { deleteLineupDraft } from '../lib/lineup-drafts';
+import { deleteInProgressLocalLineup } from '../lib/lineup-drafts';
+import { addMessage } from './message-actions';
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -170,6 +171,14 @@ export function saveLineup(lineup, title, draftGroupId) {
 
     // If we have errors, dispatch a fail action with them.
     if (lineupErrors.length > 0) {
+      // Show an error banner
+      dispatch(addMessage({
+        header: 'Unable to save lineup',
+        content: lineupErrors[0],
+        level: 'warning',
+        id: 'lineupSaveError',
+        replace: true,
+      }));
       // format the errors exactly like how the server response with errors.
       return dispatch(saveLineupFail({ detail: lineupErrors }));
     }
@@ -191,17 +200,42 @@ export function saveLineup(lineup, title, draftGroupId) {
       })
       .send(postData)
       .end((err, res) => {
+        // The user is not logged in.
         if (res.status === 403) {
+          // It's a authentication error, show the user a banner telling them they
+          // need to log in.
+          const content = 'Nice Lineup! Before we save it, you\'ll need to' +
+           ` <a href="/register/?next=${window.location.pathname}">register</a>` +
+           ` or <a href="/login/?next=${window.location.pathname}">log in</a>.`;
+
+          dispatch(addMessage({
+            header: content,
+            level: 'warning',
+            id: 'lineupSaveError',
+            replace: true,
+          }));
+
           return dispatch(saveLineupFail({
             detail: 'NEED_AUTH',
           }));
         }
 
+        // There was an error on the server.
         if (err) {
+          // Show an error banner
+          dispatch(addMessage({
+            header: 'Unable to save lineup',
+            content: res.body.detail || '',
+            level: 'warning',
+            id: 'lineupSaveError',
+            replace: true,
+          }));
+
           dispatch(saveLineupFail(res.body));
         } else {
+          // The lineup was saved!
           // Delete the lineup draft that is saved in localstorage.
-          deleteLineupDraft(draftGroupId);
+          deleteInProgressLocalLineup(draftGroupId);
           // Upon save success, send user to the lobby.
           window.location.href = `/contests/?action=lineup-saved&lineup=${res.body.lineup_id}`;
         }
@@ -231,6 +265,14 @@ export function saveLineupEdit(lineup, title, lineupId) {
 
     // If we have errors, dispatch a fail action with them.
     if (lineupErrors.length > 0) {
+      dispatch(addMessage({
+        header: 'Unable to save lineup',
+        content: lineupErrors[0],
+        level: 'warning',
+        id: 'lineupSaveError',
+        replace: true,
+      }));
+
       return dispatch(saveLineupFail(lineupErrors));
     }
 
@@ -253,6 +295,15 @@ export function saveLineupEdit(lineup, title, lineupId) {
       .end((err, res) => {
         if (err) {
           log.error(res);
+          // Show error banner.
+          dispatch(addMessage({
+            header: 'Unable to save lineup',
+            content: res.body.detail || '',
+            level: 'warning',
+            id: 'lineupSaveError',
+            replace: true,
+          }));
+
           dispatch({
             type: actionTypes.SAVE_LINEUP_EDIT_FAIL,
             lineupId,
@@ -263,6 +314,8 @@ export function saveLineupEdit(lineup, title, lineupId) {
             type: actionTypes.SAVE_LINEUP_EDIT_SUCCESS,
             lineupId,
           });
+          // Delete the lineup draft that is saved in localstorage.
+          deleteInProgressLocalLineup(lineup.draft_group);
           // Redirect to lobby with url param.
           window.location.href = `/contests/?action=lineup-saved&lineup=${lineupId}`;
         }
@@ -278,7 +331,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
  */
 export function editLineupInit(lineupId) {
   return (dispatch) => {
-    log.info(`Lineup #${lineupId} found, importing for editing.`);
+    log.info(`Lineup #${lineupId} retrieved via API, importing for editing.`);
 
     dispatch({
       type: actionTypes.EDIT_LINEUP_INIT,

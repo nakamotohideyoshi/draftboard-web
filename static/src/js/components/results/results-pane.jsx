@@ -83,9 +83,9 @@ const ResultsPane = React.createClass({
     const standings = rankedEntries.map((entry) => {
       let lineupPlayers = [];
       if (entry.lineup) {
-        lineupPlayers = entry.lineup.players.map((player) => {
-          return (<span key={player.idx}>{player.full_name} - {player.fantasy_points} FP</span>);
-        });
+        lineupPlayers = entry.lineup.players.map((player) =>
+          (<span key={player.idx}>{player.full_name} - {player.fantasy_points} FP</span>)
+        );
       }
       let payout = 0.0;
 

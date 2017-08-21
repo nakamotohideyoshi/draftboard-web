@@ -1,23 +1,22 @@
 export const clip = {
+  name: 'qb-default-handoff-fumble-right',
   frame_width: 190,
   frame_height: 100,
   length: 63,
   registration_x: 148,
   registration_y: 80,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 70,
-      y: 14,
+      name: 'avatar',
       in: 44,
+      data: { x: 70, y: 14, name: 'receiver' },
     },
   ],
-  data: {},
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-handoff-fumble-right-white.png'),
     /* eslint-enable max-len */
   },
 };

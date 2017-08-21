@@ -9,7 +9,7 @@ export default class TouchdownAnimation extends LiveAnimation {
     const { x, y, w, h } = this.getEndzone(recap);
     const marker = new Rectangle(field, x, y, w, h, '#bdcc1a');
     const markerEl = field.addChild(marker.el, 0, 0, 1);
-
+    markerEl.style.opacity = 0.5;
     return new Promise(resolve => {
       TweenLite.from(markerEl, 0.25, {
         opacity: 0,

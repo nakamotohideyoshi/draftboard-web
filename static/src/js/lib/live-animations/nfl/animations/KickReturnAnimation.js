@@ -1,6 +1,7 @@
 import LiveAnimation from '../../LiveAnimation';
+import { Timeline } from '../../utils/animate';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import FlightArrowAnimation from './FlightArrowAnimation';
+import FlightArrow from '../graphics/FlightArrow';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
@@ -56,6 +57,9 @@ export default class KickReturnAnimation extends LiveAnimation {
     const catchPos = this.getCatchPos(recap, field);
     const downPos = this.getDownPos(recap, field);
     const sequence = [];
+    const receiver = new PlayerAnimation();
+
+    sequence.push(() => receiver.load(recap, field, 'kick_return'));
 
     // Mark the play (only Punts)
     if (recap.playType() === NFLPlayRecapVO.PUNT) {
@@ -65,21 +69,44 @@ export default class KickReturnAnimation extends LiveAnimation {
       });
     }
 
-    // Kick the ball
-    sequence.push(() => {
-      const animation = new FlightArrowAnimation();
-      const arc = recap.playType() === NFLPlayRecapVO.KICKOFF ? 220 : 150;
-      const duration = recap.playType() === NFLPlayRecapVO.KICKOFF ? 2 : 1.5;
-      return animation.play(recap, field, kickPos, catchPos, {
-        arc,
-        duration,
-      });
-    });
-
     // Catch the ball
     sequence.push(() => {
-      const animation = new PlayerAnimation();
-      return animation.play(recap, field, 'kick_return');
+      const timeline = new Timeline();
+
+      const catchCP = receiver._clip.clip.getCuepoint('catch');
+      const receiverClip = receiver._clip.clip;
+      const receiverEl = receiverClip.getElement().parentNode;
+      const receiverX = parseFloat(receiverEl.style.left, 10);
+      const receiverY = parseFloat(receiverEl.style.top, 10);
+
+      const ballDuration = 1.5 * 30;
+      const ballStart = field.getFieldPos(kickPos.x, kickPos.y);
+      const ballEnd = {
+        x: receiverX,
+        y: receiverY + catchCP.data.y * 0.5,
+      };
+
+      if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
+        ballEnd.x += catchCP.data.x * 0.5;
+      } else {
+        ballEnd.x += receiverClip.frameWidth * 0.5 - catchCP.data.x * 0.5;
+      }
+
+      const ball = new FlightArrow(field, ballStart, ballEnd, 220, 0, 0);
+      ball.progress = 0;
+      field.addChild(ball.el, 0, 0, 30);
+
+      timeline.add({
+        from: 1,
+        length: ballDuration,
+        onUpdate: (frame, len) => (ball.progress = frame / len),
+      });
+
+      // Receiver catches ball.
+      const catchIn = ballDuration - catchCP.in + 1;
+      timeline.add(receiver.getSequence(catchIn, receiver._clip, timeline));
+
+      return new Promise(resolve => timeline.play(resolve));
     });
 
     // Rush the ball (if they ran with it)

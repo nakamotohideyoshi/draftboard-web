@@ -58,13 +58,8 @@ const ContestListHeader = (props) => (
     </div>
 
     <div className="icon-key">
-      <span className="contest-size" title="The Maximum number of entries in each contest">
-        <span className="icon-users"></span>
-        Contest Size
-      </span>
-      <a href="" className="fairmatch">
-        <span className="icon-fairmatch"></span>
-        FairMatch Contest
+      <a href="#" className="fairmatch button button--outline">
+        How Draftboard Works
       </a>
     </div>
   </div>

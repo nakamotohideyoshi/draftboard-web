@@ -9,10 +9,17 @@ import { roundUpToDecimalPlace } from '../../lib/utils';
 const DraftPlayerDetailAverages = (props) => {
   // If there is no boxscore history
   if (
-    'boxScoreHistory' in props.player
-    && !Object.keys(props.player.boxScoreHistory).length
+    !props.player ||
+    !props.player.boxScoreHistory ||
+    !Object.keys(props.player.boxScoreHistory).length
   ) {
-    return (<div className="player-stats">No Game Logs</div>);
+    return (
+      <div className="player-stats">
+          <div className="stat-section">
+            <h6 className="stats-section__title">Season stats unavailable</h6>
+          </div>
+      </div>
+    );
   }
 
   const bsh = props.player.boxScoreHistory || {};

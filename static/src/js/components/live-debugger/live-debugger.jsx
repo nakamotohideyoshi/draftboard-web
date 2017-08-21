@@ -1,4 +1,3 @@
-import merge from 'lodash/merge';
 import { Provider, connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import React from 'react';
@@ -6,7 +5,7 @@ import LiveVenue from '../live/live-venue';
 import DebugMenu from './debug-menu';
 import store from '../../store';
 import fpoState from './fixtures/state';
-import { addEventAndStartQueue } from '../../actions/events';
+import { onPBPReceived } from '../../actions/events/pbp';
 import { Router, Route, browserHistory } from 'react-router';
 import renderComponent from '../../lib/render-component';
 import { syncHistoryWithStore } from 'react-router-redux';
@@ -49,6 +48,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
 
   componentWillMount() {
     window.is_debugging_live_animation = true;
+    window.DEBUG_LIVE_ANIMATIONS_CLIPS = true;
   },
 
   componentDidMount() {
@@ -65,18 +65,11 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   },
 
   onPBPUpdated(message) {
-    if (!message) {
-      return;
-    }
-
-    const eventType = 'pbp';
     const sport = message.sport;
-    const gameId = message.gameId;
-    const messageId = message.id;
-    const gameEvent = merge(message, { id: new Date().getTime() });
+    const id = message.id;
 
-    store.dispatch(routerPush(`/debug/live-animations/${sport}/plays/${messageId}/`));
-    store.dispatch(addEventAndStartQueue(gameId, gameEvent, eventType, sport));
+    store.dispatch(routerPush(`/debug/live-animations/${sport}/plays/${id}/`));
+    store.dispatch(onPBPReceived(message, sport));
   },
 
   animationCompleted() {

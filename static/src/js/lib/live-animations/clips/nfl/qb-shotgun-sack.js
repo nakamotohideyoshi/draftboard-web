@@ -1,21 +1,20 @@
 export const clip = {
+  name: 'qb-shotgun-sack',
   frame_width: 180,
   frame_height: 110,
   length: 67,
   registration_x: 178,
   registration_y: 84,
-  avatars: [
+  cuepoints: [
     {
-      name: 'quarterback',
-      x: 113,
-      y: 28,
+      name: 'avatar',
       in: 24,
+      data: { x: 113, y: 28, name: 'quarterback' },
     },
   ],
-  data: {},
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-white.png'),
   },
 };

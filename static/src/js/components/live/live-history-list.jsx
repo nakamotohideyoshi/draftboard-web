@@ -110,7 +110,7 @@ export default React.createClass({
     // between items. Additionally, a little offset is given if `hasActivity`
     // is set to `true`.
 
-    return plays.map((pbp, i, arr) => {
+    return plays.map((play, i, arr) => {
       const index = (arr.length - 1) - i;
       const start = hasActivity ? activityIndicatorWidth : 0;
       const margins = index * spaceBetweenItems;
@@ -123,9 +123,35 @@ export default React.createClass({
         className += ` ${block}__list-item--active`;
       }
 
+      const players = play.stats.map(stat => {
+        const lineup = play.whichSidePlayers.find(
+          whichSidePlayer => stat.player_id === whichSidePlayer.playerId
+        );
+
+        return {
+          fp: (play.fp_values || {})[stat.srid_player] || 0,
+          srid: stat.srid_player,
+          lineup: !lineup ? 'none' : lineup.lineup,
+        };
+      });
+
+      const game = {
+        awayTeamAlias: play.game.away.alias,
+        homeTeamAlias: play.game.home.alias,
+        period: parseInt(play.game.period, 10),
+        clock: play.pbp.clock,
+      };
+
       return (
-        <div key={pbp.id} {...{ className, style }}>
-          <LiveHistoryListPBP event={pbp} />
+        <div key={play.id} {...{ className, style }}>
+          <LiveHistoryListPBP {...{ game, players }}
+            id={play.id}
+            lineup={play.whichSide}
+            description={play.pbp.description}
+            sport={play.sport}
+            game={game}
+            players={players}
+          />
         </div>
       );
     });

@@ -39,8 +39,6 @@ const CollectionSearchFilter = React.createClass({
     return {
       // Initial match value.
       match: this.props.match,
-      // Default to compact state.
-      isExpanded: false,
     };
   },
 
@@ -76,23 +74,12 @@ const CollectionSearchFilter = React.createClass({
   },
 
 
-  /**
-   * Show the search field.
-   */
-  showSearchField() {
-    this.setState({ isExpanded: true });
-    ReactDom.findDOMNode(this.refs.searchField).focus();
-  },
-
-
   render() {
-    const cmpClass = `cmp-collection-search-filter ${this.props.className}`;
-    const openClass = this.state.isExpanded ? ' cmp-collection-search-filter--active ' : '';
+    const cmpClass = `cmp-collection-search-filter cmp-collection-search-filter--active ${this.props.className}`;
 
     return (
       <div
-        className={cmpClass + openClass}
-        onClick={this.showSearchField}
+        className={cmpClass}
       >
         <div className="cmp-collection-search-filter__sliding-door">
           <input

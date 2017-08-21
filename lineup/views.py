@@ -88,6 +88,9 @@ class CreateLineupAPIView(generics.CreateAPIView):
         # Attempt to create the lineup.
         try:
             lineup = lm.create_lineup(players, draft_group, name)
+            # Keep track of if the user has created a lineup.
+            request.user.information.has_created_a_lineup = True
+            request.user.information.save()
         # Catch all of the lineupManager exceptions and return validation errors.
         except (
                 LineupDoesNotMatchUser,

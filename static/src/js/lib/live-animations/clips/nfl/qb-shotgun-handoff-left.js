@@ -1,18 +1,17 @@
 export const clip = {
+  name: 'qb-shotgun-handoff-left',
   frame_width: 190,
   frame_height: 120,
   length: 90,
   registration_x: 142,
   registration_y: 68,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 65,
-      y: 35,
+      name: 'avatar',
       in: 59,
+      data: { x: 65, y: 35, name: 'receiver' },
     },
   ],
-  data: {},
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-left-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-left-red.png'),

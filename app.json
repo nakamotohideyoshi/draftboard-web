@@ -1,0 +1,113 @@
+{
+  "name": "draftboard",
+  "scripts": {
+  },
+  "env": {
+    "CELERY_TASK_SERIALIZER": {
+      "required": true
+    },
+    "DJANGO_SETTINGS_MODULE": "mysite.settings.pipeline_app",
+    "GIT_COMMIT_UUID": {
+      "required": true
+    },
+    "GUNICORN_MAX_REQUESTS": {
+      "required": true
+    },
+    "GUNICORN_TIMEOUT": {
+      "required": true
+    },
+    "GUNICORN_WORKERS": {
+      "required": true
+    },
+    "LOCKDOWN_PASSWORD": {
+      "required": true
+    },
+    "MONGO_AUTH_DB": {
+      "required": true
+    },
+    "MONGO_HOST": {
+      "required": true
+    },
+    "MONGO_PASSWORD": {
+      "required": true
+    },
+    "MONGO_PORT": {
+      "required": true
+    },
+    "MONGO_SERVER_ADDRESS": {
+      "required": true
+    },
+    "MONGO_USER": {
+      "required": true
+    },
+    "NEW_RELIC_APP_NAME": "Draftboard - Pipeline - Pipeline App",
+    "NEW_RELIC_LICENSE_KEY": {
+      "required": true
+    },
+    "NEW_RELIC_LOG": {
+      "required": true
+    },
+    "PAYPAL_CLIENT_ID": {
+      "required": true
+    },
+    "PAYPAL_REST_API_BASE": {
+      "required": true
+    },
+    "PAYPAL_SECRET": {
+      "required": true
+    },
+    "PUSHER_APP_ID": {
+      "required": true
+    },
+    "PUSHER_ENABLED": {
+      "required": true
+    },
+    "PUSHER_KEY": {
+      "required": true
+    },
+    "PUSHER_SECRET": {
+      "required": true
+    },
+    "PUSHER_SOCKET_URL": {
+      "required": true
+    },
+    "PUSHER_URL": {
+      "required": true
+    },
+    "PYTHONUNBUFFERED": {
+      "required": true
+    },
+    "SENTRY_DSN": "https://865d824ac2964ae78d16cdd5eec47643:9865cbbcb8ce4a03b9d97757885ed9e7@sentry.io/201877",
+    "SLACK_UPDATES": "false",
+    "TRULIOO_API_BASE_URL": {
+      "required": true
+    },
+    "TRULIOO_PASSWORD": {
+      "required": true
+    },
+    "TRULIOO_USER": {
+      "required": true
+    },
+    "USE_LOCKDOWN": {
+      "required": true
+    },
+    "VZERO_ACCESS_TOKEN": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "standard-1x"
+    }
+  },
+  "addons": [
+    "heroku-postgresql:standard-0",
+    "rediscloud"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}

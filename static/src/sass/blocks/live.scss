@@ -59,7 +59,7 @@ $block: '.live';
   
   // Overlap the current .live__venue with the .live-header
   &__venues > .live__venue {
-    margin-top: -10px;
+    margin-top: -50px;
   }
 
   // Adjust the position of the LiveStandingsPane component to slightly overlap
@@ -68,7 +68,7 @@ $block: '.live';
   &__venues > .live-standings-pane {
     position: absolute;
     left: 2.5%;
-    bottom: 7%;
+    bottom: 20px;
     width: 95%;
   }
 
@@ -109,13 +109,6 @@ $block: '.live';
       &#{$block}--countdown {
         background-image: url(../img/blocks/live-countdown/bg-nba.jpg);
         background-size: cover;
-      }
-    }
-
-    &-nfl,
-    &-nba {
-      #{$block}__venues {
-        padding-bottom: 25px;
       }
     }
   }

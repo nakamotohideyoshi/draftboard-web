@@ -294,7 +294,7 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   driveDirection() {
-    return this.whichSide() === 'mine' || this.whichSide() === 'both'
+    return this.whichSide() !== 'opponent'
       ? NFLPlayRecapVO.LEFT_TO_RIGHT
       : NFLPlayRecapVO.RIGHT_TO_LEFT;
   }
@@ -378,28 +378,37 @@ export default class NFLPlayRecapVO {
   }
 
   /**
-   * Returns an array of info for all players featured in the recap.
+   * Returns an array of player objects for all players featured in the recap.
    */
   players() {
-    const stats = this._obj.pbp.statistics;
+    const { statistics } = this._obj.pbp;
+    const { whichSidePlayers } = this._obj;
+    const playerTypesByList = [
+        { list: 'pass__list', type: 'quarterback' },
+        { list: 'receive__list', type: 'receiver' },
+        { list: 'rush__list', type: 'receiver' },
+        { list: 'return__list', type: 'receiver' },
+    ];
 
-    return [
-      { stat: 'pass__list', player: 'quarterback' },
-      { stat: 'receive__list', player: 'receiver' },
-      { stat: 'rush__list', player: 'receiver' },
-      { stat: 'return__list', player: 'receiver' },
-    ].filter(
-      list => stats.hasOwnProperty(list.stat) && stats[list.stat].hasOwnProperty('player')
-    ).map(list => {
-      const playerId = stats[list.stat].player;
+    const getPlayerTypeBySRID = playerSRID => playerTypesByList.find(playerType => (
+      statistics.hasOwnProperty(playerType.list)
+        && statistics[playerType.list].hasOwnProperty('player')
+        && statistics[playerType.list].player === playerSRID
+    ));
 
-      const playerStats = this._obj.stats.filter(stat => (
-        stat.srid_player === playerId
-      ))[0];
+    const getLineupForPlayer = playerId => {
+      const playerWithLineup = whichSidePlayers.find(player => playerId === player.playerId);
+      return !playerWithLineup ? 'none' : playerWithLineup.lineup;
+    };
 
-      const playerName = `${playerStats.first_name} ${playerStats.last_name}`;
-
-      return { type: list.player, name: playerName, id: playerId };
-    });
+    return this._obj.stats.map(player => {
+      const playerType = getPlayerTypeBySRID(player.srid_player);
+      return !playerType ? null : {
+        type: playerType.type,
+        name: `${player.first_name} ${player.last_name}`,
+        srid: player.srid_player,
+        lineup: getLineupForPlayer(player.player_id),
+      };
+    }).filter(player => player !== null);
   }
 }

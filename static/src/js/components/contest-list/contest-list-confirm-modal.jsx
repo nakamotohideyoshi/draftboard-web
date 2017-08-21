@@ -101,7 +101,7 @@ const ContestListConfirmModal = React.createClass({
                   </div>
 
                   <div className="contest-fees footer-section">
-                    <span className="footer-title">Entrants</span>
+                    <span className="footer-title">Entries</span>
                     {this.props.contest.current_entries}
                   </div>
 
@@ -111,13 +111,14 @@ const ContestListConfirmModal = React.createClass({
                   </div>
                 </footer>
               </div>
-
+              <p>Your first entry is guaranteed to be placed in a contest. Subsequent entries are not guaranteed.
+Any entries not placed in contests will be refunded.</p>
               <div className="controls">
                 <div
                   className="remember"
                   onClick={this.handleConfirmToggle}
                 >
-                  <div className={rememberClass}>Don't ask me again.</div>
+                  <div className={rememberClass}>Don't ask me again</div>
                 </div>
 
                 <EnterContestButton

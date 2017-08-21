@@ -64,23 +64,18 @@
     float: right;
     font-size: 11px;
     text-transform: uppercase;
-    color: #9295a6;
     display: inline-block;
-    letter-spacing: 0.05em;
     padding-top: 17px;
 
-    .contest-size {
-      margin-right: 25px;
-    }
-
-    .contest-size,
     .fairmatch {
       display: inline-block;
-      color: #9295a6;
+      color: #46495e;
+      font-weight: 700;
+      border: 1px solid #d4d7e3;
 
-      .icon-users,
-      .icon-fairmatch {
-        margin-right: 5px;
+      &:hover {
+        background: #f7f8fa;
+        box-shadow: none;
       }
     }
   }

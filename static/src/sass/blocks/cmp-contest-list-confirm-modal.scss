@@ -8,6 +8,7 @@
       color: #fff;
       width: 320px;
       padding: 15px;
+
     }
   }
 }
@@ -30,6 +31,12 @@
   }
 
   .content {
+    p{
+      color: #b4b7c4;
+      margin: 20px 20px 0;
+      padding: 0;
+      font-size: 12px;
+    }
     .footer-section {
       border-right: 1px solid #57616d;
       display: inline-block;
@@ -51,6 +58,7 @@
       font-size: 9px;
       letter-spacing: .2em;
       text-transform: uppercase;
+      margin-bottom: 5px;
     }
   }
 
