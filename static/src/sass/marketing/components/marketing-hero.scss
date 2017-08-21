@@ -1,0 +1,97 @@
+
+.hero {
+  width: 100%;
+  color: white;
+  position: relative;
+  text-align: center;
+  text-transform: uppercase;
+  background-size: cover;
+  background-position: bottom center;
+  padding: 150px 0;
+
+  &--inner {
+    display: inline-block;
+    vertical-align: middle;
+    h1 {
+      font-family: $font-oswald;
+      font-size: 70px;
+      font-weight: 200;
+      line-height: 1;
+      letter-spacing: .25em;
+      text-align: center;
+      padding: 0;
+      @media screen and (max-width: 900px){
+        font-size: 40px;
+      }
+      span{
+        display: inline-block;
+      }
+      span.bg{
+        background: url('../img/marketing/record-breaker/icn-recordbreaker-reath.png') no-repeat center center;
+        background-size:contain;
+        width: 45px;
+        height: 45px;
+        margin: 0 20px 0 10px;
+        @media screen and (max-width: 900px){
+          width: 30px;
+          height: 30px;
+        }
+      }
+      margin-bottom: 30px;
+    }
+    h4{
+      color: #fff;
+      font-family: $font-open-sans;
+      font-size: 16px;
+      font-weight: 300;
+      text-transform: none;
+    }
+  }
+
+  &--small-title {
+    color: #8694a7;
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+
+  &--start-btn {
+    display: inline-block;
+    padding: 12px 40px;
+    margin-top: 20px;
+    vertical-align: middle;
+    position: relative;
+
+    color: white;
+    font-size: 10px;
+    font-family: $font-open-sans;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+
+    border: none;
+    border-radius: 2px;
+    background: linear-gradient(to right, rgb(33,157,135) 0%,rgb(52,204,104) 100%);
+    box-shadow: 12px 20.785px 57px 0px rgba(21, 89, 65, 0.149);
+
+    &:hover,
+    &:focus {
+      outline-width: 0;
+      text-decoration: none;
+    }
+
+    .arrow {
+      display: inline-block;
+      position: absolute;
+      top: 42%;
+      right: 0px;
+      width: 19px;
+      height: 11px;
+      background: url('../img/account/arrow.png');
+      background-repeat: no-repeat;
+      background-size: 9px auto;
+    }
+  }
+}

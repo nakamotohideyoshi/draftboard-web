@@ -75,6 +75,7 @@
     "redux-thunk": "^2.0.1",
     "require-dir": "^0.3.0",
     "reselect": "^2.4.0",
+    "sass-graph": "^2.2.4",
     "sass-loader": "^4.0.2",
     "sinon": "^1.16.1",
     "skin-deep": "^0.16.0",
@@ -98,7 +99,6 @@
     "devserver": "NODE_ENV=development ./node_modules/.bin/webpack-dev-server --progress --hot --config webpack-development.config.js",
     "live-events": "NODE_ENV=development node ./static/src/js/simulations/live-events.js",
     "webpack": "NODE_ENV=production ./node_modules/.bin/webpack --optimize-minimize --optimize-dedupe --optimize-occurence-order --colors --progress --profile --config webpack-production.config.js",
-    "webpack_watch": "NODE_ENV=production ./node_modules/.bin/webpack --colors --progress --profile --config webpack-production.config.js --watch",
     "lint": "./node_modules/.bin/eslint ./static/src/js/*"
   },
   "dependencies": {
