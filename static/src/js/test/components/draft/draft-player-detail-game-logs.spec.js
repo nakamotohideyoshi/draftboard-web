@@ -28,7 +28,7 @@ describe('<DraftPlayerDetailGameLogs /> Component', () => {
 
   it('should render with an empty player prop object.', () => {
     expect(wrapper.find(Component)).to.have.length(1);
-    expect(wrapper.find('.player-splits')).to.have.length(0);
+    expect(wrapper.find('.player-splits')).to.have.length(1);
   });
 
 

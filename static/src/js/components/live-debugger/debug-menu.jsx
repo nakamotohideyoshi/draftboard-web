@@ -18,6 +18,8 @@ export default React.createClass({
     return {
       sport: this.props.sport,
       recaps: pbpQueue.recaps,
+      debugLayout: window.DEBUG_LIVE_ANIMATIONS_LAYOUT,
+      debugClips: window.DEBUG_LIVE_ANIMATIONS_CLIPS,
     };
   },
 
@@ -56,9 +58,15 @@ export default React.createClass({
     pbpQueue.replay();
   },
 
-  toggleDebug() {
-    window.DEBUG_LIVE_ANIMATIONS = !window.DEBUG_LIVE_ANIMATIONS;
-    document.body.classList[window.DEBUG_LIVE_ANIMATIONS ? 'add' : 'remove']('is-debugging');
+  toggleDebugLayout() {
+    window.DEBUG_LIVE_ANIMATIONS_LAYOUT = !window.DEBUG_LIVE_ANIMATIONS_LAYOUT;
+    this.setState({ debugLayout: window.DEBUG_LIVE_ANIMATIONS_LAYOUT });
+    document.body.classList[window.DEBUG_LIVE_ANIMATIONS_LAYOUT ? 'add' : 'remove']('is-debugging');
+  },
+
+  toggleDebugClips() {
+    window.DEBUG_LIVE_ANIMATIONS_CLIPS = !window.DEBUG_LIVE_ANIMATIONS_CLIPS;
+    this.setState({ debugClips: window.DEBUG_LIVE_ANIMATIONS_CLIPS });
   },
 
   renderTimelineForm() {
@@ -75,7 +83,7 @@ export default React.createClass({
       >
         <option value="mine">Mine</option>
         <option value="opponent">Opponent</option>
-        <option value="both">Both</option>
+        <option value="none">None</option>
       </select>
     );
 
@@ -117,16 +125,30 @@ export default React.createClass({
     );
 
     const debugMenu = (
-      <div style={{ display: 'inline-block' }}>
-        <input
-          onChange={() => this.toggleDebug()}
-          id="debug"
-          type="checkbox"
-          name="debug"
-          value="1"
-          selected={window.DEBUG_LIVE_ANIMATIONS}
-        />
-        <label htmlFor="debug">Show Debug</label>
+      <div style={{ display: 'inline-block', paddingLeft: '20px' }}>
+        <span>Debug </span>
+        <div style={{ display: 'inline-block' }}>
+          <input
+            onChange={() => this.toggleDebugClips()}
+            id="debug-clips"
+            type="checkbox"
+            name="debug-clips"
+            value="1"
+            checked={this.state.debugClips}
+          />
+          <label htmlFor="debug-clips"> Clips&nbsp;</label>
+        </div>
+        <div style={{ display: 'inline-block' }}>
+          <input
+            onChange={() => this.toggleDebugLayout()}
+            id="debug-layout"
+            type="checkbox"
+            name="debug-layout"
+            value="1"
+            checked={this.state.debugLayout}
+          />
+          <label htmlFor="debug-layout"> Layout&nbsp;</label>
+        </div>
       </div>
     );
 

@@ -21,7 +21,7 @@ const SelectDraftGroupButton = React.createClass({
   getDefaultProps() {
     return {
       style: 'button',
-      classNames: 'button button--medium button--outline',
+      classNames: 'button button--gradient',
     };
   },
 

@@ -1062,6 +1062,21 @@ class VerifyUserIdentityAPIView(APIView):
 
             # If the user was verified...
             if registration_response.is_verified():
+                # If  the identity has already been claimed, bail out of here, don't validate,
+                # return an error.
+                if registration_response.is_identity_previously_claimed():
+                    return Response(
+                        data={
+                            "status": "FAIL_FINAL",
+                            "detail": "We are terribly sorry but we are unable to verify your "
+                                      "account through our automated service. Please contact "
+                                      "support@draftboard.com and we’ll get you activated as "
+                                      "soon as possible.",
+                            "reasonCodes": registration_response.get_reason_codes(),
+                        },
+                        status=400,
+                    )
+
                 # create a date out of the input.
                 dob = datetime(
                     serializer.validated_data.get('birth_year'),

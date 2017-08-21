@@ -1,23 +1,22 @@
 export const clip = {
+  name: 'qb-shotgun-handoff-fumble-right',
   frame_width: 200,
   frame_height: 120,
   length: 75,
   registration_x: 142,
   registration_y: 68,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 65,
-      y: 35,
+      name: 'avatar',
       in: 59,
+      data: { x: 65, y: 35, name: 'receiver' },
     },
   ],
-  data: {},
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-right-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-right-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-right-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-handoff-fumble-right-white.png'),
     /* eslint-enable max-len */
   },
 };

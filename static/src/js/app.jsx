@@ -9,16 +9,8 @@ const logApp = log.getLogger('app');
 
 
 // Sentry error reporting.
-//
-// Set the default Sentry project as Draftboard - Local. If we aren't in debug mode, change it to
-// the Draftboard - Staging project.
-// the DSN for the Draftboard - Local Sentry Project
-let sentryDSN = 'https://bbae8e8654e34a80b02999b5ade6fd81@sentry.io/72241';
-
-if (process.env.NODE_ENV === 'production') {
-  // the DSN for the Draftboard - Staging Sentry Project
-  sentryDSN = 'https://698f3f69f1e446cea667c680c4e1931b@sentry.io/40103';
-}
+// The environment-specific, public, Sentry DSN that is provided to us by the server via html.
+const sentryDSN = window.dfs.sentryPublicDsn;
 
 Raven.config(sentryDSN, {
   release: window.dfs.gitCommitUUID,
@@ -69,6 +61,11 @@ Raven.config(sentryDSN, {
   // Whitelist all of our heroku instances.
   // whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
 }).install();
+
+// If Raven is not configured correctly...
+if (Raven.ravenNotConfiguredError) {
+  log.error(`Raven is not configured correctly! Current DSN is: "${sentryDSN}"`);
+}
 
 // Send any unhandled promise rejections to Sentry.
 // https://docs.getsentry.com/hosted/clients/javascript/usage/#promises

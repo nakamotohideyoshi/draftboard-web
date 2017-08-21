@@ -1,0 +1,74 @@
+.record-holder-entry{
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: cover;
+  position: relative;
+  display: block;
+  margin-bottom: 20px;
+  box-shadow: 0 0 0 0 rgba(26,30,48,.5);
+  transition: all .4s;
+  &:hover{
+    box-shadow: 0 10px 20px 0px rgba(26,30,48,.5);
+  }
+  &.nfl{
+    background-image: url('../img/marketing/record-breaker/bg-recordbreaker-highscore-football.jpg');
+  }
+  &.nba{
+    background-image: url('../img/marketing/record-breaker/bg-recordbreaker-highscore-basketball.jpg');
+  }
+  &.mlb{}
+  &.nhl{}
+  &--inner{
+    display: flex;
+    align-items: stretch;
+    .left{
+      width: 70%;
+      text-align: left;
+      padding: 20px 0 20px 20px;
+      h5,h4{
+        font-family: $font-open-sans;
+        padding: 0;
+        margin: 0;
+        font-weight: 300;
+      }
+      h5{
+        font-size: 9px;
+        color: #9599ad;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+      }
+      h4{
+        color: #fff;
+        font-size: 22px;
+        text-transform: none;
+        span{
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          margin-left: 10px;
+          background: url('../img/marketing/record-breaker/icn-recordbreaker-highscore-badge.png') no-repeat right center;
+          background-size: 16px auto;
+        }
+      }
+
+    }
+    .right{
+      width: 30%;
+      text-align: center;
+      background: url('../img/marketing/record-breaker/bg-recordbreaker-highscore-reath.png') no-repeat center;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+
+      h3{
+        margin: 0;
+        padding: 0;
+        padding: 25px 15px;
+        text-align: center;
+        width: 100%;
+        color: #1dd963;
+        font-size: 30px;
+      }
+    }
+  }
+}

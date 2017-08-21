@@ -28,6 +28,7 @@ describe('actions.events.pbp.onPBPReceived (mlb)', () => {
       srid_hitter: 'player4',
       srid_team: 'team1',
     },
+    stats: [],
     pbp: {
       count: {
         pc: 3,

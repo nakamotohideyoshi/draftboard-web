@@ -9,6 +9,13 @@ urlpatterns = [
     # home page
     url(r'^$', views.FrontendHomepageTemplateView.as_view()),
 
+    #RecordBreaker
+    url(
+        r'^record-breaker/$',
+        views.RecordBreakerPageTemplateView.as_view(),
+        name='record-breaker'
+    ),
+
     # Draft Page
     url(
         r'^draft/(?P<draft_group_id>\d+)/$',

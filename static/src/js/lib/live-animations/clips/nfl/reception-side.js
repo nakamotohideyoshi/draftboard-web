@@ -1,21 +1,25 @@
 export const clip = {
+  name: 'reception-side',
   frame_width: 180,
   frame_height: 100,
   length: 36,
   registration_x: 148,
   registration_y: 76,
-  avatars: [
+  cuepoints: [
     {
-      name: 'receiver',
-      x: 122,
-      y: 20,
+      name: 'avatar',
+      in: 28,
+      data: { x: 112, y: 20, name: 'receiver' },
+    },
+    {
+      name: 'catch',
       in: 29,
+      data: { x: 126, y: 10 },
     },
   ],
-  data: {},
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-side-white.png'),
   },
 };

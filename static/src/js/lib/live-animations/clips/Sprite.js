@@ -1,3 +1,5 @@
+import animate from '../utils/animate';
+
 export default class Sprite {
 
   static get FRAME_RATE() {
@@ -52,9 +54,8 @@ export default class Sprite {
   /**
    * Render all the frames.
    */
-  renderFrames(image, canvas, frameWidth, frameHeight, start = 1, finish = -1) {
+  renderFrames(image, canvas, frameWidth, frameHeight, start = 1, finish = -1, fps = Sprite.FRAME_RATE) {
     let curFrame = start;
-    const frameRate = Sprite.FRAME_RATE;
     const context = canvas.getContext('2d');
     const targetFrame = finish === -1
       ? this.getNumFrames(image.width, image.height, frameWidth, frameHeight)
@@ -66,8 +67,13 @@ export default class Sprite {
       this._isScaled = true;
     }
 
+    if (start === finish) {
+      this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
+      return Promise.resolve();
+    }
+
     return new Promise((resolve) => {
-      this.animate(frameRate, () => {
+      animate(fps, () => {
         this.drawFrame(curFrame, image, context, frameWidth, frameHeight);
         const hasNextFrame = curFrame + 1 <= targetFrame;
         if (!hasNextFrame) {
@@ -78,36 +84,6 @@ export default class Sprite {
         return hasNextFrame;
       });
     });
-  }
-
-  /**
-   * Throttles an animation callback at a specified FPS.
-   * @param {number}      The target frame rate.
-   * @param {function}    The callback to trigger at the specified FPS.
-   */
-  animate(fps, fn) {
-    const fpsInterval = 1000 / fps;
-    let then = window.performance.now();
-    let now = then;
-    let elapsed = 0;
-    let isPlaying = true;
-    let count = 0;
-
-    const tick = () => {
-      now = window.performance.now();
-      elapsed = now - then;
-
-      if (elapsed > fpsInterval) {
-        then = now - (elapsed % fpsInterval);
-        isPlaying = fn(++count);
-      }
-
-      if (isPlaying) {
-        window.requestAnimationFrame(tick);
-      }
-    };
-
-    window.requestAnimationFrame(tick);
   }
 
   /**
@@ -156,13 +132,20 @@ export default class Sprite {
   }
 
   /**
+   *
+   */
+  goto(frame) {
+    return this.playOnce(frame, frame);
+  }
+
+  /**
    * Plays through the animation once.
    */
-  playOnce(start = 1, finish = -1) {
+  playOnce(start = 1, finish = -1, fps = 30) {
     if (!this.isLoaded()) {
       return Promise.reject('No image data loaded.');
     }
 
-    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, start, finish);
+    return this.renderFrames(this.img, this.canvas, this.canvas.width, this.canvas.height, start, finish, fps);
   }
 }

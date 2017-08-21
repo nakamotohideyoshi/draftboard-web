@@ -6,6 +6,7 @@ import log from '../../lib/logging.js';
 import lazyLoadImage from '../../lib/lazy-load-image.js';
 import renderComponent from '../../lib/render-component';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
+import playerPositionFilterData from '../filters/player-position-filter-data';
 import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
 import DraftTableHeader from './draft-table-header.jsx';
@@ -15,7 +16,7 @@ import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import { verifyLocation } from '../../actions/user';
 import { addMessage } from '../../actions/message-actions.js';
-import { getLineupDraft } from '../../lib/lineup-drafts';
+import { getInProgressLocalLineup } from '../../lib/lineup-drafts';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter } from
   '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId } from
@@ -30,7 +31,6 @@ import './draft-player-detail.jsx';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
-import CountdownClock from '../../components/site/countdown-clock.jsx';
 import RestrictedLocationConfirmModal from '../account/restricted-location-confirm-modal';
 import DraftScoringModal from './draft-scoring-modal';
 import ScoringInfo from '../contest-list/scoring-info';
@@ -151,7 +151,6 @@ const DraftContainer = React.createClass({
 
   getInitialState() {
     return ({
-      showTeamFilter: false,
       filteredPlayers: [],
       newLineup: {
         availablePositions: [],
@@ -168,10 +167,14 @@ const DraftContainer = React.createClass({
     // load in draft group players and injuries and boxscores and stuff.
     // After that, look for an unsaved local lineup to import.
     this.loadData().then(() => {
-      const lineup = this.lineupInProgress(this.props.params.draftgroupId);
-      if (lineup) {
-        log.info('in-progress lineup found, attempting to import.');
-        this.props.importLineup({ players: lineup });
+      // Don't load in-progress lineups if we are editing an existing lineup.
+      if (this.props.params.lineupAction !== 'edit') {
+        log.info('Looking for in-progress lineup in localstorage to resume.');
+        const lineup = this.lineupInProgress(this.props.params.draftgroupId);
+        if (lineup) {
+          log.info('in-progress lineup found, attempting to import.');
+          this.props.importLineup({ players: lineup });
+        }
       }
       return true;
     });
@@ -195,42 +198,6 @@ const DraftContainer = React.createClass({
 
   // A place to keep our lazy image loader.
   lazyLoader: null,
-
-
-  // Position type filter data.
-  playerPositionFilters: {
-    nba: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'G', column: 'position', match: ['pg', 'sg'] },
-      { title: 'F', column: 'position', match: ['sf', 'pf'] },
-      { title: 'C', column: 'position', match: 'c' },
-    ],
-    nfl: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'QB', column: 'position', match: 'qb' },
-      { title: 'RB', column: 'position', match: ['rb', 'fb'] },
-      { title: 'WR', column: 'position', match: 'wr' },
-      { title: 'TE', column: 'position', match: 'te' },
-      { title: 'FX', column: 'position', match: ['rb', 'wr', 'te', 'fb'] },
-    ],
-    nhl: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'G', column: 'position', match: 'g' },
-      { title: 'C', column: 'position', match: 'c' },
-      { title: 'F', column: 'position', match: 'f' },
-      { title: 'D', column: 'position', match: 'd' },
-    ],
-    mlb: [
-      { title: 'All', column: 'position', match: '' },
-      { title: 'SP', column: 'position', match: 'sp' },
-      { title: 'C', column: 'position', match: 'c' },
-      { title: '1B', column: 'position', match: ['1b', 'dh'] },
-      { title: '2B', column: 'position', match: '2b' },
-      { title: '3B', column: 'position', match: '3b' },
-      { title: 'SS', column: 'position', match: 'ss' },
-      { title: 'OF', column: 'position', match: ['lf', 'rf', 'cf'] },
-    ],
-  },
 
 
   loadData() {
@@ -279,17 +246,12 @@ const DraftContainer = React.createClass({
 
 
   lineupInProgress(draftGroupId) {
-    return getLineupDraft(draftGroupId);
+    return getInProgressLocalLineup(draftGroupId);
   },
 
 
   handleFilterChange(filterName, filterProperty, match) {
     this.props.updateFilter(filterName, filterProperty, match);
-  },
-
-
-  handleGameCountClick() {
-    this.setState({ showTeamFilter: !this.state.showTeamFilter });
   },
 
 
@@ -331,10 +293,6 @@ const DraftContainer = React.createClass({
   render() {
     const self = this;
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${self.props.sport}`;
-    let gameCount = '';
-    if (this.props.draftGroupTime) {
-      gameCount = `${Object.keys(this.props.activeDraftGroupBoxScores).length} Games`;
-    }
 
     let visibleRows = [];
 
@@ -391,8 +349,8 @@ const DraftContainer = React.createClass({
 
     let positions = [];
 
-    if (this.props.sport && this.playerPositionFilters.hasOwnProperty(this.props.sport)) {
-      positions = this.playerPositionFilters[this.props.sport];
+    if (this.props.sport && playerPositionFilterData.hasOwnProperty(this.props.sport)) {
+      positions = playerPositionFilterData[this.props.sport];
     }
 
     return (
@@ -401,11 +359,6 @@ const DraftContainer = React.createClass({
           <h5 className="contest-list__sub_title">AVAILABLE PLAYERS</h5>
           <h2 className="player-list__header">
             <span className="player-list__header-title">Draft Your Team</span>
-            <span className="player-list__header-divider">/</span>
-            <span
-              className="player-list__header-games"
-              onClick={this.handleGameCountClick}
-            >{gameCount}</span>
           </h2>
 
           <div className="player-list-filter-set">
@@ -430,13 +383,6 @@ const DraftContainer = React.createClass({
               activeFilter={this.props.filters.positionFilter}
             />
 
-            <div className="cmp-draft-countdown">
-              <CountdownClock
-                time={this.props.draftGroupTime}
-                timePassedDisplay="Live"
-              />
-            </div>
-
             <DraftScoringModal
               isOpen={this.state.scoringModalState}
               sport={this.props.sport}
@@ -444,11 +390,13 @@ const DraftContainer = React.createClass({
                 scoringModalState: false,
               })}
             >
-              <div className="arena">
-                <img src={getArenaAsset(this.props.sport)} role="presentation" />
-              </div>
+              <div>
+                <div className="arena">
+                  <img src={getArenaAsset(this.props.sport)} role="presentation" />
+                </div>
 
-              <ScoringInfo sport={this.props.sport} isModal />
+                <ScoringInfo sport={this.props.sport} isModal />
+              </div>
             </DraftScoringModal>
 
             <div
@@ -464,7 +412,6 @@ const DraftContainer = React.createClass({
         <div>
           <DraftTeamFilter
             boxScores={this.props.activeDraftGroupBoxScores}
-            isVisible={this.state.showTeamFilter}
             onFilterChange={this.handleFilterChange}
             selectedTeams={this.props.filters.teamFilter.match}
             teams={this.props.teams}
