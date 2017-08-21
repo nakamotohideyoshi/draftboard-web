@@ -1,5 +1,5 @@
 import React from 'react';
-// import FeaturedContests from './featured-contests.jsx';
+import FeaturedContests from './featured-contests.jsx';
 import ContestListRow from './contest-list-row.jsx';
 import forEach from 'lodash/forEach';
 
@@ -53,39 +53,39 @@ const ContestList = (props) => {
 
 
   return (
-    <table className="cmp-contest-list cmp-contest-list__table table">
-      <thead>
-        <tr className="cmp-contest-list__header-row">
-          <th
-            className="table__sortable"
-            // onClick={props.setOrderBy.bind(null, 'sport')}
-          >&nbsp;</th>
-          <th
-            className="table__sortable"
-            // onClick={props.setOrderBy.bind(null, 'name')}
-          >Contest Type</th>
-          <th>Details</th>
-          <th
-            className="table__sortable"
-            // onClick={props.setOrderBy.bind(null, 'prize_pool')}
-          >Prizes</th>
-          <th
-            className="table__sortable"
-            // onClick={props.setOrderBy.bind(null, 'entries')}
-          >Entries</th>
-          <th>My Entries</th>
-          <th
-            className="table__sortable"
-            // onClick={props.setOrderBy.bind(null, 'start')}
-          >Live In</th>
+    <div className="cmp-contest-list-wrapper">
+      <FeaturedContests featuredContests={props.featuredContests} />
 
-          <th>&nbsp;</th>
-        </tr>
-      </thead>
-      <tbody>
-        {visibleRows}
-      </tbody>
-    </table>
+      <table className="cmp-contest-list cmp-contest-list__table table">
+        <thead>
+          <tr className="cmp-contest-list__header-row">
+            <th
+              className="table__sortable"
+              // onClick={props.setOrderBy.bind(null, 'sport')}
+            >&nbsp;</th>
+            <th
+              className="table__sortable"
+              // onClick={props.setOrderBy.bind(null, 'name')}
+            >Contest Type</th>
+            <th>Contest Size</th>
+            <th
+              className="table__sortable"
+              // onClick={props.setOrderBy.bind(null, 'prize_pool')}
+            >Prizes</th>
+            <th>My Entries</th>
+            <th
+              className="table__sortable"
+              // onClick={props.setOrderBy.bind(null, 'start')}
+            >Start Time</th>
+
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visibleRows}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
@@ -101,6 +101,7 @@ ContestList.propTypes = {
   setOrderBy: React.PropTypes.func,
   entrySkillLevels: React.PropTypes.object.isRequired,
   isFetchingContestPools: React.PropTypes.bool.isRequired,
+  featuredContests: React.PropTypes.array,
 };
 
 

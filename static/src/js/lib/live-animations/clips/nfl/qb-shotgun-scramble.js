@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-scramble',
   frame_width: 200,
   frame_height: 90,
   length: 90,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 30,
-      data: { x: 97, y: 10, in: 30, name: 'receiver' },
+      data: { x: 97, y: 10, name: 'receiver' },
     },
   ],
   files: {

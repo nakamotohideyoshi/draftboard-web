@@ -14,22 +14,15 @@ export default class ClipWithAvatar {
   }
 
   setPlayers(players, sport) {
-    const getAvatarData = name => {
-      const cp = this._data.cuepoints.find(cuepoint => cuepoint.data.name === name);
-      if (cp) {
-        return cp.data;
-      }
-      return null;
-    };
-
     // Create a collection of PlayerAvatars based on the provided recap
     // and clip. Only player types defined in both the clip and recap result in
     // the creation of a PlayerAvatar.
     this._avatars = players.filter(player =>
-      getAvatarData(player.type) !== null
+      this.getCuepointForAvatar(player.type) !== null
     ).map(player => {
-      const avData = getAvatarData(player.type);
-      const avThumbnail = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.id}.png`;
+      const avCuepoint = this.getCuepointForAvatar(player.type);
+      const avData = avCuepoint.data;
+      const avThumbnail = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.srid}.png`;
       const avAnimation = new PlayerAvatar(player.name, avThumbnail);
       const avAnimationEl = avAnimation.getElement();
       const avWidth = avAnimation.getWidth();
@@ -48,7 +41,7 @@ export default class ClipWithAvatar {
 
       return {
         name: avData.name,
-        in: avData.in,
+        in: avCuepoint.in,
         x: avData.x,
         y: avData.y,
         animation: avAnimation,
@@ -82,11 +75,28 @@ export default class ClipWithAvatar {
   }
 
   /**
-   * ...
+   * Returns the cuepoint associated with the provided avatar.
    */
-  load(file = 'mine') {
+  getCuepointForAvatar(type) {
+    return this._data.cuepoints.find(cuepoint => cuepoint.data.name === type) || null;
+  }
+
+  /**
+   * Loads the clip with avatars for the provided list of players.
+   */
+  load(players, sport) {
+    const relevantPlayers = players.filter(player => (
+      this.getCuepointForAvatar(player.type) !== null
+    ));
+
+    this.setPlayers(relevantPlayers, sport);
+
+    const color = relevantPlayers.reduce((lineup, player) => (
+      lineup === null ? player.lineup : lineup
+    ), null);
+
     return Promise.all([
-      this._clip.load(file),
+      this._clip.load(color || 'none'),
       Promise.all(this._avatars.map(avatar => avatar.animation.load())),
     ]).then(() => this);
   }

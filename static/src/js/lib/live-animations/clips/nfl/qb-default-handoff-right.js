@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-handoff-right',
   frame_width: 190,
   frame_height: 100,
   length: 65,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 44,
-      data: { x: 57, y: 20, in: 44, name: 'receiver' },
+      data: { x: 57, y: 20, name: 'receiver' },
     },
   ],
   files: {

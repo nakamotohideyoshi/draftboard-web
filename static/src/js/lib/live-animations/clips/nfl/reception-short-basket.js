@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'reception-short-basket',
   frame_width: 190,
   frame_height: 110,
   length: 11,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 10,
-      data: { x: 106, y: 32, in: 10, name: 'receiver' },
+      data: { x: 106, y: 32, name: 'receiver' },
     },
     {
       name: 'catch',
@@ -19,6 +20,6 @@ export const clip = {
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-short-basket-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-short-basket-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-short-basket-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-short-basket-white.png'),
   },
 };

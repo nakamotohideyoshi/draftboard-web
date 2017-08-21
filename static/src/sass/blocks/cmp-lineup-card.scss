@@ -292,12 +292,11 @@ category: Lineup
       display: inline-block;
       text-overflow: ellipsis;
       overflow: hidden;
-      width: 120px;
+      max-width: 120px;
       line-height: 1em;
 
       &:hover {
         cursor: pointer;
-        text-decoration: underline;
       }
     }
 

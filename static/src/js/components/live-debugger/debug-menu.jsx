@@ -83,7 +83,7 @@ export default React.createClass({
       >
         <option value="mine">Mine</option>
         <option value="opponent">Opponent</option>
-        <option value="both">Both</option>
+        <option value="none">None</option>
       </select>
     );
 

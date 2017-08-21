@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'reception-basket-incomplete',
   frame_width: 225,
   frame_height: 110,
   length: 46,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 30,
-      data: { x: 130, y: 32, in: 30, name: 'receiver' },
+      data: { x: 130, y: 32, name: 'receiver' },
     },
     {
       name: 'catch',
@@ -19,8 +20,8 @@ export const clip = {
   files: {
     /* eslint-disable max-len */
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
-    opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-blue.png'),
+    opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-red.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-basket-incomplete-white.png'),
     /* eslint-enable max-len */
   },
 };

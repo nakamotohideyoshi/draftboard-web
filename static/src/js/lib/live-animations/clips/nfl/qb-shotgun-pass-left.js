@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-pass-left',
   frame_width: 160,
   frame_height: 100,
   length: 96,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 80,
-      data: { x: 68, y: 20, in: 80, name: 'quarterback' },
+      data: { x: 68, y: 20, name: 'quarterback' },
     },
     {
       name: 'pass',
@@ -19,6 +20,6 @@ export const clip = {
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-pass-left-white.png'),
   },
 };

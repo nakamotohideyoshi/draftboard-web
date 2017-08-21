@@ -29,7 +29,10 @@ const DraftPlayerNextGame = React.createClass({
       // if this player is on the away team, make that bold.
       if (this.props.highlightTeamSrid === this.props.game.srid_away) {
         return (
-          <span><span className="player-team">{awayTeam.alias}</span> @ {homeTeam.alias}</span>
+          <span>
+            <span className="player-team">{awayTeam.alias}</span> @ {homeTeam.alias}&nbsp;
+            {moment(this.props.game.start, moment.ISO_8601).format('h:mma')}
+          </span>
         );
       }
       // Otherwise, they are on the home team, make that bold.

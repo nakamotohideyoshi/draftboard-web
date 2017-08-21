@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-pass-right',
   frame_width: 150,
   frame_height: 90,
   length: 94,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 81,
-      data: { x: 48, y: 20, in: 81, name: 'quarterback' },
+      data: { x: 48, y: 20, name: 'quarterback' },
     },
     {
       name: 'pass',
@@ -19,6 +20,6 @@ export const clip = {
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-right-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-right-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-right-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-pass-right-white.png'),
   },
 };

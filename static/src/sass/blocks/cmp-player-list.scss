@@ -107,6 +107,17 @@
         background-position: top right;
       }
     }
+
+    // an undraftable player should not have a pointer cursor on the button.
+    &.fade {
+      .draft-button {
+        cursor: default;
+
+        &.remove {
+          cursor: pointer;
+        }
+      }
+    }
   }
 }
 
@@ -241,18 +252,5 @@
     .seconds {
 
     }
-  }
-}
-
-// Break the filters down to a separate line as soon as they can't fit.
-@media (max-width: 1350px) {
-  .player-list-filter-set {
-    display: block;
-    float: none;
-    clear: both;
-  }
-
-  .cmp-collection-search-filter {
-    margin-left: 0;
   }
 }

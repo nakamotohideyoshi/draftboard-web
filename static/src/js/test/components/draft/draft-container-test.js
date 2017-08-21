@@ -81,7 +81,6 @@ describe('<DraftContainer /> Component', () => {
     expect(wrapper.find(DraftTeamFilter)).to.have.length(1);
     expect(wrapper.find(CollectionMatchFilter)).to.have.length(1);
     expect(wrapper.find(CollectionSearchFilter)).to.have.length(1);
-    expect(wrapper.find(CountdownClock)).to.have.length(1);
   });
 
   it('should load data once mounted.', () => {
@@ -147,7 +146,7 @@ describe('<DraftContainer /> Component', () => {
       // of this it's callCount should be 2.  -- add one more because of saved
       // draft imports.
       expect(wrapper.node.props.editLineupInit.callCount).to.equal(2);
-      expect(wrapper.node.props.importLineup.callCount).to.equal(3);
+      expect(wrapper.node.props.importLineup.callCount).to.equal(2);
       done();
     })
     .catch((err) => {
