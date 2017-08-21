@@ -82,6 +82,7 @@ class SingleContestAPIView(generics.GenericAPIView):
     """
 
     serializer_class = ContestSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self, pk):
         try:
@@ -256,6 +257,7 @@ class UserLiveAPIView(UserEntryAPIView):
     """
     A User's live Contests
     """
+    permission_classes = (IsAuthenticated,)
     contest_model = LiveContest
 
 
@@ -354,6 +356,7 @@ class AllLineupsView(View):
     """
     return all the lineups for a given contest as raw bytes, in our special compact format
     """
+    permission_classes = (IsAuthenticated,)
 
     @random_comment_exempt
     def get(self, request, contest_id):
@@ -372,6 +375,7 @@ class SingleLineupView(View):
 
     this api will mask out players who should not yet be seen
     """
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, contest_id, lineup_id):
         clm = ContestLineupManager(contest_id=contest_id)
@@ -386,6 +390,7 @@ class SingleContestLineupView(View):
 
     this api will mask out players who should not yet be seen
     """
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, lineup_id):
         entries = Entry.objects.filter(lineup__pk=lineup_id).exclude(contest__pk=None)
@@ -401,7 +406,7 @@ class SingleContestLineupView(View):
 
 class RegisteredUsersAPIView(generics.ListAPIView):
     """
-    get the lineup Players
+    get the usernames of all current entries in a contest
     """
     serializer_class = RegisteredUserSerializer
 
@@ -415,14 +420,12 @@ class RegisteredUsersAPIView(generics.ListAPIView):
 
 class ContestRanksAPIView(generics.GenericAPIView):
     """
-    get the lineup Players
+     get the contest.models.Entry objects, ordered by their rank, for a given contest pk
     """
     serializer_class = RankedEntrySerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self, contest_id):
-        """
-        get the contest.models.Entry objects, ordered by their rank, for a given contest pk
-        """
         entries = Entry.objects.filter(contest__pk=contest_id).order_by('final_rank')
         return entries
 
