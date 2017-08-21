@@ -357,6 +357,8 @@ category: Lineup
   }
 
   footer{
+    box-shadow: 0 -7px 42px 0 rgba(21, 23, 36, 0.1);
+    z-index: 1;
     & > dl{
       display: flex;
       align-items: stretch;
@@ -381,6 +383,25 @@ category: Lineup
       font-size: 16px;
       .hours {
         color: #9c9faf;
+      }
+    }
+    .watch-live{
+      display: block;
+      width: 100%;
+      text-align: center;
+      background-image: $greengrad;
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 12px;
+      padding: 5px 0;
+    }
+  }
+  .back footer{
+    box-shadow: 0 -7px 42px 0 rgba(21, 23, 36, 0.3);
+    border-top: 1px solid #6a6d77;
+    & > dl{
+      & > dd{
+        border-color: #6a6d77;
       }
     }
   }
