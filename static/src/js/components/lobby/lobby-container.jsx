@@ -55,6 +55,7 @@ function mapStateToProps(state) {
     queryAction: state.routing.locationBeforeTransitions.query.action,
     hasFetchedLineups: state.upcomingLineups.hasFetchedLineups,
     sportFilter: state.contestPools.filters.sportFilter,
+    user: state.user.user,
   };
 }
 
@@ -122,6 +123,7 @@ const LobbyContainer = React.createClass({
     upcomingContestUpdateReceived: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
     sportFilter: React.PropTypes.object,
+    user: React.PropTypes.object,
   },
 
 
@@ -166,7 +168,12 @@ const LobbyContainer = React.createClass({
   },
   componentWillReceiveProps(nextProps) {
     // If we've fetched the user's lineups, and none exist, show a message.
-    if (nextProps.hasFetchedLineups && Object.keys(nextProps.lineupsInfo).length === 0) {
+    if (
+      nextProps.hasFetchedLineups &&
+      Object.keys(nextProps.lineupsInfo).length === 0 &&
+      nextProps.user &&
+      !nextProps.user.has_created_a_lineup
+    ) {
       this.props.addMessage({
         header: 'Welcome to Draftboard. Create a lineup to get started.',
         level: 'success',

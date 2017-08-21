@@ -79,6 +79,7 @@
       {% endif %}
       username: "{{ user.username }}",
       is_staff: {{ user.is_staff|lower }},
+      has_created_a_lineup: {{ user.information.has_created_a_lineup|lower }},
       pusher_key: "{{ PUSHER_KEY }}",
       pusher_channel_prefix: "{{ PUSHER_CHANNEL_PREFIX }}",
     }
