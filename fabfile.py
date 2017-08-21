@@ -137,8 +137,8 @@ def db2s3():
         $> sudo pip3 install awscli
         $> sudo pip3 install --upgrade awscli
         $> aws configure
-        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
-        AWS Secret Access Key [None]: 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
+        AWS Access Key ID [None]: AKIAJ2A6KDINXV6ODBKQ
+        AWS Secret Access Key [None]: tlJePQVDaD4WVoE95YxrHhhrJpPa2a5ksHpCi8mP
         Default region name [None]: us-east-1
         Default output format [None]:
         $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump    # <--- db2s3 does this cmd
@@ -243,8 +243,8 @@ def generate_replayer():
 
     if 'download' in env and env.download == 'true':
         # this key/value gives full access to s3, need to pare down to just the right bucket.
-        AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
-        AWS_SECRET_ACCESS_KEY = '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'
+        AWS_ACCESS_KEY_ID = 'AKIAJ2A6KDINXV6ODBKQ'
+        AWS_SECRET_ACCESS_KEY = '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'
         AWS_STORAGE_BUCKET_NAME = 'k6yjtzz2xuccqyn'
 
         c = S3Connection(
@@ -347,7 +347,7 @@ def heroku_restore_db():
     # operations.local("sudo apt-get update -y")
     operations.local("sudo pip3 install awscli")
     operations.local("sudo pip3 install --upgrade awscli")
-    operations.local("aws configure <<< 'AKIAIJC5GEI5Y3BEMETQ\nAjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1\nus-east-1\n\n'")
+    operations.local("aws configure <<< 'AKIAJ2A6KDINXV6ODBKQ\ntlJePQVDaD4WVoE95YxrHhhrJpPa2a5ksHpCi8mP\nus-east-1\n\n'")
 
 
 def importdb():
@@ -408,8 +408,8 @@ def restore_db():
         $> sudo pip3 install awscli
         $> sudo pip3 install --upgrade awscli
         $> aws configure
-        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
-        AWS Secret Access Key [None]: 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
+        AWS Access Key ID [None]: AKIAJ2A6KDINXV6ODBKQ
+        AWS Secret Access Key [None]: tlJePQVDaD4WVoE95YxrHhhrJpPa2a5ksHpCi8mP
         Default region name [None]: us-east-1
         Default output format [None]:
         $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump
@@ -422,8 +422,8 @@ def restore_db():
     # filename on s3
     S3_FILE = env.s3file  # 'dfs_master_example.dump'
 
-    AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
-    AWS_SECRET_ACCESS_KEY = 'AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1'
+    AWS_ACCESS_KEY_ID = 'AKIAJ2A6KDINXV6ODBKQ'
+    AWS_SECRET_ACCESS_KEY = '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'
     AWS_STORAGE_BUCKET_NAME = 'draftboard-db-dumps'
 
     connection = S3Connection(
@@ -442,7 +442,7 @@ def restore_db():
 
     _puts('s3 url -> %s' % url)
 
-    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-prod --confirm draftboard-prod
+    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAJ2A6KDINXV6ODBKQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-prod --confirm draftboard-prod
     operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-delorean --confirm draftboard-delorean" % url)
 
 def reset_replay():

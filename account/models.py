@@ -25,6 +25,9 @@ class Information(models.Model):
     user = models.OneToOneField(User, primary_key=True)
     inactive = models.BooleanField(default=False)
     exclude_date = models.DateField(blank=True, null=True)
+    # Has the user ever created a lineup? We use this to track whether to
+    # show them intro messaging on the frontend.
+    has_created_a_lineup = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Information'

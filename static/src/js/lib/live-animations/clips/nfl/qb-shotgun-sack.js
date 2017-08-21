@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-sack',
   frame_width: 180,
   frame_height: 110,
   length: 67,
@@ -8,12 +9,12 @@ export const clip = {
     {
       name: 'avatar',
       in: 24,
-      data: { x: 113, y: 28, in: 24, name: 'quarterback' },
+      data: { x: 113, y: 28, name: 'quarterback' },
     },
   ],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-shotgun-sack-white.png'),
   },
 };

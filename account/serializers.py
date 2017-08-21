@@ -34,6 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
     identity_verified = serializers.SerializerMethodField()
     cash_balance = serializers.SerializerMethodField()
     cash_balance_formatted = serializers.SerializerMethodField()
+    has_created_a_lineup = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     identity = UserIdentitySerializer(read_only=True)
 
@@ -48,6 +49,10 @@ class UserSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_cash_balance(user):
         return user.information.cash_balance
+
+    @staticmethod
+    def get_has_created_a_lineup(user):
+        return user.information.has_created_a_lineup
 
     @staticmethod
     def get_cash_balance_formatted(user):
@@ -69,7 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "username", "email", "identity_verified", "cash_balance", "cash_balance_formatted",
-            "permissions", "identity",)
+            "has_created_a_lineup", "permissions", "identity",)
 
 
 class UserCredentialsSerializer(serializers.ModelSerializer):

@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-default-sack',
   frame_width: 180,
   frame_height: 90,
   length: 75,
@@ -8,12 +9,12 @@ export const clip = {
     {
       name: 'avatar',
       in: 24,
-      data: { x: 142, y: 26, in: 24, name: 'quarterback' },
+      data: { x: 142, y: 26, name: 'quarterback' },
     },
   ],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-sack-blue.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-sack-red.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-sack-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/qb-default-sack-white.png'),
   },
 };

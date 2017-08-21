@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'qb-shotgun-handoff-right',
   frame_width: 200,
   frame_height: 120,
   length: 79,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 52,
-      data: { x: 66, y: 24, in: 52, name: 'receiver' },
+      data: { x: 66, y: 24, name: 'receiver' },
     },
   ],
   files: {

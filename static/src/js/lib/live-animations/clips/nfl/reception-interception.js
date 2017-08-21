@@ -1,4 +1,5 @@
 export const clip = {
+  name: 'reception-interception',
   frame_width: 180,
   frame_height: 130,
   length: 46,
@@ -8,7 +9,7 @@ export const clip = {
     {
       name: 'avatar',
       in: 36,
-      data: { x: 86, y: 30, in: 36, name: 'receiver' },
+      data: { x: 86, y: 30, name: 'receiver' },
     },
     {
       name: 'catch',
@@ -18,7 +19,7 @@ export const clip = {
   ],
   files: {
     mine: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
-    both: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
     opponent: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
+    none: require('../../../../../img/blocks/live-animation-stage/nfl/sequences/reception-interception-white.png'),
   },
 };

@@ -5,6 +5,8 @@ import uniqBy from 'lodash/uniqBy';
 import ordinal from '../../lib/ordinal.js';
 import { humanizeCurrency } from '../../lib/utils/currency.js';
 import SportIcon from '../site/sport-icon.jsx';
+import moment from 'moment';
+import { timeRemaining } from '../../lib/utils';
 
 
 /**
@@ -158,6 +160,27 @@ const ContestListRow = React.createClass({
     );
   },
 
+  /**
+   * If there is more than an hour until start, show `Thu @ 5:00pm`.
+   * if under an hour, show countdown clock `27:23`.
+   */
+  renderTime() {
+    const timeTillStart = timeRemaining(this.props.contest.start);
+
+    if (timeTillStart.hours < 1) {
+      return (
+        <CountdownClock
+          time={this.props.contest.start}
+          timePassedDisplay="Live"
+        />
+      );
+    }
+
+    return (
+      moment(this.props.contest.start, moment.ISO_8601).format('ddd @ h:mma')
+    );
+  },
+
   render() {
     // If it's the currently focused contest, add a class to it.
     let classes = this.props.focusedContest.id === this.props.contest.id ? 'active ' : '';
@@ -190,9 +213,6 @@ const ContestListRow = React.createClass({
 
         <td key="details" className="details-row">
           <span className="details">
-            <span className="fairmatch">
-              <span className="icon-fairmatch" title="This is a FairMatch contest"></span>
-            </span>
             <span className="users"
               title={`You will compete against ${this.props.contest.contest_size - 1} other users`}
             >
@@ -205,17 +225,12 @@ const ContestListRow = React.createClass({
           {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
 
-        <td key="entries" className="entries">{this.props.contest.current_entries}</td>
-
         <td key="user-entries" className="user-entries">
           {this.renderEntries(this.props.contest.entryInfo)}
         </td>
 
         <td key="start" className="start">
-          <CountdownClock
-            time={this.props.contest.start}
-            timePassedDisplay="Live"
-          />
+          {this.renderTime()}
         </td>
 
         <td

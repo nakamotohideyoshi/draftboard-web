@@ -1,7 +1,7 @@
 instrumentation:
     root: ./static/src/js/
     extensions: ['.jsx', '.js']
-    excludes: ['**fixtures/**', 'app.jsx', 'app-logged-out.jsx']
+    excludes: ['**fixtures/**', 'app.jsx']
 
 # hooks:
 #     post-require-hook: null

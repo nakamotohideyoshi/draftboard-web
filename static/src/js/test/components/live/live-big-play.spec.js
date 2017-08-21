@@ -10,28 +10,23 @@ import LiveHistoryListPBP from '../../../components/live/live-history-list-pbp.j
  */
 describe('<LiveHistoryListPBP /> Component', () => {
   const defaultProps = {
-    event: {
+    id: 123,
+    sport: 'nba',
+    description: 'Jimmy Butler makes two point reverse layup',
+    lineup: 'mine',
+    players: [
+      {
+        fp: 1,
+        srid: '0e163d44-67a7-4107-9421-5333600166bb',
+        lineup: 'mine',
+      },
+    ],
+    game: {
+      awayTeamAlias: 'OKC',
+      homeTeamAlias: 'MIL',
       description: 'Jimmy Butler makes two point reverse layup',
-      eventPlayers: [
-        '0e163d44-67a7-4107-9421-5333600166bb',
-      ],
-      pbp: {
-        description: 'Jimmy Butler makes two point reverse layup',
-        clock: '9:59',
-      },
-      whichSide: 'mine',
-      homeScoreStr: 'MIL 50',
-      awayScoreStr: 'OKC 56',
-      winning: 'away',
-      playerFPChanges: {},
-      when: '9:59',
-      quarter: 1,
-      game: {
-        away: 'OKC',
-        home: 'MIL',
-        period: 1,
-      },
-      stats: [],
+      period: 1,
+      clock: '9:59',
     },
   };
 
@@ -42,14 +37,14 @@ describe('<LiveHistoryListPBP /> Component', () => {
 
   it('should render the correct game time during overtime', () => {
     const props = merge({}, defaultProps);
-    props.event.game.period = 5;
+    props.game.period = 5;
     const wrapper = mount(<LiveHistoryListPBP {...props} />);
     expect(wrapper.find('.live-history-list-pbp__when').text()).to.equal('OT 9:59');
   });
 
   it('should render the correct game time during double overtime', () => {
     const props = merge({}, defaultProps);
-    props.event.game.period = 6;
+    props.game.period = 6;
     const wrapper = mount(<LiveHistoryListPBP {...props} />);
     expect(wrapper.find('.live-history-list-pbp__when').text()).to.equal('2OT 9:59');
   });
