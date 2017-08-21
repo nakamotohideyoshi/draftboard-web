@@ -1,0 +1,101 @@
+{% load pipeline %}
+{% load static %}
+{% load analytics %}
+{% load cache %}
+
+{% cache 0 tmpl-homepage using="django_templates" %}
+{% spaceless %}
+<!DOCTYPE html>
+<html lang="en" class="{% block html_class %}{% endblock %}">
+<head>
+  <title>Draftboard</title>
+
+  <meta http-equiv="content-type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <link rel="stylesheet" href="{% static 'css/marketing.css' %}">
+
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+
+  <link rel="prefetch" href="{% static 'css/app.css' %}">
+  {% kissanalyticsjs %}
+  {% googleanalyticsjs %}
+  <link rel="prefetch" href="{% static 'js/app.js' %}">
+  <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400">
+</head>
+<body>
+  <div class="record-breaker page">
+    {% include "frontend/partials/company-header.html" with modifiers="company-header--homepage" %}
+
+    <section class="hero">
+      <div class="ero--bg">
+        <div class="hero--inner">
+          <h1>
+            <span>RECORD</span>
+            <span class="bg"></span>
+            <span>BREAKER</span>
+          </h1>
+          <h4>Break the NFL record and win $10,000!</h4>
+        </div>
+      </div>
+    </section>
+    <section class="record-holder">
+      <div class="inner grid">
+        <div class="grid-col-3">
+          <h3>REcord holders</h3>
+          <div class="record-holder-entry nfl">
+            <div class="record-holder-entry--inner">
+              <div class="left">
+                <h5>NFL</h5>
+                <h4>Usernamemm<span></span></h4>
+              </div>
+              <div class="right">
+                <h3>421</h3>
+              </div>
+            </div>
+          </div>
+          <div class="record-holder-entry nba">
+            <div class="record-holder-entry--inner">
+              <div class="left">
+                <h5>NBA</h5>
+                <h4>ZachhhhWoods<span></span></h4>
+              </div>
+              <div class="right">
+                <h3>419</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="how-works">
+      <div class="bg">
+        <div class="grid inner">
+          <div class="grid-col-3">
+            <h3>How it works</h3>
+            <p>The Record Breaker banner showcases each sport’s current prize and record score. Play in any contest in a sport to qualify for that sport’s Record Breaker prize. If your lineup scores higher than the record score for that sport, you win the prize!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="final-details">
+      <div class="grid inner">
+        <h2 class="grid-col-9">The not actually fine print</h2>
+        <div class="grid-col-3">
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vel, debitis error dicta quia? Deserunt, dolor! Aliquid, facilis, perspiciatis vel consequatur odit laboriosam cupiditate? Eveniet voluptates soluta voluptatum hic, obcaecati. Obcaecati!</p>
+        </div>
+        <div class="grid-col-3">
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Saepe, molestias excepturi ea, aspernatur ex repellat! Eaque consectetur similique, ducimus in, ad nisi maxime velit ut, quo deleniti optio suscipit minima.</p>
+        </div>
+        <div class="grid-col-3">
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquam fugit, maxime, asperiores, numquam deleniti temporibus maiores sed doloribus, enim similique quis beatae ex optio laborum exercitationem! Aut voluptatum quos similique.</p>
+        </div>
+      </div>
+    </section>
+    {% include "frontend/partials/company-footer.html" %}
+  </div>
+</body>
+</html>
+{% endspaceless %}
+{% endcache %}
