@@ -187,7 +187,10 @@ export default class PassingPlayAnimation extends LiveAnimation {
       if (recap.rushingYards() > 0.03) {
         sequence.push(() => {
           const animation = new RushArrowAnimation();
-          return animation.play(recap, field, catchPos.x, downPos.x, catchPos.y);
+          const rushEnd = recap.driveDirection === NFLPlayRecapVO.LEFT_TO_RIGHT
+          ? catchPos.x + recap.rushingYards()
+          : catchPos.x - recap.rushingYards();
+          return animation.play(recap, field, catchPos.x, rushEnd, catchPos.y);
         });
       }
 
