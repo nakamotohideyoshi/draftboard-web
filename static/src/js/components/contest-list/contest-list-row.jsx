@@ -5,7 +5,7 @@ import uniqBy from 'lodash/uniqBy';
 import ordinal from '../../lib/ordinal.js';
 import { humanizeCurrency } from '../../lib/utils/currency.js';
 import SportIcon from '../site/sport-icon.jsx';
-
+import Cookies from 'js-cookie';
 
 /**
  * Render a single ContestList 'row'.
@@ -88,6 +88,9 @@ const ContestListRow = React.createClass({
 
 
   handleRowClick() {
+    if (Cookies.get(this.props.contest.id) === undefined) {
+      Cookies.set(this.props.contest.id, 'false');
+    }
     this.props.setFocusedContest(this.props.contest);
   },
 

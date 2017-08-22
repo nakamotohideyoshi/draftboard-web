@@ -138,3 +138,5 @@ mysite/smugglin/
 
 # Pycharm editor config file.
 .editorconfig
+
+parsecssdir.js
