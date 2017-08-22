@@ -37,9 +37,9 @@ from account.forms import (
 )
 from account.gidx.models import GidxSession
 from account.gidx.request import (
-    CustomerRegistrationRequest, WebRegCreateSession, RegistrationStatusRequest, get_user_from_session_id, get_customer_id_for_user
+    CustomerRegistrationRequest, WebRegCreateSession, RegistrationStatusRequest,
+    get_user_from_session_id, get_customer_id_for_user
 )
-
 from account.gidx.response import WebhookResponse
 from account.models import Identity
 from account.models import (
@@ -73,6 +73,7 @@ from account.serializers import (
     VerifyUserIdentitySerializer
 )
 from account.utils import (create_user_log, get_client_ip)
+from account.utils import send_welcome_email
 from cash.classes import (
     CashTransaction,
 )
@@ -1181,13 +1182,15 @@ class RegisterAccountAPIView(APIView):
             # Log user in.
             if new_user is not None:
                 authLogin(request, new_user)
+
+            # Send a welcome email.
+            send_welcome_email(new_user)
+
             # Everything went OK!
             return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)
 
         # If there were user user_serializer errors, send em back to the user.
         return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 class AccessSubdomainsTemplateView(LoginRequiredMixin, TemplateView):
