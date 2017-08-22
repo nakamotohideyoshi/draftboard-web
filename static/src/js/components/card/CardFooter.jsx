@@ -95,9 +95,7 @@ class CardFooter extends React.Component {
   }
 
   startGameTimer(timestamp) {
-    log.info(this.refs.hours.content);
     const timer = setInterval(() => {
-      log.info('1 second');
       const remaining = this.getRemainingTime(timestamp);
       this.refs.hours.textContent = remaining.hours;
       this.refs.minutes.textContent = remaining.minutes;
@@ -120,7 +118,6 @@ class CardFooter extends React.Component {
   }
 
   render() {
-    log.info(this.refs);
     return (
       <footer>
         <dl>
