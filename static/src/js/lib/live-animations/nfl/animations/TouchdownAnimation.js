@@ -1,9 +1,8 @@
-import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import Rectangle from '../graphics/Rectangle';
 import TweenLite from 'gsap';
 
-export default class TouchdownAnimation extends LiveAnimation {
+export default class TouchdownAnimation {
 
   play(recap, field) {
     const { x, y, w, h } = this.getEndzone(recap);

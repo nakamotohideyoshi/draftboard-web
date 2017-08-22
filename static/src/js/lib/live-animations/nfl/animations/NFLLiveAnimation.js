@@ -1,7 +1,6 @@
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import LiveAnimation from '../../LiveAnimation';
 
-export default class NFLLiveAnimation extends LiveAnimation {
+export default class NFLLiveAnimation {
 
   /**
    * Returns the field position where the ball was snapped.

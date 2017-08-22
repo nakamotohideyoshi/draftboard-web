@@ -1,4 +1,3 @@
-import LiveAnimation from '../../LiveAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
@@ -7,7 +6,7 @@ import YardlineAnimation from './YardlineAnimation';
  * pass arrow, catch, and rush arrow animation, based on the provided
  * play recap.
  */
-export default class QuarterbackSackedAnimation extends LiveAnimation {
+export default class QuarterbackSackedAnimation {
   play(recap, field) {
     const sequence = [];
 

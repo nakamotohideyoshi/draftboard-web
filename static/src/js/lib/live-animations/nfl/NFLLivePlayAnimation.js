@@ -1,11 +1,10 @@
-import LiveAnimation from '../LiveAnimation';
 import NFLPlayRecapVO from './NFLPlayRecapVO';
 import KickReturnAnimation from './animations/KickReturnAnimation';
 import PassingPlayAnimation from './animations/PassingPlayAnimation';
 import QuarterbackSackedAnimation from './animations/QuarterbackSackedAnimation';
 import RushingPlayAnimation from './animations/RushingPlayAnimation';
 
-export default class NFLLivePlayAnimation extends LiveAnimation {
+export default class NFLLivePlayAnimation {
 
   /**
    * Returns a Live Animation based on the provided recap.
