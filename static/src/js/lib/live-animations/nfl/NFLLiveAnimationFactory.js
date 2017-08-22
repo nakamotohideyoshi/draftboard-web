@@ -1,15 +1,12 @@
-import NFLPlayRecapVO from './NFLPlayRecapVO';
 import KickReturnAnimation from './animations/KickReturnAnimation';
+import NFLField from './NFLField';
+import NFLPlayRecapVO from './NFLPlayRecapVO';
 import PassingPlayAnimation from './animations/PassingPlayAnimation';
 import QuarterbackSackedAnimation from './animations/QuarterbackSackedAnimation';
 import RushingPlayAnimation from './animations/RushingPlayAnimation';
 
-export default class NFLLivePlayAnimation {
+export default class NFLLiveAnimationAnimation {
 
-  /**
-   * Returns a Live Animation based on the provided recap.
-   * @param {NFLPlayRecapVO}  The recap.
-   */
   getAnimation(recap) {
     if (recap.isQBSack()) {
       return new QuarterbackSackedAnimation();
@@ -29,11 +26,11 @@ export default class NFLLivePlayAnimation {
   }
 
   /**
-   * Plays the provided recap.
-   * @param {NFLPlayRecapVO}  The recap.
-   * @param {NFLField}    Field of play.
+   * Plays an NFL animation based on the provided `pbpObj`.
    */
-  play(recap, field) {
+  play(pbpObj, element) {
+    const recap = new NFLPlayRecapVO(pbpObj);
+    const field = new NFLField(element);
     const animation = this.getAnimation(recap);
 
     if (!animation) {
