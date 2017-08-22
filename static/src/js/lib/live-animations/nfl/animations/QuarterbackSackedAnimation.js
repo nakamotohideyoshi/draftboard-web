@@ -1,4 +1,5 @@
 import PlayerAnimation from './PlayerAnimation';
+import NFLLiveAnimation from './NFLLiveAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
 /**
@@ -6,14 +7,15 @@ import YardlineAnimation from './YardlineAnimation';
  * pass arrow, catch, and rush arrow animation, based on the provided
  * play recap.
  */
-export default class QuarterbackSackedAnimation {
+export default class QuarterbackSackedAnimation extends NFLLiveAnimation {
   play(recap, field) {
+    const snapPos = this.getSnapPos(recap, field);
     const sequence = [];
 
     // Mark the play
     sequence.push(() => {
       const animation = new YardlineAnimation();
-      return animation.play(recap, field, recap.startingYardLine(), YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
+      return animation.play(recap, field, snapPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
     });
 
     // Sack the QB
