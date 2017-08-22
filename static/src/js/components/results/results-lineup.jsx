@@ -387,7 +387,13 @@ ${this.props.liveStats.entries}`}
             {this.renderContests()}
           </div>
         </div>
-        {this.renderResultsPane()}
+        <ResultsPane
+          contestId={this.state.contestPaneId}
+          entry={this.state.currentEntry}
+          onHide={this.handleHideContestPane}
+          numToPlace={this.numToPlace}
+          sport={this.props.sport}
+        />
       </div>
 
     );
