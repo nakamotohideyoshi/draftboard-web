@@ -72,14 +72,10 @@
     sentryPublicDsn: "{{ SENTRY_PUBLIC_DSN }}",
     user: {
       id: "{{ user.id }}",
-      {% if user.is_authenticated %}
-        isAuthenticated: true,
-      {% else %}
-        isAuthenticated: false,
-      {% endif %}
+      isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
       username: "{{ user.username }}",
       is_staff: {{ user.is_staff|lower }},
-      has_created_a_lineup: {{ user.information.has_created_a_lineup|lower }},
+      has_created_a_lineup: {% if user.information.has_created_a_lineup %}true{% else %}false{% endif %},
       pusher_key: "{{ PUSHER_KEY }}",
       pusher_channel_prefix: "{{ PUSHER_CHANNEL_PREFIX }}",
     }

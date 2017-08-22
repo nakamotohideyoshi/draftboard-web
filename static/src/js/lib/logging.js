@@ -29,7 +29,12 @@ const isTestingEnv = process.env.NODE_ENV === 'test';
 log.setDefaultLevel(getDefaultLevel());
 
 // setLevel if user overrides
-if (['trace', 'debug', 'info', 'warn', 'error'].indexOf(window.dfs.logLevel) > -1) {
+
+if (
+  window.dfs &&
+  window.dfs.logLevel &&
+  ['trace', 'debug', 'info', 'warn', 'error'].indexOf(window.dfs.logLevel) > -1
+) {
   const { logLevel } = window.dfs;
 
   // let the user know what they did

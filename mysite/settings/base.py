@@ -23,6 +23,7 @@ SITE_ROOT = path.dirname(path.realpath(__file__))
 FIXTURES_DIR = (path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py test
 STATICFILES_DIRS = (
     PROJECT_ROOT.child('static').child('build'),
+    PROJECT_ROOT.child('mysite').child('static'),
 )
 
 # Auth and admin
