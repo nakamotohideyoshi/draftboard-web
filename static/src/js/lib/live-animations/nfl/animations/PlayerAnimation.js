@@ -1,7 +1,14 @@
 import { Timeline } from '../../utils/animate';
 import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
-import { getIncompleteReceptionClip, getKickReturnClip, getQBClip, getReceptionClip, getQBSackClip } from '../getClip';
+import {
+  getIncompleteReceptionClip,
+  getInterceptionClip,
+  getKickReturnClip,
+  getQBClip,
+  getQBSackClip,
+  getReceptionClip,
+} from '../getClip';
 
 export default class PlayerAnimation extends LiveAnimation {
 
@@ -12,14 +19,24 @@ export default class PlayerAnimation extends LiveAnimation {
       case 'quarterback_sacked':
         return getQBSackClip(recap.playFormation());
       case 'reception':
-        return recap.isIncompletePass()
-        ? getIncompleteReceptionClip(recap.passType(), recap.side())
-        : getReceptionClip(recap.passType(), recap.side(), recap.isTurnover());
+        return this.getReceptionClip(recap);
       case 'kick_return':
         return getKickReturnClip('reception_kick');
       default:
         return null;
     }
+  }
+
+  getReceptionClip(recap) {
+    if (recap.isTurnover()) {
+      return getInterceptionClip();
+    }
+
+    if (recap.isIncompletePass()) {
+      return getIncompleteReceptionClip(recap.passType(), recap.side());
+    }
+
+    return getReceptionClip(recap.passType(), recap.side());
   }
 
   getYardline(type, recap) {
