@@ -108,34 +108,6 @@ const whichSidePlayers = (players, state) => {
   });
 };
 
-/**
- * Returns an object of player names keyed by their matching Sports Radar IDs.
- */
-const getPlayerNames = (srIds, draftGroup) => {
-  const names = srIds.map((srid) => {
-    for (const playerId in draftGroup.playersInfo) {
-      if (Object.prototype.hasOwnProperty.call(draftGroup.playersInfo, playerId)) {
-        const player = draftGroup.playersInfo[playerId];
-        if (player.player_srid === srid) {
-          return {
-            player_srid: player.player_srid,
-            name: player.name,
-          };
-        }
-      }
-    }
-    return null;
-  });
-
-  // Filter all `NULL` values and convert from an array to an object keyed by
-  // the player's associated Sports Radar ID.
-  return names.filter(player => player !== null).reduce((obj, playerInfo) => {
-    const objWithPlayer = obj;
-    objWithPlayer[playerInfo.player_srid] = playerInfo.name;
-    return obj;
-  }, {});
-};
-
 export const showAnimationEventResults = (animationEvent) => (dispatch) => {
   logAction.debug('actions.showAnimationEventResults', animationEvent);
 
@@ -233,19 +205,10 @@ export const showGameEvent = (message) => (dispatch, getState) => {
     return Promise.all(calls);
   }
 
-  // Return an object containing the names of all known players in the PBP.
-  let names = {};
-  if (watching.myLineupId !== null) {
-    const currentLineup = state.currentLineups.items[watching.myLineupId];
-    const draftGroup = state.liveDraftGroups[currentLineup.draftGroup];
-    names = getPlayerNames(eventPlayers, draftGroup);
-  }
-
   const playersBySide = whichSidePlayers(message.stats.map(stat => stat.player_id), state);
 
   // update message to reflect current lineups the user is watching
   const animationEvent = merge({}, message, {
-    playerNames: names,
     relevantPlayersInEvent,
     whichSide: whichSide(playersBySide),
     whichSidePlayers: playersBySide,

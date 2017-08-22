@@ -174,7 +174,6 @@ describe('actions.events.showGameEvent', () => {
               },
             ],
             winning: 'home',
-            playerNames: {},
           }),
         },
         {
