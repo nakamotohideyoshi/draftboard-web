@@ -14,10 +14,10 @@ export default class NFLLiveAnimation extends LiveAnimation {
   }
 
   /**
-   * Returns the field position of the end of the carry. Carry is determined
-   * by adding the passing yards and rushing yards.
+   * Returns the down position of the ball. The down position represents where
+   * the play ended before any penalties are assessed.
    */
-  getCarryEndPos(recap, field) {
+  getDownPos(recap, field) {
     const carry = recap.passingYards() + recap.rushingYards();
     const yardline = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
     ? recap.startingYardLine() + carry
