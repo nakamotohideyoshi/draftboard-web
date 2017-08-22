@@ -8,6 +8,7 @@ import ResultsPane from './results-pane';
 import LiveContestDetailPane from './live-contest-detail-pane';
 import CardFooter from '../card/CardFooter';
 import CountdownClock from '../site/countdown-clock';
+import log from '../../lib/logging';
 
 
 const ResultsLineup = React.createClass({
@@ -67,6 +68,7 @@ const ResultsLineup = React.createClass({
   handleShowContestPane(contestId, entry, isLive) {
     // Don't show contest details for the live lineup view.
     // It's broken and we want to send people to the live section anyway.
+    log.info('is clicking?');
     if (!isLive) {
       this.props.fetchContestResults(contestId);
       this.setState({
@@ -86,7 +88,7 @@ const ResultsLineup = React.createClass({
     // const isLive = this.props.hasOwnProperty('liveStats');
     const isUpcoming = isTimeInFuture(this.props.start);
     const isFinished = this.props.hasOwnProperty('stats');
-
+    log.info(isFinished);
     let totalFP = 0;
 
     const players = this.props.players.map((player) => {
@@ -215,7 +217,7 @@ ${this.props.liveStats.entries}`}
             winning={humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
             points={humanizeFP(this.props.liveStats.points)}
           >
-            <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
+            <a className="watch-live" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
               Watch Live
             </a>
           </CardFooter>
@@ -300,7 +302,7 @@ ${this.props.liveStats.entries}`}
           winning={humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
           pts={humanizeFP(this.props.liveStats.points)}
         >
-          <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
+          <a className="watch-live" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
             Watch Live
           </a>
         </CardFooter>
@@ -325,7 +327,6 @@ ${this.props.liveStats.entries}`}
             <ul className="actions">
               <li><div className="icon-flop action" onClick={this.handleSwitchToLineup}></div></li>
             </ul>
-
           </div>
           <div className="cmp-lineup-card__list-header">
             <span className="cmp-lineup-card__list-header-remove">Pos</span>
@@ -346,7 +347,6 @@ ${this.props.liveStats.entries}`}
 
   renderResultsPane() {
     const isLive = this.props.hasOwnProperty('liveStats');
-
     // It's a live contest.
     if (isLive) {
       return (
@@ -376,6 +376,7 @@ ${this.props.liveStats.entries}`}
     if (!this.state.renderLineup) className += ' hover';
     if (this.state.renderContestPane) {
       className += ' shown-contest-pane';
+      log.info(this.state.renderContestPane);
     }
 
     return (
