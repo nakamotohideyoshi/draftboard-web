@@ -141,11 +141,22 @@ export function getQBSackClip(formation) {
  * @param {string} passType     The type of pass being caught.
  * @param {string} side         The side of the field (left, middle, right).
  */
-export function getReceptionClip(passType, side, isIntercepted = false) {
+export function getReceptionClip(passType, side) {
   try {
-    return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
+    return getClip(`reception_${passType}_${side}`);
   } catch (error) {
-    throw new Error(`Unknown reception animation "${passType}", "${side}", "${isIntercepted}".`);
+    throw new Error(`Unknown reception animation "${passType}", "${side}".`);
+  }
+}
+
+/**
+ * Returns an interception clip.
+ */
+export function getInterceptionClip() {
+  try {
+    return getClip('reception_interception');
+  } catch (error) {
+    throw new Error('Unknown interception animation.');
   }
 }
 
