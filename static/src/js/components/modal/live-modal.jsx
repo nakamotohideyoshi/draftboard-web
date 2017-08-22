@@ -86,13 +86,26 @@ const LiveModal = React.createClass({
 
   tick() {
     const pools = this.getUpcomingGame(this.props.gamepools);
-    Cookies.set({
-      id: 'theid',
-    });
-    log.info({ pools });
+    for (const entry in pools) {
+      if (pools.hasOwnProperty(entry) && entry === 'entry') {
+        log.info(pools[entry].id);
+        const entryId = pools[entry].id;
+        if (this.hasBeenDismissed(entryId) && this.isUpcoming()) {
+          this.iopenModel();
+        }
+      }
+    }
   },
 
-  isOpen() {
+  hasBeenDismissed(entryId) {
+    return Cookies.get(entryId) === 'true';
+  },
+
+  isUpcoming(date) {
+
+  },
+
+  iopenModel() {
     this.setState({
       isOpen: true,
     });
