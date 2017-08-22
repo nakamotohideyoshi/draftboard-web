@@ -1,0 +1,17 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+  <h1 class="article-title" style="margin: 40px auto 40px; text-align: center;">
+    <span class="article-supertitle">{{ user }}</span>
+    WELCOME TO DRAFTBOARD
+  </h1>
+
+  <p>
+    Thanks for registering an account at Draftboard! If you’re a daily fantasy sports rookie don’t
+    sweat it, we’ll explain everything in our <a href="https://{{ domain }}/">How to Play</a>
+    section. Seasoned veteran? Click the button below to get started!
+  </p>
+
+  <a class="button" style="margin: 50px auto 80px;" href="https://{{ domain }}/">PLAY NOW!</a>
+
+{% endblock %}

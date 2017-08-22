@@ -1,17 +1,21 @@
+import logging
+from datetime import date
+
 import requests
 from dateutil.relativedelta import relativedelta
-from datetime import date
-from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
-from django.contrib.gis.geoip2 import GeoIP2
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.gis.geoip2 import GeoIP2
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 from geoip2.errors import AddressNotFoundError
+from ipware.ip import get_real_ip, get_ip
 from raven.contrib.django.raven_compat.models import client
+
+from account import const as _account_const
 from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
 from mysite.legal import BLOCKED_STATES_NAMES
-from account import const as _account_const
-import logging
-from ipware.ip import get_real_ip, get_ip
 
 logger = logging.getLogger('account.utils')
 
@@ -205,7 +209,7 @@ class CheckUserAccess(object):
             state = self.geo_ip_response.get('region')
             result = True if state not in BLOCKED_STATES else False
             msg = '' if result else MODAL_MESSAGES['STATE']['message'].format(
-                        barred_state=BLOCKED_STATES_NAMES[state])
+                barred_state=BLOCKED_STATES_NAMES[state])
             if not result:
                 self.create_log(
                     _account_const.IP_CHECK_FAILED_STATE,
@@ -325,3 +329,31 @@ MODAL_MESSAGES = {
                    "Please contact support@draftboard.com if you have further questions.",
     }
 }
+
+
+def send_welcome_email(user):
+    try:
+        logger.info('Sending welcome email to %s.' % user)
+        context = {
+            'domain': settings.DOMAIN,
+            'site_name': 'Draftboard',
+            'protocol': 'https',
+            'year': date.today().year,
+            'user': user.username,
+        }
+
+        html_content = get_template('email/welcome.html').render(context)
+
+        msg = EmailMultiAlternatives(
+            "Welcome to Draftboard",
+            html_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email]
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        msg.send()
+    except Exception as e:
+        logger.error("RegisterAccountAPIView() Failed to send email user: %s - %s" % (
+            user.username, str(e)))
+        client.captureException()
