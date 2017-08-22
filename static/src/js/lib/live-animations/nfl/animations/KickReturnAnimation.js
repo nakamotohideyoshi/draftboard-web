@@ -1,7 +1,7 @@
-import LiveAnimation from '../../LiveAnimation';
 import { Timeline } from '../../utils/animate';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrow from '../graphics/FlightArrow';
+import NFLLiveAnimation from './NFLLiveAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
@@ -10,7 +10,7 @@ import YardlineAnimation from './YardlineAnimation';
  * Plays a rushing play sequence by connecting a QB animation
  * with a rush arrow animation.
  */
-export default class KickReturnAnimation extends LiveAnimation {
+export default class KickReturnAnimation extends NFLLiveAnimation {
 
   /**
    * The yardline the ball is kicked from.
@@ -43,11 +43,16 @@ export default class KickReturnAnimation extends LiveAnimation {
   }
 
   /**
-   * The field position the ball is downed at.
+   * Returns the ending position of the carry based on the kick return.
    */
-  getDownPos(recap, field) {
+  getCarryEndPos(recap, field) {
+    const catchPos = this.getCatchPos(recap, field);
+    const yardline = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
+    ? catchPos.x + recap.rushingYards()
+    : catchPos.x - recap.rushingYards();
+
     return {
-      x: recap.endingYardLine(),
+      x: yardline,
       y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE),
     };
   }
@@ -55,7 +60,8 @@ export default class KickReturnAnimation extends LiveAnimation {
   play(recap, field) {
     const kickPos = this.getKickoffPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
-    const downPos = this.getDownPos(recap, field);
+    const downPos = this.getCarryEndPos(recap, field);
+
     const sequence = [];
     const receiver = new PlayerAnimation();
 

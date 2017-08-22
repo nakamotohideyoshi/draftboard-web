@@ -1,4 +1,4 @@
-import LiveAnimation from '../../LiveAnimation';
+import NFLLiveAnimation from './NFLLiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
@@ -9,9 +9,10 @@ import YardlineAnimation from './YardlineAnimation';
 * Plays a rushing play sequence by connecting a QB animation
 * with a rush arrow animation.
 */
-export default class RushingPlayAnimation extends LiveAnimation {
+export default class RushingPlayAnimation extends NFLLiveAnimation {
 
   play(recap, field) {
+    const downPos = this.getCarryEndPos(recap, field);
     const sequence = [];
 
     // Mark the play
@@ -32,10 +33,7 @@ export default class RushingPlayAnimation extends LiveAnimation {
         const animation = new RushArrowAnimation();
         const fieldY = field.getSideOffsetY('middle');
         const start = recap.startingYardLine();
-        const end = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
-        ? recap.startingYardLine() + recap.rushingYards()
-        : recap.startingYardLine() - recap.rushingYards();
-        return animation.play(recap, field, start, end, fieldY);
+        return animation.play(recap, field, start, downPos.x, fieldY);
       });
     }
 
@@ -53,7 +51,7 @@ export default class RushingPlayAnimation extends LiveAnimation {
 
       // Down the ball
       const animation = new YardlineAnimation();
-      return animation.play(recap, field, recap.endingYardLine(), YardlineAnimation.COLOR_DOWN_LINE);
+      return animation.play(recap, field, downPos.x, YardlineAnimation.COLOR_DOWN_LINE);
     });
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
