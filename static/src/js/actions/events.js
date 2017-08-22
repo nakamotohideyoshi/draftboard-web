@@ -104,6 +104,11 @@ const whichSidePlayers = (players, state) => {
       lineup = mine ? 'mine' : 'opponent';
     }
 
+    // Add bypass for debugging whichside from live-animation-debugger.
+    if (window.debug_live_animations_which_side) {
+      lineup = window.debug_live_animations_which_side;
+    }
+
     return { playerId, lineup };
   });
 };
@@ -213,17 +218,6 @@ export const showGameEvent = (message) => (dispatch, getState) => {
     whichSide: whichSide(playersBySide),
     whichSidePlayers: playersBySide,
   });
-
-  // Remap the whichSide flags based on our debugging settings.
-  if (window.debug_live_animations_which_side) {
-    animationEvent.whichSide = window.debug_live_animations_which_side;
-    animationEvent.whichSidePlayers = animationEvent.whichSidePlayers.map(player => {
-      /* eslint-disable */
-      player.lineup = animationEvent.whichSide
-      /* eslint-enable */
-      return player;
-    });
-  }
 
   switch (sport) {
     case 'mlb': {
