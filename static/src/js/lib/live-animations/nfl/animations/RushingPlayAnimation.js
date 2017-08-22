@@ -5,12 +5,12 @@ import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
-/**
- * Plays a rushing play sequence by connecting a QB animation
- * with a rush arrow animation.
- */
 export default class RushingPlayAnimation extends NFLLiveAnimation {
 
+  /**
+   * Plays a rushing play sequence by connecting a QB animation
+   * with a rush arrow animation.
+   */
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
     const downPos = this.getDownPos(recap, field);

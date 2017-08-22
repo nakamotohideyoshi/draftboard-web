@@ -6,10 +6,6 @@ import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
-/**
- * Plays a rushing play sequence by connecting a QB animation
- * with a rush arrow animation.
- */
 export default class KickReturnAnimation extends NFLLiveAnimation {
 
   /**
@@ -58,6 +54,10 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
     };
   }
 
+  /**
+   * Plays a kick return sequencing showing the ball traveling down field to
+   * the receiver, and the receiver running it back based on the recap provided.
+   */
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
