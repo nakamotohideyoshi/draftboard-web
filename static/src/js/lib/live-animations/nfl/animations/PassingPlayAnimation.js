@@ -1,7 +1,7 @@
 import { Timeline } from '../../utils/animate';
-import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrow from '../graphics/FlightArrow';
+import NFLLiveAnimation from './NFLLiveAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
@@ -13,7 +13,7 @@ import FlashChildrenAnimation from './FlashChildrenAnimation';
  * pass arrow, catch, and rush arrow animation, based on the provided
  * play recap.
  */
-export default class PassingPlayAnimation extends LiveAnimation {
+export default class PassingPlayAnimation extends NFLLiveAnimation {
 
   /**
    * Returns the field position where the ball was snapped.
@@ -73,16 +73,6 @@ export default class PassingPlayAnimation extends LiveAnimation {
     : recap.startingYardLine() + recap.passingYards();
 
     return { x, y };
-  }
-
-  /**
-   * Returns the field position of the end of the play.
-   */
-  getDownPos(recap, field) {
-    return {
-      x: recap.endingYardLine(),
-      y: field.getSideOffsetY(recap.side()),
-    };
   }
 
   /**
@@ -162,7 +152,7 @@ export default class PassingPlayAnimation extends LiveAnimation {
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
-    const downPos = this.getDownPos(recap, field);
+    const downPos = this.getCarryEndPos(recap, field);
     const sequence = [];
 
     // Mark the play
@@ -187,7 +177,7 @@ export default class PassingPlayAnimation extends LiveAnimation {
       if (recap.rushingYards() > 0.03) {
         sequence.push(() => {
           const animation = new RushArrowAnimation();
-          const rushEnd = recap.driveDirection === NFLPlayRecapVO.LEFT_TO_RIGHT
+          const rushEnd = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
           ? catchPos.x + recap.rushingYards()
           : catchPos.x - recap.rushingYards();
           return animation.play(recap, field, catchPos.x, rushEnd, catchPos.y);
