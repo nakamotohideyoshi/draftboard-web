@@ -8,11 +8,6 @@ import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
 import FlashChildrenAnimation from './FlashChildrenAnimation';
 
-/**
- * Plays a pass play sequence by connecting a QB animation with a
- * pass arrow, catch, and rush arrow animation, based on the provided
- * play recap.
- */
 export default class PassingPlayAnimation extends NFLLiveAnimation {
 
   /**
@@ -139,6 +134,11 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
     });
   }
 
+  /**
+   * Plays a pass play sequence by connecting a QB animation with a
+   * pass arrow, catch, and rush arrow animation, based on the provided
+   * play recap.
+   */
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
