@@ -378,6 +378,14 @@ export default class NFLPlayRecapVO {
   }
 
   /**
+   * Returns true if the play contains a penalty.
+   * @return {boolean}
+   */
+  hasPenalty() {
+    return Boolean(_.get(this._obj, 'pbp.statistics.penalty__list', false));
+  }
+
+  /**
    * Returns an array of player objects for all players featured in the recap.
    */
   players() {

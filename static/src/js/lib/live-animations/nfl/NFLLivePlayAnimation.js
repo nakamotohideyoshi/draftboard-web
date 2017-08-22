@@ -37,8 +37,12 @@ export default class NFLLivePlayAnimation extends LiveAnimation {
   play(recap, field) {
     const animation = this.getAnimation(recap);
 
+    if (recap.hasPenalty()) {
+      return Promise.resolve();
+    }
+
     if (!animation) {
-      return Promise.reject('Unknown animation.');
+      return Promise.reject(`Unsupported animation for type "${recap.playType()}."`);
     }
 
     return animation.play(recap, field);
