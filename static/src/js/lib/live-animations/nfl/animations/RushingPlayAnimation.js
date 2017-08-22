@@ -6,19 +6,20 @@ import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
 /**
-* Plays a rushing play sequence by connecting a QB animation
-* with a rush arrow animation.
-*/
+ * Plays a rushing play sequence by connecting a QB animation
+ * with a rush arrow animation.
+ */
 export default class RushingPlayAnimation extends NFLLiveAnimation {
 
   play(recap, field) {
+    const snapPos = this.getSnapPos(recap, field);
     const downPos = this.getCarryEndPos(recap, field);
     const sequence = [];
 
     // Mark the play
     sequence.push(() => {
       const animation = new YardlineAnimation();
-      return animation.play(recap, field, recap.startingYardLine(), YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
+      return animation.play(recap, field, snapPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
     });
 
     // Snap the ball
@@ -31,9 +32,7 @@ export default class RushingPlayAnimation extends NFLLiveAnimation {
     if (recap.qbAction() !== NFLPlayRecapVO.HANDOFF_SHORT) {
       sequence.push(() => {
         const animation = new RushArrowAnimation();
-        const fieldY = field.getSideOffsetY('middle');
-        const start = recap.startingYardLine();
-        return animation.play(recap, field, start, downPos.x, fieldY);
+        return animation.play(recap, field, snapPos.x, downPos.x, snapPos.y);
       });
     }
 

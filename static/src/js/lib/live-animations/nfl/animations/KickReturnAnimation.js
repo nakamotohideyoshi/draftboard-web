@@ -15,7 +15,7 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
   /**
    * The yardline the ball is kicked from.
    */
-  getKickoffPos(recap, field) {
+  getSnapPos(recap, field) {
     // Flip flop the recap's starting yardline to reflect our desired returning
     // teams drive direction. This is neccessary because the recaps `startingYardLine()`
     // is based based on the `start_situation` and not the `end_situation`.
@@ -58,7 +58,7 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
   }
 
   play(recap, field) {
-    const kickPos = this.getKickoffPos(recap, field);
+    const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
     const downPos = this.getCarryEndPos(recap, field);
 
@@ -71,7 +71,7 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
     if (recap.playType() === NFLPlayRecapVO.PUNT) {
       sequence.push(() => {
         const animation = new YardlineAnimation();
-        return animation.play(recap, field, kickPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
+        return animation.play(recap, field, snapPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
       });
     }
 
@@ -86,7 +86,7 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
       const receiverY = parseFloat(receiverEl.style.top, 10);
 
       const ballDuration = 1.5 * 30;
-      const ballStart = field.getFieldPos(kickPos.x, kickPos.y);
+      const ballStart = field.getFieldPos(snapPos.x, snapPos.y);
       const ballEnd = {
         x: receiverX,
         y: receiverY + catchCP.data.y * 0.5,
