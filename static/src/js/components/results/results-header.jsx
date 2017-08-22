@@ -80,7 +80,6 @@ const ResultsHeader = React.createClass({
     return (
       <div className="results-page--header">
         <div className="title">
-          <div className="text">{lineupType}</div>
           <div className="date">{this.getTitle()}</div>
         </div>
 
