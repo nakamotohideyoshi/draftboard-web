@@ -4,6 +4,16 @@ import LiveAnimation from '../../LiveAnimation';
 export default class NFLLiveAnimation extends LiveAnimation {
 
   /**
+   * Returns the field position where the ball was snapped.
+   */
+  getSnapPos(recap, field) {
+    return {
+      x: recap.startingYardLine(),
+      y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE),
+    };
+  }
+
+  /**
    * Returns the field position of the end of the carry. Carry is determined
    * by adding the passing yards and rushing yards.
    */

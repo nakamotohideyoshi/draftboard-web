@@ -16,16 +16,6 @@ import FlashChildrenAnimation from './FlashChildrenAnimation';
 export default class PassingPlayAnimation extends NFLLiveAnimation {
 
   /**
-   * Returns the field position where the ball was snapped.
-   */
-  getSnapPos(recap, field) {
-    return {
-      x: recap.startingYardLine(),
-      y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE),
-    };
-  }
-
-  /**
    * Returns the field position of the throw.
    */
   getThrowPos(recap, field) {
