@@ -970,6 +970,22 @@ class PlayManager(Manager):
                 statistics.pop(field)
             except KeyError:
                 pass  # it wasnt there to begin with - so dont worry about it
+            except TypeError:
+                # For some wacky reason, some PBPs have the staticsts as an array rather
+                # than an object, this throws everything into dissaray! Log out some info
+                # here so we can decide how to handle after we collect some more info
+                # about this.
+                # example: https://sentry.io/draftboard/draftboard-staging/issues/326624460/
+                client.context.merge({'extra': {
+                    'field': field,
+                    'type': type,
+                    'statistics': statistics,
+                    'raw_data': self.raw_data,
+                }})
+                client.captureException('NFL.parser.clean_statistics_list() failed.')
+                client.context.clear()
+                # Not sure if we should pass here or kill execution. We'll find out.
+                pass
 
         # 1. cleanup pass__list
         # convert sack to a boolean
