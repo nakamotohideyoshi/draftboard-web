@@ -30,9 +30,11 @@ export default class RushingPlayAnimation extends LiveAnimation {
     if (recap.qbAction() !== NFLPlayRecapVO.HANDOFF_SHORT) {
       sequence.push(() => {
         const animation = new RushArrowAnimation();
-        const start = recap.startingYardLine();
-        const end = recap.endingYardLine();
         const fieldY = field.getSideOffsetY('middle');
+        const start = recap.startingYardLine();
+        const end = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
+        ? recap.startingYardLine() + recap.rushingYards()
+        : recap.startingYardLine() - recap.rushingYards();
         return animation.play(recap, field, start, end, fieldY);
       });
     }
