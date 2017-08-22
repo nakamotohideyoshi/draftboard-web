@@ -4,8 +4,10 @@ import PropTypes from 'prop-types';
 import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
-  componentDidMount() {
+  componentWillMount() {
     this.setState({ timer: null });
+  }
+  componentDidMount() {
     if (this.props.start) {
       this.startGameTimer(this.props.start);
     }
