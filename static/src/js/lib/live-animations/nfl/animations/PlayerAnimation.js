@@ -1,5 +1,4 @@
 import { Timeline } from '../../utils/animate';
-import LiveAnimation from '../../LiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import {
   getIncompleteReceptionClip,
@@ -10,7 +9,7 @@ import {
   getReceptionClip,
 } from '../getClip';
 
-export default class PlayerAnimation extends LiveAnimation {
+export default class PlayerAnimation {
 
   getPlayerClip(type, recap) {
     switch (type) {
