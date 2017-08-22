@@ -11,7 +11,7 @@
         width: 280px !important;
       }
 
-      table[class=w640], td[class=w640], img[class=w640] {
+      table[class=w630], td[class=w630], img[class=w630] {
         width: 300px !important;
       }
 
@@ -38,10 +38,6 @@
       }
     }
 
-    body {
-      width: 100% !important;
-    }
-
     .ReadMsgBody {
       width: 100%;
     }
@@ -52,7 +48,8 @@
     }
 
     body {
-      background-color: #dedede;
+      width: 100% !important;
+      background: #fff;
       margin: 0;
       padding: 0 0 40px;
     }
@@ -107,39 +104,65 @@
     }
 
     .article-title {
-      font-size: 18px;
+      font-size: 22px;
       line-height: 24px;
       color: #293f4f;
       font-weight: bold;
       margin-top: 40px;
-      margin-bottom: 18px;
+      margin-bottom: 30px;
       font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif;
+      text-transform: uppercase;
+    }
+
+    .article-supertitle {
+      display: block;
+      margin: 0 auto;
+      color: #b0b2bf;
+      font-size: 14px;
     }
 
     .article-content {
-      font-size: 13px;
-      line-height: 18px;
-      color: #2a2a2a;
-      margin-top: 0px;
-      margin-bottom: 18px;
+      font-size: 16px;
+      line-height: 24px;
+      color: #6a6c79;
+      margin: 0 80px 40px 80px;
       font-family: 'Helvetica Neue', Arial, Helvetica, Geneva, sans-serif;
     }
 
     .article-content a {
-      color: #8b171a;
+      color: #3acd6c;
       font-weight: bold;
       text-decoration: none;
     }
 
     .article-content p {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .article-footer {
+      padding: 30px;
+      text-align: center;
+    }
+
+    .article-footer p {
+      font-size: 12px;
     }
 
     .notice {
       font-size: 11px;
       margin: 0 auto;
       padding: 10px 0;
-      width: 640px;
+      width: 630px;
+    }
+
+    .button {
+      display: block;
+      background: #011c37;
+      color: #fff !important;
+      padding: 10px 20px;
+      width: 250px;
+      text-align: center;
+      margin: 10px auto;
     }
   </style>
 </head>
@@ -148,18 +171,15 @@
   <tbody>
   <tr>
     <td align="center" bgcolor="#ffffff">
-      <table class="w640" style="margin:0;" width="640" cellpadding="0" cellspacing="0" border="0">
+      <table class="w630" style="margin:0;" width="630" cellpadding="0" cellspacing="0" border="0">
         <tbody>
         <tr>
-          <td class="w640" width="640" height="30"></td>
-        </tr>
-        <tr>
-          <td id="header" class="w640" width="640" align="center" bgcolor="#ffffff">
+          <td id="header" class="w630" width="630" align="center" bgcolor="#ffffff">
             <div align="left" style="text-align: left;">
               <a href="{{ protocol }}://{{ domain }}">
-                <img id="customHeaderImage" label="Draftboard Logo" editable="true" width="60"
-                     height="50" src="https://static-players.draftboard.com/misc/email/logo.png"
-                     class="w640" border="0" align="top" style="display: inline">
+                <img id="customHeaderImage" label="Draftboard Logo" editable="true"
+                     src="https://static-players.draftboard.com/misc/email/email-header.jpg"
+                     class="w630" border="0" align="top" style="display: inline">
               </a>
             </div>
           </td>
@@ -173,7 +193,17 @@
           </td>
         </tr>
         <tr>
-          <td class="w640" width="640" height="30" bgcolor="#ffffff"></td>
+          <td class="w630" width="630" height="30" bgcolor="#f3f4f6">
+            <div class="article-footer">
+              <p>&copy; {{ year }} Draftboard. All Rights Reserved</p>
+
+              <p>
+                <strong>Our mailing address is:</strong><br />
+                1919 S Jones Blvd, Ste G<br />
+                Las Vegas, NV 89146-1299
+              </p>
+            </div>
+          </td>
         </tr>
         </tbody>
       </table>

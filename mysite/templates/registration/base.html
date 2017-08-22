@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 
 {% block title %}{% endblock %}
 
@@ -16,7 +16,7 @@
   <div class="account__left">
     {% block content_header %}
     <a href="/" class="account__header">
-      <img src="/static/img/logo.948f91f.png" alt=""><h1>draftboard</h1>
+      <img src="{% static 'img/logo-sm.png' %}" alt=""><h1>draftboard</h1>
     </a>
     {% endblock %}
 
