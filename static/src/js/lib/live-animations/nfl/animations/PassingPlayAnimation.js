@@ -142,7 +142,7 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
-    const downPos = this.getCarryEndPos(recap, field);
+    const downPos = this.getDownPos(recap, field);
     const sequence = [];
 
     // Mark the play

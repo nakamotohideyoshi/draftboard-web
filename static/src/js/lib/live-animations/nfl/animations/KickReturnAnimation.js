@@ -43,9 +43,10 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
   }
 
   /**
-   * Returns the ending position of the carry based on the kick return.
+   * Returns the ending position of return by calculating the distance the
+   * receiver runs the ball after the catch.
    */
-  getCarryEndPos(recap, field) {
+  getDownPos(recap, field) {
     const catchPos = this.getCatchPos(recap, field);
     const yardline = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
     ? catchPos.x + recap.rushingYards()
@@ -60,7 +61,7 @@ export default class KickReturnAnimation extends NFLLiveAnimation {
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
-    const downPos = this.getCarryEndPos(recap, field);
+    const downPos = this.getDownPos(recap, field);
 
     const sequence = [];
     const receiver = new PlayerAnimation();

@@ -13,7 +13,7 @@ export default class RushingPlayAnimation extends NFLLiveAnimation {
 
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
-    const downPos = this.getCarryEndPos(recap, field);
+    const downPos = this.getDownPos(recap, field);
     const sequence = [];
 
     // Mark the play
