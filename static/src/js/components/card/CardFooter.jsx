@@ -5,6 +5,7 @@ import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
   componentDidMount() {
+    this.setState({ timer: null });
     if (this.props.start) {
       this.startGameTimer(this.props.start);
     }
@@ -12,7 +13,9 @@ class CardFooter extends React.Component {
 
   // timer cleanup
   componentWillUnmount() {
-    clearInterval(this.state.timer);
+    if (this.state.timer !== null) {
+      clearInterval(this.state.timer);
+    }
   }
 
   // this can be abstracted into
