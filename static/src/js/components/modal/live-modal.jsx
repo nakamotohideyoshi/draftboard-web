@@ -5,7 +5,7 @@ import renderComponent from '../../lib/render-component';
 import { fetchContestPoolEntries } from '../../actions/contest-pool-actions';
 import AppStateStore from '../../stores/app-state-store.js';
 import Modal from './modal.jsx';
-import log from '../../lib/logging';
+// import log from '../../lib/logging';
 import moment from 'moment';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
@@ -87,14 +87,10 @@ const LiveModal = React.createClass({
   tick() {
     const pools = this.getUpcomingGame(this.props.gamepools);
     for (const entry in pools) {
-      if (pools.hasOwnProperty(entry) && entry === 'start') {
-        this.isUpcoming(pools[entry]);
-      }
       if (pools.hasOwnProperty(entry) && entry === 'entry') {
-        log.info(pools[entry].id);
         const entryId = pools[entry].id;
-        if (this.hasBeenDismissed(entryId) && this.isUpcoming()) {
-          this.iopenModel();
+        if (this.hasBeenDismissed(entryId) !== true && this.isUpcoming(pools[entry]).start) {
+          this.openModel();
         }
       }
     }
@@ -108,19 +104,12 @@ const LiveModal = React.createClass({
     const eventTime = moment.utc(timestamp);
     const currentTime = moment(new Date().getTime()).utc();
     const diffTime = eventTime - currentTime;
-    // const eventIn = diffTime / 1000;
-    let isTrue = false;
-    // log.info(eventIn);
-    if (diffTime < 0) {
-      isTrue = true;
-    } else {
-      isTrue = false;
-    }
+    const minutes = Math.floor(moment.duration(diffTime).asMinutes());
 
-    return isTrue;
+    return minutes < 5;
   },
 
-  iopenModel() {
+  openModel() {
     this.setState({
       isOpen: true,
     });
