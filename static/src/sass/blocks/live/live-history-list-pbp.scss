@@ -53,6 +53,14 @@ $colorLineupNone: #a7acbc;
     font-size: 11px;
     line-height: 1.8;
     text-align: left;
+
+    span.todo,
+    span.none
+    span.mine,
+    span.opponent, {
+      font-weight: bold;
+      color: #fff;
+    }
   }
   
   ul.live-history-list-pbp__players {

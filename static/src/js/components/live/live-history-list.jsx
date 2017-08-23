@@ -1,6 +1,7 @@
 import React from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import LiveHistoryListPBP from './live-history-list-pbp';
+import NFLPlayRecapVO from '../../lib/live-animations/nfl/NFLPlayRecapVO';
 
 // assets
 require('../../../sass/blocks/live/live-history-list.scss');
@@ -116,6 +117,7 @@ export default React.createClass({
       const margins = index * spaceBetweenItems;
       const calc = `calc(${index * -100}% - ${start + margins}px)`;
       const style = { transform: `translateX(${calc})` };
+      const playVO = new NFLPlayRecapVO(play);
 
       let className = `${block}__list-item`;
 
@@ -147,7 +149,7 @@ export default React.createClass({
           <LiveHistoryListPBP {...{ game, players }}
             id={play.id}
             lineup={play.whichSide}
-            description={play.pbp.description}
+            description={playVO.playHTMLDescription()}
             sport={play.sport}
             game={game}
             players={players}
