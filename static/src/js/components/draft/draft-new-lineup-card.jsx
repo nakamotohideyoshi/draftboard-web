@@ -2,9 +2,8 @@ import React from 'react';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
-import classnames from 'classnames';
-import CountdownClock from '../site/countdown-clock.jsx';
-
+// import classnames from 'classnames';
+import CardFooter from '../card/CardFooter';
 
 const defaultLineupTitle = 'My Lineup';
 
@@ -131,12 +130,12 @@ const DraftNewLineupCard = React.createClass({
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
     const self = this;
 
-    const remainingSalaryClasses = classnames({
-      negative: this.props.remainingSalary < 0,
-    });
-    const avgRemainingPlayerSalaryClasses = classnames({
-      negative: this.props.avgRemainingPlayerSalary < 0,
-    });
+    // const remainingSalaryClasses = classnames({
+    //   negative: this.props.remainingSalary < 0,
+    // });
+    // const avgRemainingPlayerSalaryClasses = classnames({
+    //   negative: this.props.avgRemainingPlayerSalary < 0,
+    // });
 
     const players = this.props.lineup.map((player) => (
         <DraftNewLineupCardPlayer
@@ -171,26 +170,11 @@ const DraftNewLineupCard = React.createClass({
             <ul className="players">
               {players}
             </ul>
-
-            <footer className="cmp-lineup-card__footer">
-              <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
-                <span className="cmp-lineup-card__footer-title">Live In</span>
-                <CountdownClock time={this.props.draftGroupStart} />
-              </div>
-              <div
-                className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
-              >
-                <span className="cmp-lineup-card__footer-title">Rem Salary</span>
-                ${this.props.remainingSalary.toLocaleString('en')}
-              </div>
-              <div
-                className={`cmp-lineup-card__countdown cmp-lineup-card__footer-section
-              ${avgRemainingPlayerSalaryClasses}`}
-              >
-                <span className="cmp-lineup-card__footer-title">Avg / Player</span>
-                ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
-              </div>
-            </footer>
+            <CardFooter
+              start={this.props.draftGroupStart}
+              remsalary={this.props.remainingSalary.toLocaleString('en')}
+              playeravg={this.props.avgRemainingPlayerSalary.toLocaleString('en')}
+            />
           </div>
         </div>
       </div>
