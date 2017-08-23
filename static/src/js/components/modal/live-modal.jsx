@@ -76,7 +76,7 @@ const LiveModal = React.createClass({
     for (const entryid in entrypools.entries) {
       if (entrypools.entries.hasOwnProperty(entryid)) {
         const sportasset = getArenaAsset(entrypools.entries[entryid].sport);
-        const start = moment(entrypools.entries[entryid].start, moment.ISO_8601).format('h:mma');
+        const start = entrypools.entries[entryid].start;
         const entry = entrypools.entries[entryid];
 
         return { sportasset, entry, start };
@@ -86,10 +86,39 @@ const LiveModal = React.createClass({
 
   tick() {
     const pools = this.getUpcomingGame(this.props.gamepools);
-    Cookies.set({
-      id: 'theid',
-    });
     log.info({ pools });
+    for (const entry in pools) {
+      if (pools.hasOwnProperty(entry) && entry === 'start') {
+        this.isUpcoming(pools[entry]);
+      }
+      if (pools.hasOwnProperty(entry) && entry === 'entry') {
+        log.info(pools[entry].id);
+        const entryId = pools[entry].id;
+        if (this.hasBeenDismissed(entryId) && this.isUpcoming()) {
+          this.iopenModel();
+        }
+      }
+    }
+  },
+
+  hasBeenDismissed(entryId) {
+    return Cookies.get(entryId) === 'true';
+  },
+
+  isUpcoming(timestamp) {
+    const eventTime = moment.utc(timestamp);
+    const currentTime = moment(new Date().getTime()).utc();
+    const diffTime = eventTime - currentTime;
+    // const eventIn = diffTime / 1000;
+    let isTrue = false;
+    // log.info(eventIn);
+    if (diffTime < 0) {
+      isTrue = true;
+    } else {
+      isTrue = false;
+    }
+
+    return isTrue;
   },
 
   isOpen() {
