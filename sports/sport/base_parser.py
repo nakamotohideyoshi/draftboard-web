@@ -966,6 +966,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     pbp_description_model = None
     gameboxscore_model = None
     gameboxscore_period_field = None
+    player_model = None  # example: sports.<sport>.models.Player
     player_stats_model = None  # example: sports.<sport>.models.PlayerStats
     pusher_sport_pbp = None  # example: push.classes.PUSHER_NBA_PBP
     # default 'event' value. ie: { ..., 'event':'event'}
