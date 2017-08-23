@@ -51,13 +51,10 @@ const ResultsHeader = React.createClass({
   render() {
     const { year, month, day, isWatchingLive, onSelectDate } = this.props;
 
-    let lineupType = 'Live Lineups';
     let datePicker;
     let daySlider;
 
     if (isWatchingLive === false) {
-      lineupType = 'Past Lineups';
-
       daySlider = (
         <ResultsDaysSlider
           year={year}
