@@ -1110,6 +1110,7 @@ class PbpEventParser(DataDenPbpDescription):
     pbp_description_model = PbpDescription
     pusher_sport_pbp_event = 'linked'
 
+    player_model = sports.nfl.models.Player
     player_stats_model = sports.nfl.models.PlayerStats
     pusher_sport_pbp = push.classes.PUSHER_NFL_PBP
     pusher_sport_stats = push.classes.PUSHER_NFL_STATS
@@ -1342,6 +1343,8 @@ class PbpEventParser(DataDenPbpDescription):
 
         # assumes that everthing must exist at this point for us to be able to build it!
         play = self.PlayCache().fetch(self.ts, self.play_srid)
+        # Info about players that participated in this PBP.
+        participating_players = []
 
         # get the PlayerStats model instances associated with this play
         # which can be found using the game and player srids
@@ -1354,6 +1357,16 @@ class PbpEventParser(DataDenPbpDescription):
             player_stats.count(),
             srid_games, srid_players)
                      )
+
+        # Gather participating players.
+        for player_srid in srid_players:
+            player = self.player_model.objects.get(srid=player_srid)
+            participating_players.append({
+                'player_id': player.id,
+                'srid_player': player.srid,
+                'first_name': player.first_name,
+                'last_name': player.last_name,
+            })
 
         # Gather linked player stats.
         player_stats_json = []
@@ -1406,6 +1419,7 @@ class PbpEventParser(DataDenPbpDescription):
             'stats': player_stats_json,
             'game': self.get_game_info(),
             'fp_values': fp_values_by_player,
+            'players': participating_players,
         }
 
         # print('get_send_data:', str(data))
