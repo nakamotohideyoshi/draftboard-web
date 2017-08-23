@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 // import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
+  getInitialState() {
+    return { secondsElapsed: 0 };
+  }
   componentWillMount() {
     this.setState({ timer: null });
   }
@@ -100,6 +103,7 @@ class CardFooter extends React.Component {
       this.refs.hours.textContent = remaining.hours;
       this.refs.minutes.textContent = remaining.minutes;
       this.refs.seconds.textContent = remaining.seconds;
+      this.setState({ secondsElapsed: this.state.secondsElapsed + 1 });
     }, 1000);
 
     this.setState({ timer });
