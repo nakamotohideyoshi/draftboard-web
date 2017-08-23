@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import log from '../../lib/logging';
+// import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
   componentWillMount() {
