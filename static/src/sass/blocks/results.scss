@@ -228,6 +228,14 @@ $results-selected-text-color: #2bb677;
     text-transform: uppercase;
     z-index: 1;
   }
+
+  // Show/Hide contest detail pane.
+  .flip-container.shown-contest-pane {
+    .pane {
+      right: 0 !important;
+    }
+  }
+
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -361,22 +369,26 @@ $results-selected-text-color: #2bb677;
 
     &--lineups {
       padding-left: 5%;
+
       .flip-container{
         margin: 0 50px;
       }
-      .flip-container.shown-contest-pane .pane {
-        width: 90%;
 
-        .pane-upper .header {
-          background-size: auto 100%;
-          min-height: 380px;
-        }
+      .flip-container.shown-contest-pane {
 
-        .tab-nav li {
-          margin: 5px 9px;
+        .pane {
+          width: 90%;
+
+          .pane-upper .header {
+            background-size: auto 100%;
+            min-height: 380px;
+          }
+
+          .tab-nav li {
+            margin: 5px 9px;
+          }
         }
       }
-
     }
   }
 }
