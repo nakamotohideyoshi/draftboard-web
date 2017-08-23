@@ -1,16 +1,19 @@
 import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-// import log from '../../lib/logging';
+import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
-  getInitialState() {
-    return { secondsElapsed: 0 };
-  }
   componentWillMount() {
-    this.setState({ timer: null });
+    this.setState(
+      {
+        timer: null,
+        secondsElapsed: 0,
+      }
+    );
   }
   componentDidMount() {
+    log.info(this.props);
     if (this.props.start) {
       this.startGameTimer(this.props.start);
     }
