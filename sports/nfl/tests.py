@@ -1175,6 +1175,39 @@ class TestPlayParser(AbstractTest):
         self.assertIsNotNone(sent_data['game'])
         self.assertIsNotNone(sent_data['stats'])
 
+    def test_pbp_has_participating_players(self):
+        """
+        A quick test to make sure that the  'players' key gets filled in with all participating
+        players.
+        :return:
+        """
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        player_1 = mommy.make(
+            Player,
+            srid=PbpMockData.pass_play['statistics__list']['pass__list']['player'],
+            first_name = 'p1_first',
+            last_name = 'p1_last'
+        )
+        player_2 = mommy.make(
+            Player,
+            srid=PbpMockData.pass_play['statistics__list']['receive__list']['player'],
+            first_name='p2_first',
+            last_name='p2_last'
+        )
+
+        parser = self.__parse_and_send(PbpMockData.pass_play, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+        from pprint import pprint
+        pprint(sent_data)
+
+        self.assertIsNotNone(sent_data['players'])
+        self.assertEqual(2, len(sent_data['players']))
+
+
     def test_game_info(self):
         sport_db = 'nflo'
         parent_api = 'pbp'

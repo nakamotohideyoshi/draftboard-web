@@ -1360,13 +1360,16 @@ class PbpEventParser(DataDenPbpDescription):
 
         # Gather participating players.
         for player_srid in srid_players:
-            player = self.player_model.objects.get(srid=player_srid)
-            participating_players.append({
-                'player_id': player.id,
-                'srid_player': player.srid,
-                'first_name': player.first_name,
-                'last_name': player.last_name,
-            })
+            try:
+                player = self.player_model.objects.get(srid=player_srid)
+                participating_players.append({
+                    'player_id': player.id,
+                    'srid_player': player.srid,
+                    'first_name': player.first_name,
+                    'last_name': player.last_name,
+                })
+            except self.player_model.DoesNotExist as e:
+                logger.warning("%s -- srid: %s" % (e, player_srid))
 
         # Gather linked player stats.
         player_stats_json = []
