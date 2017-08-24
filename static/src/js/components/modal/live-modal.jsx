@@ -102,9 +102,9 @@ const LiveModal = React.createClass({
     const eventTime = moment.utc(timestamp);
     const currentTime = moment(new Date().getTime()).utc();
     const diffTime = eventTime - currentTime;
-    const minutes = Math.floor(moment.duration(diffTime).asMinutes());
+    const seconds = Math.floor(moment.duration(diffTime).asSeconds());
 
-    return minutes <= 0;
+    return seconds <= 0;
   },
 
   openModel(sport) {
