@@ -72,30 +72,15 @@ const LiveModal = React.createClass({
     AppStateStore.modalClosed();
   },
 
-  getUpcomingGame(entrypools) {
-    for (const entryid in entrypools.entries) {
-      if (entrypools.entries.hasOwnProperty(entryid)) {
-        const sportasset = getArenaAsset(entrypools.entries[entryid].sport);
-        const start = entrypools.entries[entryid].start;
-        const entry = entrypools.entries[entryid];
-
-        return { sportasset, entry, start };
-      }
-    }
-  },
-
   tick() {
-    const pools = this.getUpcomingGame(this.props.gamepools);
+    const pools = this.props.gamepools.entries;
     log.info({ pools });
     for (const entry in pools) {
-      if (pools.hasOwnProperty(entry) && entry === 'start') {
-        this.isUpcoming(pools[entry]);
-      }
-      if (pools.hasOwnProperty(entry) && entry === 'entry') {
+      if (pools.hasOwnProperty(entry)) {
         log.info(pools[entry].id);
         const entryId = pools[entry].id;
         if (this.hasBeenDismissed(entryId) && this.isUpcoming()) {
-          this.iopenModel();
+          this.openModel();
         }
       }
     }
@@ -109,16 +94,8 @@ const LiveModal = React.createClass({
     const eventTime = moment.utc(timestamp);
     const currentTime = moment(new Date().getTime()).utc();
     const diffTime = eventTime - currentTime;
-    // const eventIn = diffTime / 1000;
-    let isTrue = false;
-    // log.info(eventIn);
-    if (diffTime < 0) {
-      isTrue = true;
-    } else {
-      isTrue = false;
-    }
 
-    return isTrue;
+    return diffTime < 0;
   },
 
   isOpen() {
