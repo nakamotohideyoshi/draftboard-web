@@ -78,16 +78,29 @@ class CardFooter extends React.Component {
       if (this.props.hasOwnProperty(key)) {
         const item = key;
         let value = this.props[key];
-
+        let isneg = '';
         // preformat time remaining
-        if (key === 'start') {
+        if (item === 'start') {
           const remaining = this.getRemainingTime(value);
           value = this.formatClock(remaining);
         }
 
-        if (key !== 'children') {
+        // add money sign if its needed
+        if (
+          item === 'remsalary' ||
+          item === 'fees' ||
+          item === 'playeravg') {
+          value = `$${value}`;
+        }
+
+        // check if value is negative and if so set a class for red text
+        if (value < 0) {
+          isneg = 'negative';
+        }
+
+        if (item !== 'children') {
           footerItems.push([
-            <dd key={item} className={`card-${key}`}>
+            <dd key={item} className={`card-${item} ${isneg}`}>
               <dl>
                 <dt>{this.getFooterLabels(item)}</dt>
                 <dd ref={key}>{value}</dd>
