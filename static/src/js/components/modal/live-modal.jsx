@@ -81,6 +81,7 @@ const LiveModal = React.createClass({
         const entryId = pools[entry].id;
         if (this.hasBeenDismissed(entryId) && this.isUpcoming()) {
           this.openModel();
+          getArenaAsset(pools[entry].sport);
         }
       }
     }
@@ -94,11 +95,12 @@ const LiveModal = React.createClass({
     const eventTime = moment.utc(timestamp);
     const currentTime = moment(new Date().getTime()).utc();
     const diffTime = eventTime - currentTime;
+    const minutes = Math.floor(moment.duration(diffTime).asMinutes());
 
-    return diffTime < 0;
+    return minutes < 5;
   },
 
-  isOpen() {
+  openModel() {
     this.setState({
       isOpen: true,
     });
