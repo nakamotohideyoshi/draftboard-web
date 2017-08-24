@@ -1361,12 +1361,13 @@ class PbpEventParser(DataDenPbpDescription):
         # Gather participating players.
         for player_srid in srid_players:
             try:
-                player = self.player_model.objects.get(srid=player_srid)
+                player = self.player_model.objects.select_related('position').get(srid=player_srid)
                 participating_players.append({
                     'player_id': player.id,
                     'srid_player': player.srid,
                     'first_name': player.first_name,
                     'last_name': player.last_name,
+                    'position': player.position.name,
                 })
             except self.player_model.DoesNotExist as e:
                 logger.warning("%s -- srid: %s" % (e, player_srid))
