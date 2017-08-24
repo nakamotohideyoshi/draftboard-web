@@ -57,7 +57,8 @@ const LiveModal = React.createClass({
     this.props.fetchContestPoolEntries();
     this.interval = setInterval(() => {this.tick();}, 1500);
     this.setState({
-      isOpen: true,
+      sportasset: '',
+      isOpen: false,
     });
   },
 
@@ -71,24 +72,22 @@ const LiveModal = React.createClass({
     });
     AppStateStore.modalClosed();
   },
-
   tick() {
     const pools = this.props.gamepools.entries;
-    log.info({ pools });
     for (const entry in pools) {
       if (pools.hasOwnProperty(entry)) {
-        log.info(pools[entry].id);
         const entryId = pools[entry].id;
-        if (this.hasBeenDismissed(entryId) && this.isUpcoming()) {
-          this.openModel();
-          getArenaAsset(pools[entry].sport);
+        const sport = pools[entry].sport;
+        const start = pools[entry].start;
+        if (this.hasntBeenDismissed(entryId) && this.isUpcoming(start)) {
+          this.openModel(sport);
         }
       }
     }
   },
 
-  hasBeenDismissed(entryId) {
-    return Cookies.get(entryId) === 'true';
+  hasntBeenDismissed(entryId) {
+    return Cookies.get(entryId) !== 'true';
   },
 
   isUpcoming(timestamp) {
@@ -96,12 +95,13 @@ const LiveModal = React.createClass({
     const currentTime = moment(new Date().getTime()).utc();
     const diffTime = eventTime - currentTime;
     const minutes = Math.floor(moment.duration(diffTime).asMinutes());
-
+    log.info(minutes);
     return minutes < 5;
   },
 
-  openModel() {
+  openModel(sport) {
     this.setState({
+      sportasset: getArenaAsset(sport),
       isOpen: true,
     });
     AppStateStore.modalOpened();
@@ -117,6 +117,7 @@ const LiveModal = React.createClass({
       >
         <div>
           <header className="cmp-modal__header">IT’S GAME TIME!</header>
+          <img src={ this.state.sportasset } alt="" />
           <div className="content">
             <p>Your  contest(s) is(are) starting! Follow all the
 action in our live section or head back to the
