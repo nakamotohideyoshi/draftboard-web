@@ -1028,7 +1028,6 @@ class TestPlayParser(AbstractTest):
         sport_db = 'nflo'
         parent_api = 'pbp'
 
-
         player = mommy.make(
             Player,
             srid=PbpMockData.sack_play['statistics__list']['pass__list']['player'],
@@ -1201,8 +1200,8 @@ class TestPlayParser(AbstractTest):
 
         parser.send()
         sent_data = parser.get_send_data()
-        from pprint import pprint
-        pprint(sent_data)
+        # from pprint import pprint
+        # pprint(sent_data)
 
         self.assertIsNotNone(sent_data['players'])
         self.assertEqual(2, len(sent_data['players']))
