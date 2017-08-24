@@ -104,7 +104,7 @@ const LiveModal = React.createClass({
     const diffTime = eventTime - currentTime;
     const minutes = Math.floor(moment.duration(diffTime).asMinutes());
 
-    return minutes <= 78;
+    return minutes <= 5;
   },
 
   openModel(sport) {
@@ -151,7 +151,6 @@ const history = syncHistoryWithStore(browserHistory, store);
 renderComponent(
   <Provider store={ store }>
     <Router history={ history }>
-      <Route path="/live/*" component={ LiveConnected } />
       <Route path="/contests/*" component={ LiveConnected } />
       <Route path="/results/*" component={ LiveConnected } />
       <Route path="/account/*" component={ LiveConnected } />
