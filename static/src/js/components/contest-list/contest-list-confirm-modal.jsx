@@ -64,8 +64,6 @@ const ContestListConfirmModal = React.createClass({
     }
     // confirm entry via the provided function.
     this.props.confirmEntry(this.props.contest.id);
-    log.info(this.props.contest.id);
-    log.info(Cookies.get(this.props.contest.id));
     if (Cookies.get(this.props.contest.id) === undefined) {
       Cookies.set(this.props.contest.id, 'false');
     }

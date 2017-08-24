@@ -59,6 +59,7 @@ const LiveModal = React.createClass({
     this.setState({
       sportasset: '',
       isOpen: false,
+      sport: '',
     });
   },
 
@@ -72,22 +73,29 @@ const LiveModal = React.createClass({
     });
     AppStateStore.modalClosed();
   },
+
   tick() {
     const pools = this.props.gamepools.entries;
     for (const entry in pools) {
       if (pools.hasOwnProperty(entry)) {
-        const entryId = pools[entry].id;
+        const entryId = pools[entry].id.toString();
         const sport = pools[entry].sport;
         const start = pools[entry].start;
         if (this.hasntBeenDismissed(entryId) && this.isUpcoming(start)) {
           this.openModel(sport);
+          // we can set this immediately
+          // this accidentally handles events that come up at the same time ;)
+          log.info(entryId);
+
+          Cookies.set(entryId, 'true');
+          log.info(Cookies.get(entryId));
         }
       }
     }
   },
 
   hasntBeenDismissed(entryId) {
-    return Cookies.get(entryId) !== 'true';
+    return Cookies.get(entryId.toString()) !== 'true';
   },
 
   isUpcoming(timestamp) {
@@ -95,14 +103,15 @@ const LiveModal = React.createClass({
     const currentTime = moment(new Date().getTime()).utc();
     const diffTime = eventTime - currentTime;
     const minutes = Math.floor(moment.duration(diffTime).asMinutes());
-    log.info(minutes);
-    return minutes < 5;
+
+    return minutes <= 78;
   },
 
   openModel(sport) {
     this.setState({
       sportasset: getArenaAsset(sport),
       isOpen: true,
+      sport,
     });
     AppStateStore.modalOpened();
   },
@@ -116,12 +125,15 @@ const LiveModal = React.createClass({
         className="live-notice"
       >
         <div>
-          <header className="cmp-modal__header">IT’S GAME TIME!</header>
-          <img src={ this.state.sportasset } alt="" />
           <div className="content">
-            <p>Your  contest(s) is(are) starting! Follow all the
+
+            <img src={ this.state.sportasset } alt="" className="arena-live-modal" />
+            <h3 className="cmp-modal__header">IT’S GAME TIME!</h3>
+            <p>Your <span className="sport">{ this.state.sport }</span> contest(s) is(are) starting! Follow all the
 action in our live section or head back to the
 lobby and draft a team for tomorrow's contests.</p>
+            <a href="/live" className="button button--gradient button--med">WATCH LIVE</a>
+            <a href="/" className="escape_hatch">Back to Lobby</a>
           </div>
         </div>
       </Modal>
