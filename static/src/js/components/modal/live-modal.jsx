@@ -104,7 +104,7 @@ const LiveModal = React.createClass({
     const diffTime = eventTime - currentTime;
     const minutes = Math.floor(moment.duration(diffTime).asMinutes());
 
-    return minutes <= 5;
+    return minutes <= 0;
   },
 
   openModel(sport) {
