@@ -1,7 +1,6 @@
 import TweenLite from 'gsap';
-import LiveAnimation from '../../LiveAnimation';
 
-export default class FlashChildrenAnimation extends LiveAnimation {
+export default class FlashChildrenAnimation {
 
   play(recap, field) {
     return new Promise(resolve => {

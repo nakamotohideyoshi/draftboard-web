@@ -1,8 +1,7 @@
 import TweenLite from 'gsap';
-import LiveAnimation from '../../LiveAnimation';
 import FlightArrow from '../graphics/FlightArrow';
 
-export default class FlightArrowAnimation extends LiveAnimation {
+export default class FlightArrowAnimation {
 
   play(recap, field, startPt, endPt, options) {
     const {

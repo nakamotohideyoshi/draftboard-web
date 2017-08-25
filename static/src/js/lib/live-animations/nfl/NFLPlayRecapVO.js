@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import NFLPlayDescription from './NFLPlayDescription';
 
 function yardsToDecimal(yardline) {
   return yardline / 100;
@@ -188,7 +189,15 @@ export default class NFLPlayRecapVO {
    * @return {string}
    */
   playDescription() {
-    return this._obj.pbp.description;
+    return new NFLPlayDescription(this).toText();
+  }
+
+  /**
+   * The plays description.
+   * @return {string}
+   */
+  playHTMLDescription() {
+    return new NFLPlayDescription(this).toHTML();
   }
 
   /**
@@ -341,8 +350,15 @@ export default class NFLPlayRecapVO {
    * Returns true if the play contains a fumble.
    */
   isFumble() {
-    const fumbles = _.get(this._obj, 'pbp.statistics.fumbles', []);
-    return fumbles.length > 0;
+    const fumbles = _.get(this._obj, 'pbp.statistics.fumble__list', false);
+    return Boolean(fumbles);
+  }
+
+  /**
+   * Returns true if the play resulted in a safety.
+   */
+  isSafety() {
+    return this._obj.pbp.description.toLowerCase().indexOf('safety') !== -1;
   }
 
   /**
@@ -375,6 +391,14 @@ export default class NFLPlayRecapVO {
    */
   isQBSack() {
     return _.get(this._obj, 'pbp.statistics.pass__list.sack', false);
+  }
+
+  /**
+   * Returns true if the play contains a penalty.
+   * @return {boolean}
+   */
+  hasPenalty() {
+    return Boolean(_.get(this._obj, 'pbp.statistics.penalty__list', false));
   }
 
   /**

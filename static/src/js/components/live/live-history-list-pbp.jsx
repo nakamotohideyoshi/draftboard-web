@@ -1,6 +1,5 @@
 import React from 'react';
 import { humanizeFP } from '../../lib/utils/numbers';
-import cleanDescription from '../../lib/utils/nfl-clean-pbp-description';
 
 // assets
 require('../../../sass/blocks/live/live-history-list-pbp.scss');
@@ -92,7 +91,9 @@ export default React.createClass({
     return (
       <article className={`${block} ${block}--${sport} ${block}--${lineup}`}>
         <div className={`${block}__body`}>
-          <p className={`${block}__description`}>{cleanDescription(description)}</p>
+          <p className={`${block}__description`}
+            dangerouslySetInnerHTML={{ __html: description }}
+          ></p>
           <ul className={`${block}__players`}>
             {this.renderPlayersDOM(players)}
           </ul>

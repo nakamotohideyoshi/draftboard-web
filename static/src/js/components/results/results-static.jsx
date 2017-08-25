@@ -34,7 +34,6 @@ const ResultsStatic = (props) => {
       <ResultsLineups
         isWatchingLive
         lineups={liveLineups}
-        fetchContestResults={props.fetchContestResults}
       />
     );
   }
@@ -49,6 +48,7 @@ const ResultsStatic = (props) => {
       <ResultsLineups
         isWatchingLive={isWatchingLive}
         lineups={dayResults.lineups}
+        fetchContestResults={props.fetchContestResults}
       />
     );
   } else {

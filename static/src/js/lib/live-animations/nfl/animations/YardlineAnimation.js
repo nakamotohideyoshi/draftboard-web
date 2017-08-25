@@ -1,8 +1,7 @@
-import LiveAnimation from '../../LiveAnimation';
 import YardLineMarker from '../graphics/YardLineMarker';
 import TweenLite from 'gsap';
 
-export default class YardlineAnimation extends LiveAnimation {
+export default class YardlineAnimation {
 
   static get COLOR_DOWN_LINE() {
     return '#bdcc1a';
