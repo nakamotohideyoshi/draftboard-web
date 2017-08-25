@@ -220,7 +220,7 @@ class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
+    permission_classes = (IsAuthenticated,)
     serializer_class = EditLineupSerializer
 
     def post(self, request, format=None):

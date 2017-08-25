@@ -141,3 +141,6 @@ mysite/smugglin/
 
 # custom
 parsecssdir.js
+
+# Celerybeat process lock thing
+celerybeat.pid
