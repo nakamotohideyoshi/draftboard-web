@@ -8,8 +8,8 @@ export const clip = {
   cuepoints: [
     {
       name: 'avatar',
-      in: 78,
-      data: { x: 58, y: 13, type: 'quarterback' },
+      in: 59,
+      data: { x: 52, y: 13, type: 'quarterback' },
     },
     {
       name: 'pass',
