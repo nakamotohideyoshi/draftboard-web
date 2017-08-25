@@ -1,23 +1,25 @@
-import LiveAnimation from '../../LiveAnimation';
+import NFLLiveAnimation from './NFLLiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
-/**
-* Plays a rushing play sequence by connecting a QB animation
-* with a rush arrow animation.
-*/
-export default class RushingPlayAnimation extends LiveAnimation {
+export default class RushingPlayAnimation extends NFLLiveAnimation {
 
+  /**
+   * Plays a rushing play sequence by connecting a QB animation
+   * with a rush arrow animation.
+   */
   play(recap, field) {
+    const snapPos = this.getSnapPos(recap, field);
+    const downPos = this.getDownPos(recap, field);
     const sequence = [];
 
     // Mark the play
     sequence.push(() => {
       const animation = new YardlineAnimation();
-      return animation.play(recap, field, recap.startingYardLine(), YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
+      return animation.play(recap, field, snapPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
     });
 
     // Snap the ball
@@ -30,10 +32,7 @@ export default class RushingPlayAnimation extends LiveAnimation {
     if (recap.qbAction() !== NFLPlayRecapVO.HANDOFF_SHORT) {
       sequence.push(() => {
         const animation = new RushArrowAnimation();
-        const start = recap.startingYardLine();
-        const end = recap.endingYardLine();
-        const fieldY = field.getSideOffsetY('middle');
-        return animation.play(recap, field, start, end, fieldY);
+        return animation.play(recap, field, snapPos.x, downPos.x, snapPos.y);
       });
     }
 
@@ -51,7 +50,7 @@ export default class RushingPlayAnimation extends LiveAnimation {
 
       // Down the ball
       const animation = new YardlineAnimation();
-      return animation.play(recap, field, recap.endingYardLine(), YardlineAnimation.COLOR_DOWN_LINE);
+      return animation.play(recap, field, downPos.x, YardlineAnimation.COLOR_DOWN_LINE);
     });
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());

@@ -1,8 +1,7 @@
 import TweenLite from 'gsap';
-import LiveAnimation from '../../LiveAnimation';
 import RushArrow from '../graphics/RushArrow';
 
-export default class RushArrowAnimation extends LiveAnimation {
+export default class RushArrowAnimation {
 
   /**
    * Returns the duration of the animation in seconds based on the length of the arrow.

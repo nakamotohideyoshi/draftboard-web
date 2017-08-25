@@ -1,35 +1,35 @@
 import ClipWithAvatar from '../clips/ClipWithAvatar';
-import { clip as kickReception } from '../clips/nfl/kick-reception';
-import { clip as qbDefaultHandoffLeft } from '../clips/nfl/qb-default-handoff-left';
-import { clip as qbDefaultHandoffRight } from '../clips/nfl/qb-default-handoff-left';
-import { clip as qbDefaultHandoffFumbleLeft } from '../clips/nfl/qb-default-handoff-fumble-left';
-import { clip as qbDefaultHandoffFumbleRight } from '../clips/nfl/qb-default-handoff-fumble-right';
-import { clip as qbDefaultPassDeepMiddle } from '../clips/nfl/qb-default-pass-deep-middle';
-import { clip as qbDefaultPassLeft } from '../clips/nfl/qb-default-pass-left';
-import { clip as qbDefaultPassMiddle } from '../clips/nfl/qb-default-pass-middle';
-import { clip as qbDefaultPassRight } from '../clips/nfl/qb-default-pass-right';
-import { clip as qbDefaultSack } from '../clips/nfl/qb-default-sack';
-import { clip as qbDefaultScramble } from '../clips/nfl/qb-default-scramble';
-import { clip as qbShotgunHandoffLeft } from '../clips/nfl/qb-shotgun-handoff-left';
-import { clip as qbShotgunHandoffRight } from '../clips/nfl/qb-shotgun-handoff-right';
-import { clip as qbShotgunHandoffShortLeft } from '../clips/nfl/qb-shotgun-handoff-short-left';
-import { clip as qbShotgunHandoffShortRight } from '../clips/nfl/qb-shotgun-handoff-short-right';
-import { clip as qbShotgunHandoffFumbleLeft } from '../clips/nfl/qb-shotgun-handoff-fumble-left';
-import { clip as qbShotgunHandoffFumbleRight } from '../clips/nfl/qb-shotgun-handoff-fumble-right';
-import { clip as qbShotgunPassLeft } from '../clips/nfl/qb-shotgun-pass-left';
-import { clip as qbShotgunPassMiddle } from '../clips/nfl/qb-shotgun-pass-middle';
-import { clip as qbShotgunPassRight } from '../clips/nfl/qb-shotgun-pass-right';
-import { clip as qbShotgunSack } from '../clips/nfl/qb-shotgun-sack';
-import { clip as qbShotgunScramble } from '../clips/nfl/qb-shotgun-scramble';
-import { clip as receptionInterception } from '../clips/nfl/reception-interception';
-import { clip as receptionBasket } from '../clips/nfl/reception-basket';
-import { clip as receptionBasketIncomplete } from '../clips/nfl/reception-basket-incomplete';
-import { clip as receptionShortBasket } from '../clips/nfl/reception-short-basket';
-import { clip as receptionShortBasketIncomplete } from '../clips/nfl/reception-short-basket-incomplete';
-import { clip as receptionShortSide } from '../clips/nfl/reception-short-side';
-import { clip as receptionShortSideIncomplete } from '../clips/nfl/reception-short-side-incomplete';
-import { clip as receptionSide } from '../clips/nfl/reception-side';
-import { clip as receptionSideIncomplete } from '../clips/nfl/reception-side-incomplete';
+import { clip as kickReception } from './clips/kick-reception';
+import { clip as qbDefaultHandoffLeft } from './clips/qb-default-handoff-left';
+import { clip as qbDefaultHandoffRight } from './clips/qb-default-handoff-left';
+import { clip as qbDefaultHandoffFumbleLeft } from './clips/qb-default-handoff-fumble-left';
+import { clip as qbDefaultHandoffFumbleRight } from './clips/qb-default-handoff-fumble-right';
+import { clip as qbDefaultPassDeepMiddle } from './clips/qb-default-pass-deep-middle';
+import { clip as qbDefaultPassLeft } from './clips/qb-default-pass-left';
+import { clip as qbDefaultPassMiddle } from './clips/qb-default-pass-middle';
+import { clip as qbDefaultPassRight } from './clips/qb-default-pass-right';
+import { clip as qbDefaultSack } from './clips/qb-default-sack';
+import { clip as qbDefaultScramble } from './clips/qb-default-scramble';
+import { clip as qbShotgunHandoffLeft } from './clips/qb-shotgun-handoff-left';
+import { clip as qbShotgunHandoffRight } from './clips/qb-shotgun-handoff-right';
+import { clip as qbShotgunHandoffShortLeft } from './clips/qb-shotgun-handoff-short-left';
+import { clip as qbShotgunHandoffShortRight } from './clips/qb-shotgun-handoff-short-right';
+import { clip as qbShotgunHandoffFumbleLeft } from './clips/qb-shotgun-handoff-fumble-left';
+import { clip as qbShotgunHandoffFumbleRight } from './clips/qb-shotgun-handoff-fumble-right';
+import { clip as qbShotgunPassLeft } from './clips/qb-shotgun-pass-left';
+import { clip as qbShotgunPassMiddle } from './clips/qb-shotgun-pass-middle';
+import { clip as qbShotgunPassRight } from './clips/qb-shotgun-pass-right';
+import { clip as qbShotgunSack } from './clips/qb-shotgun-sack';
+import { clip as qbShotgunScramble } from './clips/qb-shotgun-scramble';
+import { clip as receptionInterception } from './clips/reception-interception';
+import { clip as receptionBasket } from './clips/reception-basket';
+import { clip as receptionBasketIncomplete } from './clips/reception-basket-incomplete';
+import { clip as receptionShortBasket } from './clips/reception-short-basket';
+import { clip as receptionShortBasketIncomplete } from './clips/reception-short-basket-incomplete';
+import { clip as receptionShortSide } from './clips/reception-short-side';
+import { clip as receptionShortSideIncomplete } from './clips/reception-short-side-incomplete';
+import { clip as receptionSide } from './clips/reception-side';
+import { clip as receptionSideIncomplete } from './clips/reception-side-incomplete';
 
 const plays = {
   kick_reception: kickReception,
@@ -141,11 +141,22 @@ export function getQBSackClip(formation) {
  * @param {string} passType     The type of pass being caught.
  * @param {string} side         The side of the field (left, middle, right).
  */
-export function getReceptionClip(passType, side, isIntercepted = false) {
+export function getReceptionClip(passType, side) {
   try {
-    return getClip(isIntercepted ? 'reception_interception' : `reception_${passType}_${side}`);
+    return getClip(`reception_${passType}_${side}`);
   } catch (error) {
-    throw new Error(`Unknown reception animation "${passType}", "${side}", "${isIntercepted}".`);
+    throw new Error(`Unknown reception animation "${passType}", "${side}".`);
+  }
+}
+
+/**
+ * Returns an interception clip.
+ */
+export function getInterceptionClip() {
+  try {
+    return getClip('reception_interception');
+  } catch (error) {
+    throw new Error('Unknown interception animation.');
   }
 }
 

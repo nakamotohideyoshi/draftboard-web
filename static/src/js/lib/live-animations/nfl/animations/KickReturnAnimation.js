@@ -1,21 +1,17 @@
-import LiveAnimation from '../../LiveAnimation';
 import { Timeline } from '../../utils/animate';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import FlightArrow from '../graphics/FlightArrow';
+import NFLLiveAnimation from './NFLLiveAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
-/**
- * Plays a rushing play sequence by connecting a QB animation
- * with a rush arrow animation.
- */
-export default class KickReturnAnimation extends LiveAnimation {
+export default class KickReturnAnimation extends NFLLiveAnimation {
 
   /**
    * The yardline the ball is kicked from.
    */
-  getKickoffPos(recap, field) {
+  getSnapPos(recap, field) {
     // Flip flop the recap's starting yardline to reflect our desired returning
     // teams drive direction. This is neccessary because the recaps `startingYardLine()`
     // is based based on the `start_situation` and not the `end_situation`.
@@ -43,19 +39,30 @@ export default class KickReturnAnimation extends LiveAnimation {
   }
 
   /**
-   * The field position the ball is downed at.
+   * Returns the ending position of return by calculating the distance the
+   * receiver runs the ball after the catch.
    */
   getDownPos(recap, field) {
+    const catchPos = this.getCatchPos(recap, field);
+    const yardline = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
+    ? catchPos.x + recap.rushingYards()
+    : catchPos.x - recap.rushingYards();
+
     return {
-      x: recap.endingYardLine(),
+      x: yardline,
       y: field.getSideOffsetY(NFLPlayRecapVO.MIDDLE),
     };
   }
 
+  /**
+   * Plays a kick return sequencing showing the ball traveling down field to
+   * the receiver, and the receiver running it back based on the recap provided.
+   */
   play(recap, field) {
-    const kickPos = this.getKickoffPos(recap, field);
+    const snapPos = this.getSnapPos(recap, field);
     const catchPos = this.getCatchPos(recap, field);
     const downPos = this.getDownPos(recap, field);
+
     const sequence = [];
     const receiver = new PlayerAnimation();
 
@@ -65,7 +72,7 @@ export default class KickReturnAnimation extends LiveAnimation {
     if (recap.playType() === NFLPlayRecapVO.PUNT) {
       sequence.push(() => {
         const animation = new YardlineAnimation();
-        return animation.play(recap, field, kickPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
+        return animation.play(recap, field, snapPos.x, YardlineAnimation.COLOR_LINE_OF_SCRIMAGE);
       });
     }
 
@@ -80,7 +87,7 @@ export default class KickReturnAnimation extends LiveAnimation {
       const receiverY = parseFloat(receiverEl.style.top, 10);
 
       const ballDuration = 1.5 * 30;
-      const ballStart = field.getFieldPos(kickPos.x, kickPos.y);
+      const ballStart = field.getFieldPos(snapPos.x, snapPos.y);
       const ballEnd = {
         x: receiverX,
         y: receiverY + catchCP.data.y * 0.5,
