@@ -303,8 +303,7 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
       dispatch(updateGameTeam(message));
       break;
     case 'stats': {
-      // TODO: This has to be dispatched as a validation check of some sort!
-      // dispatch(updatePlayerStats(oldestEvent.sport, message));
+      dispatch(updatePlayerStats(oldestEvent.sport, message));
       break;
     }
     default:
