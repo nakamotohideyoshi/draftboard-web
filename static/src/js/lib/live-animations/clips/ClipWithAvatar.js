@@ -79,7 +79,7 @@ export default class ClipWithAvatar {
    * Returns the cuepoint associated with the provided avatar.
    */
   getCuepointForAvatar(type) {
-    return this._data.cuepoints.find(cuepoint => cuepoint.data.name === type) || null;
+    return this._data.cuepoints.find(cuepoint => cuepoint.data.type === type) || null;
   }
 
   /**
