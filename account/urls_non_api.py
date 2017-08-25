@@ -1,6 +1,7 @@
 from django.conf.urls import include
 from django.conf.urls import url
 from django.contrib.auth import views as auth_views
+from django.conf import settings
 
 from account.views import (
     login,
@@ -26,6 +27,8 @@ urlpatterns = [
     url(r'^self-exclusion/$', ExclusionFormView.as_view(), name='self-exclusion'),
     url(r'^access_subdomains/$', AccessSubdomainsTemplateView.as_view(),
         name='site-subdomains-access'),
-    # TODO swagger docs should not be on production
-    url(r'^docs/', schema_view),
 ]
+
+# Enable swagger API docs only if we are in a non-production environment.
+if not settings.ENVIRONMENT_NAME == "PRODUCTION":
+    urlpatterns += [url(r'^docs/', schema_view)]

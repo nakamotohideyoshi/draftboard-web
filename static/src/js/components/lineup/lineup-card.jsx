@@ -1,6 +1,5 @@
 import React from 'react';
 import LineupCardPlayer from './lineup-card-player.jsx';
-import CountdownClock from '../site/countdown-clock.jsx';
 import LineupCardEntries from './lineup-card-entries.jsx';
 import classNames from 'classnames';
 import SportIcon from '../site/sport-icon.jsx';
