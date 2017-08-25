@@ -78,14 +78,15 @@ class CardFooter extends React.Component {
       if (this.props.hasOwnProperty(key)) {
         const item = key;
         let value = this.props[key];
-        let isneg = '';
+        const isneg = parseInt(value, 10) < 0 && item !== 'start' ? 'negative' : '';
+
         // preformat time remaining
         if (item === 'start') {
           const remaining = this.getRemainingTime(value);
           value = this.formatClock(remaining);
         }
 
-        // add money sign if its needed
+        // add $ sign if its needed
         if (
           item === 'remsalary' ||
           item === 'fees' ||
@@ -93,32 +94,30 @@ class CardFooter extends React.Component {
           value = `$${value}`;
         }
 
-        // check if value is negative and if so set a class for red text
-        if (value < 0) {
-          isneg = 'negative';
-        }
-
         if (item !== 'children') {
           footerItems.push([
-            <dd key={item} className={`card-${item} ${isneg}`}>
+            <dd key={item} className={`card-${item}`}>
               <dl>
                 <dt>{this.getFooterLabels(item)}</dt>
-                <dd ref={key}>{value}</dd>
+                <dd ref={key} className={ isneg } >{value}</dd>
               </dl>
             </dd>,
           ]);
         }
       }
     }
+
     return footerItems;
   }
 
   startGameTimer(timestamp) {
     const timer = setInterval(() => {
       const remaining = this.getRemainingTime(timestamp);
+
       this.refs.hours.textContent = remaining.hours;
       this.refs.minutes.textContent = remaining.minutes;
       this.refs.seconds.textContent = remaining.seconds;
+
       this.setState({ secondsElapsed: this.state.secondsElapsed + 1 });
     }, 1000);
 
