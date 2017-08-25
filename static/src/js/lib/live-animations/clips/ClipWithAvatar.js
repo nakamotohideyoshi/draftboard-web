@@ -18,12 +18,13 @@ export default class ClipWithAvatar {
     // and clip. Only player types defined in both the clip and recap result in
     // the creation of a PlayerAvatar.
     this._avatars = players.filter(player =>
-      this.getCuepointForAvatar(player.type) !== null
+      this.getCuepointForAvatar(player.avatarType) !== null
     ).map(player => {
-      const avCuepoint = this.getCuepointForAvatar(player.type);
+      const playerName = `${player.first_name} ${player.last_name}`;
+      const playerThumb = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.srid_player}.png`;
+      const avCuepoint = this.getCuepointForAvatar(player.avatarType);
       const avData = avCuepoint.data;
-      const avThumbnail = `${window.dfs.playerImagesBaseUrl}/${sport}/120/${player.srid}.png`;
-      const avAnimation = new PlayerAvatar(player.name, avThumbnail);
+      const avAnimation = new PlayerAvatar(playerName, playerThumb);
       const avAnimationEl = avAnimation.getElement();
       const avWidth = avAnimation.getWidth();
       const avatarY = avData.y * 0.5 - avAnimation.getHeight() - ClipWithAvatar.AVATAR_Y_OFFSET;
@@ -85,13 +86,13 @@ export default class ClipWithAvatar {
    * Loads the clip with avatars for the provided list of players.
    */
   load(players, sport) {
-    const relevantPlayers = players.filter(player => (
-      this.getCuepointForAvatar(player.type) !== null
+    const playersWithAvatars = players.filter(player => (
+      this.getCuepointForAvatar(player.avatarType) !== null
     ));
 
-    this.setPlayers(relevantPlayers, sport);
+    this.setPlayers(playersWithAvatars, sport);
 
-    const color = relevantPlayers.reduce((lineup, player) => (
+    const color = playersWithAvatars.reduce((lineup, player) => (
       lineup === null ? player.lineup : lineup
     ), null);
 

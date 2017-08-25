@@ -405,34 +405,40 @@ export default class NFLPlayRecapVO {
    * Returns an array of player objects for all players featured in the recap.
    */
   players() {
-    const { statistics } = this._obj.pbp;
-    const { whichSidePlayers } = this._obj;
-    const playerTypesByList = [
-        { list: 'pass__list', type: 'quarterback' },
-        { list: 'receive__list', type: 'receiver' },
-        { list: 'rush__list', type: 'receiver' },
-        { list: 'return__list', type: 'receiver' },
+    return this._obj.players.map(
+      player => _.merge(player, {
+        avatarType: this.getPlayerAvatarTypeBySRID(player.srid_player),
+        lineup: this.getPlayerLineupById(player.player_id),
+      })
+    );
+  }
+
+  /**
+   * Returns the type associated with a player based on the statistical list
+   * their SRID is found in i.e(pass__list.player).
+   */
+  getPlayerAvatarTypeBySRID(srid) {
+    const typesByList = [
+        { list: 'pbp.statistics.pass__list.player', type: 'quarterback' },
+        { list: 'pbp.statistics.receive__list.player', type: 'receiver' },
+        { list: 'pbp.statistics.rush__list.player', type: 'receiver' },
+        { list: 'pbp.statistics.return__list.player', type: 'receiver' },
     ];
 
-    const getPlayerTypeBySRID = playerSRID => playerTypesByList.find(playerType => (
-      statistics.hasOwnProperty(playerType.list)
-        && statistics[playerType.list].hasOwnProperty('player')
-        && statistics[playerType.list].player === playerSRID
+    const player = typesByList.find(playerType => (
+      _.get(this._obj, playerType.list) === srid
     ));
 
-    const getLineupForPlayer = playerId => {
-      const playerWithLineup = whichSidePlayers.find(player => playerId === player.playerId);
-      return !playerWithLineup ? 'none' : playerWithLineup.lineup;
-    };
+    return !player ? 'unknown' : player.type;
+  }
 
-    return this._obj.stats.map(player => {
-      const playerType = getPlayerTypeBySRID(player.srid_player);
-      return !playerType ? null : {
-        type: playerType.type,
-        name: `${player.first_name} ${player.last_name}`,
-        srid: player.srid_player,
-        lineup: getLineupForPlayer(player.player_id),
-      };
-    }).filter(player => player !== null);
+  /**
+   * Returns the lineup associated with the provided `id`. Returns "none" if
+   * the playerId is not associated with any known lineup.
+   */
+  getPlayerLineupById(id) {
+    const { whichSidePlayers } = this._obj;
+    const playerWithLineup = whichSidePlayers.find(player => id === player.playerId);
+    return !playerWithLineup ? 'none' : playerWithLineup.lineup;
   }
 }
