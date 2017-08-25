@@ -51,12 +51,12 @@ const tokenizeDescription = recap => {
 
     if (recap.isTouchdown()) {
       tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} and the touchdown!`];
-    } else if (recap.isIncompletePass()) {
-      tokens = [qb, `${attemptedYards} yard pass incomplete. Intended for`, receiver];
     } else if (recap.isTurnover() && endYardline === 50) {
       tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} to the 50`];
     } else if (recap.isTurnover()) {
       tokens = [qb, 'pass intercepted! Intended for', receiver];
+    } else if (recap.isIncompletePass()) {
+      tokens = [qb, `${attemptedYards} yard pass incomplete. Intended for`, receiver];
     } else {
       tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} to the ${endMarket} ${endYardline}.`];
     }
