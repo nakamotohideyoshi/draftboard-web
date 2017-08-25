@@ -45,6 +45,34 @@
     width: 100%;
     position: relative;
     background: #fff;
+    .grid{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      @for $i from 1 through 9{
+        .grid-col-#{$i}{
+          grid-column: span #{$i}
+        }
+      }
+      header{
+        background: #4b545f;
+        box-shadow: 0 10px 10px rgba(0,0,0,.1);
+        padding: 5px 5px 5px 20px;
+        h6{
+          color: #fff;
+          padding: 0;
+          margin: 0;
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+      }
+      .user-row{
+        padding: 10px 20px;
+        border-bottom: 1px solid #d4d7e3;
+        &:hover {
+          background: #f7f8fa;
+        }
+      }
+    }
   }
 }
 
