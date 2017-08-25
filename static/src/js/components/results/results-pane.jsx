@@ -7,6 +7,7 @@ import { addOrdinal } from '../../lib/utils/numbers';
 import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
+import log from '../../lib/logging';
 
 
 const ResultsPane = React.createClass({
@@ -78,50 +79,45 @@ const ResultsPane = React.createClass({
     this.setState({ activeTab: tabName });
   },
 
-
   renderStandings(rankedEntries) {
     const standings = rankedEntries.map((entry) => {
+      const payout = entry.payout ? entry.payout.amount : 0.0;
+      const fpts = entry.points > 0 ? entry.points : 0;
       let lineupPlayers = [];
+      log.info(entry);
       if (entry.lineup) {
-        lineupPlayers = entry.lineup.players.map((player) =>
-          (<span key={player.idx}>{player.full_name} - {player.fantasy_points} FP</span>)
+        lineupPlayers = entry.lineup.players.map((player) => (
+            <div className="player-drawer-row" key={player.idx}>
+              {player.full_name} - {player.fantasy_points} FP
+            </div>
+          )
         );
       }
-      let payout = 0.0;
-
-      if (entry.payout) {
-        payout = entry.payout.amount;
-      }
-
       return (
-        <tr key={entry.username}>
-          <td>{entry.username}</td>
-          <td>{humanizeCurrency(payout)}</td>
-          <td>{entry.fantasy_points}</td>
-          <td>
-            <h4>Players</h4>
+        <div className="user-row grid grid-col-3" key={entry.username}>
+          <div className="grid-col-1">{entry.username}</div>
+          <div className="grid-col-1">{humanizeCurrency(payout)}</div>
+          <div className="grid-col-1">{fpts}</div>
+          <div className="grid-col-3 player-drawer">
             {lineupPlayers}
-          </td>
-        </tr>
+          </div>
+        </div>
       );
     });
 
     return (
-      <table className="table">
-        <thead>
-          <tr>
-            <th>entry</th>
-            <th>prize</th>
-            <th>points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings}
-        </tbody>
-      </table>
+      <div className="grid">
+        <header className="grid grid-col-3">
+          <h6 className="grid-col-1">entry</h6>
+          <h6 className="grid-col-1">prize</h6>
+          <h6 className="grid-col-1">points</h6>
+        </header>
+
+        {standings}
+
+      </div>
     );
   },
-
 
   // Get the content of the selected tab.
   renderActiveTab() {

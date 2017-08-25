@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import log from '../../lib/logging';
+// import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
   componentWillMount() {
@@ -13,7 +13,6 @@ class CardFooter extends React.Component {
     );
   }
   componentDidMount() {
-    log.info(this.props);
     if (this.props.start) {
       this.startGameTimer(this.props.start);
     }
