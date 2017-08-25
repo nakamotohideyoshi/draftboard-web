@@ -67,7 +67,7 @@ TIME_ZONE = 'America/New_York'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-en_formats.DATETIME_FORMAT = "l, M d P"  # [ "m/d/Y h:i:s P", "l m.d.Y  @  P" ]
+en_formats.DATETIME_FORMAT = "D, M d P o"  # [ "m/d/Y h:i:s P", "l m.d.Y  @  P" ]
 
 # for the editing/display format of time objects in the admin
 TIME_INPUT_FORMATS = [
