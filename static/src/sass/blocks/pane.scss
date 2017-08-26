@@ -48,6 +48,10 @@
     .grid{
       display: grid;
       grid-template-columns: repeat(3, 1fr);
+      box-sizing: border-box;
+      &.pane-standings{
+        position: relative;
+      }
       @for $i from 1 through 9{
         .grid-col-#{$i}{
           grid-column: span #{$i}
@@ -68,8 +72,30 @@
       .user-row{
         padding: 10px 20px;
         border-bottom: 1px solid #d4d7e3;
+        box-sizing: border-box;
+        overflow: hidden;
+        height: auto;
+        transition: height .4s;
+        position: relative;
+        vertical-align: inherit;
+        font-size: 12px;
+        .player-drawer{
+          max-height: 0;
+          overflow: hidden;
+          box-sizing: border-box;
+          transition: max-height .4s;
+          &-row{
+            padding: 10px 0;
+            font-size: 12px;
+          }
+        }
         &:hover {
           background: #f7f8fa;
+        }
+        &.show {
+          .player-drawer{
+            max-height: 100%;
+          }
         }
       }
     }
