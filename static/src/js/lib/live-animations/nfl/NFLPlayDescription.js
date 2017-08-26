@@ -13,7 +13,7 @@ const formatYards = yards => {
  * Creates a token representing an NFL player.
  */
 const createPlayerToken = (recap, srid) => {
-  const players = recap._obj.stats.filter(stat => srid === stat.srid_player);
+  const players = recap._obj.players.filter(player => srid === player.srid_player);
   let text = 'Unknown Player';
   let lineup = 'none';
 
