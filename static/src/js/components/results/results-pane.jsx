@@ -8,7 +8,7 @@ import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
 import log from '../../lib/logging';
-
+import ReactDom from 'react-dom';
 
 const ResultsPane = React.createClass({
 
@@ -79,26 +79,41 @@ const ResultsPane = React.createClass({
     this.setState({ activeTab: tabName });
   },
 
+  toggleDrawer(noderef) {
+    const node = ReactDom.findDOMNode(this.refs[noderef]);
+    const allNodes = document.querySelectorAll('.user-row');
+    // turn off open rows
+    for (let i = 0; i < allNodes.length; i++) {
+      allNodes[i].classList.remove('show');
+    }
+    node.classList.toggle('show');
+    this.preventDefault();
+  },
+
   renderStandings(rankedEntries) {
     const standings = rankedEntries.map((entry) => {
       const payout = entry.payout ? entry.payout.amount : 0.0;
       const fpts = entry.points > 0 ? entry.points : 0;
       let lineupPlayers = [];
-      log.info(entry);
       if (entry.lineup) {
         lineupPlayers = entry.lineup.players.map((player) => (
-            <div className="player-drawer-row" key={player.idx}>
+            <div className="grid-col-3 player-drawer-row grid-player" key={player.idx}>
               {player.full_name} - {player.fantasy_points} FP
             </div>
           )
         );
       }
       return (
-        <div className="user-row grid grid-col-3" key={entry.username}>
+        <div
+          className="user-row grid grid-col-3"
+          key={entry.username}
+          ref={entry.username}
+          onClick={() => this.toggleDrawer(entry.username)}
+        >
           <div className="grid-col-1">{entry.username}</div>
           <div className="grid-col-1">{humanizeCurrency(payout)}</div>
           <div className="grid-col-1">{fpts}</div>
-          <div className="grid-col-3 player-drawer">
+          <div className="grid grid-col-3 player-drawer">
             {lineupPlayers}
           </div>
         </div>
@@ -106,7 +121,7 @@ const ResultsPane = React.createClass({
     });
 
     return (
-      <div className="grid">
+      <div className="grid pane-standings">
         <header className="grid grid-col-3">
           <h6 className="grid-col-1">entry</h6>
           <h6 className="grid-col-1">prize</h6>
