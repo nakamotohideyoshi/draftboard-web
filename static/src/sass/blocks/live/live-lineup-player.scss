@@ -47,7 +47,7 @@ $block: '.live-lineup-player';
     }
 
     #{$block}__hover-stats {
-      left: -8px;
+      left: 0px;
     }
 
     #{$block}__hover-area #{$block}__hover-stats {
@@ -159,7 +159,7 @@ $block: '.live-lineup-player';
     height: 53px;
     overflow: hidden;
     position: absolute;
-    top: -26px;
+    top: 0;
     transition: all 150ms cubic-bezier(.8,.16,.18,.85);
     width: 330px;
 
@@ -248,7 +248,10 @@ $block: '.live-lineup-player';
   &__headshot-gamestats .player-pmr-headshot {
     z-index: 30;
     position:relative;
-    .circle{
+    height: 53px;
+    width: 53px;
+
+    .circle {
       border-radius: 50%;
       position: absolute;
       overflow: hidden;
@@ -259,7 +262,7 @@ $block: '.live-lineup-player';
       display: flex;
       align-items: stretch;
     }
-    .cmp-lineup-card__photo{
+    .cmp-lineup-card__photo {
       display: block;
       background-size: cover;
       background-position: bottom center;
