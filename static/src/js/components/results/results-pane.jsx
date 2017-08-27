@@ -97,7 +97,7 @@ const ResultsPane = React.createClass({
       let lineupPlayers = [];
       if (entry.lineup) {
         lineupPlayers = entry.lineup.players.map((player) => (
-            <div className="grid-col-3 player-drawer-row grid-player" key={player.idx}>
+            <div className="grid-col-3 user-drawer-row grid-player" key={player.idx}>
               {player.full_name} - {player.fantasy_points} FP
             </div>
           )
@@ -110,10 +110,12 @@ const ResultsPane = React.createClass({
           ref={entry.username}
           onClick={() => this.toggleDrawer(entry.username)}
         >
-          <div className="grid-col-1">{entry.username}</div>
-          <div className="grid-col-1">{humanizeCurrency(payout)}</div>
-          <div className="grid-col-1">{fpts}</div>
-          <div className="grid grid-col-3 player-drawer">
+          <div className="grid grid-col-3 user-data">
+            <div className="grid-col-1">{entry.username}</div>
+            <div className="grid-col-1">{humanizeCurrency(payout)}</div>
+            <div className="grid-col-1">{fpts}</div>
+          </div>
+          <div className="grid grid-col-3 user-drawer">
             {lineupPlayers}
           </div>
         </div>
