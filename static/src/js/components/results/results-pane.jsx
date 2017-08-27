@@ -7,6 +7,7 @@ import { addOrdinal } from '../../lib/utils/numbers';
 import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
+import Player from '../card/Player.jsx';
 import log from '../../lib/logging';
 import ReactDom from 'react-dom';
 
@@ -73,7 +74,6 @@ const ResultsPane = React.createClass({
     this.props.onHide();
   },
 
-
   // When a tab is clicked, tell the state to show it'scontent.
   handleTabClick(tabName) {
     this.setState({ activeTab: tabName });
@@ -87,21 +87,32 @@ const ResultsPane = React.createClass({
       allNodes[i].classList.remove('show');
     }
     node.classList.toggle('show');
-    this.preventDefault();
   },
 
   renderStandings(rankedEntries) {
     const standings = rankedEntries.map((entry) => {
+      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${entry.lineup.sport}/120/`;
       const payout = entry.payout ? entry.payout.amount : 0.0;
       const fpts = entry.points > 0 ? entry.points : 0;
       let lineupPlayers = [];
+
       if (entry.lineup) {
-        lineupPlayers = entry.lineup.players.map((player) => (
-            <div className="grid-col-3 user-drawer-row grid-player" key={player.idx}>
-              {player.full_name} - {player.fantasy_points} FP
-            </div>
-          )
-        );
+        lineupPlayers = entry.lineup.players.map((player) => {
+          const playerImageUrl =
+            `${window.dfs.playerImagesBaseUrl}/${entry.lineup.sport}/120/${player.player_meta.srid}.png`;
+          log.info(player);
+          return (
+            <Player
+              classes="grid-col-3"
+              position={player.roster_spot}
+              name={player.full_name}
+              key={player.player_id}
+              ffpg={player.fantasy_points}
+              image={playerImageUrl}
+              meta={`${player.player_meta.team.market} - ${player.player_meta.team.name}`}
+            />
+          );
+        });
       }
       return (
         <div

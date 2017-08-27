@@ -12,6 +12,7 @@ class CardFooter extends React.Component {
       }
     );
   }
+
   componentDidMount() {
     if (this.props.start) {
       this.startGameTimer(this.props.start);
