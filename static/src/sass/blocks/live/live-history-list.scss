@@ -11,9 +11,10 @@ $inOutDuration: .35s;
 #{$block} {
   display: flex;
   position: relative;
-  width: 100%;
   height: $listItemHeight + 20px;
   padding: 10px 60px 10px 60px;
+  width: 80%;
+  margin: 0 auto;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,10 +74,9 @@ $inOutDuration: .35s;
 #{$block} {
   &__list {
     position: relative;
-    width: 80%;
+    width: 100%;
     height: 86px;
     overflow-x: hidden;
-    margin: 0 auto;
   }
 
   &__list-item {
