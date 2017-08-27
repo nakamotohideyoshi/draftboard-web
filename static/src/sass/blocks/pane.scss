@@ -70,7 +70,6 @@
         }
       }
       .user-row{
-        padding: 10px 20px;
         border-bottom: 1px solid #d4d7e3;
         box-sizing: border-box;
         overflow: hidden;
@@ -79,21 +78,31 @@
         position: relative;
         vertical-align: inherit;
         font-size: 12px;
-        .player-drawer{
+        .user-data{
+          padding: 10px 20px;
+          div:last-child{
+            text-align: right;
+          }
+        }
+        .user-drawer{
           max-height: 0;
           overflow: hidden;
           box-sizing: border-box;
-          transition: max-height .4s;
+          transition: max-height .15s;
+          //transition-delay: 0s;
           &-row{
             padding: 10px 0;
             font-size: 12px;
+            border-top: 1px solid #d4d7e3;
           }
         }
-        &:hover {
+        &:hover,&.show {
           background: #f7f8fa;
         }
         &.show {
-          .player-drawer{
+          .user-drawer{
+            transition: max-height .4s;
+            //transition-delay: .4s;
             max-height: 400px;
           }
         }
