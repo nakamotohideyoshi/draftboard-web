@@ -211,7 +211,7 @@ $results-selected-text-color: #2bb677;
     display: block;
     min-height: calc(50vh - 220px);
     padding-bottom: 50px;
-
+    overflow: hidden;
     .cmp-lineup-card.flip-container{
       perspective: none;
     }
@@ -312,6 +312,7 @@ $results-selected-text-color: #2bb677;
 
     &--lineups {
       padding-top: 50px;
+      float: left;
       .flip-container{
         margin: 0;
       }
@@ -369,7 +370,6 @@ $results-selected-text-color: #2bb677;
 
     &--lineups {
       padding-left: 5%;
-
       .flip-container{
         margin: 0 50px;
       }
