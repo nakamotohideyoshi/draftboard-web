@@ -19,7 +19,7 @@ $inOutDuration: .35s;
 ////////////////////////////////////////////////////////////////////////////////
 // NEXT/PREV BUTTONS
 ////////////////////////////////////////////////////////////////////////////////
-  
+
 #{$block} {
   .btn-prev,
   .btn-next {
@@ -73,18 +73,19 @@ $inOutDuration: .35s;
 #{$block} {
   &__list {
     position: relative;
-    width: 100%;
+    width: 80%;
     height: 86px;
     overflow-x: hidden;
+    margin: 0 auto;
   }
 
-  &__list-item { 
+  &__list-item {
     position: absolute;
     top: 0;
     right: 0;
     opacity: .6;
     transition: transform .5s, opacity .5s;
-  
+
     &:hover {
       opacity: 1;
     }
