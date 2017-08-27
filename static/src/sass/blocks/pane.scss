@@ -61,6 +61,9 @@
     min-height: 600px;
     align-items: start;
     align-content: start;
+    .right-align{
+      text-align: right;
+    }
   }
   @for $i from 1 through 9{
     .grid-col-#{$i}{
@@ -70,7 +73,7 @@
   header{
     background: #4b545f;
     box-shadow: 0 10px 10px rgba(0,0,0,.1);
-    padding: 5px 5px 5px 20px;
+    padding: 5px 20px;
     h6{
       color: #fff;
       padding: 0;
@@ -102,15 +105,23 @@
       max-height: 0;
       overflow: hidden;
       box-sizing: border-box;
-      transition: max-height .15s ease-in-out;
+      transition: max-height .3s;
       //transition-delay: 0s;
       &-row{
         padding: 10px 0;
         font-size: 12px;
         border-top: 1px solid #d4d7e3;
       }
-      .right-align{
-        text-align: right;
+      header.player-grid{
+        background: #fff;
+        padding-top: 10px;
+        padding-bottom: 5px;
+        box-shadow: none;
+        border-top: 1px solid #d4d7e3;
+        h6{
+          color: #4b545f;
+          font-weight: bold;
+        }
       }
     }
     &:hover,&.show {
@@ -118,7 +129,7 @@
     }
     &.show {
       .user-drawer{
-        transition: max-height .4s;
+        transition: max-height .4s ease-in-out;
         //transition-delay: .4s;
         max-height: 700px;
       }
@@ -136,6 +147,7 @@
     }
   }
   .player.player-grid{
+    background: #fff;
     border-top: 1px solid #d4d7e3;
     &.active{
       background: #f7f8fa;
@@ -144,7 +156,6 @@
       margin: 0;
       padding: 0;
     }
-
     .info{
       padding: 10px 0 10px 20px;
       p {
@@ -155,6 +166,11 @@
         &.meta {
           font-size: 10px;
         }
+      }
+    }
+    h6{
+      &.position{
+        font-weight: normal;
       }
     }
     .effect-circle{
