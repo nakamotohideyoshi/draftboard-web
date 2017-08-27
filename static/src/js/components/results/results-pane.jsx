@@ -91,7 +91,6 @@ const ResultsPane = React.createClass({
 
   renderStandings(rankedEntries) {
     const standings = rankedEntries.map((entry) => {
-      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${entry.lineup.sport}/120/`;
       const payout = entry.payout ? entry.payout.amount : 0.0;
       const fpts = entry.fantasy_points > 0 ? entry.fantasy_points : 0;
       let lineupPlayers = [];
@@ -127,6 +126,11 @@ const ResultsPane = React.createClass({
             <div className="grid-col-1">{fpts}</div>
           </div>
           <div className="grid grid-col-3 user-drawer">
+            <header className="player-grid grid-col-3">
+              <h6 className="grid-col-2">pos</h6>
+              <h6 className="grid-col-6 header-player-info">player</h6>
+              <h6 className="grid-col-1 ">points</h6>
+            </header>
             {lineupPlayers}
           </div>
         </div>
