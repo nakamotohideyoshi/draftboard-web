@@ -88,6 +88,7 @@
     position: relative;
     vertical-align: inherit;
     font-size: 12px;
+    cursor: pointer;
     .user-data{
       padding: 10px 20px;
       div:last-child{
@@ -117,11 +118,24 @@
       }
     }
   }
+  .player-grid{
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    padding: 0 20px;
+    @for $i from 1 through 9{
+      .grid-col-#{$i}{
+        grid-column: span #{$i};
+        align-self: center;
+        &.align-right{
+          text-align: right;
+        }
+      }
+    }
+  }
   .player.player-grid{
-    background: $white;
     border-top: 1px solid #d4d7e3;
     &.active{
-      background: rgba(255, 0, 0, 1);
+      background: #f7f8fa;
     }
     p,h4,h5,h6{
       margin: 0;
@@ -129,7 +143,7 @@
     }
 
     .info{
-      padding: 8px 0 12px 20px;
+      padding: 10px 0 10px 20px;
       p {
         line-height: 1;
         &.name {
@@ -158,16 +172,6 @@
         height: 100%;
         background-size: cover;
         background-position: bottom center;
-      }
-    }
-  }
-  .player-grid{
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    @for $i from 1 through 9{
-      .grid-col-#{$i}{
-        grid-column: span #{$i};
-        align-self: center;
       }
     }
   }

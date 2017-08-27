@@ -56,7 +56,7 @@ class Player extends Component {
           { this.getMeta(this.props.meta) }
         </div>
 
-        <div className="score grid-col-1 right-align">
+        <div className="score grid-col-1 align-right">
           { this.getCost(this.props.cost) }
           <h5>{ this.props.ffpg }</h5>
         </div>

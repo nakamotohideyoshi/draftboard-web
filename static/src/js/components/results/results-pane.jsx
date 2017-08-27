@@ -93,9 +93,9 @@ const ResultsPane = React.createClass({
     const standings = rankedEntries.map((entry) => {
       const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${entry.lineup.sport}/120/`;
       const payout = entry.payout ? entry.payout.amount : 0.0;
-      const fpts = entry.points > 0 ? entry.points : 0;
+      const fpts = entry.fantasy_points > 0 ? entry.fantasy_points : 0;
       let lineupPlayers = [];
-
+      log.info(entry);
       if (entry.lineup) {
         lineupPlayers = entry.lineup.players.map((player) => {
           const playerImageUrl =
