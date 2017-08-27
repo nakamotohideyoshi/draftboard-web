@@ -129,7 +129,7 @@ const ResultsPane = React.createClass({
             <header className="player-grid grid-col-3">
               <h6 className="grid-col-2">pos</h6>
               <h6 className="grid-col-6 header-player-info">player</h6>
-              <h6 className="grid-col-1 ">points</h6>
+              <h6 className="grid-col-1 right-align">points</h6>
             </header>
             {lineupPlayers}
           </div>
@@ -142,7 +142,7 @@ const ResultsPane = React.createClass({
         <header className="grid grid-col-3">
           <h6 className="grid-col-1">entry</h6>
           <h6 className="grid-col-1">prize</h6>
-          <h6 className="grid-col-1">points</h6>
+          <h6 className="grid-col-1 right-align">points</h6>
         </header>
 
         {standings}
