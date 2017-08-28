@@ -45,6 +45,154 @@
     width: 100%;
     position: relative;
     background: #fff;
+
+    // the specificity on this isn't correct
+    // and will break if this is ever added to.
+  }
+}
+
+.pane__content .grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  box-sizing: border-box;
+
+  &.pane-standings{
+    position: relative;
+    min-height: 600px;
+    align-items: start;
+    align-content: start;
+    .right-align{
+      text-align: right;
+    }
+  }
+  @for $i from 1 through 9{
+    .grid-col-#{$i}{
+      grid-column: span #{$i}
+    }
+  }
+  header{
+    background: #4b545f;
+    box-shadow: 0 10px 10px rgba(0,0,0,.1);
+    padding: 5px 20px;
+    h6{
+      color: #fff;
+      padding: 0;
+      margin: 0;
+      text-transform: uppercase;
+      font-weight: 600;
+      &.header-player-info{
+        padding-left: 20px;
+      }
+    }
+  }
+  .user-row{
+    border-bottom: 1px solid #d4d7e3;
+    box-sizing: border-box;
+    overflow: hidden;
+    height: auto;
+    transition: height .4s;
+    position: relative;
+    vertical-align: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    .user-data{
+      padding: 10px 20px;
+      div:last-child{
+        text-align: right;
+      }
+    }
+    .user-drawer{
+      max-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: max-height .3s;
+      //transition-delay: 0s;
+      &-row{
+        padding: 10px 0;
+        font-size: 12px;
+        border-top: 1px solid #d4d7e3;
+      }
+      header.player-grid{
+        background: #fff;
+        padding-top: 10px;
+        padding-bottom: 5px;
+        box-shadow: none;
+        border-top: 1px solid #d4d7e3;
+        h6{
+          color: #4b545f;
+          font-weight: bold;
+        }
+      }
+    }
+    &:hover,&.show {
+      background: #f7f8fa;
+    }
+    &.show {
+      .user-drawer{
+        transition: max-height .4s ease-in-out;
+        //transition-delay: .4s;
+        max-height: 700px;
+      }
+    }
+  }
+  .player-grid{
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    padding: 0 20px;
+    @for $i from 1 through 9{
+      .grid-col-#{$i}{
+        grid-column: span #{$i};
+        align-self: center;
+      }
+    }
+  }
+  .player.player-grid{
+    background: #fff;
+    border-top: 1px solid #d4d7e3;
+    &.active{
+      background: #f7f8fa;
+    }
+    p,h4,h5,h6{
+      margin: 0;
+      padding: 0;
+    }
+    .info{
+      padding: 10px 0 10px 20px;
+      p {
+        line-height: 1;
+        &.name {
+          margin-bottom: 5px;
+        }
+        &.meta {
+          font-size: 10px;
+        }
+      }
+    }
+    h6{
+      &.position{
+        font-weight: normal;
+      }
+    }
+    .effect-circle{
+      overflow: hidden;
+      background-size: contain;
+      background-position: bottom center;
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      position: relative;
+      align-self: end;
+      span{
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: bottom center;
+      }
+    }
   }
 }
 
