@@ -334,7 +334,7 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
   return Promise.all([
     dispatch(pushEvent({ message, sport, type, queuedAt: dateNow() })),
   ]).then(
-    () => dispatch(shiftOldestEvent(gameId))
+    () => dispatch(shiftOldestEvent())
   );
 };
 
