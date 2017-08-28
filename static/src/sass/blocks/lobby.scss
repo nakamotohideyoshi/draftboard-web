@@ -29,9 +29,23 @@
         }
       }
     }
-    .sidebar.nba {
-      background: url(../img/blocks/lobby/sidebar-nba-bottom.jpg) no-repeat bottom left #0C1524;
-      background-size: 100% auto;
+    .sidebar {
+      background-size: cover;
+      background-position: center bottom;
+      background-repeat: no-repeat;
+      background-color: #0C1524;
+      background-image: url(../img/blocks/lobby/bg-sidebar-sport-nfl.jpg);
+      &.mlb{
+        background-image: url(../img/blocks/lobby/bg-sidebar-sport-mlb.jpg);
+      }
+      &.nfl{
+        background-image: url(../img/blocks/lobby/bg-sidebar-sport-nfl.jpg);
+      }
+      &.nhl{
+        background-image: url(../img/blocks/lobby/bg-sidebar-sport-nhl.jpg);
+      }
+
+
 
       &--header-title {
         display: inline-block;
