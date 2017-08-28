@@ -7,7 +7,9 @@ import { addOrdinal } from '../../lib/utils/numbers';
 import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
-
+import Player from '../card/Player.jsx';
+import log from '../../lib/logging';
+import ReactDom from 'react-dom';
 
 const ResultsPane = React.createClass({
 
@@ -72,56 +74,82 @@ const ResultsPane = React.createClass({
     this.props.onHide();
   },
 
-
   // When a tab is clicked, tell the state to show it'scontent.
   handleTabClick(tabName) {
     this.setState({ activeTab: tabName });
   },
 
+  toggleDrawer(noderef) {
+    const node = ReactDom.findDOMNode(this.refs[noderef]);
+    const allNodes = document.querySelectorAll('.user-row');
+    // turn off open rows
+    for (let i = 0; i < allNodes.length; i++) {
+      allNodes[i].classList.remove('show');
+    }
+    node.classList.toggle('show');
+  },
 
   renderStandings(rankedEntries) {
     const standings = rankedEntries.map((entry) => {
+      const payout = entry.payout ? entry.payout.amount : 0.0;
+      const fpts = entry.fantasy_points > 0 ? entry.fantasy_points : 0;
       let lineupPlayers = [];
+      log.info(entry);
       if (entry.lineup) {
-        lineupPlayers = entry.lineup.players.map((player) =>
-          (<span key={player.idx}>{player.full_name} - {player.fantasy_points} FP</span>)
-        );
+        lineupPlayers = entry.lineup.players.map((player) => {
+          const playerImageUrl =
+            `${window.dfs.playerImagesBaseUrl}/${entry.lineup.sport}/120/${player.player_meta.srid}.png`;
+          log.info(player);
+          return (
+            <Player
+              classes="grid-col-3"
+              position={player.roster_spot}
+              name={player.full_name}
+              key={player.player_id}
+              ffpg={player.fantasy_points}
+              image={playerImageUrl}
+              meta={`${player.player_meta.team.market} - ${player.player_meta.team.name}`}
+            />
+          );
+        });
       }
-      let payout = 0.0;
-
-      if (entry.payout) {
-        payout = entry.payout.amount;
-      }
-
       return (
-        <tr key={entry.username}>
-          <td>{entry.username}</td>
-          <td>{humanizeCurrency(payout)}</td>
-          <td>{entry.fantasy_points}</td>
-          <td>
-            <h4>Players</h4>
+        <div
+          className="user-row grid grid-col-3"
+          key={entry.username}
+          ref={entry.username}
+          onClick={() => this.toggleDrawer(entry.username)}
+        >
+          <div className="grid grid-col-3 user-data">
+            <div className="grid-col-1">{entry.username}</div>
+            <div className="grid-col-1">{humanizeCurrency(payout)}</div>
+            <div className="grid-col-1">{fpts}</div>
+          </div>
+          <div className="grid grid-col-3 user-drawer">
+            <header className="player-grid grid-col-3">
+              <h6 className="grid-col-2">pos</h6>
+              <h6 className="grid-col-6 header-player-info">player</h6>
+              <h6 className="grid-col-1 right-align">points</h6>
+            </header>
             {lineupPlayers}
-          </td>
-        </tr>
+          </div>
+        </div>
       );
     });
 
     return (
-      <table className="table">
-        <thead>
-          <tr>
-            <th>entry</th>
-            <th>prize</th>
-            <th>points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings}
-        </tbody>
-      </table>
+      <div className="grid pane-standings">
+        <header className="grid grid-col-3">
+          <h6 className="grid-col-1">entry</h6>
+          <h6 className="grid-col-1">prize</h6>
+          <h6 className="grid-col-1 right-align">points</h6>
+        </header>
+
+        {standings}
+
+      </div>
     );
   },
-
 
   // Get the content of the selected tab.
   renderActiveTab() {
