@@ -2,6 +2,7 @@ import * as ActionTypes from '../action-types';
 import forEach from 'lodash/forEach';
 import intersection from 'lodash/intersection';
 import log from '../lib/logging';
+import { dateNow } from '../lib/utils';
 import merge from 'lodash/merge';
 import { updateGameTeam, updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
@@ -192,16 +193,14 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
  * Is exported bc we need to test, too big
  * @param  {object} message The event call to parse for information
  */
-export const showGameEvent = (message) => (dispatch, getState) => {
-  logAction.debug('actions.showGameEvent', message);
-
+export const showGameEvent = (event) => (dispatch, getState) => {
   // selectors
   const state = getState();
   const watching = state.watching;
   const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
 
-  const { playersStats, sport } = message;
+  const { playersStats, sport, message } = event;
   const eventPlayers = message.stats.map(stat => stat.srid_player);
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
 
@@ -257,11 +256,15 @@ export const showGameEvent = (message) => (dispatch, getState) => {
 
     case 'nba':
     case 'nfl':
+      // If the event is more than 3 minutes old, skip the animation.
+      if ((event.queuedAt + 180000) < dateNow()) {
+        return Promise.resolve();
+      }
+
       return Promise.all([
         dispatch(setCurrentEvent(animationEvent)),
         dispatch(unionPlayersPlaying(relevantPlayersInEvent)),
       ]);
-
     default:
       return Promise.reject('Improper sport when showing event');
   }
@@ -297,7 +300,7 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
 
   switch (type) {
     case 'pbp':
-      return dispatch(showGameEvent(message, state, oldestEvent.sport));
+      return dispatch(showGameEvent(oldestEvent, state, oldestEvent.sport));
     case 'boxscore-game':
       dispatch(updateGameTime(message));
       break;
@@ -329,7 +332,7 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
   logAction.debug('actions.events.addEventAndStartQueue', gameId, message, type, sport);
 
   return Promise.all([
-    dispatch(pushEvent({ message, sport, type })),
+    dispatch(pushEvent({ message, sport, type, queuedAt: dateNow() })),
   ]).then(
     () => dispatch(shiftOldestEvent(gameId))
   );
