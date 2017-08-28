@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import EnterContestButton from './enter-contest-button.jsx';
 import AppStateStore from '../../stores/app-state-store.js';
 import { humanizeCurrency } from '../../lib/utils/currency.js';
-
+import log from '../../lib/logging';
 
 /**
  * When a user attempts to enter a contest, prompt them to confirm.
@@ -64,6 +64,9 @@ const ContestListConfirmModal = React.createClass({
     }
     // confirm entry via the provided function.
     this.props.confirmEntry(this.props.contest.id);
+    if (Cookies.get(this.props.contest.id) === undefined) {
+      Cookies.set(this.props.contest.id, 'false');
+    }
     this.close();
   },
 
