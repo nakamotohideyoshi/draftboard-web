@@ -14,23 +14,23 @@
 
 {% block body %}
   <div class="account__left">
-    {% block content_header %}
-    <a href="/" class="account__header">
-      <img src="{% static 'img/logo-sm.png' %}" alt=""><h1>draftboard</h1>
-    </a>
-    {% endblock %}
+    <div class="account__left__wrap">
+      {% block content_header %}
+      <a href="/" class="account__header">
+        <img src="{% static 'img/logo-sm.png' %}" alt=""><h1>draftboard</h1>
+      </a>
+      {% endblock %}
 
-    <div class="account__left__content">
-      {% block content_form %}{% endblock %}
+      <div class="account__left__content">
+        {% block content_form %}{% endblock %}
+      </div>
+
+      {% block account_footer %}
+        <footer class="logged-out-footer">
+          <p>Don't have an account? <a href="{% url 'register' %}">Create One.</a></p>
+        </footer>
+      {% endblock account_footer %}
     </div>
-
-    {% block account_footer %}
-      <footer class="logged-out-footer">
-        <p>Don't have an account? <a href="{% url 'register' %}">Create One.</a></p>
-      </footer>
-    {% endblock account_footer %}
-
-
   </div>
 
   {% block right_content %}
