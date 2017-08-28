@@ -67,15 +67,17 @@ export const updatePBPPlayersStats = (sport, playersStats) => (dispatch) => {
 /**
  * Returns the side representing all players provided.
  */
-const whichSide = playersWithLineup => (
-  playersWithLineup.reduce((side, player) => {
-    if (side === 'none') {
-      return player.lineup;
-    }
-    const isMixed = side !== player.lineup || side === 'both';
-    return isMixed ? 'both' : player.lineup;
-  }, 'none')
-);
+const whichSide = playersWithLineup => {
+  const lineups = playersWithLineup.map(player => player.lineup);
+
+  if (lineups.indexOf('mine') !== -1) {
+    return 'mine';
+  } else if (lineups.indexOf('opponent') !== -1) {
+    return 'opponent';
+  }
+
+  return 'none';
+};
 
 /**
  * Returns an array of player SRIDs and their associated lineup ("mine",
