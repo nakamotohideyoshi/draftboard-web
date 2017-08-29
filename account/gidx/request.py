@@ -126,18 +126,6 @@ class GidxRequest(object):
         return self.response_wrapper
 
     def handle_response(self):
-        # Save our session info
-        GidxSession.objects.create(
-            user=self.user,
-            gidx_customer_id=self.params.get('MerchantCustomerID'),
-            session_id=self.params.get('MerchantSessionID'),
-            service_type=self.service_type,
-            device_location=self.params.get('DeviceIpAddress'),
-            request_data=strip_sensitive_fields(self.params),
-            response_data=self.response_wrapper.json,
-            reason_codes=self.response_wrapper.json['ReasonCodes'],
-        )
-
         # Log out the req + res
         logger.info({
             'url': self.url,
@@ -145,6 +133,20 @@ class GidxRequest(object):
             "request": self.params,
             "response": self.response_wrapper.json,
         })
+
+        ip_address = self.params.get('DeviceIpAddress') or self.params.get('CustomerIpAddress')
+
+        # Save our session info
+        GidxSession.objects.create(
+            user=self.user,
+            gidx_customer_id=self.params.get('MerchantCustomerID'),
+            session_id=self.params.get('MerchantSessionID'),
+            service_type=self.service_type,
+            device_location=ip_address,
+            request_data=strip_sensitive_fields(self.params),
+            response_data=self.response_wrapper.json,
+            reason_codes=self.response_wrapper.json['ReasonCodes'],
+        )
 
         # 500+ means some kind of service-level error. make sure we get notified about these.
         if self.response_wrapper.json['ResponseCode'] >= 500:
@@ -337,6 +339,54 @@ class WebRegCreateSession(GidxRequest):
             'EmailAddress': user.email,
             # 04/03/1984 (In MM/DD/YYYY Format)
             'DateOfBirth': date_of_birth,
+        }
+
+        # Combine the base parameters and the supplied arguments into a single dict that
+        # we can pass as POST parameters.
+        self.params.update(self.base_params)
+        self.params.update(args)
+
+    def send(self):
+        # Call the parent's _send, it does the actual work.
+        return self._send()
+
+
+class WebCashierCreateSession(GidxRequest):
+    """
+     This method should be called to create a new Cashier Web Session within the GIDX system for
+     payments.
+
+     The response from this request will contain a <script> tag to embed on the client in order
+     to initiate the gidx payment interface.
+
+     http://www.tsevo.com/Docs/WebCashier#MethodRef_ID_CreateSession
+    """
+
+    url = 'https://api.gidx-service.in/v3.0/api/WebCashier/CreateSession'
+    service_type = 'WebCashier_CreateSession'
+    responseClass = WebRegCreateSessionResponse
+    action_name = "WEB_CACHIER_CREATE_SESSION_REQUEST"
+
+    def __init__(self, user, ip_address):
+        # Bail immediately if we have no logged-in user.
+        if user is None or not user.is_authenticated():
+            raise APIException('Authenticated user must be provided. - %s' % user)
+
+        self.user = user
+
+        args = {
+            # A unique SessionID from your system assigned to this active session.
+            'MerchantSessionID': '%s%s' % (settings.GIDX_MERCHANT_SESSION_ID_PREFIX, uuid.uuid4()),
+            # IP address for the current device (The Customers' Device – NOT your servers
+            # IP address) for this active session.
+            'CustomerIpAddress': ip_address,
+            # Your unique ID for this customer.
+            'MerchantCustomerID': get_customer_id_for_user(user),
+            'PayActionCode': 'PAY',
+            'MerchantTransactionID': str(uuid.uuid4()),
+            'MerchantOrderID': str(uuid.uuid4()),
+            # I can't for the life of me get reverse() to work here. I am sorry.
+            'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/deposit-webhook/'),
         }
 
         # Combine the base parameters and the supplied arguments into a single dict that

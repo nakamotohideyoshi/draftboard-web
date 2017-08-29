@@ -352,3 +352,98 @@ STATUS_REQUEST = {
         "Altitude": 'null'
     }
 }
+
+
+WEB_CASHIER_CREATE_SESSION = {
+  "action": "WEB_CACHIER_CREATE_SESSION_REQUEST",
+  "request": {
+    "ActivityTypeID": "FyP1fg_WkU60JnuIarfOQw",
+    "MerchantCustomerID": "TEST--dan--000000000057",
+    "ProductTypeID": "iiXXab0LtUCUdZ_6vcdtvQ",
+    "CallbackURL": "http://a032f89c.ngrok.io/api/account/identity-webhook/",
+    "DeviceTypeID": "2bDPorOkPkepDd8-6Fydtw",
+    "MerchantSessionID": "f8884ba4-610f-4fda-8fd9-507693dffccc",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "MerchantOrderID": "todo",
+    "MerchantTransactionID": "todo",
+    "CustomerIpAddress": "172.18.0.1",
+    "PayActionCode": "PAY",
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA"
+  },
+  "response": {
+    "ResponseMessage": "No error.",
+    "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fCashier%3fsessionid%3d5FwmaKgpiEioTDyXyldkRg%27+data-tsevo-script-tag+data-gidx-session-id%3d%275FwmaKgpiEioTDyXyldkRg%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
+    "SessionExpirationTime": "2017-08-28T19:22:38.9502224Z",
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "ReasonCodes": [
+      "LL-UNKN"
+    ],
+    "MerchantSessionID": "f8884ba4-610f-4fda-8fd9-507693dffccc",
+    "SessionID": "5FwmaKgpiEioTDyXyldkRg",
+    "ApiVersion": 3,
+    "SessionScore": 50,
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "ResponseCode": 0
+  },
+  "url": "https://api.gidx-service.in/v3.0/api/WebCashier/CreateSession"
+}
+
+
+# Callback - WebCashier example from their documentation.
+WEB_CASHIER_CALLBACK = {
+    "StatusCode": 0,
+    "StatusMessage": "Registration is complete. Please call CustomerRegistration method to get registration details.",
+    "SessionID": "X9XeW5FvCEKimOKw59GNPA",
+    "MerchantSessionID": "123_ID_GOES_HERE",
+    "SessionScore": 96.2,
+    "ReasonCodes": ["ID-VERIFIED", "LL-GEO-US-TX", "DFP-VPRP-CORP"],
+    "MerchantTransactionID": "1113201405343_1",
+    "TransactionStatusCode": 0,
+    "TransactionStatusMessage": "Pending",
+    "ServiceType": "Payment"
+}
+
+# a webhook from the web cachier app for when a user tries to deposit but has not yet
+# completed identity verification (I think we will not be allowing users to attempt to
+# deposit if they have not yet verified, so this should not happen)
+WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY = {
+  "request": None,
+  "response": {
+    "SessionID": "9tskb__mD0CGwvdmadVzSw",
+    "MerchantTransactionID": "a50d95ec-041b-4d77-bbcd-57d0130c3e60",
+    "MerchantSessionID": "ed5cc90d-2e85-42c8-9fa8-eb7a138cb21b",
+    "StatusCode": 0,
+    "SessionScore": 51,
+    "TransactionStatusCode": 0,
+    "ReasonCodes": [
+      "DFP-IPNM",
+      "LL-UNKN"
+    ],
+    "TransactionStatusMessage": "Pending",
+    "ServiceType": "Payment",
+    "StatusMessage": "Payment Session is Complete."
+  },
+  "action": "WebCashier_Callback"
+}
+
+# After a deposit transaction has been completed succesfully.
+WEB_CASHIER_CALLBACK_SUCCESS = {
+  "request": None,
+  "response": {
+    "SessionID": "9rpTPwzqHEmJlkdQaVGdQw",
+    "MerchantTransactionID": "ddb979c7-3b83-4049-8782-f24c1c2ddd2e",
+    "MerchantSessionID": "3a2b1349-29fe-409c-8f01-98290bf3739a",
+    "StatusCode": 0,
+    "SessionScore": 76,
+    "TransactionStatusCode": 1,
+    "ReasonCodes": [
+      "DFP-IPNM",
+      "ID-VERIFIED",
+      "LL-UNKN"
+    ],
+    "TransactionStatusMessage": "Complete",
+    "ServiceType": "Payment",
+    "StatusMessage": "Payment Session is Complete."
+  },
+  "action": "WebCashier_Callback"
+}

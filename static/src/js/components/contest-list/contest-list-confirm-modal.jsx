@@ -1,12 +1,11 @@
 import React from 'react';
 import Modal from '../modal/modal.jsx';
-// import CountdownClock from '../site/countdown-clock.jsx';
 import Cookies from 'js-cookie';
 import classNames from 'classnames';
 import EnterContestButton from './enter-contest-button.jsx';
 import AppStateStore from '../../stores/app-state-store.js';
 import { humanizeCurrency } from '../../lib/utils/currency.js';
-import log from '../../lib/logging';
+
 
 /**
  * When a user attempts to enter a contest, prompt them to confirm.
