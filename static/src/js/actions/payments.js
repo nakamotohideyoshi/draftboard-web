@@ -10,6 +10,19 @@ import PubSub from 'pubsub-js';
 import * as responseTypes from '../lib/utils/response-types';
 
 
+export const fetchDepositForm = () => ({
+  // Fetch the GIDX deposit form.
+  [CALL_API]: {
+    types: [
+      actionTypes.FETCHING_DEPOSIT_FORM,
+      actionTypes.FETCH_DEPOSIT_FORM_SUCCESS,
+      actionTypes.FETCH_DEPOSIT_FORM_FAIL,
+    ],
+    endpoint: '/api/account/deposit-form/',
+    callback: (json) => json,
+  },
+});
+
 /**
  * Payment Actions
  */

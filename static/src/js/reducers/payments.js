@@ -10,6 +10,12 @@ const initialState = {
   withdrawalFormErrors: {},
   payPalClientToken: '',
   payPalNonce: null,
+  gidx: {
+    paymentForm: {
+      isFetching: false,
+      formEmbed: null,
+    },
+  },
 };
 
 
@@ -92,6 +98,37 @@ module.exports = (state = initialState, action) => {
       return newState;
     }
 
+    case actionTypes.FETCHING_DEPOSIT_FORM: {
+      return merge({}, state, {
+        gidx: {
+          paymentForm: {
+            isFetching: true,
+            formEmbed: null,
+          },
+        },
+      });
+    }
+
+    case actionTypes.FETCH_DEPOSIT_FORM_SUCCESS: {
+      return merge({}, state, {
+        gidx: {
+          paymentForm: {
+            isFetching: false,
+            formEmbed: action.response.detail.form_embed,
+          },
+        },
+      });
+    }
+
+    case actionTypes.FETCH_DEPOSIT_FORM_FAIL: {
+      return merge({}, state, {
+        gidx: {
+          paymentForm: {
+            isFetching: false,
+          },
+        },
+      });
+    }
 
     default:
       return state;
