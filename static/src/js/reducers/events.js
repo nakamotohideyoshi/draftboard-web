@@ -5,7 +5,7 @@ import union from 'lodash/union';
 
 const initialState = {
   currentEvent: null,
-  bigEvents: [],
+  history: [],
   queue: [],
   playerEventDescriptions: {},
   playerHistories: {},
@@ -15,13 +15,12 @@ const initialState = {
 // Reducer for the pusher events coming through
 module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
-    case ActionTypes.EVENT_ADD_TO_BIG_QUEUE: {
+    case ActionTypes.EVENT_ADD_TO_HISTORY: {
       const newState = merge({}, state);
-
-      newState.bigEvents.push(action.value);
+      newState.history.push(action.value);
 
       // limit the size of the queue to 50
-      if (newState.bigEvents.length > 50) newState.bigEvents.shift();
+      if (newState.history.length > 50) newState.history.shift();
 
       return newState;
     }
