@@ -7,7 +7,6 @@ import LiveStandingsPane from './live-standings-pane';
 
 export default React.createClass({
   propTypes: {
-    bigPlaysQueue: React.PropTypes.array.isRequired,
     eventsMultipart: React.PropTypes.object,
     contest: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
@@ -85,7 +84,7 @@ export default React.createClass({
           }
         </section>
 
-        <LiveHistoryList history={this.props.bigPlaysQueue} currentEvent={this.props.currentEvent} />
+        <LiveHistoryList currentEvent={this.props.currentEvent} />
       </div>
     );
   },

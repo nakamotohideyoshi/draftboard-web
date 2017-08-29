@@ -21,7 +21,6 @@ require('../../../sass/blocks/live-debugger.scss');
  */
 const mapStateToProps = (state) => ({
   currentEvent: state.events.currentEvent,
-  bigEvents: state.events.bigEvents,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -35,7 +34,6 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   propTypes: {
     actions: React.PropTypes.object.isRequired,
     currentEvent: React.PropTypes.object,
-    bigEvents: React.PropTypes.array,
     params: React.PropTypes.object,
   },
 
@@ -77,10 +75,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   },
 
   render() {
-    const {
-      currentEvent,
-      bigEvents,
-    } = this.props;
+    const { currentEvent } = this.props;
 
     const {
       eventsMultipart,
@@ -112,7 +107,6 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
             uniqueLineups,
           } }
           onAnimationCompleted={() => this.animationCompleted()}
-          bigPlaysQueue={bigEvents || []}
         />
       </div>
     );
