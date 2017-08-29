@@ -8,6 +8,7 @@ import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
 import Player from '../card/Player.jsx';
+import Stats from '../card/Stats.jsx';
 import log from '../../lib/logging';
 import ReactDom from 'react-dom';
 
@@ -109,7 +110,9 @@ const ResultsPane = React.createClass({
               ffpg={player.fantasy_points}
               image={playerImageUrl}
               meta={`${player.player_meta.team.market} - ${player.player_meta.team.name}`}
-            />
+            >
+              <Stats item="value" />
+            </Player>
           );
         });
       }
