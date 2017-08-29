@@ -386,11 +386,14 @@ class UserLineupHistorySerializer(serializers.ModelSerializer):
     primarily returns Entry data, containing information about the Contest, and payouts
     """
 
-    # entries = serializers.SerializerMethodField()
-    # def get_entries(self, lineup):
-    #     return EntrySerializer(many=True, read_only=True)
+    entries = serializers.SerializerMethodField()
 
-    entries = EntrySerializer(many=True, read_only=True)
+    @staticmethod
+    def get_entries(lineup):
+        # Trim out any unmatched entries. (those that never made it into contests)
+        matched_entries = lineup.entries.filter(contest__isnull=False)
+        return EntrySerializer(matched_entries, many=True).data
+
     players = PlayerWithStatsSerializer(many=True, read_only=True)
 
     class Meta:
