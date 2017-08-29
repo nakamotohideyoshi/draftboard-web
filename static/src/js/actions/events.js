@@ -18,8 +18,8 @@ import {
 // get custom logger for actions
 const logAction = log.getLogger('action');
 
-const addEventToBigPlays = (value) => ({
-  type: ActionTypes.EVENT_ADD_TO_BIG_QUEUE,
+const addEventToHistory = (value) => ({
+  type: ActionTypes.EVENT_ADD_TO_HISTORY,
   value,
 });
 
@@ -129,11 +129,6 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
   };
 
   calls.push(dispatch(removePlayersPlaying(relevantPlayersInEvent)));
-
-  // add to big plays, if relevant
-  if (relevantPlayersInEvent.length > 0 || animationEvent.isBigPlay || window.is_debugging_live_animation) {
-    calls.push(dispatch(addEventToBigPlays(animationEvent)));
-  }
 
   switch (animationEvent.sport) {
     case 'mlb': {
@@ -347,7 +342,8 @@ export const clearCurrentAnimationEvent = () => (dispatch, getState) => {
   }
 
   return Promise.resolve()
-  .then(() => dispatch(showAnimationEventResults(currentEvent)))  // Update bigplays, FP, and stats.
+  .then(() => dispatch(addEventToHistory(currentEvent)))          // Push to history
+  .then(() => dispatch(showAnimationEventResults(currentEvent)))  // Update FP and stats.
   .then(() => dispatch(clearCurrentEvent()))                      // Remove current event
   .then(() => dispatch(shiftOldestEvent()));                      // Bring in the next one
 };
