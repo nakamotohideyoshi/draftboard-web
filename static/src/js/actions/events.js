@@ -8,6 +8,7 @@ import { updateGameTeam, updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
 import { updateLiveMode } from './watching';
 import { sportsSelector } from '../selectors/sports';
+import { pastEvents, isPastEvent } from '../selectors/events-history';
 import { removeEventMultipart, storeEventMultipart } from './events-multipart';
 import {
   relevantGamesPlayersSelector,
@@ -189,31 +190,38 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
  * @param  {object} message The event call to parse for information
  */
 export const showGameEvent = (event) => (dispatch, getState) => {
-  // selectors
   const state = getState();
   const watching = state.watching;
   const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
-
   const { playersStats, sport, message } = event;
   const eventPlayers = message.stats.map(stat => stat.srid_player);
   const relevantPlayersInEvent = intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
-
-  // if there are no more relevant players, just update stats
-  if (relevantPlayersInEvent.length === 0 && !window.is_debugging_live_animation) {
-    const calls = [];
-    calls.push(dispatch(updatePBPPlayersStats(sport, playersStats)));
-    return Promise.all(calls);
-  }
-
   const playersBySide = whichSidePlayers(message.stats.map(stat => stat.player_id), state);
 
-  // update message to reflect current lineups the user is watching
-  const animationEvent = merge({}, message, {
+  // Update message to reflect current lineups the user is watching
+  const gameEvent = merge({}, message, {
     relevantPlayersInEvent,
     whichSide: whichSide(playersBySide),
     whichSidePlayers: playersBySide,
   });
+
+  if (!window.is_debugging_live_animation) {
+    // Skip animating PBPs that are already in event history.
+    if (isPastEvent(pastEvents(state), gameEvent.id)) {
+      return Promise.resolve();
+    }
+
+    // Skip animating PBPs that are more than 3 minutes (180000ms) old.
+    if ((event.queuedAt + 1000) < dateNow()) {
+      return Promise.resolve();
+    }
+
+    // Skip animating PBPs that are irrelevant to the current lineup.
+    if (whichSide === 'none') {
+      return Promise.resolve();
+    }
+  }
 
   if (sport === 'mlb') {
     // The following block of property assignments for `homeSCoreStr`, `awayScoreStr`
@@ -225,12 +233,12 @@ export const showGameEvent = (event) => (dispatch, getState) => {
     const game = sports.games[message.gameId];
     const homeScore = game.home_score;
     const awayScore = game.away_score;
-    animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
-    animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
-    animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
+    gameEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
+    gameEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
+    gameEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
 
     // add in which side runners are on, for the mlb diamond
-    animationEvent.runners = animationEvent.runners.map(
+    gameEvent.runners = gameEvent.runners.map(
       (runner) => merge({}, runner, {
         whichSide: whichSide(watching, [runner.id], opponentLineup, relevantGamesPlayers),
       })
@@ -238,32 +246,25 @@ export const showGameEvent = (event) => (dispatch, getState) => {
 
     // after 5 seconds, remove the at bat from multipart-events
     if (message.isAtBatOver) {
-      logAction.warn('At bat over for ', { info: { relevantPlayersInEvent, animationEvent } });
-      setTimeout(() => dispatch(showAnimationEventResults(animationEvent)), 5000);
+      logAction.warn('At bat over for ', { info: { relevantPlayersInEvent, gameEvent } });
+      setTimeout(() => dispatch(showAnimationEventResults(gameEvent)), 5000);
     }
 
     return Promise.all([
-      dispatch(storeEventMultipart(message.sridAtBat, animationEvent, relevantPlayersInEvent)),
+      dispatch(storeEventMultipart(message.sridAtBat, gameEvent, relevantPlayersInEvent)),
       dispatch(updatePBPPlayersStats(sport, playersStats)),
     ]);
   }
 
-  // Skip animating PBPs that are more than 3 minutes old.
-  if ((event.queuedAt + 180000) < dateNow()) {
-    return Promise.resolve();
-  }
-
   return Promise.all([
-    dispatch(setCurrentEvent(animationEvent)),
+    dispatch(setCurrentEvent(gameEvent)),
     dispatch(unionPlayersPlaying(relevantPlayersInEvent)),
   ]);
 };
 
 /*
- * This takes the oldest event in a given game queue, from state.queue, and then uses the data, whether it is to
- * animate if a pbp, or update redux stats.
- *
- * @param  {string} gameId The game queue SRID to pop the oldest event
+ * This takes the oldest event in a given game queue, from state.queue, then
+ * uses the data, whether it is to animate if a pbp, or update redux stats.
  */
 export const shiftOldestEvent = () => (dispatch, getState) => {
   logAction.debug('actions.shiftOldestEvent');
