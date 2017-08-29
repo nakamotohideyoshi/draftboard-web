@@ -13,7 +13,6 @@ import log from '../../lib/logging';
 import ReactDom from 'react-dom';
 
 const ResultsPane = React.createClass({
-
   propTypes: {
     contestId: React.PropTypes.number,
     dispatch: React.PropTypes.func.isRequired,
