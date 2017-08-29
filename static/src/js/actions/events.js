@@ -220,54 +220,48 @@ export const showGameEvent = (event) => (dispatch, getState) => {
     whichSidePlayers: playersBySide,
   });
 
-  switch (sport) {
-    case 'mlb': {
-      // The following block of property assignments for `homeSCoreStr`, `awayScoreStr`
-      // and `winning` is here because I'm not sure if MLB works the same way as
-      // NFL or NBA, which get's it's game info as soon as the event is queued via
-      // `addEventAndStartQueue`. Without this block, the tests fail at...
-      // "should create promise of multievent and updating stats if valid mlb pbp with relevant player"
-      const sports = sportsSelector(state);
-      const game = sports.games[message.gameId];
-      const homeScore = game.home_score;
-      const awayScore = game.away_score;
-      animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
-      animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
-      animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
+  if (sport === 'mlb') {
+    // The following block of property assignments for `homeSCoreStr`, `awayScoreStr`
+    // and `winning` is here because I'm not sure if MLB works the same way as
+    // NFL or NBA, which get's it's game info as soon as the event is queued via
+    // `addEventAndStartQueue`. Without this block, the tests fail at...
+    // "should create promise of multievent and updating stats if valid mlb pbp with relevant player"
+    const sports = sportsSelector(state);
+    const game = sports.games[message.gameId];
+    const homeScore = game.home_score;
+    const awayScore = game.away_score;
+    animationEvent.homeScoreStr = `${game.homeTeamInfo.alias} ${homeScore}`;
+    animationEvent.awayScoreStr = `${game.awayTeamInfo.alias} ${awayScore}`;
+    animationEvent.winning = (homeScore > awayScore) ? 'home' : 'away';
 
-      // add in which side runners are on, for the mlb diamond
-      animationEvent.runners = animationEvent.runners.map(
-        (runner) => merge({}, runner, {
-          whichSide: whichSide(watching, [runner.id], opponentLineup, relevantGamesPlayers),
-        })
-      );
+    // add in which side runners are on, for the mlb diamond
+    animationEvent.runners = animationEvent.runners.map(
+      (runner) => merge({}, runner, {
+        whichSide: whichSide(watching, [runner.id], opponentLineup, relevantGamesPlayers),
+      })
+    );
 
-      // after 5 seconds, remove the at bat from multipart-events
-      if (message.isAtBatOver) {
-        logAction.warn('At bat over for ', { info: { relevantPlayersInEvent, animationEvent } });
-        setTimeout(() => dispatch(showAnimationEventResults(animationEvent)), 5000);
-      }
-
-      return Promise.all([
-        dispatch(storeEventMultipart(message.sridAtBat, animationEvent, relevantPlayersInEvent)),
-        dispatch(updatePBPPlayersStats(sport, playersStats)),
-      ]);
+    // after 5 seconds, remove the at bat from multipart-events
+    if (message.isAtBatOver) {
+      logAction.warn('At bat over for ', { info: { relevantPlayersInEvent, animationEvent } });
+      setTimeout(() => dispatch(showAnimationEventResults(animationEvent)), 5000);
     }
 
-    case 'nba':
-    case 'nfl':
-      // If the event is more than 3 minutes old, skip the animation.
-      if ((event.queuedAt + 180000) < dateNow()) {
-        return Promise.resolve();
-      }
-
-      return Promise.all([
-        dispatch(setCurrentEvent(animationEvent)),
-        dispatch(unionPlayersPlaying(relevantPlayersInEvent)),
-      ]);
-    default:
-      return Promise.reject('Improper sport when showing event');
+    return Promise.all([
+      dispatch(storeEventMultipart(message.sridAtBat, animationEvent, relevantPlayersInEvent)),
+      dispatch(updatePBPPlayersStats(sport, playersStats)),
+    ]);
   }
+
+  // Skip animating PBPs that are more than 3 minutes old.
+  if ((event.queuedAt + 180000) < dateNow()) {
+    return Promise.resolve();
+  }
+
+  return Promise.all([
+    dispatch(setCurrentEvent(animationEvent)),
+    dispatch(unionPlayersPlaying(relevantPlayersInEvent)),
+  ]);
 };
 
 /*
