@@ -99,11 +99,23 @@
     "web": {
       "quantity": 1,
       "size": "standard-1x"
+    },
+    "celery": {
+      "quantity": 1,
+      "size": "standard-1x"
+    },
+    "celery_long": {
+      "quantity": 1,
+      "size": "standard-1x"
+    },
+    "celerybeat": {
+      "quantity": 1,
+      "size": "standard-1x"
     }
   },
   "addons": [
     "heroku-postgresql:standard-0",
-    "rediscloud"
+    "rediscloud:100"
   ],
   "buildpacks": [
     {
