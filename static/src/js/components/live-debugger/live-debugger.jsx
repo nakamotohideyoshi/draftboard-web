@@ -10,7 +10,7 @@ import { Router, Route, browserHistory } from 'react-router';
 import renderComponent from '../../lib/render-component';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { push as routerPush } from 'react-router-redux';
-import { clearCurrentAnimationEvent } from '../../actions/events';
+import { clearGameEvent } from '../../actions/events';
 
 require('../../../sass/blocks/live-debugger.scss');
 
@@ -25,7 +25,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators({
-    clearCurrentAnimationEvent,
+    clearGameEvent,
   }, dispatch),
 });
 
@@ -71,7 +71,7 @@ export const DebugLiveAnimationsPage = connect(mapStateToProps, mapDispatchToPro
   },
 
   animationCompleted() {
-    this.props.actions.clearCurrentAnimationEvent();
+    this.props.actions.clearGameEvent();
   },
 
   render() {

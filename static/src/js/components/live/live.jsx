@@ -11,7 +11,7 @@ import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
 import { bindActionCreators } from 'redux';
-import { clearCurrentAnimationEvent } from '../../actions/events';
+import { clearGameEvent } from '../../actions/events';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchRelatedLineupsInfo,
     updateLiveMode,
     updateWatchingAndPath,
-    clearCurrentAnimationEvent,
+    clearGameEvent,
   }, dispatch),
 });
 
@@ -195,7 +195,7 @@ export const Live = React.createClass({
    */
   animationCompleted() {
     // show the results, remove the animation
-    this.props.actions.clearCurrentAnimationEvent();
+    this.props.actions.clearGameEvent();
   },
 
   selectLineup(lineup) {

@@ -117,82 +117,40 @@ const whichSidePlayers = (players, state) => {
   });
 };
 
-export const showAnimationEventResults = (animationEvent) => (dispatch) => {
-  logAction.debug('actions.showAnimationEventResults', animationEvent);
-
-  const { description, id, relevantPlayersInEvent, when } = animationEvent;
-
+/**
+ * ....
+ * @param  {[type]} gameEvent [description]
+ * @return {[type]}                [description]
+ */
+export const showGameEventResults = (gameEvent) => (dispatch) => {
+  const { description, id, relevantPlayersInEvent, when } = gameEvent;
+  const eventDescription = { description, id, points: null };
   const calls = [];
-  const eventDescription = {
-    description,
-    id,
-    points: null,
-  };
 
   calls.push(dispatch(removePlayersPlaying(relevantPlayersInEvent)));
 
-  switch (animationEvent.sport) {
-    case 'mlb': {
-      const { sridAtBat } = animationEvent;
-
-      calls.push(dispatch(updateLiveMode({
-        myPlayerSRID: null,
-        opponentPlayerSRID: null,
-      })));
-
-      eventDescription.when = when.humanized;
-
-      // show event beside player and in their history
-      forEach(relevantPlayersInEvent, (playerId) => {
-        const playerEventDescription = merge({}, eventDescription, { playerId });
-        calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-      });
-
-      calls.push(dispatch(removeEventMultipart(sridAtBat, relevantPlayersInEvent)));
-
-      break;
-    }
-    case 'nba': {
-      // show event beside player and in their history
-      forEach(relevantPlayersInEvent, (playerId) => {
-        const playerEventDescription = merge({}, eventDescription, { playerId });
-        calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-      });
-
-      // update player stats if we have them
-      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.stats)));
-
-      break;
-    }
-    case 'nfl': {
-      eventDescription.when = when;
-
-      // show event beside player and in their history
-      forEach(relevantPlayersInEvent, (playerId) => {
-        const playerEventDescription = merge({}, eventDescription, { playerId });
-        calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-      });
-
-      // update player stats if we have them
-      calls.push(dispatch(updatePBPPlayersStats(animationEvent.sport, animationEvent.stats)));
-      break;
-    }
-    default:
-      return Promise.reject('Improper sport when showing event results');
+  if (gameEvent.sport === 'mlb') {
+    const { sridAtBat } = gameEvent;
+    eventDescription.when = when.humanized;
+    calls.push(dispatch(updateLiveMode({ myPlayerSRID: null, opponentPlayerSRID: null })));
+    calls.push(dispatch(removeEventMultipart(sridAtBat, relevantPlayersInEvent)));
   }
+
+  // show event beside player and in their history
+  forEach(relevantPlayersInEvent, (playerId) => {
+    const playerEventDescription = merge({}, eventDescription, { playerId });
+    calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
+  });
 
   return Promise.all(calls);
 };
 
 /*
  * Show a game event from a Pusher pbp call. If this is a multipart, then add there, otherwise just add as normal event
- * Is exported bc we need to test, too big
- * @param  {object} message The event call to parse for information
+ * Is exported bc we need to test, too big.
  */
 export const showGameEvent = (event) => (dispatch, getState) => {
   const state = getState();
-  const watching = state.watching;
-  const opponentLineup = watchingOpponentLineupSelector(state);
   const relevantGamesPlayers = relevantGamesPlayersSelector(state);
   const { playersStats, sport, message } = event;
   const eventPlayers = message.stats.map(stat => stat.srid_player);
@@ -247,7 +205,7 @@ export const showGameEvent = (event) => (dispatch, getState) => {
     // after 5 seconds, remove the at bat from multipart-events
     if (message.isAtBatOver) {
       logAction.warn('At bat over for ', { info: { relevantPlayersInEvent, gameEvent } });
-      setTimeout(() => dispatch(showAnimationEventResults(gameEvent)), 5000);
+      setTimeout(() => dispatch(showGameEventResults(gameEvent)), 5000);
     }
 
     return Promise.all([
@@ -297,16 +255,15 @@ export const shiftOldestEvent = () => (dispatch, getState) => {
     case 'boxscore-team':
       dispatch(updateGameTeam(message));
       break;
-    case 'stats': {
+    case 'stats':
       dispatch(updatePlayerStats(oldestEvent.sport, message));
       break;
-    }
     default:
       break;
   }
 
-  // this runs for any option other than pbp, which already returned
-  // this is bc of the animations that get run with pbp
+  // this runs for any option other than pbp, which already returned.
+  // this is bc of the animations that get run with PBPs via `showGameEvent`
   return dispatch(shiftOldestEvent());
 };
 
@@ -333,8 +290,8 @@ export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch
  * showing the "results" of the animation, which would include things like
  * updating player history, stats, and FP.
  */
-export const clearCurrentAnimationEvent = () => (dispatch, getState) => {
-  logAction.debug('actions.clearCurrentAnimationEvent');
+export const clearGameEvent = () => (dispatch, getState) => {
+  logAction.debug('actions.clearGameEvent');
 
   const { currentEvent } = getState().events;
 
@@ -343,8 +300,12 @@ export const clearCurrentAnimationEvent = () => (dispatch, getState) => {
   }
 
   return Promise.resolve()
-  .then(() => dispatch(addEventToHistory(currentEvent)))          // Push to history
-  .then(() => dispatch(showAnimationEventResults(currentEvent)))  // Update FP and stats.
-  .then(() => dispatch(clearCurrentEvent()))                      // Remove current event
-  .then(() => dispatch(shiftOldestEvent()));                      // Bring in the next one
+  // Push to history
+  .then(() => dispatch(addEventToHistory(currentEvent)))
+  // Update FP and stats.
+  .then(() => dispatch(showGameEventResults(currentEvent)))
+  // Remove current event
+  .then(() => dispatch(clearCurrentEvent()))
+  // Bring in the next one
+  .then(() => dispatch(shiftOldestEvent()));
 };
