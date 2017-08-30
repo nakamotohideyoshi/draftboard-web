@@ -7,7 +7,7 @@ import React from 'react';
 import ResultsPane from './results-pane';
 import LiveContestDetailPane from './live-contest-detail-pane';
 import CardFooter from '../card/CardFooter';
-import Stats from '../card/Stats';
+import PlayerStats from '../card/PlayerStats';
 import CountdownClock from '../site/countdown-clock';
 import log from '../../lib/logging';
 
@@ -83,22 +83,42 @@ const ResultsLineup = React.createClass({
   handleHideContestPane() {
     this.setState({ renderContestPane: false });
   },
+  playerStatsBlackList(stat) {
+    // this api is ridiculous
+    // so much repeated values that already
+    // exist in the parent
+    // we need to seriously think about using graphQL
+    const blacklist = [
+      'created',
+      'updated',
+      'srid_game',
+      'srid_player',
+      'player_id',
+      'player_type',
+      'game_type',
+      'game_id',
+      'position',
+      'fantasy_points',
+    ];
+    return blacklist.indexOf(stat) !== -1;
+  },
   buildPlayerStat(player) {
     const stats = [];
     if (player.player_stats.length) {
-      log.info(player.full_name);
       for (let i = 0; i < player.player_stats.length; i++) {
         for (const stat in player.player_stats[i]) {
           if (player.player_stats[i].hasOwnProperty(stat)) {
-            // if (stat !== 'srid_player' || stat !==)
-            stats.push([
-              { stat: player.player_stats[i][stat] },
-            ]);
+            // if not in blacklist push
+            if (!this.playerStatsBlackList(stat)) {
+              const statobj = {};
+              statobj[stat] = player.player_stats[i][stat];
+              stats.push(statobj);
+            }
           }
         }
       }
     }
-    return (<Stats player_stats={stats} />);
+    return (<PlayerStats player_stats={stats} />);
   },
   renderLineup() {
     const { sport } = this.props;
