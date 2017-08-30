@@ -164,11 +164,16 @@ export const LiveStandingsPane = React.createClass({
   },
 
   render() {
-    if (this.props.contest.hasLineupsUsernames === false) {
+    const { contest } = this.props;
+
+    if (contest.isLoading ||
+      !contest.hasLineupsUsernames ||
+      !contest.rankedLineups ||
+      contest.rankedLineups.length <= 2) {
       return null;
     }
 
-    const numWinners = this.props.contest.prize.info.payout_spots;
+    const numWinners = contest.prize.info.payout_spots;
     const lineups = this.getRankedLineups();
     const positions = this.getRankedLineupPositions(lineups);
     const lastPosInTheMoney = positions[Math.min(numWinners, positions.length) - 1];
