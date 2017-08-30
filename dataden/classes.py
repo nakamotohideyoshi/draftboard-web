@@ -557,3 +557,101 @@ class NflSeason(Season):
 
         # print('%s game_ids' % (len(game_ids)))
         return game_ids
+
+
+class RecentGamePlayerStats:
+    """
+    abstract parent for getting all player stats for
+    specified games based on the most recently parsed data.
+    """
+
+    class NoSportSpecified(Exception): pass
+    class MustOverrideMethod(Exception): pass
+    class CollectionNotSet(Exception): pass
+    class ParentApiNotSet(Exception): pass
+
+    collection = None           # the mongo collection name to query from. ex: 'player'
+    parent_api = None           # the name of the feed where player game stats are found. ex: 'stats'
+    game_id_field = None        # the mongo field name of the game srid. ex: 'game__id'
+
+    def __init__(self, db):
+        """
+        :param db:  name of mongo db (ie: the sport name 'mlb', 'nflo', etc...)
+        """
+
+        self.db = db
+
+        # some validation to make sure inheriting classes are setup properly
+        if self.db is None or self.db == '':
+            raise self.NoSportSpecified()
+        if self.collection is None:
+            raise self.CollectionNotSet('the "collection" property must be set in the inheriting class')
+        if self.parent_api is None:
+            raise self.ParentApiNotSet('the "parent_api" property must be set in the inheriting class')
+
+        # create dataden instance for the connection to mongo
+        self.dataden = DataDen()
+
+    def get_defaults(self, fieldnames=[]):
+        """
+        returns a zeroed out dict of where all the specified
+        fieldnames are set to 0 in the return dict
+        """
+        defaults = {}
+        for fieldname in fieldnames:
+            defaults[ fieldname ] = 0
+        return defaults
+
+    def get_player_stats_for(self, game_srid):
+        """
+        give the game_srid, return all player stats objects found in mongo
+
+        :param game_srid:
+        :return: results of a mongo find()
+        """
+        print(self.db, self.collection, self.parent_api, self.game_id_field, game_srid)
+        return self.dataden.find_recent(self.db, self.collection, self.parent_api, target={self.game_id_field: game_srid})
+
+    def build_data(self, game_srid):
+        """
+        build a dictionary of player stats objects which very closely resemble
+        the sports.<sport>.models.PlayerStats objects from the most recent parse of the stats feed.
+
+        :param mongo_player_stats:
+        :return: a dictionary of player stats objects built from the most recent parse of the feed
+        """
+
+        # you will want to call self.get_player_stats_for(game_srid)
+        # and use those objects to build and return the data
+
+        raise self.MustOverridMethod()
+
+    def update_player_stats_model(self, my_player_stats, player_stats_model):
+        """
+        copy any values from my_player_stats (recent, valid player stats)
+        into player_stats_model for similar named field if they differ.
+
+        calls .save() on player_stats_model instance if anything has changed.
+
+        :param my_player_stats:
+        :param player_stats_model:
+        :return:
+        """
+
+        # TODO remove debugs
+        print('update_player_stats_model called!', my_player_stats)
+
+        has_changed = False
+        for var, val in my_player_stats.get_vars().items():
+            if hasattr(player_stats_model, var):
+                # set it if its changed, and flag has_changed to true
+                model_val = getattr(player_stats_model, var)
+                if model_val != val:
+                    setattr(player_stats_model, var, val)
+                    has_changed = True
+            else:
+                pass  # TODO raise exception? TODO this is kind of important potentially to know about !
+
+        # .save() model instance if something has changed
+        if has_changed:
+            player_stats_model.save()
