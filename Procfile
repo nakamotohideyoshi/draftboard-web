@@ -2,29 +2,29 @@ web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.
 
 
 # Runs the celerybeat scheduled tasks that can be found in the Django admin panel.
-celerybeat: celery -A mysite beat
+celerybeat: REMAP_SIGTERM=SIGQUIT celery -A mysite beat
 
 
 # Standard celery worker.
-celery: newrelic-admin run-program celery -A mysite worker -l info --autoscale=2,1 --time-limit=600 -n Standard@%n
+celery: REMAP_SIGTERM=SIGQUIT newrelic-admin run-program celery -A mysite worker -l info --autoscale=2,1 --time-limit=600 -n Standard@%n
 
 
 # Long-running celery task queue for things like <sport>.cleanup_roster that take a while.
 # soft time limit of 9 mins, hard cutoff at 10 mins.
-celery_long: newrelic-admin run-program celery -A mysite worker -Q long_running -l info --time-limit=600 --soft-time-limit=540 -Ofair --autoscale=2,1 -n Long@%n
+celery_long: REMAP_SIGTERM=SIGQUIT newrelic-admin run-program celery -A mysite worker -Q long_running -l info --time-limit=600 --soft-time-limit=540 -Ofair --autoscale=2,1 -n Long@%n
 
 # This has a stupid long timeout (24hrs) and should ONLY be used for the replayer.tasks.play_replay task.
-celery_time_machine: newrelic-admin run-program celery -A mysite worker -Q time_machine -l info --time-limit=86400 -Ofair -n TimeMachine@%n
+celery_time_machine: REMAP_SIGTERM=SIGQUIT newrelic-admin run-program celery -A mysite worker -Q time_machine -l info --time-limit=86400 -Ofair -n TimeMachine@%n
 
 # celery workers for realtime stat updates from the trigger
-celeryrt: newrelic-admin run-program celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,1 -n Realtime@%n
+celeryrt: REMAP_SIGTERM=SIGQUIT newrelic-admin run-program celery -A mysite worker -Q realtime -l info --soft-time-limit=5 --autoscale=2,1 -n Realtime@%n
 
 
 # purger is also a normal celery worker.
 # this worker always wipes out the brokers existing/pending tasks on startup.
 # without startup purge, its possible we will have WAY too to consume initially.
 # Note: if you don't know what this is, don't enable it.
-purger: newrelic-admin run-program celery -A mysite worker -l info --purge -n Purger
+purger: REMAP_SIGTERM=SIGQUIT newrelic-admin run-program celery -A mysite worker -l info --purge -n Purger
 
 
 # the mandatory (and the only) worker responsible for running dataden triggers
