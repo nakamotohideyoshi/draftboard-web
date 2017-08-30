@@ -41,11 +41,6 @@ export default React.createClass({
   },
 
   render() {
-    const { currentEvent } = this.state;
-    const isLoadingContest = this.props.contest.isLoading;
-    const isWatchingContest = this.props.watching.contestId !== null;
-    const isWatchingMLB = this.props.watching.sport === 'mlb';
-
     return (
       <div>
         <section className="live__venues">
@@ -57,10 +52,10 @@ export default React.createClass({
             opponentLineup={this.props.opponentLineup}
           />
 
-          {isWatchingMLB ? (
+          {this.props.watching.sport === 'mlb' ? (
             <LiveMLBStage
               watching={this.props.watching}
-              currentEvent={currentEvent}
+              currentEvent={this.props.currentEvent}
               eventsMultipart={this.props.eventsMultipart}
               onAnimationStarted={animationCompletedPromise => this.stageAnimationStarted(animationCompletedPromise)}
             />
@@ -73,9 +68,7 @@ export default React.createClass({
             />
           )}
 
-          { isWatchingContest && !isLoadingContest &&
-            <LiveStandingsPane contest={this.props.contest} watching={this.props.watching} />
-          }
+          <LiveStandingsPane contest={this.props.contest} watching={this.props.watching} />
         </section>
 
         <LiveHistoryList currentEvent={this.props.currentEvent} />
