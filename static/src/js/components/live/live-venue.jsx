@@ -19,7 +19,6 @@ export default React.createClass({
 
   getInitialState() {
     return {
-      showPBPInfo: false,
       currentEvent: this.props.currentEvent || null,
     };
   },
@@ -32,21 +31,17 @@ export default React.createClass({
     // Helper method for delaying callbacks within a promise chain.
     const wait = time => new Promise(resolve => setTimeout(resolve, time));
 
-    animationCompletedPromise.then(() => this.setState({ showPBPInfo: false }))
-    // Wait for the description to be intro'd and displayed
-    // .then(() => wait(3000))
-    // Clear the description
-    .then(() => this.setState({ showPBPInfo: false, currentEvent: null }))
-    // Wait for the stage and description to be removed
-    .then(() => wait(1000))
-    // Trigger onAnimationCompleted, if provided.
-    .then(() => (
-      this.props.onAnimationCompleted ? this.props.onAnimationCompleted() : true
-    ));
+    animationCompletedPromise.then(
+      () => this.setState({ currentEvent: null })
+    ).then(
+      () => wait(1000)
+    ).then(
+      () => (this.props.onAnimationCompleted ? this.props.onAnimationCompleted() : true)
+    );
   },
 
   render() {
-    const { showPBPInfo, currentEvent } = this.state;
+    const { currentEvent } = this.state;
     const isLoadingContest = this.props.contest.isLoading;
     const isWatchingContest = this.props.watching.contestId !== null;
     const isWatchingMLB = this.props.watching.sport === 'mlb';
@@ -60,7 +55,6 @@ export default React.createClass({
             lineups={this.props.uniqueLineups.lineups}
             myLineup={this.props.myLineupInfo}
             opponentLineup={this.props.opponentLineup}
-            animationEvent={showPBPInfo ? currentEvent : null}
           />
 
           {isWatchingMLB ? (
