@@ -592,6 +592,18 @@ class RecentGamePlayerStats:
         # create dataden instance for the connection to mongo
         self.dataden = DataDen()
 
+        # by default, dont be in verbose mode
+        self.verbose = False
+
+    def set_verbose(self, enable=False):
+        """
+        if set to True, when update_player_stats_model() is called, will print out anything that changes
+
+        :param enable:
+        :return:
+        """
+        self.verbose = enable
+
     def get_defaults(self, fieldnames=[]):
         """
         returns a zeroed out dict of where all the specified
@@ -638,19 +650,30 @@ class RecentGamePlayerStats:
         :return:
         """
 
-        # TODO remove debugs
-        print('update_player_stats_model called!', my_player_stats)
+        if self.verbose:
+            player_fn = player_stats_model.player.first_name
+            player_ln = player_stats_model.player.last_name
+            player_srid = player_stats_model.player.srid
+
+            print('%s %s : %s' % (str(player_fn), str(player_ln), str(player_srid)))
 
         has_changed = False
         for var, val in my_player_stats.get_vars().items():
+
             if hasattr(player_stats_model, var):
                 # set it if its changed, and flag has_changed to true
                 model_val = getattr(player_stats_model, var)
                 if model_val != val:
                     setattr(player_stats_model, var, val)
                     has_changed = True
+                    if self.verbose:
+                        print('    ***    %s: %s      changed to:   %s    ***' % (var, str(model_val), str(val)))
             else:
                 pass  # TODO raise exception? TODO this is kind of important potentially to know about !
+
+        if self.verbose:
+            if not has_changed:
+                print('    no changes')
 
         # .save() model instance if something has changed
         if has_changed:
