@@ -62,7 +62,7 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         fieldnames = player_stats_model_class.SCORING_FIELDS
         # debug print the 'defaults' -- the zeroed out initial fields that represent the player stats
         mps = MyPlayerStats(fieldnames)
-        print('new MyPlayerStats() instance. (shows default fields):', str(mps)) # TODO remove debug
+        #print('new MyPlayerStats() instance. (shows default fields):', str(mps)) # TODO remove debug
         return mps
 
     def update(self, game_srid):
