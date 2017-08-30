@@ -42,9 +42,13 @@ from account.gidx.request import (
     WebCashierCreateSession,
     RegistrationStatusRequest,
     get_user_from_session_id,
-    get_customer_id_for_user
+    get_customer_id_for_user,
+    make_web_cashier_payment_detail_request,
 )
-from account.gidx.response import WebhookResponse
+from account.gidx.response import (
+    IdentityStatusWebhookResponse,
+    DepositStatusWebhookResponse
+)
 from account.models import Identity
 from account.models import (
     Information,
@@ -420,7 +424,7 @@ class GidxIdentityCallbackAPIView(APIView):
             "response": request_data,
         })
 
-        response_wrapper = WebhookResponse(request_data)
+        response_wrapper = IdentityStatusWebhookResponse(request_data)
         # Grab some of the data from the previous session that is not included in the webhook.
         user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
         customer_id = get_customer_id_for_user(user)
@@ -596,10 +600,9 @@ class VerifyUserIdentityAPIView(APIView):
             )
 
 
-
 class GidxDepositAPIView(APIView):
     """
-    deposit to the site using the gidx WebCashier service.
+    Begin process of depositing to the site using the gidx WebCashier service.
     If everything goes fine, gidx will return to us an embeddable javascript form.
     """
     permission_classes = (IsAuthenticated, HasVerifiedIdentity, HasIpAccess)
@@ -651,7 +654,7 @@ class GidxDepositCallbackAPIView(APIView):
             "response": request_data,
         })
 
-        response_wrapper = WebhookResponse(request_data)
+        response_wrapper = DepositStatusWebhookResponse(request_data)
         # Grab some of the data from the previous session that is not included in the webhook.
         user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
         customer_id = get_customer_id_for_user(user)
@@ -664,19 +667,29 @@ class GidxDepositCallbackAPIView(APIView):
             service_type='WebCashier_Callback',
             reason_codes=response_wrapper.json['ReasonCodes'],
             response_data=request_data,
-
         )
 
+        # If the webhook says that the transaction was a success, we need to fetch the payment
+        # details in order to know how much it was for so we can increment the user's
+        # balance.
+        if response_wrapper.is_successful():
+            # TODO: queue this in celery.
+            payment_detail = make_web_cashier_payment_detail_request(
+                user=user,
+                merchant_transaction_id=response_wrapper.json['MerchantTransactionID']
+            )
+
+            print(payment_detail)
+
+        # As long as nothing errors out, send a 200 back to gidx.
         return Response(
             data={
-                # "CustomerID": customer_id,
-                # "MerchantID": settings.GIDX_MERCHANT_ID,
-                # "SessionStatus": response_wrapper.json['StatusCode'],
                 "status": "SUCCESS",
                 "detail": "cool, thanks!"
             },
             status=200,
         )
+
 
 class RegisterAccountAPIView(APIView):
     """

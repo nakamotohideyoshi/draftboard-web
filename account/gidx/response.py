@@ -132,7 +132,7 @@ class WebRegCreateSessionResponse(CustomerRegistrationResponse):
         return ''
 
 
-class WebhookResponse(CustomerRegistrationResponse):
+class IdentityStatusWebhookResponse(CustomerRegistrationResponse):
 
     def __init__(self, response_dict, params=None, url=None):
         self.response = response_dict
@@ -154,3 +154,45 @@ class WebhookResponse(CustomerRegistrationResponse):
         # 0 is the 'success' code.
         return self.json['StatusCode'] == 0
 
+
+class DepositStatusWebhookResponse(object):
+    """
+    A wrapper for the data that GIDX sends to us on the api/account/deposit-webhook/. It should
+    contain an small amount of information about whether or not the deposit was a success.
+    """
+    def __init__(self, response_dict, params=None, url=None):
+        self.response = response_dict
+        # Since this isnt' a `requests` library response, it's just raw json data.
+        self.json = response_dict
+
+    def is_successful(self):
+        """
+        Was the payment a success?
+
+        status codes:
+
+        -1 Payment not found.
+        No payment / transaction was found for the corresponding identifier supplied.
+
+        0 Pending
+        The payment/transaction is pending approval or validation.
+
+        1 Complete
+        The payment/transaction has been Completed.
+
+        2 Ineligible
+        The payment/transaction was ineligible for processing.
+
+        3 Failed
+        The payment/transaction was rejected by the processing provider.
+
+        4 Processing
+        The payment/transaction has been sent to the processor and is awaiting a status update.
+
+        5 Reversed
+        The payment/transaction has been reversed / cancelled by an authorized party.
+
+        :return: bool
+        """
+
+        return self.json['TransactionStatusCode'] == 1

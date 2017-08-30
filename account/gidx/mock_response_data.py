@@ -407,8 +407,6 @@ WEB_CASHIER_CALLBACK = {
 # completed identity verification (I think we will not be allowing users to attempt to
 # deposit if they have not yet verified, so this should not happen)
 WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY = {
-  "request": None,
-  "response": {
     "SessionID": "9tskb__mD0CGwvdmadVzSw",
     "MerchantTransactionID": "a50d95ec-041b-4d77-bbcd-57d0130c3e60",
     "MerchantSessionID": "ed5cc90d-2e85-42c8-9fa8-eb7a138cb21b",
@@ -422,28 +420,49 @@ WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY = {
     "TransactionStatusMessage": "Pending",
     "ServiceType": "Payment",
     "StatusMessage": "Payment Session is Complete."
-  },
-  "action": "WebCashier_Callback"
 }
 
 # After a deposit transaction has been completed succesfully.
 WEB_CASHIER_CALLBACK_SUCCESS = {
-  "request": None,
+  "MerchantTransactionID": "d191369c-290d-46af-94f3-d7b0db45ab09",
+  "TransactionStatusCode": 1,
+  "TransactionStatusMessage": "Complete",
+  "StatusCode": 0,
+  "SessionID": "YBlhlLkJ6US9-D50Ihvsnw",
+  "MerchantSessionID": "2347cfaa-5e14-44b8-8d0d-5aee5619101a",
+  "SessionScore": 77,
+  "ReasonCodes": [
+    "DFP-IPNM",
+    "ID-VERIFIED",
+    "LL-UNKN"
+  ],
+  "ServiceType": "Payment",
+  "StatusMessage": "Payment Session is Complete."
+}
+
+WEB_CACHIER_PAYMENT_DETAIL_REQUEST = {
+  "url": "https://api.gidx-service.in/v3.0/api/WebCashier/PaymentDetail",
   "response": {
-    "SessionID": "9rpTPwzqHEmJlkdQaVGdQw",
-    "MerchantTransactionID": "ddb979c7-3b83-4049-8782-f24c1c2ddd2e",
-    "MerchantSessionID": "3a2b1349-29fe-409c-8f01-98290bf3739a",
-    "StatusCode": 0,
-    "SessionScore": 76,
-    "TransactionStatusCode": 1,
-    "ReasonCodes": [
-      "DFP-IPNM",
-      "ID-VERIFIED",
-      "LL-UNKN"
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "PaymentDetails": [
+
     ],
-    "TransactionStatusMessage": "Complete",
-    "ServiceType": "Payment",
-    "StatusMessage": "Payment Session is Complete."
+    "MerchantSessionID": "72efc679-986a-4532-a00c-37cfb8fd1b3a",
+    "ApiVersion": 3,
+    "MerchantTransactionID": "d191369c-290d-46af-94f3-d7b0db45ab09",
+    "ResponseCode": 0,
+    "ResponseMessage": "No error.",
+    "FinancialConfidenceScore": 50
   },
-  "action": "WebCashier_Callback"
+  "action": "WEB_CACHIER_PAYMENT_DETAIL_REQUEST",
+  "request": {
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "ProductTypeID": "iiXXab0LtUCUdZ_6vcdtvQ",
+    "DeviceTypeID": "2bDPorOkPkepDd8-6Fydtw",
+    "MerchantTransactionID": "d191369c-290d-46af-94f3-d7b0db45ab09",
+    "ActivityTypeID": "FyP1fg_WkU60JnuIarfOQw",
+    "MerchantSessionID": "72efc679-986a-4532-a00c-37cfb8fd1b3a"
+  }
 }
