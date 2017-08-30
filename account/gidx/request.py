@@ -10,6 +10,8 @@ from rest_framework.exceptions import (APIException, ValidationError)
 
 from .models import GidxSession
 from .response import (CustomerRegistrationResponse, WebRegCreateSessionResponse)
+from mysite.celery_app import app
+
 
 logger = getLogger('account.gidx.request')
 
@@ -145,7 +147,7 @@ class GidxRequest(object):
             device_location=ip_address,
             request_data=strip_sensitive_fields(self.params),
             response_data=self.response_wrapper.json,
-            reason_codes=self.response_wrapper.json['ReasonCodes'],
+            reason_codes=self.response_wrapper.json.get('ReasonCodes', None),
         )
 
         # 500+ means some kind of service-level error. make sure we get notified about these.
@@ -397,3 +399,99 @@ class WebCashierCreateSession(GidxRequest):
     def send(self):
         # Call the parent's _send, it does the actual work.
         return self._send()
+
+
+class WebCashierPaymentDetailRequest(GidxRequest):
+    """
+    Get the details for a transaction.
+
+     http://www.tsevo.com/Docs/WebCashier#MethodRef_ID_PaymentDetail
+    """
+
+    url = 'https://api.gidx-service.in/v3.0/api/WebCashier/PaymentDetail'
+    service_type = 'WebCashier_PaymentDetail'
+    responseClass = WebRegCreateSessionResponse
+    action_name = "WEB_CACHIER_PAYMENT_DETAIL_REQUEST"
+
+    def __init__(self, user, merchant_transaction_id):
+        # Bail immediately if we have no logged-in user.
+        if user is None or not user.is_authenticated():
+            raise APIException('Authenticated user must be provided. - %s' % user)
+
+        self.user = user
+
+        args = {
+            'MerchantTransactionID': merchant_transaction_id,
+            'MerchantSessionID': '%s%s' % (settings.GIDX_MERCHANT_SESSION_ID_PREFIX, uuid.uuid4()),
+
+        }
+
+        # Combine the base parameters and the supplied arguments into a single dict that
+        # we can pass as POST parameters.
+        self.params.update(self.base_params)
+        self.params.update(args)
+
+    def handle_response(self):
+        # Log out the req + res
+        logger.info({
+            'url': self.url,
+            "action": self.action_name,
+            "request": self.params,
+            "response": self.response_wrapper.json,
+        })
+
+        # Save our session info
+        GidxSession.objects.create(
+            user=self.user,
+            session_id=self.response_wrapper.json['MerchantSessionID'],
+            service_type=self.service_type,
+            request_data=strip_sensitive_fields(self.params),
+            response_data=self.response_wrapper.json,
+        )
+
+        # 500+ means some kind of service-level error. make sure we get notified about these.
+        if self.response_wrapper.json['ResponseCode'] >= 500:
+            logger.error({
+                'url': self.url,
+                "action": "%s%s" % (self.action_name, '--FAIL'),
+                "request": self.params,
+                "response": self.response_wrapper.response.text,
+            })
+            # Send some useful information to Sentry.
+            client.context.merge({'extra': {
+                'response_json': self.response_wrapper.json,
+                'response_text': self.response_wrapper.response.text,
+                'params': self.params,
+                'url': self.url,
+            }})
+            client.captureMessage(
+                "GIDX request failed - %s" % self.response_wrapper.json['ResponseMessage'])
+            client.context.clear()
+
+            raise ValidationError(detail='%s' % self.response_wrapper.json['ResponseMessage'])
+
+    # This does the actual sending.
+    def _send(self):
+        # Do a simple `None` check on all params
+        self.validate_params()
+        # Make the request!
+        res = requests.get(self.url, self.params)
+        # Save the response. This will do some basic response error handling.
+        self.response_wrapper = self.responseClass(response=res, params=self.params, url=self.url)
+        self.handle_response()
+
+        # Return the response wrapper.
+        return self.response_wrapper
+
+    # The external method that is used to make the request.
+    def send(self):
+        logger.info("WEB_CACHIER_PAYMENT_DETAIL_REQUEST - MerchantTransactionID: %s" % (
+            self.params['MerchantTransactionID']))
+        # Call the parent's _send, it does the actual work.
+        return self._send()
+
+
+@app.task(bind=True)
+def make_web_cashier_payment_detail_request(self, user, merchant_transaction_id):
+    req = WebCashierPaymentDetailRequest(user=user, merchant_transaction_id=merchant_transaction_id)
+    return req.send()

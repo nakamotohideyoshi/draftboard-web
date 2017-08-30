@@ -15,19 +15,21 @@ from ..mock_response_data import (
     SERVICE_ERROR_RESPONSE,
     WEB_REG_SUCCESS_RESPONSE,
     WEBHOOK_COMPLETE,
+    WEB_CASHIER_CALLBACK_SUCCESS,
+    WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY,
 )
 from ..request import (
     CustomerRegistrationRequest,
     WebRegCreateSession,
+    WebCashierPaymentDetailRequest,
 )
 from ..response import (
     CustomerRegistrationResponse,
     WebRegCreateSessionResponse,
-    WebhookResponse,
+    IdentityStatusWebhookResponse,
+    DepositStatusWebhookResponse,
     is_underage,
     is_location_blocked,
-
-
 )
 
 
@@ -203,5 +205,23 @@ class TestWebhookResponse(TestCase):
     def test_sets_json_attribute(self):
         # We don't need to mock this response because it expects a dictionary rather than a
         # `requests` library response
-        res = WebhookResponse(WEBHOOK_COMPLETE)
+        res = IdentityStatusWebhookResponse(WEBHOOK_COMPLETE)
         self.assertDictEqual(WEBHOOK_COMPLETE, res.json)
+
+
+class TestDepositStatusWebhookResponse(TestCase):
+    def test_sets_json_attribute(self):
+        # We don't need to mock this response because it expects a dictionary rather than a
+        # `requests` library response
+        res = DepositStatusWebhookResponse(WEB_CASHIER_CALLBACK_SUCCESS)
+        self.assertDictEqual(WEB_CASHIER_CALLBACK_SUCCESS, res.json)
+
+    def test_is_successful_method(self):
+        # Success
+        res = DepositStatusWebhookResponse(WEB_CASHIER_CALLBACK_SUCCESS)
+        self.assertEqual(True, res.is_successful())
+
+        # Pending
+        res = DepositStatusWebhookResponse(WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY)
+        self.assertEqual(False, res.is_successful())
+

@@ -17,17 +17,35 @@ class GidxSession(models.Model):
         related_name='gidx_sessions'
     )
     gidx_customer_id = models.CharField(
-        null=False,
+        null=True,
         help_text="The MerchantCustomerID in the GIDX dashboard",
         max_length=256,
+        blank=True,
     )
-    session_id = models.CharField(max_length=128)
+    session_id = models.CharField(
+        max_length=128,
+        help_text="MerchantSessionID field in GIDX responses."
+    )
     service_type = models.CharField(max_length=128)
-    device_location = models.CharField(max_length=128)
-    request_data = JSONField(blank=True, null=True)
+    device_location = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True
+    )
+    request_data = JSONField(
+        blank=True,
+        null=True
+    )
     created = models.DateTimeField(auto_now_add=True)
-    reason_codes = models.CharField(max_length=128)
-    response_data = JSONField(blank=True, null=True)
+    reason_codes = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True
+    )
+    response_data = JSONField(
+        blank=True,
+        null=True
+    )
 
     class Meta:
         get_latest_by = "created"
