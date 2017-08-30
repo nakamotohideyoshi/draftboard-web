@@ -7,6 +7,7 @@ import React from 'react';
 import ResultsPane from './results-pane';
 import LiveContestDetailPane from './live-contest-detail-pane';
 import CardFooter from '../card/CardFooter';
+import Stats from '../card/Stats';
 import CountdownClock from '../site/countdown-clock';
 import log from '../../lib/logging';
 
@@ -82,7 +83,23 @@ const ResultsLineup = React.createClass({
   handleHideContestPane() {
     this.setState({ renderContestPane: false });
   },
-
+  buildPlayerStat(player) {
+    const stats = [];
+    if (player.player_stats.length) {
+      log.info(player.full_name);
+      for (let i = 0; i < player.player_stats.length; i++) {
+        for (const stat in player.player_stats[i]) {
+          if (player.player_stats[i].hasOwnProperty(stat)) {
+            // if (stat !== 'srid_player' || stat !==)
+            stats.push([
+              { stat: player.player_stats[i][stat] },
+            ]);
+          }
+        }
+      }
+    }
+    return (<Stats player_stats={stats} />);
+  },
   renderLineup() {
     const { sport } = this.props;
     // const isLive = this.props.hasOwnProperty('liveStats');
@@ -114,7 +131,6 @@ const ResultsLineup = React.createClass({
       if (score === 0) {
         scoreClassName += ' score-zero';
       }
-
       return (
         <li key={player.player_id} className="cmp-lineup-card__player">
           <span className="cmp-lineup-card__position">{player.roster_spot}</span>
@@ -139,6 +155,7 @@ const ResultsLineup = React.createClass({
               {score}
             </span>
           </span>
+          {this.buildPlayerStat(player)}
         </li>
       );
     });
