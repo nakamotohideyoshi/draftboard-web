@@ -240,7 +240,7 @@ export const showGameEvent = (event) => (dispatch, getState) => {
     // add in which side runners are on, for the mlb diamond
     gameEvent.runners = gameEvent.runners.map(
       (runner) => merge({}, runner, {
-        whichSide: whichSide(watching, [runner.id], opponentLineup, relevantGamesPlayers),
+        whichSide: 'mine', // NFL/NBA logic has broken this... we'll need to re-implement during MLB.
       })
     );
 
