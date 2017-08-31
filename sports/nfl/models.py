@@ -1,9 +1,15 @@
-from django.db import models
-import sports.models
-from django.db.models.signals import post_save
-import scoring.classes
-import push.classes
+from logging import getLogger
+
+import django.core.exceptions
 from django.conf import settings
+from django.db import models
+from django.db.models.signals import post_save
+
+import push.classes
+import scoring.classes
+import sports.models
+
+logger = getLogger('sports.nfl.models')
 
 DST_PLAYER_LAST_NAME = 'DST'  # dst Player objects last_name
 DST_POSITION = 'DST'  # dont change this
@@ -74,6 +80,36 @@ class Game(sports.models.Game):
 
     class Meta:
         abstract = False
+
+    def save(self, *args, **kwargs):
+        from .classes import NflRecentGamePlayerStats
+
+        """
+        override save so we can signal certain changes
+        to this object after the "real" save()
+        """
+
+        # cache the changed fields before save() called because it will reset them
+        try:
+            changed_fields = self.get_dirty_fields()
+        except django.core.exceptions.ValidationError:
+            changed_fields = {}
+
+        # If the game was just changed to 'closed', sync all player stats from our Dataden
+        # MongoDB objects.
+        # (NOTE: This is only for NFL games - others sports shouldn't need this)
+        # See: https://github.com/runitoncedevs/dfs/wiki/Syncing-our-local-player-stats-with-
+        # what-is-in-MongoDB
+
+        # `status` field was changed, and now it is 'closed'.
+        if changed_fields.get('status', False) and self.status == self.STATUS_CLOSED:
+            logger.info(
+                'NFL game has been completed, kicking off final stat sync. game: %s' % self.srid)
+            nfl_recent_stats = NflRecentGamePlayerStats()
+            nfl_recent_stats.update(self.srid)
+
+        # Call the "real" save() method.
+        super().save(*args, **kwargs)
 
 
 class GameBoxscore(sports.models.GameBoxscore):
@@ -321,7 +357,8 @@ def create_dst_player(sender, **kwargs):
             #
             # get or create the custom 'dst' position for nfl
             try:
-                position = sports.models.Position.objects.get(site_sport__name='nfl', name=DST_POSITION)
+                position = sports.models.Position.objects.get(site_sport__name='nfl',
+                                                              name=DST_POSITION)
             except sports.models.Position.DoesNotExist:
                 position = sports.models.Position()
                 position.site_sport = sports.models.SiteSport.objects.get(name='nfl')
