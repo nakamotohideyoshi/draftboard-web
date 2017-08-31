@@ -1,6 +1,6 @@
 import React from 'react';
 import NavScoreboardFilterItem from './nav-scoreboard-filter-item';
-import log from '../../lib/logging';
+
 
 /*
  * Responsible for rendering the scoreboard navigation filters
