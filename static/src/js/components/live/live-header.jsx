@@ -69,17 +69,21 @@ export default React.createClass({
   },
 
   render() {
-    const { myLineup, contest, opponentLineup } = this.props;
+    const { myLineup, contest, opponentLineup, watching } = this.props;
 
-    if (this.props.myLineup.isLoading !== false) {
+    if (myLineup.isLoading) {
       return null;
     }
+
+    const hasContest = watching.contestId && contest && !contest.isLoading;
+    const hasOpponentLineup = watching.opponentLineupId && !opponentLineup.isLoading;
+    const myCurrentLineup = hasContest ? contest.lineups[myLineup.id] : myLineup;
 
     return (
       <header className="live-header">
         <h2 className="live-header__contest-name">{contest.name || '  '}</h2>
-        {this.renderOverallStats('mine', myLineup, contest)}
-        {opponentLineup && !opponentLineup.isLoading && !contest.isLoading && (
+        {this.renderOverallStats('mine', myCurrentLineup, contest)}
+        {hasContest && hasOpponentLineup && (
           this.renderOverallStats('opponent', opponentLineup, contest)
         )}
         {this.renderAnimationInfo()}
