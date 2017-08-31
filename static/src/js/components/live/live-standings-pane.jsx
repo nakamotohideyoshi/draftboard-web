@@ -33,13 +33,13 @@ export const LiveStandingsPane = React.createClass({
     actions: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
     contest: React.PropTypes.shape({
-      lineups: React.PropTypes.object.isRequired,
-      hasLineupsUsernames: React.PropTypes.bool.isRequired,
-      lineupsUsernames: React.PropTypes.object.isRequired,
-      rankedLineups: React.PropTypes.array.isRequired,
+      lineups: React.PropTypes.object,
+      hasLineupsUsernames: React.PropTypes.bool,
+      lineupsUsernames: React.PropTypes.object,
+      rankedLineups: React.PropTypes.array,
       prize: React.PropTypes.shape({
         info: React.PropTypes.shape({
-          payout_spots: React.PropTypes.number.isRequired,
+          payout_spots: React.PropTypes.number,
         }),
       }),
     }),
