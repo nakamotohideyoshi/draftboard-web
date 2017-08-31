@@ -212,7 +212,8 @@ $results-selected-text-color: #2bb677;
     min-height: calc(50vh - 220px);
     padding-bottom: 50px;
     overflow: hidden;
-    .cmp-lineup-card.flip-container{
+
+    .cmp-lineup-card.flip-container {
       perspective: none;
     }
   }
