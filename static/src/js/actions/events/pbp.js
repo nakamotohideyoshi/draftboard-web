@@ -7,7 +7,6 @@ import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
 import { addEventAndStartQueue } from '../events';
 import { addOrdinal } from '../../lib/utils/numbers';
-import { dateNow } from '../../lib/utils';
 import { humanizeFP } from '../../lib/utils/numbers';
 import { SPORT_CONST, isGameReady } from '../sports';
 
