@@ -22,7 +22,7 @@ class PlayerStats extends Component {
       for (const key in playerStats[i]) {
         if (playerStats[i].hasOwnProperty(key) && playerStats[i][key] !== 0) {
           let item = key;
-          let value = playerStats[i][key];
+          let value = Math.floor(playerStats[i][key] * 100) / 100;
           if (item === 'fp_change') {
             item = 'fp_cng';
           }
