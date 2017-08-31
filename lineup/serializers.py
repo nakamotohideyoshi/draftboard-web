@@ -159,37 +159,34 @@ class PlayerSerializer(serializers.ModelSerializer):
                   'fantasy_points')
 
 
-# class PlayerWithStatsSerializer(PlayerSerializer):
-#     player_stats = serializers.SerializerMethodField()
-#
-#     def get_player_stats(lineup_player):
-#         ssm = SiteSportManager()
-#         # get the player model(s) for the sport used (multiple for MLB)
-#         player_stats_models = ssm.get_player_stats_class(
-#             lineup_player.lineup.draft_group.salary_pool.site_sport)
-#
-#         player_stats = None
-#
-#         # check every stats model type ( ie: baseball has PlayerStatsHitter & PlayerStatsPitcher)
-#         for player_stats_model in player_stats_models:
-#             try:
-#                 player_stats = player_stats_models.objects.get(
-#                     player_id=lineup_player.player_id,
-#                     srid_game=lineup_player.draft_group_player.game_team.game_srid
-#                 )
-#             except player_stats_model.DoesNotExist:
-#                 player_stats = None
-#
-#         return player_stats
-#
-#     class Meta:
-#         model = Player
-#         fields = PlayerSerializer.Meta['fields'].append('fantasy_points')
-#
-# class Meta:
-#     model = Player
-#     fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta', 'fppg', 'salary',
-#               'fantasy_points')
+class PlayerWithStatsSerializer(PlayerSerializer):
+    player_stats = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_player_stats(lineup_player):
+        ssm = SiteSportManager()
+        # get the player model(s) for the sport used (multiple for MLB)
+        player_stats_models = ssm.get_player_stats_class(
+            lineup_player.lineup.draft_group.salary_pool.site_sport)
+
+        player_stats = []
+
+        # check every stats model type ( ie: baseball has PlayerStatsHitter & PlayerStatsPitcher)
+        for player_stats_model in player_stats_models:
+            try:
+                player_stats.append(player_stats_model.objects.get(
+                    player_id=lineup_player.player_id,
+                    srid_game=lineup_player.draft_group_player.game_team.game_srid
+                ).to_json())
+            except player_stats_model.DoesNotExist:
+                pass
+
+        return player_stats
+
+    class Meta:
+        model = Player
+        fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta', 'fppg', 'salary',
+                  'fantasy_points', 'player_stats')
 
 
 class LineupSerializer(serializers.ModelSerializer):

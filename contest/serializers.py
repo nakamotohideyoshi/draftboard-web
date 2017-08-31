@@ -14,8 +14,8 @@ from lineup.models import (
     Lineup,
 )
 from lineup.serializers import (
-    PlayerSerializer,
     LineupSerializer,
+    PlayerWithStatsSerializer,
 )
 from prize.models import PrizeStructure, Rank
 from sports.classes import TeamNameCache
@@ -386,12 +386,15 @@ class UserLineupHistorySerializer(serializers.ModelSerializer):
     primarily returns Entry data, containing information about the Contest, and payouts
     """
 
-    # entries = serializers.SerializerMethodField()
-    # def get_entries(self, lineup):
-    #     return EntrySerializer(many=True, read_only=True)
+    entries = serializers.SerializerMethodField()
 
-    entries = EntrySerializer(many=True, read_only=True)
-    players = PlayerSerializer(many=True, read_only=True)
+    @staticmethod
+    def get_entries(lineup):
+        # Trim out any unmatched entries. (those that never made it into contests)
+        matched_entries = lineup.entries.filter(contest__isnull=False)
+        return EntrySerializer(matched_entries, many=True).data
+
+    players = PlayerWithStatsSerializer(many=True, read_only=True)
 
     class Meta:
         model = Lineup
@@ -438,7 +441,6 @@ class RankedEntryWithLineupSerializer(RankedEntrySerializer):
     def get_lineup(entry):
         lineup = LineupSerializer(entry.lineup)
         return lineup.data
-
 
     @staticmethod
     def get_player_stats(entry):

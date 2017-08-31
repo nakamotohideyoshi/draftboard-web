@@ -28,8 +28,8 @@ from raven import Client
 from raven.contrib.celery import register_signal, register_logger_signal
 
 current_settings_module = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.base")
-print('DJANGO_SETTINGS_MODULE env variable detected: %s Unless overriden, this will be used.' % (
-    current_settings_module))
+print('(Celery App) DJANGO_SETTINGS_MODULE env variable detected: %s Unless overriden, this will '
+      'be used.' % current_settings_module)
 
 logger = getLogger('mysite.celery_app')
 
