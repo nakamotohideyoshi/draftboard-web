@@ -41,13 +41,13 @@ export default React.createClass({
   /**
    * Renders a LiveOverallStatsConnected component.
    */
-  renderOverallStats(whichSide, lineup, potentialWinnings, rank) {
+  renderOverallStats(whichSide, lineup, contest = null) {
     const modifiers = !this.props.animationEvent ? [] : ['event-ended'];
 
     // If the lineups name is falsy just show the lineup owner's username.
     let name;
     try {
-      name = lineup.name || this.props.contest.lineupsUsernames[lineup.id];
+      name = lineup.name || contest.lineupsUsernames[lineup.id];
     } catch (e) {
       name = '';
     }
@@ -59,8 +59,8 @@ export default React.createClass({
         lineups={this.props.lineups}
         name={name}
         modifiers={modifiers}
-        potentialWinnings={potentialWinnings}
-        rank={rank}
+        potentialWinnings={lineup.potentialWinnings}
+        rank={lineup.rank}
         timeRemaining={lineup.timeRemaining}
         whichSide={whichSide}
         watching={this.props.watching}
@@ -70,28 +70,22 @@ export default React.createClass({
 
   render() {
     const { myLineup, contest, opponentLineup, watching } = this.props;
-    const isWatchingContest = watching.contestId !== null && contest.isLoading === false;
-    const showOpponentLineup = watching.opponentLineupId !== null && opponentLineup.isLoading === false;
 
-    let { potentialWinnings, rank } = myLineup;
-
-    if (myLineup.isLoading !== false) {
+    if (myLineup.isLoading) {
       return null;
     }
 
-    // if watching a contest, then update the titles and ensure the overall stats are contest-based.
-    if (isWatchingContest) {
-      potentialWinnings = contest.potentialWinnings;
-      rank = contest.rank;
-    }
+    const hasContest = watching.contestId && contest && !contest.isLoading;
+    const hasOpponentLineup = watching.opponentLineupId && !opponentLineup.isLoading;
+    const myCurrentLineup = hasContest ? contest.lineups[myLineup.id] : myLineup;
 
     return (
       <header className="live-header">
         <h2 className="live-header__contest-name">{contest.name || '  '}</h2>
-        {this.renderOverallStats('mine', myLineup, potentialWinnings, rank)}
-        {isWatchingContest && showOpponentLineup &&
-          this.renderOverallStats('opponent', opponentLineup, potentialWinnings, rank)
-        }
+        {this.renderOverallStats('mine', myCurrentLineup, contest)}
+        {hasContest && hasOpponentLineup && (
+          this.renderOverallStats('opponent', opponentLineup, contest)
+        )}
         {this.renderAnimationInfo()}
       </header>
     );

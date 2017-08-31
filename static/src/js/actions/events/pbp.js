@@ -7,7 +7,6 @@ import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
 import { addEventAndStartQueue } from '../events';
 import { addOrdinal } from '../../lib/utils/numbers';
-import { dateNow } from '../../lib/utils';
 import { humanizeFP } from '../../lib/utils/numbers';
 import { SPORT_CONST, isGameReady } from '../sports';
 
@@ -249,24 +248,21 @@ const getMLBData = (message, gameId, boxscore) => {
 };
 
 /*
- * Converts `nfl_pbp.linked` to the relevant data we need
- *
+ * Converts the provided message to a PBP message.
  * @param  {object} message  The received event from Pusher
  * @param  {string} gameId   Game SRID
  * @param  {string} sport    The sport associated with the PBP.
  */
-const getPBPData = (message, gameId, sport) => {
-  logAction.debug('actions.getNFLData', message);
-
-  return merge(message, {
+const getPBPData = (message, gameId, sport) => (
+  merge(message, {
     sport,
     gameId,
-    id: dateNow(),
+    id: message.pbp.id,
     eventPlayers: message.stats.map(stat => stat.srid_player),
     playersStats: message.stats || [],
     type: message.pbp.type,
-  });
-};
+  })
+);
 
 /*
  * Take a pusher call, validate, then reshape to fit into store.events
