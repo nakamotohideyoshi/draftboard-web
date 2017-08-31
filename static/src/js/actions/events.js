@@ -171,7 +171,7 @@ export const showGameEvent = (event) => (dispatch, getState) => {
     }
 
     // Skip animating PBPs that are more than 3 minutes (180000ms) old.
-    if ((event.queuedAt + 1000) < dateNow()) {
+    if ((event.queuedAt + 180000) < dateNow()) {
       return Promise.resolve();
     }
 
