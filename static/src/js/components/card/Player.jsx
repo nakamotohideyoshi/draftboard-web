@@ -74,7 +74,7 @@ Player.propTypes = {
   position: PropTypes.string,
   name: PropTypes.string,
   team: PropTypes.string,
-  meta: PropTypes.object,
+  meta: PropTypes.string,
   ffpg: PropTypes.number,
   cost: PropTypes.func,
   classes: PropTypes.string,

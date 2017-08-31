@@ -41,10 +41,13 @@ category: Lineup
   }
 
   &__player {
-    display: table-row;
-    list-style: none;
-    margin: 0;
-    min-height: 40px;
+    &__wrap {
+      width: 100%;
+      display: table-row;
+      list-style: none;
+      margin: 0;
+      min-height: 40px;
+    }
     &:hover {
       background-color: #f8fafb;
     }
@@ -197,8 +200,8 @@ category: Lineup
     font-size: 13px;
     padding: 5px 5px;
     width: 100%;
-
-    > span {
+    cursor: pointer;
+    &__wrap > span {
 
       &:first-child {
         padding-left: 15px;
@@ -211,6 +214,7 @@ category: Lineup
 
       display: table-cell;
       padding: 5px 5px;
+      vertical-align: middle;
       &.cmp-lineup-card__name-game{
         padding-left: 10px;
       }
@@ -220,6 +224,56 @@ category: Lineup
         .name{
           overflow: visible;
         }
+      }
+    }
+    .stats {
+      width: 100%;
+      clear: both;
+      max-height: 0;
+      transition: max-height .3s ease-in-out;
+      overflow: hidden;
+      box-sizing: border-box;
+      & > dl{
+        display: grid;
+        padding: 10px 0 10px;
+        grid-template-columns: repeat(7, 1fr);
+        background: linear-gradient(to bottom, rgba(245,246,249,0) 0%,rgba(244,245,248,1) 100%);
+        overflow: hidden;
+        position: relative;
+        &:after{
+          content: '';
+          display: block;
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 6px;
+          height: 6px;
+          border-top: 1px solid #333;
+          border-right: 1px solid #333;
+          transform: rotate(-45deg);
+        }
+        & > dd{
+          grid-column: span 1;
+          text-align: center;
+          padding: 5px;
+          &:last-child{border: none;}
+        }
+        dd dt{
+          text-transform: uppercase;
+          font-size: 8px;
+          margin-bottom: 5px;
+        }
+        dd dd{
+          font-family: $font-oswald;
+          font-weight: bold;
+          font-size: 14px;
+        }
+      }
+    }
+    &.show{
+      .stats.has-stats{
+        max-height: 80px;
       }
     }
   }

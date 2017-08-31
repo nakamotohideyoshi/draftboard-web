@@ -193,6 +193,35 @@
         background-position: bottom center;
       }
     }
+    .stats {
+      width: 100%;
+      clear: both;
+      //max-height: 0;
+      //transition: max-height .3s ease-in-out;
+      overflow: hidden;
+      box-sizing: border-box;
+      & > dl{
+        display: grid;
+        padding: 10px 0 0;
+        grid-template-columns: repeat(7, 1fr);
+        & > dd{
+          grid-column: span 1;
+          text-align: center;
+          padding: 5px;
+          &:last-child{border: none;}
+        }
+        dd dt{
+          text-transform: uppercase;
+          font-size: 8px;
+          margin-bottom: 5px;
+        }
+        dd dd{
+          font-family: $font-oswald;
+          font-weight: bold;
+          font-size: 14px;
+        }
+      }
+    }
   }
 }
 
