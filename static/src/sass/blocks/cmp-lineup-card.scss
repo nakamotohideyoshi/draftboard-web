@@ -383,6 +383,9 @@ category: Lineup
       .hours {
         color: #9c9faf;
       }
+      &.negative{
+        color: $error-red;
+      }
     }
     .watch-live{
       display: block;

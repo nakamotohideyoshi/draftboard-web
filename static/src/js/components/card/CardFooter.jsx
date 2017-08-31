@@ -4,12 +4,15 @@ import PropTypes from 'prop-types';
 // import log from '../../lib/logging';
 
 class CardFooter extends React.Component {
-  getInitialState() {
-    return { secondsElapsed: 0 };
-  }
   componentWillMount() {
-    this.setState({ timer: null });
+    this.setState(
+      {
+        timer: null,
+        secondsElapsed: 0,
+      }
+    );
   }
+
   componentDidMount() {
     if (this.props.start) {
       this.startGameTimer(this.props.start);
@@ -75,34 +78,46 @@ class CardFooter extends React.Component {
       if (this.props.hasOwnProperty(key)) {
         const item = key;
         let value = this.props[key];
+        const isneg = parseInt(value, 10) < 0 && item !== 'start' ? 'negative' : '';
 
         // preformat time remaining
-        if (key === 'start') {
+        if (item === 'start') {
           const remaining = this.getRemainingTime(value);
           value = this.formatClock(remaining);
         }
 
-        if (key !== 'children') {
+        // add $ sign if its needed
+        if (
+          item === 'remsalary' ||
+          item === 'fees' ||
+          item === 'playeravg') {
+          value = `$${value}`;
+        }
+
+        if (item !== 'children') {
           footerItems.push([
-            <dd key={item} className={`card-${key}`}>
+            <dd key={item} className={`card-${item}`}>
               <dl>
                 <dt>{this.getFooterLabels(item)}</dt>
-                <dd ref={key}>{value}</dd>
+                <dd ref={key} className={ isneg } >{value}</dd>
               </dl>
             </dd>,
           ]);
         }
       }
     }
+
     return footerItems;
   }
 
   startGameTimer(timestamp) {
     const timer = setInterval(() => {
       const remaining = this.getRemainingTime(timestamp);
+
       this.refs.hours.textContent = remaining.hours;
       this.refs.minutes.textContent = remaining.minutes;
       this.refs.seconds.textContent = remaining.seconds;
+
       this.setState({ secondsElapsed: this.state.secondsElapsed + 1 });
     }, 1000);
 

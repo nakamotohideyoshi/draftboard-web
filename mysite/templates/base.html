@@ -7,6 +7,10 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 
+  {# Google & Bing webmaster tools verification #}
+  <meta name="google-site-verification" content="9oGkrDjUf3I8t53R3G35eCNpfAyDBwh500lLJ-u_LAo" />
+  <meta name="msvalidate.01" content="C46BE49BF95E306D35B3B71528B02794" />
+
   <title>{% block title %}Draftboard{% endblock %}</title>
 
   <link rel="shortcut icon" href="{{ PLAYER_IMAGES_URL }}/misc/favicon.ico">
@@ -62,6 +66,9 @@
   <!-- User messaging display -->
   <div class="cmp-message-display"></div>
 
+  <!-- Live messaging display -->
+  <div class="cmp-live-message-display"></div>
+
   <script>
   window.dfs = {
     logLevel: "{{ JS_LOGLEVEL }}",
@@ -81,10 +88,12 @@
     }
   };
   </script>
-  {% kissanalyticsjs %}
-  {% googleanalyticsjs %}
+
   {% block js_app %}
   <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
   {% endblock js_app %}
+
+  {% kissanalyticsjs %}
+  {% googleanalyticsjs %}
 </body>
 </html>

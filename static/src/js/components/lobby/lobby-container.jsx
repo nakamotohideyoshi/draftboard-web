@@ -233,6 +233,9 @@ const LobbyContainer = React.createClass({
 
 
   enterContest(contestId) {
+    if (Cookies.get(contestId) === undefined) {
+      Cookies.set(contestId, 'false');
+    }
     this.props.enterContest(contestId, this.props.focusedLineup.id);
   },
 

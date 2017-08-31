@@ -3,7 +3,6 @@ import { isTimeInFuture } from '../../lib/utils.js';
 import AppStateStore from '../../stores/app-state-store.js';
 import Tooltip from '../site/tooltip.jsx';
 
-
 /**
  * This is a button that allows the user to enter a contest and shows the status of an entry.
  * It is used in the lobby on each contest list row, the confirm entry modal, and the contest
