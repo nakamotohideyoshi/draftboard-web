@@ -2,6 +2,7 @@ from __future__ import generators
 
 import time
 import xml.etree.ElementTree as ET
+from logging import getLogger
 
 import requests
 from django.conf import settings
@@ -12,6 +13,8 @@ from pymongo import MongoClient, DESCENDING
 import dataden.cache.caches
 import dataden.models
 from util.slack import Webhook
+
+logger = getLogger('dataden.classes')
 
 
 class FeedTestWebhook(Webhook):
@@ -565,14 +568,21 @@ class RecentGamePlayerStats:
     specified games based on the most recently parsed data.
     """
 
-    class NoSportSpecified(Exception): pass
-    class MustOverrideMethod(Exception): pass
-    class CollectionNotSet(Exception): pass
-    class ParentApiNotSet(Exception): pass
+    class NoSportSpecified(Exception):
+        pass
 
-    collection = None           # the mongo collection name to query from. ex: 'player'
-    parent_api = None           # the name of the feed where player game stats are found. ex: 'stats'
-    game_id_field = None        # the mongo field name of the game srid. ex: 'game__id'
+    class MustOverrideMethod(Exception):
+        pass
+
+    class CollectionNotSet(Exception):
+        pass
+
+    class ParentApiNotSet(Exception):
+        pass
+
+    collection = None  # the mongo collection name to query from. ex: 'player'
+    parent_api = None  # the name of the feed where player game stats are found. ex: 'stats'
+    game_id_field = None  # the mongo field name of the game srid. ex: 'game__id'
 
     def __init__(self, db):
         """
@@ -585,9 +595,11 @@ class RecentGamePlayerStats:
         if self.db is None or self.db == '':
             raise self.NoSportSpecified()
         if self.collection is None:
-            raise self.CollectionNotSet('the "collection" property must be set in the inheriting class')
+            raise self.CollectionNotSet(
+                'the "collection" property must be set in the inheriting class')
         if self.parent_api is None:
-            raise self.ParentApiNotSet('the "parent_api" property must be set in the inheriting class')
+            raise self.ParentApiNotSet(
+                'the "parent_api" property must be set in the inheriting class')
 
         # create dataden instance for the connection to mongo
         self.dataden = DataDen()
@@ -611,7 +623,7 @@ class RecentGamePlayerStats:
         """
         defaults = {}
         for fieldname in fieldnames:
-            defaults[ fieldname ] = 0
+            defaults[fieldname] = 0
         return defaults
 
     def get_player_stats_for(self, game_srid):
@@ -622,7 +634,8 @@ class RecentGamePlayerStats:
         :return: results of a mongo find()
         """
         print(self.db, self.collection, self.parent_api, self.game_id_field, game_srid)
-        return self.dataden.find_recent(self.db, self.collection, self.parent_api, target={self.game_id_field: game_srid})
+        return self.dataden.find_recent(self.db, self.collection, self.parent_api,
+                                        target={self.game_id_field: game_srid})
 
     def build_data(self, game_srid):
         """
@@ -638,7 +651,8 @@ class RecentGamePlayerStats:
 
         raise self.MustOverridMethod()
 
-    def update_player_stats_model(self, my_player_stats, player_stats_model):
+    @staticmethod
+    def update_player_stats_model(my_player_stats, player_stats_model):
         """
         copy any values from my_player_stats (recent, valid player stats)
         into player_stats_model for similar named field if they differ.
@@ -649,16 +663,14 @@ class RecentGamePlayerStats:
         :param player_stats_model:
         :return:
         """
-
-        if self.verbose:
-            player_fn = player_stats_model.player.first_name
-            player_ln = player_stats_model.player.last_name
-            player_srid = player_stats_model.player.srid
-
-            print('%s %s : %s' % (str(player_fn), str(player_ln), str(player_srid)))
+        player_fn = player_stats_model.player.first_name
+        player_ln = player_stats_model.player.last_name
+        player_srid = player_stats_model.player.srid
 
         has_changed = False
-        for var, val in my_player_stats.get_vars().items():
+        player_stats = my_player_stats.get_vars().items()
+
+        for var, val in player_stats:
 
             if hasattr(player_stats_model, var):
                 # set it if its changed, and flag has_changed to true
@@ -666,14 +678,16 @@ class RecentGamePlayerStats:
                 if model_val != val:
                     setattr(player_stats_model, var, val)
                     has_changed = True
-                    if self.verbose:
-                        print('    ***    %s: %s      changed to:   %s    ***' % (var, str(model_val), str(val)))
+                    logger.info(
+                        'Corrected PlayerStats: %s %s : %s' % (player_fn, player_ln, player_srid))
+                    logger.info('\t%s: %s      changed to:   %s    ***' % (var, model_val, val))
             else:
-                pass  # TODO raise exception? TODO this is kind of important potentially to know about !
+                logger.error('Player has no stats column - %s %s - var %s' % (
+                    player_fn, player_ln, var))
+                pass  # TODO raise exception? this is kind of important potentially to know about!
 
-        if self.verbose:
-            if not has_changed:
-                print('    no changes')
+        # if not has_changed:
+        #     logger.debug('    no changes')
 
         # .save() model instance if something has changed
         if has_changed:
