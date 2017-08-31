@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import log from '../../lib/logging';
+// import log from '../../lib/logging';
 
 class PlayerStats extends Component {
   componentWillMount() {
@@ -17,7 +17,7 @@ class PlayerStats extends Component {
   getStatItems() {
     const statItems = [];
     const playerStats = this.buildPlayerStatArray(this.props.player_stats);
-    log.info(playerStats.length);
+
     for (let i = 0; i < playerStats.length; i++) {
       for (const key in playerStats[i]) {
         if (playerStats[i].hasOwnProperty(key) && playerStats[i][key] !== 0) {
@@ -47,7 +47,6 @@ class PlayerStats extends Component {
 
   checkForStats() {
     const arr = this.buildPlayerStatArray(this.props.player_stats);
-    log.info(arr);
     if (arr.length > 0) {
       this.setState({ hasStats: true });
     }
