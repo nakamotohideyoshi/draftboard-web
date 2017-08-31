@@ -145,7 +145,7 @@ export default React.createClass({
       };
 
       return (
-        <div key={play.id} {...{ className, style }}>
+        <div key={i} {...{ className, style }}>
           <LiveHistoryListPBP {...{ game, players }}
             id={play.id}
             lineup={play.whichSide}

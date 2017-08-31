@@ -10,9 +10,8 @@ import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
-import { bigPlaysSelector } from '../../selectors/live-big-plays';
 import { bindActionCreators } from 'redux';
-import { clearCurrentAnimationEvent } from '../../actions/events';
+import { clearGameEvent } from '../../actions/events';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
@@ -47,7 +46,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchRelatedLineupsInfo,
     updateLiveMode,
     updateWatchingAndPath,
-    clearCurrentAnimationEvent,
+    clearGameEvent,
   }, dispatch),
 });
 
@@ -57,7 +56,6 @@ const mapDispatchToProps = (dispatch) => ({
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  bigPlaysQueue: bigPlaysSelector(state),
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   contest: watchingContestSelector(state),
@@ -77,7 +75,6 @@ export const Live = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
-    bigPlaysQueue: React.PropTypes.array.isRequired,
     contest: React.PropTypes.object.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
     relevantGamesPlayers: React.PropTypes.object.isRequired,
@@ -198,7 +195,7 @@ export const Live = React.createClass({
    */
   animationCompleted() {
     // show the results, remove the animation
-    this.props.actions.clearCurrentAnimationEvent();
+    this.props.actions.clearGameEvent();
   },
 
   selectLineup(lineup) {
@@ -217,7 +214,6 @@ export const Live = React.createClass({
   render() {
     const {
       actions,
-      bigPlaysQueue,
       contest,
       draftGroupTiming,
       myLineupInfo,
@@ -330,7 +326,7 @@ export const Live = React.createClass({
         {opponentLineupComponent}
 
         <LiveVenue
-          {...{ contest, watching, opponentLineup, myLineupInfo, uniqueLineups, bigPlaysQueue } }
+          {...{ contest, watching, opponentLineup, myLineupInfo, uniqueLineups } }
           eventsMultipart={this.props.eventsMultipart}
           currentEvent={this.props.currentEvent}
           completedEvent={this.props.completedEvent}
