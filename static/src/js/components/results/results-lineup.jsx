@@ -103,7 +103,6 @@ const ResultsLineup = React.createClass({
     const players = this.props.players.map((player) => {
       let decimalRemaining = 0;
       totalFP += player.fantasy_points;
-
       // if live, then show progress bar
       if (this.props.isWatchingLive === true && isUpcoming === false) {
         decimalRemaining = player.timeRemaining.decimal;
