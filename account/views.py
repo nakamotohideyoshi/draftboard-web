@@ -676,10 +676,9 @@ class GidxDepositCallbackAPIView(APIView):
             # TODO: queue this in celery.
             payment_detail = make_web_cashier_payment_detail_request(
                 user=user,
-                merchant_transaction_id=response_wrapper.json['MerchantTransactionID']
+                transaction_id=response_wrapper.json['MerchantTransactionID'],
+                session_id=response_wrapper.json['MerchantSessionID']
             )
-
-            print(payment_detail)
 
         # As long as nothing errors out, send a 200 back to gidx.
         return Response(
