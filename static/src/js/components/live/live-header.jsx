@@ -79,7 +79,7 @@ export default React.createClass({
       <header className="live-header">
         <h2 className="live-header__contest-name">{contest.name || '  '}</h2>
         {this.renderOverallStats('mine', myLineup, contest)}
-        {opponentLineup && !contest.isLoading && (
+        {opponentLineup && !opponentLineup.isLoading && !contest.isLoading && (
           this.renderOverallStats('opponent', opponentLineup, contest)
         )}
         {this.renderAnimationInfo()}
