@@ -1,10 +1,10 @@
+{% spaceless %}
 {% load pipeline %}
 {% load static %}
 {% load analytics %}
 {% load cache %}
 
 {% cache 0 tmpl-homepage using="django_templates" %}
-{% spaceless %}
 <!DOCTYPE html>
 <html lang="en" class="{% block html_class %}{% endblock %}">
 <head>
@@ -14,13 +14,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+  {# Google & Bing webmaster tools verification #}
+  <meta name="google-site-verification" content="9oGkrDjUf3I8t53R3G35eCNpfAyDBwh500lLJ-u_LAo" />
+  <meta name="msvalidate.01" content="C46BE49BF95E306D35B3B71528B02794" />
+  
   <link rel="stylesheet" href="{% static 'css/marketing.css' %}">
 
   <link rel="shortcut icon" href="{{ PLAYER_IMAGES_URL }}/misc/favicon.ico">
 
   <link rel="prefetch" href="{% static 'css/app.css' %}">
-  {% kissanalyticsjs %}
-  {% googleanalyticsjs %}
   <link rel="prefetch" href="{% static 'js/app.js' %}">
   <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400">
 </head>
@@ -198,7 +200,11 @@
 
     {% include "frontend/partials/company-footer.html" %}
   </section>
+
+  {% kissanalyticsjs %}
+  {% googleanalyticsjs %}
+
 </body>
 </html>
-{% endspaceless %}
 {% endcache %}
+{% endspaceless %}
