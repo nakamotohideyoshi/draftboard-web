@@ -1,10 +1,12 @@
+import { merge } from 'lodash';
+
 const stubMyLineup = {
   id: 2,
   name: 'My Lineup',
-  fp: 5,
+  fp: 50,
   isLoading: false,
   potentialWinnings: 10,
-  rank: 1,
+  rank: 5,
   timeRemaining: {
     decimal: 0.91,
     duration: 50,
@@ -15,8 +17,8 @@ const stubOppLineup = {
   id: 3,
   name: 'Opponent Lineup',
   fp: 20,
-  rank: 2,
   potentialWinnings: 10,
+  rank: '',
   timeRemaining: {
     decimal: 0.91,
     duration: 50,
@@ -28,8 +30,8 @@ const stubOtherLineup = {
   id: 4,
   name: 'Other Lineup',
   fp: 15,
-  rank: 3,
   potentialWinnings: 10,
+  rank: '',
   timeRemaining: {
     decimal: 0.91,
     duration: 50,
@@ -40,9 +42,9 @@ const stubOtherLineup = {
 const stubDebugLineup = {
   id: 5,
   name: 'Debug Lineup',
-  fp: 50,
-  rank: 4,
+  fp: 34,
   potentialWinnings: 10,
+  rank: '',
   timeRemaining: {
     decimal: 0.91,
     duration: 50,
@@ -51,16 +53,17 @@ const stubDebugLineup = {
 };
 
 const stubContest = {
+  id: 1,
   name: 'Debug Contest',
   potentialWinnings: 10,
   rank: 2,
   isLoading: false,
   hasLineupsUsernames: true,
   lineups: {
-    [stubMyLineup.id]: stubMyLineup,
-    [stubOppLineup.id]: stubOppLineup,
-    [stubOtherLineup.id]: stubOtherLineup,
-    [stubDebugLineup.id]: stubDebugLineup,
+    [stubMyLineup.id]: merge(stubMyLineup, { rank: 1, potentialWinnings: 100 }),
+    [stubOppLineup.id]: merge(stubOppLineup, { rank: 3, potentialWinnings: 50 }),
+    [stubOtherLineup.id]: merge(stubOtherLineup, { rank: 3 }),
+    [stubDebugLineup.id]: merge(stubDebugLineup, { rank: 4 }),
   },
   lineupsUsernames: {
     [stubMyLineup.id]: stubMyLineup.name,
@@ -94,9 +97,9 @@ const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup, stub
 export default {
   watching: {
     sport: 'nfl', // nba
-    contestId: 2,
+    contestId: null,
     myLineupId: stubMyLineup.id,
-    opponentLineupId: 3, // Null if you don't want to see the opponents overall-stats
+    opponentLineupId: 4, // Null if you don't want to see the opponents overall-stats
   },
   currentEvent: null,
   eventsMultipart: {},
