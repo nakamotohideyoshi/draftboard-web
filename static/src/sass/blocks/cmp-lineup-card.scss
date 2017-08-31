@@ -200,7 +200,7 @@ category: Lineup
     font-size: 13px;
     padding: 5px 5px;
     width: 100%;
-
+    cursor: pointer;
     &__wrap > span {
 
       &:first-child {
@@ -235,7 +235,7 @@ category: Lineup
       box-sizing: border-box;
       & > dl{
         display: grid;
-        padding-top: 10px;
+        padding: 10px 0 20px;
         grid-template-columns: repeat(7, 1fr);
         & > dd{
           grid-column: span 1;
@@ -249,12 +249,14 @@ category: Lineup
           margin-bottom: 5px;
         }
         dd dd{
+          font-family: $font-oswald;
           font-weight: bold;
+          font-size: 13px;
         }
       }
     }
     &.show{
-      .stats{
+      .stats.has-stats{
         max-height: 80px;
       }
     }

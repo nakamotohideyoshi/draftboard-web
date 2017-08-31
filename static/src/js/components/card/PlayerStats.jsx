@@ -1,18 +1,33 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-// import log from '../../lib/logging';
+import log from '../../lib/logging';
 
 class PlayerStats extends Component {
+  componentWillMount() {
+    this.setState(
+      {
+        hasStats: false,
+      }
+    );
+  }
+  componentDidMount() {
+    this.checkForStats();
+  }
+
   getStatItems() {
     const statItems = [];
     const playerStats = this.buildPlayerStatArray(this.props.player_stats);
+    log.info(playerStats.length);
     for (let i = 0; i < playerStats.length; i++) {
       for (const key in playerStats[i]) {
-        if (playerStats[i].hasOwnProperty(key) && playerStats[i][key] > 0) {
+        if (playerStats[i].hasOwnProperty(key) && playerStats[i][key] !== 0) {
           let item = key;
           let value = playerStats[i][key];
           if (item === 'fp_change') {
             item = 'fp_cng';
+          }
+          if (item === 'rush_yds') {
+            item = 'rsh_yds';
           }
           if (item !== 'children') {
             statItems.push([
@@ -28,6 +43,14 @@ class PlayerStats extends Component {
       }
     }
     return statItems;
+  }
+
+  checkForStats() {
+    const arr = this.buildPlayerStatArray(this.props.player_stats);
+    log.info(arr);
+    if (arr.length > 0) {
+      this.setState({ hasStats: true });
+    }
   }
 
   playerStatsBlackList(stat) {
@@ -53,16 +76,13 @@ class PlayerStats extends Component {
   buildPlayerStatArray(player) {
     const stats = [];
     if (player.player_stats && player.player_stats.length) {
-      // i don't technically need a for loop here
-      for (let i = 0; i < player.player_stats.length; i++) {
-        for (const stat in player.player_stats[i]) {
-          if (player.player_stats[i].hasOwnProperty(stat)) {
-            // if not in blacklist push
-            if (!this.playerStatsBlackList(stat)) {
-              const statobj = {};
-              statobj[stat] = player.player_stats[i][stat];
-              stats.push(statobj);
-            }
+      for (const stat in player.player_stats[0]) {
+        if (player.player_stats[0].hasOwnProperty(stat)) {
+          // if not in blacklist push
+          if (!this.playerStatsBlackList(stat)) {
+            const statobj = {};
+            statobj[stat] = player.player_stats[0][stat];
+            stats.push(statobj);
           }
         }
       }
@@ -75,8 +95,12 @@ class PlayerStats extends Component {
   }
 
   render() {
+    let hasStats = '';
+    if (this.state.hasStats) {
+      hasStats = 'has-stats';
+    }
     return (
-      <div className="stats">
+      <div className={`stats ${hasStats}`}>
         <dl>{this.getStatItems()}</dl>
       </div>
     );
