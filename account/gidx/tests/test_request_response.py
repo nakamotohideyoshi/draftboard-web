@@ -17,11 +17,13 @@ from ..mock_response_data import (
     WEBHOOK_COMPLETE,
     WEB_CASHIER_CALLBACK_SUCCESS,
     WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY,
+    WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS,
 )
 from ..request import (
     CustomerRegistrationRequest,
     WebRegCreateSession,
     WebCashierPaymentDetailRequest,
+    make_web_cashier_payment_detail_request,
 )
 from ..response import (
     CustomerRegistrationResponse,
@@ -224,4 +226,38 @@ class TestDepositStatusWebhookResponse(TestCase):
         # Pending
         res = DepositStatusWebhookResponse(WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY)
         self.assertEqual(False, res.is_successful())
+
+
+class TestPaymentDetailRequest(TestCase):
+    def setUp(self):
+        self.user = mommy.make(
+            User,
+            username="automated_test_user",
+            email="zach@runitonce.com"
+        )
+
+    # def tearDown(self):
+    #     self.user.delete()
+
+    @responses.activate
+    def test_make_web_cashier_payment_detail_request(self):
+        # Mock the response
+        responses.add(
+            responses.GET,
+            WebCashierPaymentDetailRequest.url,
+            body=str(json.dumps(WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS)),
+            status=200,
+            content_type='application/json'
+        )
+        # # get the response
+        # mock_response_data = requests.get(WebCashierPaymentDetailRequest.url)
+        #
+        # # pass response in to result wrapper
+        # response = WebCashierPaymentDetailRequest(response=mock_response_data)
+
+        req = make_web_cashier_payment_detail_request(self.user, 'tid', 'sid')
+        self.assertEqual(True, True)
+        # Make sure we've parsed an embed script (or something that looks like one).
+
+
 

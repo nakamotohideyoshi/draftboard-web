@@ -6,7 +6,7 @@ from cash.models import (
     CashBalance,
     AdminCashDeposit,
     AdminCashWithdrawal,
-    VZeroTransaction,
+    GidxTransaction,
 )
 from contest.buyin.models import Buyin
 from contest.payout.models import Payout, FPP, Rake
@@ -117,6 +117,7 @@ class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
 #
 #     list_display = ['created','transaction','braintree_transaction']
 
-@admin.register(VZeroTransaction)
-class VZeroTransaction(admin.ModelAdmin):
-    list_display = ['created', 'transaction', 'transaction_identifier']
+@admin.register(GidxTransaction)
+class GidxTransaction(admin.ModelAdmin):
+    readonly_fields = ['created', 'transaction', 'merchant_transaction_id']
+    list_display = ['created', 'transaction', 'merchant_transaction_id']

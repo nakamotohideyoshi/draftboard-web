@@ -1,7 +1,7 @@
 import copy
 import uuid
 from logging import getLogger
-
+from django.utils import timezone
 import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,6 +11,8 @@ from rest_framework.exceptions import (APIException, ValidationError)
 from .models import GidxSession
 from .response import (CustomerRegistrationResponse, WebRegCreateSessionResponse)
 from mysite.celery_app import app
+from cash.classes import CashTransaction
+from transaction.tasks import send_deposit_receipt
 
 
 logger = getLogger('account.gidx.request')
@@ -413,7 +415,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_CACHIER_PAYMENT_DETAIL_REQUEST"
 
-    def __init__(self, user, merchant_transaction_id):
+    def __init__(self, user, merchant_transaction_id, merchant_session_id):
         # Bail immediately if we have no logged-in user.
         if user is None or not user.is_authenticated():
             raise APIException('Authenticated user must be provided. - %s' % user)
@@ -422,8 +424,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
 
         args = {
             'MerchantTransactionID': merchant_transaction_id,
-            'MerchantSessionID': '%s%s' % (settings.GIDX_MERCHANT_SESSION_ID_PREFIX, uuid.uuid4()),
-
+            'MerchantSessionID': merchant_session_id,
         }
 
         # Combine the base parameters and the supplied arguments into a single dict that
@@ -490,8 +491,83 @@ class WebCashierPaymentDetailRequest(GidxRequest):
         # Call the parent's _send, it does the actual work.
         return self._send()
 
+    def was_success(self):
+        # we have a successful response
+        if self.response_wrapper.json['ResponseCode'] == 0:
+            # and there are payment details.
+            if len(self.response_wrapper.json['PaymentDetails']) == 0:
+                error_msg = 'PaymentDetails list is empty! -- %s' % self.response_wrapper.json
+                logger.error(error_msg)
+                raise Exception(error_msg)
+
+            return True
+
+        # If ResponseCode is not 0, something went wrong.
+        return False
+
+    def get_payments_info(self):
+        return self.response_wrapper.json['PaymentDetails']
+
+    def get_successful_deposits(self):
+        """
+        Return ony succesfull deposits, not bonus cash or anything like that.
+        :return: List
+        """
+        payments = self.response_wrapper.json['PaymentDetails']
+        ok_deposits = []
+
+        print('\n PAYMENTS === ')
+        print(payments)
+
+        # Loop through the payments and pluck out the good ones.
+        for payment in payments:
+            print('==========')
+            print(payment)
+            # Cast the PaymentStatusCode as a string.. it comes through that way but I don't really
+            # trust it because similar fields come through the API as Ints
+            if payment['PaymentAmountCode'] == 'Sale' and str(payment['PaymentStatusCode']) == '1':
+                ok_deposits.append(payment)
+
+        print("\nreturning %s deposits" % len(ok_deposits))
+        return ok_deposits
+
 
 @app.task(bind=True)
-def make_web_cashier_payment_detail_request(self, user, merchant_transaction_id):
-    req = WebCashierPaymentDetailRequest(user=user, merchant_transaction_id=merchant_transaction_id)
-    return req.send()
+def make_web_cashier_payment_detail_request(self, user, transaction_id, session_id):
+    payment_detail_request = WebCashierPaymentDetailRequest(
+        user=user,
+        merchant_transaction_id=transaction_id,
+        merchant_session_id=session_id,
+    )
+
+    payment_detail_response = payment_detail_request.send()
+    transaction_id = payment_detail_response.json['MerchantTransactionID']
+    print('===PAYMENT DETAIL RECIEVED===\n\n')
+    print(payment_detail_response.json)
+
+    if payment_detail_request.was_success():
+        payments = payment_detail_request.get_successful_deposits()
+        from pprint import pprint
+
+        for payment in payments:
+            print('\n\n=== creating payment for====\n')
+            pprint(payment)
+            amount = payment['PaymentAmount']
+
+            trans = CashTransaction(user)
+            trans.deposit_gidx(amount, transaction_id)
+            # Create a task that will send the user an email confirming the transaction
+            try:
+                send_deposit_receipt.delay(
+                    user, amount, trans.get_balance_string_formatted(), timezone.now())
+            except Exception as e:
+                logger.error(e)
+                client.captureException(e)
+
+
+
+
+
+
+
+
