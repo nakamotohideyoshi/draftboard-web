@@ -176,7 +176,7 @@ export const showGameEvent = (event) => (dispatch, getState) => {
     }
 
     // Skip animating PBPs that are irrelevant to the current lineup.
-    if (whichSide === 'none') {
+    if (gameEvent.whichSide === 'none') {
       return Promise.resolve();
     }
   }
