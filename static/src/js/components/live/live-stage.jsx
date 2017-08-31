@@ -76,6 +76,7 @@ export default React.createClass({
   },
 
   clearCurrentAnimation() {
+    this._eventId = null;
     while (this.refs.stage.hasChildNodes()) {
       this.refs.stage.removeChild(this.refs.stage.lastChild);
     }

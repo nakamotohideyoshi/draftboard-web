@@ -33,13 +33,13 @@ export const LiveStandingsPane = React.createClass({
     actions: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
     contest: React.PropTypes.shape({
-      lineups: React.PropTypes.object.isRequired,
-      hasLineupsUsernames: React.PropTypes.bool.isRequired,
-      lineupsUsernames: React.PropTypes.object.isRequired,
-      rankedLineups: React.PropTypes.array.isRequired,
+      lineups: React.PropTypes.object,
+      hasLineupsUsernames: React.PropTypes.bool,
+      lineupsUsernames: React.PropTypes.object,
+      rankedLineups: React.PropTypes.array,
       prize: React.PropTypes.shape({
         info: React.PropTypes.shape({
-          payout_spots: React.PropTypes.number.isRequired,
+          payout_spots: React.PropTypes.number,
         }),
       }),
     }),
@@ -164,11 +164,16 @@ export const LiveStandingsPane = React.createClass({
   },
 
   render() {
-    if (this.props.contest.hasLineupsUsernames === false) {
+    const { contest } = this.props;
+
+    if (contest.isLoading ||
+      !contest.hasLineupsUsernames ||
+      !contest.rankedLineups ||
+      contest.rankedLineups.length <= 2) {
       return null;
     }
 
-    const numWinners = this.props.contest.prize.info.payout_spots;
+    const numWinners = contest.prize.info.payout_spots;
     const lineups = this.getRankedLineups();
     const positions = this.getRankedLineupPositions(lineups);
     const lastPosInTheMoney = positions[Math.min(numWinners, positions.length) - 1];
