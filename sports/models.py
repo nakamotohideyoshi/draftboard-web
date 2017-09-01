@@ -137,6 +137,7 @@ class Game(DirtyFieldsMixin, models.Model):
 
     STATUS_CLOSED = 'closed'
     STATUS_INPROGRESS = 'inprogress'
+    STATUS_NEEDS_VERIFICATION = 'verify'
 
     SEASON_TYPE_PRE = 'pre'  # preseason
     SEASON_TYPE_REG = 'reg'  # regular season

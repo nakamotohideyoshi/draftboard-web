@@ -103,10 +103,30 @@ class Game(sports.models.Game):
 
         # `status` field was changed, and now it is 'closed'.
         if changed_fields.get('status', False) and self.status == self.STATUS_CLOSED:
-            logger.info(
-                'NFL game has been completed, kicking off final stat sync. game: %s' % self.srid)
-            nfl_recent_stats = NflRecentGamePlayerStats()
-            nfl_recent_stats.update(self.srid)
+            previous_status = changed_fields.get('status')
+
+            # Since we are manually verifying NFL stats, we need a non-closed status.
+            # When the games get auto-closed by our stats feed, they will be set to 'verify'.
+            # Once stat verification is complete, we will manually change status to 'closed'.
+            #
+            # We ONLY want to do this if the status isn't being changed from
+            # 'verify' to 'closed'. otherwise we would never be able to close one manually.
+
+            # the new value is 'closed', the last one was 'verify' - so this was manually closed.
+            if previous_status == self.STATUS_NEEDS_VERIFICATION:
+                # Game was manually verified, and set to 'closed'
+                logger.info(
+                    "NFL game has been manually verified and closed, final stat sync will not"
+                    " be performed. game: %s" % self.srid)
+            else:
+                # Game was automaticaly 'closed' by our data feed. Set it to a 'verify' state
+                # and kick off final stat sync.
+                logger.info(
+                    "NFL game has been completed, kicking off final stat sync and setting "
+                    "to 'verify' status. game: %s" % self.srid)
+                self.status = self.STATUS_NEEDS_VERIFICATION
+                nfl_recent_stats = NflRecentGamePlayerStats()
+                nfl_recent_stats.update(self.srid)
 
         # Call the "real" save() method.
         super().save(*args, **kwargs)
