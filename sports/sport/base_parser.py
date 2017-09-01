@@ -1165,8 +1165,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # if len(player_stats) == 0:
         # solely push pbp object
 
-        # Save the stuff we are sending to pusher for testing + debugging purposes.
+        # Log the stuff we are sending to pusher for testing + debugging purposes.
         self.send_data = self.get_send_data()
+        logger.info('Sending PBP to Pusher: %s ' % self.send_data)
+
         # Send to pusher.
         push.classes.DataDenPush(
             self.pusher_sport_pbp,
