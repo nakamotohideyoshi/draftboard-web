@@ -73,7 +73,8 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
 
     def update_existing_player_stats(self, game_srid, exclude_player_srids=[]):
         """
-        query draftboard Playerstats for this game, and zero the stats for any players NOT FOUND in exclude_player_srids
+        query draftboard Playerstats for this game, and zero the stats for any players NOT FOUND in
+        exclude_player_srids
 
         :param game_srid:
         :return:
@@ -102,6 +103,9 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
                 for fieldname in fieldnames:
                     setattr(player_stats_model, fieldname, 0)
                     player_stats_model.save()
+
+                logger.info('Wiped all stats for player no longer in SR feed. Player: %s' % (
+                    player_stats_model))
 
     def update(self, game_srid):
         """
