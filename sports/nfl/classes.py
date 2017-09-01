@@ -51,6 +51,9 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
     def __init__(self):
         super().__init__(self.db)
 
+        # were going to keep track of the player srids we've seen for each call to update() for a specific game
+        self.mongo_player_srids = []
+
     def get_player_stats_model_class(self):
         site_sport_manager = SiteSportManager()
         site_sport = site_sport_manager.get_site_sport(self.sport)
@@ -67,6 +70,38 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         mps = MyPlayerStats(fieldnames)
         # print('new MyPlayerStats() instance. (shows default fields):', str(mps)) # TODO remove debug
         return mps
+
+    def update_existing_player_stats(self, game_srid, exclude_player_srids=[]):
+        """
+        query draftboard Playerstats for this game, and zero the stats for any players NOT FOUND in exclude_player_srids
+
+        :param game_srid:
+        :return:
+        """
+        player_stats_model_class = self.get_player_stats_model_class()
+        player_stats_models = player_stats_model_class.objects.filter(srid_game=game_srid)
+        for player_stats_model in player_stats_models:
+            if player_stats_model.srid_player not in exclude_player_srids:
+                # zero stats, and call model .save() to fix stats
+                # player_stats.pass_td = o.get('touchdowns', 0)
+                # player_stats.pass_yds = o.get('yards', 0)
+                # player_stats.pass_int = o.get('interceptions', 0)
+                # player_stats.rush_td = o.get('touchdowns', 0)
+                # player_stats.rush_yds = o.get('yards', 0)
+                # player_stats.rec_td = o.get('touchdowns', 0)
+                # player_stats.rec_yds = o.get('yards', 0)
+                # player_stats.rec_rec = o.get('receptions', 0)
+                # player_stats.ret_punt_td = o.get('touchdowns', 0)
+                # player_stats.ret_kick_td = o.get('touchdowns', 0)
+                # player_stats.off_fum_lost = o.get('lost_fumbles', 0)
+                # player_stats.off_fum_rec_td = o.get('own_rec_tds', 0)
+                # player_stats.two_pt_conv = o.get('successes', 0)
+
+                # set all properties with these fieldnames to 0
+                fieldnames = player_stats_model_class.SCORING_FIELDS
+                for fieldname in fieldnames:
+                    setattr(player_stats_model, fieldname, 0)
+                    player_stats_model.save()
 
     def update(self, game_srid):
         """
@@ -107,7 +142,8 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         :return: a dictionary of player stats objects built from the most recent parse of the feed
         """
 
-        player_stats_dict = {}  # we will add player_stats_data dicts to this object using the players srid as the key
+        self.mongo_player_srids = [] # initialization. clear this list each time update() is called
+        player_stats_dict = {} # we will add player_stats_data dicts to this object using the players srid as the key
 
         mongo_objects = self.get_player_stats_for(game_srid)
         logger.info('%s player stats found in the MongoDB for game %s' % (
@@ -118,6 +154,11 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
             # print(str(o)) # debug print if you want to see each mongo object
 
             player_srid = o.get('id')
+
+            # add this player_srid to the list of ones we've updated
+            self.mongo_player_srids.append(player_srid)
+
+            # update mongo players found
             player_stats = player_stats_dict.get(player_srid)
             if player_stats is None:
                 # create it if it doesnt exist
@@ -177,6 +218,10 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
 
                 ##################################################################
                 ##################################################################
+
+        # update to zero out EXISTING non-DST PlayerStats for player srids (for this game)
+        # which were not found in mongo -- it means they were removed from the raw feed!
+        self.update_existing_player_stats(game_srid, self.mongo_player_srids)
 
         # return the complete player data
         return player_stats_dict
