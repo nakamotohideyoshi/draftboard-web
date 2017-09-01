@@ -363,7 +363,7 @@ class UserCurrentAPIView(AbstractLineupAPIView):
 
     def get_queryset(self):
         """
-        get live/upcoming lineups
+        get live & upcoming lineups
         """
         return Lineup.objects.filter(
             user=self.request.user,
