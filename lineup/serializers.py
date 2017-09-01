@@ -227,7 +227,7 @@ class LineupCurrentSerializer(serializers.ModelSerializer):
 
 
 class LineupLiveSerializer(LineupCurrentSerializer):
-    players = PlayerSerializer(many=True, read_only=True)
+    players = PlayerWithStatsSerializer(many=True, read_only=True)
 
     class Meta:
         model = Lineup

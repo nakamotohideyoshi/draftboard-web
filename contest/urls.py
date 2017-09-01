@@ -77,6 +77,8 @@ urlpatterns = [
     # be viewed by any user, and will mask out
     # players who are not yet starting.
     url(r'^lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)/$', SingleLineupView.as_view()),
+
+    # I don't know htf this is different than the one above.
     url(r'^lineup/(?P<lineup_id>[0-9]+)/$', SingleContestLineupView.as_view()),
 
     #
