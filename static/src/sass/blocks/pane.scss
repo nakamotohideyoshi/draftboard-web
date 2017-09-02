@@ -131,7 +131,7 @@
       .user-drawer{
         transition: max-height .4s ease-in-out;
         //transition-delay: .4s;
-        max-height: 700px;
+        max-height: 900px;
       }
     }
   }
@@ -203,7 +203,7 @@
       & > dl{
         display: grid;
         padding: 10px 0 0;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         & > dd{
           grid-column: span 1;
           text-align: center;
