@@ -1,84 +1,167 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-// import log from '../../lib/logging';
+import log from '../../lib/logging';
 
+// these static maps are completely because the api blows
+// KR TD | PR TD | FR TD
+const labelMap = {
+  pass_yds: 'PASS YD',
+  pass_td: 'PASS TD',
+  ints: 'INT',
+  rush_yds: 'RUSH YD',
+  rush_td: 'RUSH TD',
+  fum_rec: 'FUM',
+  rec_rec: 'REC',
+  rec_yds: 'REC YD',
+  rec_td: 'REC TD',
+  two_pt_conv: '2PC',
+};
+// needed to fill out the rows
+const defaultPlayers = {
+  QB: [
+    'pass_yds',
+    'pass_td',
+    'ints',
+    'rush_yds',
+    'rush_td',
+    'fum_rec',
+  ],
+  RB: [
+    'rush_yds',
+    'rush_td',
+    'rec_rec',
+    'rec_yds',
+    'rec_td',
+    'fum_rec',
+  ],
+  WR: [
+    'rec_rec',
+    'rec_yds',
+    'rec_td',
+    'rush_yds',
+    'rush_td',
+    'fum_rec',
+  ],
+  TE: [
+    'rec_rec',
+    'rec_yds',
+    'rec_td',
+    'rush_yds',
+    'rush_td',
+    'fum_rec',
+  ],
+  FX: [
+    'rec_rec',
+    'rec_yds',
+    'rec_td',
+    'rush_yds',
+    'rush_td',
+    'fum_rec',
+  ],
+};
 class PlayerStats extends Component {
-  componentWillMount() {
-    this.setState(
-      {
-        hasStats: false,
-      }
+  getItemDefaultMarkup(pos) {
+    return defaultPlayers[pos].map((entry) =>
+      <dd className={`card-${entry}`}>
+        <dl>
+          <dt>{this.getLabel(entry, labelMap)}</dt>
+          <dd>0</dd>
+        </dl>
+      </dd>
     );
   }
-  componentDidMount() {
-    this.checkForStats();
-  }
-
-  getStatItems() {
-    const statItems = [];
-    const playerStats = this.buildPlayerStatArray(this.props.player_stats);
-
-    for (let i = 0; i < playerStats.length; i++) {
-      for (const key in playerStats[i]) {
-        if (playerStats[i].hasOwnProperty(key) && playerStats[i][key] !== 0) {
-          let item = key;
-          let value = Math.floor(playerStats[i][key] * 100) / 100;
-          if (item === 'fp_change') {
-            item = 'fp_cng';
-          }
-          if (item === 'rush_yds') {
-            item = 'rsh_yds';
-          }
-          if (item !== 'children') {
-            statItems.push([
-              <dd key={item} className={`card-${item}`}>
-                <dl>
-                  <dt>{this.makeLabels(item)}</dt>
-                  <dd ref={key} >{value}</dd>
-                </dl>
-              </dd>,
-            ]);
-          }
+  getItemMarkup(stats, pos) {
+    for (const key in stats) {
+      if (stats.hasOwnProperty(key) && key !== 'children') {
+        const tmparray = [];
+        let item = this.getLabel(key, labelMap);
+        let value = Math.floor(stats[key] * 100) / 100;
+        log.info(key);
+        // if the item exists in default and has no value show it
+        if (defaultPlayers[pos].indexOf(key) >= 0 && stats[key] === 0) {
+          tmparray.push([
+            <dd key={item} className={`card-${item}`}>
+              <dl>
+                <dt>{item}</dt>
+                <dd ref={key}>{value}</dd>
+              </dl>
+            </dd>,
+          ]);
+          // if the value is not 0 show it
+        } else if (stats[key] !== 0) {
+          tmparray.push([
+            <dd key={item} className={`card-${item}`}>
+              <dl>
+                <dt>{item}</dt>
+                <dd ref={key}>{value}</dd>
+              </dl>
+            </dd>,
+          ]);
         }
+        return tmparray;
       }
     }
-    return statItems;
   }
-
-  checkForStats() {
-    const arr = this.buildPlayerStatArray(this.props.player_stats);
-    if (arr.length > 0) {
-      this.setState({ hasStats: true });
+  // grabs the proper label for the stat from a map
+  getLabel(item, lmap) {
+    let label = '';
+    for (const labelkey in lmap) {
+      if (lmap.hasOwnProperty(labelkey) && item === labelkey) {
+        label = lmap[labelkey];
+      }
     }
+    return label;
   }
-
-  playerStatsBlackList(stat) {
+  // build the actual markup for stats
+  getStatItems() {
+    const playerStats = this.buildPlayerStatArray(this.props.players);
+    const position = this.props.players.roster_spot;
+    let markup;
+    if (this.props.players.player_stats !== undefined) {
+      if (this.props.players.player_stats.length > 0) {
+        markup = playerStats.map((playerstat) =>
+          this.getItemMarkup(playerstat, position)
+        );
+      } else {
+        // if the stats array is empty get the default
+        markup = [this.getItemDefaultMarkup(position)];
+      }
+    } else {
+      // not sure if I should have this here
+      // it adds stats to the live panel
+      markup = [this.getItemDefaultMarkup(position)];
+    }
+    return markup;
+  }
+  // helper for picking out values we don't want.
+  playerStatsWhiteList(stat) {
     // this api is ridiculous
     // so much repeated values that already
     // exist in the parent
     // we need to seriously think about using graphQL
-    const blacklist = [
-      'created',
-      'updated',
-      'srid_game',
-      'srid_player',
-      'player_id',
-      'player_type',
-      'game_type',
-      'game_id',
-      'position',
-      'fantasy_points',
+    const whitelist = [
+      'pass_yds',
+      'pass_td',
+      'ints',
+      'rush_yds',
+      'rush_td',
+      'fum_rec',
+      'rec_rec',
+      'rec_yds',
+      'rec_td',
+      'two_pt_conv',
     ];
-    return blacklist.indexOf(stat) !== -1;
+    return whitelist.indexOf(stat) !== -1;
   }
-
+  // perform some data cleanup before sending
+  // it off to the markup render
   buildPlayerStatArray(player) {
     const stats = [];
     if (player.player_stats && player.player_stats.length) {
       for (const stat in player.player_stats[0]) {
         if (player.player_stats[0].hasOwnProperty(stat)) {
           // if not in blacklist push
-          if (!this.playerStatsBlackList(stat)) {
+          if (this.playerStatsWhiteList(stat)) {
             const statobj = {};
             statobj[stat] = player.player_stats[0][stat];
             stats.push(statobj);
@@ -89,17 +172,9 @@ class PlayerStats extends Component {
     return stats;
   }
 
-  makeLabels(item) {
-    return item.split('_').join(' ');
-  }
-
   render() {
-    let hasStats = '';
-    if (this.state.hasStats) {
-      hasStats = 'has-stats';
-    }
     return (
-      <div className={`stats ${hasStats}`}>
+      <div className="stats">
         <dl>{this.getStatItems()}</dl>
       </div>
     );
@@ -108,7 +183,7 @@ class PlayerStats extends Component {
 
 PlayerStats.propTypes = {
   children: PropTypes.element,
-  player_stats: PropTypes.object,
+  players: PropTypes.object,
 };
 
 export default PlayerStats;

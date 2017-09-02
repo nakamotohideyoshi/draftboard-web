@@ -44,7 +44,7 @@ const ResultsLineup = React.createClass({
       points: React.PropTypes.number,
       potentialWinnings: React.PropTypes.object,
     }),
-    fetchContestResults: React.PropTypes.func.isRequired,
+    fetchContestResults: React.PropTypes.func,
   },
 
   mixins: [PureRenderMixin],
@@ -69,7 +69,6 @@ const ResultsLineup = React.createClass({
   handleShowContestPane(contestId, entry, isLive) {
     // Don't show contest details for the live lineup view.
     // It's broken and we want to send people to the live section anyway.
-    log.info('is clicking?');
     if (!isLive) {
       this.props.fetchContestResults(contestId);
       this.setState({
@@ -97,7 +96,6 @@ const ResultsLineup = React.createClass({
     // const isLive = this.props.hasOwnProperty('liveStats');
     const isUpcoming = isTimeInFuture(this.props.start);
     const isFinished = this.props.hasOwnProperty('stats');
-    log.info(isFinished);
     let totalFP = 0;
 
     const players = this.props.players.map((player) => {
@@ -122,6 +120,7 @@ const ResultsLineup = React.createClass({
       if (score === 0) {
         scoreClassName += ' score-zero';
       }
+      log.info(player);
       return (
         <li
           key={player.player_id}
@@ -150,7 +149,7 @@ const ResultsLineup = React.createClass({
               </span>
             </span>
           </div>
-          <PlayerStats player_stats={player} />
+          <PlayerStats players={player} />
         </li>
       );
     });
@@ -388,7 +387,6 @@ ${this.props.liveStats.entries}`}
     if (!this.state.renderLineup) className += ' hover';
     if (this.state.renderContestPane) {
       className += ' shown-contest-pane';
-      log.info(this.state.renderContestPane);
     }
 
     return (

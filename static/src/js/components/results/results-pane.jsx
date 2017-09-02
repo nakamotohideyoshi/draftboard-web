@@ -11,6 +11,7 @@ import Player from '../card/Player.jsx';
 import PlayerStats from '../card/PlayerStats.jsx';
 import ReactDom from 'react-dom';
 
+
 const ResultsPane = React.createClass({
   propTypes: {
     contestId: React.PropTypes.number,
@@ -74,9 +75,13 @@ const ResultsPane = React.createClass({
     for (let i = 0; i < stats.length; i++) {
       if (stats[i].data.length) {
         if (player.player_meta.srid === stats[i].data[0].srid_player) {
+          tmpobj.roster_spot = player.roster_spot;
           tmpobj.player_stats.push(stats[i].data[0]);
-          return (<PlayerStats player_stats={tmpobj} />);
+          return (<PlayerStats players={tmpobj} />);
         }
+      } else {
+        tmpobj.roster_spot = player.roster_spot;
+        return (<PlayerStats players={tmpobj} />);
       }
     }
   },
@@ -134,11 +139,6 @@ const ResultsPane = React.createClass({
             <div className="grid-col-1">{fpts}</div>
           </div>
           <div className="grid grid-col-3 user-drawer">
-            <header className="player-grid grid-col-3">
-              <h6 className="grid-col-2">pos</h6>
-              <h6 className="grid-col-6 header-player-info">player</h6>
-              <h6 className="grid-col-1 right-align">points</h6>
-            </header>
             {lineupPlayers}
           </div>
         </div>

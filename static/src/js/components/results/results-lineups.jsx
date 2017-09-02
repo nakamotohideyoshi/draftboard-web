@@ -30,7 +30,7 @@ const ResultsLineups = (props) => {
 ResultsLineups.propTypes = {
   isWatchingLive: React.PropTypes.bool,
   lineups: React.PropTypes.array.isRequired,
-  fetchContestResults: React.PropTypes.func.isRequired,
+  fetchContestResults: React.PropTypes.func,
 };
 
 export default ResultsLineups;
