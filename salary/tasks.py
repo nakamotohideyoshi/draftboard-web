@@ -35,7 +35,7 @@ def check_current_projections_week(self):
 
 
 @app.task(name='salary.tasks.generate_salaries_from_statscom_projections_nfl', bind=True)
-def generate_salaries_from_statscom_projections_nfl(self):
+def generate_salaries_from_statscom_projections_nfl(self, week=None):
     from salary.classes import (
         SalaryGeneratorFromProjections,
         PlayerProjection,
@@ -48,7 +48,7 @@ def generate_salaries_from_statscom_projections_nfl(self):
         api = FantasyProjectionsNFL()
         # projections = api.get_projections(week=1)
         # player_projections = api.get_player_projections(week=1)
-        player_projections = api.get_player_projections()
+        player_projections = api.get_player_projections(week=week)
 
         Pool.objects.all().count()
         pool = Pool.objects.get(site_sport__name='nfl')
