@@ -86,8 +86,12 @@ const NavScoreboardFilters = React.createClass({
    * Change selected menu item.
    */
   handleChangeSelection(option) {
+    const sidebar = document.querySelector('aside.sidebar');
     const results = this.props.options.filter((opt) => opt.option === option);
     const { type, key } = results[0];
+
+    sidebar.classList.remove('nfl', 'mlb', 'nba', 'nhl');
+    sidebar.classList.add(key);
 
     this.props.onChangeSelection(option, type, key);
     this.handleMenuLeave();

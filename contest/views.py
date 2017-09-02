@@ -379,8 +379,13 @@ class SingleLineupView(View):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, contest_id, lineup_id):
+        lineup = get_object_or_404(
+            Lineup,
+            id=lineup_id
+        )
+
         clm = ContestLineupManager(contest_id=contest_id)
-        lineup_data = clm.get_lineup_data(user=request.user, lineup_id=lineup_id)
+        lineup_data = clm.get_lineup_data(user=lineup.user, lineup_id=lineup_id)
 
         return HttpResponse(json.dumps(lineup_data), content_type="application/json")
 
@@ -395,13 +400,18 @@ class SingleContestLineupView(View):
 
     def get(self, request, lineup_id):
         entries = Entry.objects.filter(lineup__pk=lineup_id).exclude(contest__pk=None)
+        lineup = get_object_or_404(
+            Lineup,
+            id=lineup_id
+        )
+
         if entries.count() == 0:
             no_return_data = []
             return HttpResponse(json.dumps(no_return_data), content_type="application/json")
         else:
             contest = entries[0].contest
             clm = ContestLineupManager(contest_id=contest.pk)
-            lineup_data = clm.get_lineup_data(user=request.user, lineup_id=lineup_id)
+            lineup_data = clm.get_lineup_data(user=lineup.user, lineup_id=lineup_id)
             return HttpResponse(json.dumps(lineup_data), content_type="application/json")
 
 

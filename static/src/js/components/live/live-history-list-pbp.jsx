@@ -13,7 +13,7 @@ const block = 'live-history-list-pbp';
 
 export default React.createClass({
   propTypes: {
-    id: React.PropTypes.number.isRequired,
+    id: React.PropTypes.string.isRequired,
     sport: React.PropTypes.string.isRequired,
     description: React.PropTypes.string.isRequired,
     lineup: React.PropTypes.string.isRequired,

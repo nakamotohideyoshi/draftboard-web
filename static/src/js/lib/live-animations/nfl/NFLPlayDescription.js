@@ -48,15 +48,18 @@ const tokenizeDescription = recap => {
     const receiver = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.receive__list.player'));
     const completedYards = Math.round((recap.passingYards() + recap.rushingYards()) * 100);
     const attemptedYards = get(recap._obj, 'pbp.statistics.pass__list.att_yards', '404');
+    const isUnknownReceiver = receiver.text === 'Unknown Player';
 
-    if (recap.isTouchdown()) {
-      tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} and the touchdown!`];
-    } else if (recap.isTurnover() && endYardline === 50) {
-      tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} to the 50`];
+    if (recap.isTurnover() && isUnknownReceiver) {
+      tokens = [qb, 'pass intercepted!'];
     } else if (recap.isTurnover()) {
-      tokens = [qb, 'pass intercepted! Intended for', receiver];
+      tokens = [qb, 'pass intercepted! Intended for', receiver, '.'];
+    } if (recap.isTouchdown()) {
+      tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} and the touchdown!`];
+    } else if (recap.isIncompletePass() && isUnknownReceiver) {
+      tokens = [qb, `${attemptedYards} yard pass incomplete.`];
     } else if (recap.isIncompletePass()) {
-      tokens = [qb, `${attemptedYards} yard pass incomplete. Intended for`, receiver];
+      tokens = [qb, `${attemptedYards} yard pass incomplete. Intended for`, receiver, '.'];
     } else {
       tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} to the ${endMarket} ${endYardline}.`];
     }
