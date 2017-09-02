@@ -7,9 +7,10 @@ import React from 'react';
 import ResultsPane from './results-pane';
 import LiveContestDetailPane from './live-contest-detail-pane';
 import CardFooter from '../card/CardFooter';
+import PlayerStats from '../card/PlayerStats';
 import CountdownClock from '../site/countdown-clock';
 import log from '../../lib/logging';
-
+import ReactDom from 'react-dom';
 
 const ResultsLineup = React.createClass({
 
@@ -82,7 +83,15 @@ const ResultsLineup = React.createClass({
   handleHideContestPane() {
     this.setState({ renderContestPane: false });
   },
-
+  toggleStats(noderef) {
+    const node = ReactDom.findDOMNode(this.refs[noderef]);
+    const allNodes = document.querySelectorAll('.user-row');
+    // turn off open rows
+    for (let i = 0; i < allNodes.length; i++) {
+      allNodes[i].classList.remove('show');
+    }
+    node.classList.toggle('show');
+  },
   renderLineup() {
     const { sport } = this.props;
     // const isLive = this.props.hasOwnProperty('liveStats');
@@ -94,7 +103,6 @@ const ResultsLineup = React.createClass({
     const players = this.props.players.map((player) => {
       let decimalRemaining = 0;
       totalFP += player.fantasy_points;
-
       // if live, then show progress bar
       if (this.props.isWatchingLive === true && isUpcoming === false) {
         decimalRemaining = player.timeRemaining.decimal;
@@ -114,31 +122,35 @@ const ResultsLineup = React.createClass({
       if (score === 0) {
         scoreClassName += ' score-zero';
       }
-
       return (
-        <li key={player.player_id} className="cmp-lineup-card__player">
-          <span className="cmp-lineup-card__position">{player.roster_spot}</span>
-
-
-          <PlayerPmrHeadshotComponent
-            colors={['46495e', '36b5cc', '214e9d']}
-            decimalRemaining={decimalRemaining}
-            modifiers={['results']}
-            playerSrid={player.player_meta.srid}
-            sport={sport}
-            uniquePmrId={`pmr-live-lineup-player-${player.id}`}
-            width={28}
-          />
-
-          <span className="cmp-lineup-card__name-game">
-            <span className="name">{player.full_name}</span>
-          </span>
-          <span className="team">{team}</span>
-          <span className={`cmp-lineup-card__emvalue ${scoreClassName}`}>
-            <span className="text">
-              {score}
+        <li
+          key={player.player_id}
+          ref={player.player_id}
+          className="cmp-lineup-card__player"
+          onClick={() => this.toggleStats(player.player_id)}
+        >
+          <div className="cmp-lineup-card__player__wrap">
+            <span className="cmp-lineup-card__position">{player.roster_spot}</span>
+            <PlayerPmrHeadshotComponent
+              colors={['46495e', '36b5cc', '214e9d']}
+              decimalRemaining={decimalRemaining}
+              modifiers={['results']}
+              playerSrid={player.player_meta.srid}
+              sport={sport}
+              uniquePmrId={`pmr-live-lineup-player-${player.id}`}
+              width={28}
+            />
+            <span className="cmp-lineup-card__name-game">
+              <span className="name">{player.full_name}</span>
             </span>
-          </span>
+            <span className="team">{team}</span>
+            <span className={`cmp-lineup-card__emvalue ${scoreClassName}`}>
+              <span className="text">
+                {score}
+              </span>
+            </span>
+          </div>
+          <PlayerStats player_stats={player} />
         </li>
       );
     });

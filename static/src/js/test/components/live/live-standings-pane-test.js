@@ -40,6 +40,29 @@ describe('<LiveStandingsPane /> Component', () => {
           potentialWinnings: 18,
           rank: 1,
         },
+        19: {
+          draftGroupId: 17,
+          id: 19,
+          name: 'Example Lineup Name',
+          roster: [
+            331,
+            101,
+            381,
+            205,
+            9,
+            92,
+            103,
+            25,
+          ],
+          sport: 'nba',
+          fp: 51.75,
+          timeRemaining: {
+            duration: 384,
+            decimal: 0.9999,
+          },
+          potentialWinnings: 18,
+          rank: 1,
+        },
         20: {
           draftGroupId: 17,
           id: 20,
@@ -67,9 +90,10 @@ describe('<LiveStandingsPane /> Component', () => {
       hasLineupsUsernames: true,
       lineupsUsernames: {
         18: 'ppgogo',
+        19: 'justen',
         20: 'anson',
       },
-      rankedLineups: [18, 20],
+      rankedLineups: [18, 19, 20],
       prize: {
         info: {
           buyin: 1,
@@ -99,7 +123,7 @@ describe('<LiveStandingsPane /> Component', () => {
     document.body.innerHTML = '';
   });
 
-  it('should render a div', () => {
+  it('should render a div if more than two lineups are present', () => {
     const wrapper = renderComponent(defaultTestProps);
 
     expect(wrapper.find('.live-standings-pane')).to.have.length(1);
@@ -118,8 +142,7 @@ describe('<LiveStandingsPane /> Component', () => {
 
   it('should render standings properly', () => {
     const wrapper = renderComponent(defaultTestProps);
-
-    expect(wrapper.find(LivePMRProgressBar)).to.have.length('2');
+    expect(wrapper.find(LivePMRProgressBar)).to.have.length('3');
   });
 
   // TODO add in tests for iterativeRelaxation

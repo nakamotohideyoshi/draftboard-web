@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)$', PlayersAPIView.as_view()),
 
     #
-    # get a logged in user's upcoming contests
+    # get a logged in user's live & upcoming  contests
     url(r'^current/$', UserCurrentAPIView.as_view()),
 
     #

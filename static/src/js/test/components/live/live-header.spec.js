@@ -76,6 +76,19 @@ describe('<LiveHeader /> Component', () => {
         isLoading: false,
         potentialWinnings: 25,  // relevant field
         rank: 1,
+        lineups: {
+          2: {
+            isLoading: false,
+            potentialWinnings: 80,
+            fp: 32,
+            id: 2,
+            name: 'My Name',
+            timeRemaining: {
+              decimal: 0.5,
+              duration: 88,
+            },
+          },
+        },
       },
       lineups: [],
       selectLineup: () => {},
@@ -111,6 +124,19 @@ describe('<LiveHeader /> Component', () => {
         name: 'Foo',
         potentialWinnings: 25,
         rank: 1,
+        lineups: {
+          2: {
+            isLoading: false,
+            potentialWinnings: 80,
+            fp: 32,
+            id: 2,
+            name: 'My Name',
+            timeRemaining: {
+              decimal: 0.5,
+              duration: 88,
+            },
+          },
+        },
       },
       myLineup: {
         isLoading: false,

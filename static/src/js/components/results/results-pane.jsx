@@ -8,11 +8,10 @@ import { Provider, connect } from 'react-redux';
 import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
 import Player from '../card/Player.jsx';
-import log from '../../lib/logging';
+import PlayerStats from '../card/PlayerStats.jsx';
 import ReactDom from 'react-dom';
 
 const ResultsPane = React.createClass({
-
   propTypes: {
     contestId: React.PropTypes.number,
     dispatch: React.PropTypes.func.isRequired,
@@ -68,17 +67,19 @@ const ResultsPane = React.createClass({
       );
     });
   },
-
-
-  handleHide() {
-    this.props.onHide();
+  // there is no spoon
+  getPlayerStats(player, stats) {
+    const tmpobj = {};
+    tmpobj.player_stats = [];
+    for (let i = 0; i < stats.length; i++) {
+      if (stats[i].data.length) {
+        if (player.player_meta.srid === stats[i].data[0].srid_player) {
+          tmpobj.player_stats.push(stats[i].data[0]);
+          return (<PlayerStats player_stats={tmpobj} />);
+        }
+      }
+    }
   },
-
-  // When a tab is clicked, tell the state to show it'scontent.
-  handleTabClick(tabName) {
-    this.setState({ activeTab: tabName });
-  },
-
   toggleDrawer(noderef) {
     const node = ReactDom.findDOMNode(this.refs[noderef]);
     const allNodes = document.querySelectorAll('.user-row');
@@ -88,18 +89,23 @@ const ResultsPane = React.createClass({
     }
     node.classList.toggle('show');
   },
-
+  // When a tab is clicked, tell the state to show it'scontent.
+  handleTabClick(tabName) {
+    this.setState({ activeTab: tabName });
+  },
+  handleHide() {
+    this.props.onHide();
+  },
   renderStandings(rankedEntries) {
     const standings = rankedEntries.map((entry) => {
       const payout = entry.payout ? entry.payout.amount : 0.0;
       const fpts = entry.fantasy_points > 0 ? entry.fantasy_points : 0;
+      const playerStats = entry.player_stats;
       let lineupPlayers = [];
-      log.info(entry);
       if (entry.lineup) {
         lineupPlayers = entry.lineup.players.map((player) => {
           const playerImageUrl =
             `${window.dfs.playerImagesBaseUrl}/${entry.lineup.sport}/120/${player.player_meta.srid}.png`;
-          log.info(player);
           return (
             <Player
               classes="grid-col-3"
@@ -109,7 +115,9 @@ const ResultsPane = React.createClass({
               ffpg={player.fantasy_points}
               image={playerImageUrl}
               meta={`${player.player_meta.team.market} - ${player.player_meta.team.name}`}
-            />
+            >
+              {this.getPlayerStats(player, playerStats)}
+            </Player>
           );
         });
       }

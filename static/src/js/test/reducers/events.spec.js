@@ -10,7 +10,7 @@ describe('reducers.events', () => {
   it('should return the initial state', () => {
     assert.deepEqual(defaultState, {
       currentEvent: null,
-      bigEvents: [],
+      history: [],
       queue: [],
       playerEventDescriptions: {},
       playerHistories: {},
@@ -53,23 +53,23 @@ describe('reducers.events', () => {
     );
   });
 
-  it('should handle EVENT_ADD_TO_BIG_QUEUE', () => {
+  it('should handle EVENT_ADD_TO_HISTORY', () => {
     // should work normally
     assert.deepEqual(
       reducer({
         currentEvent: null,
-        bigEvents: [{ foo: 'bar' }],
+        history: [{ foo: 'bar' }],
         queue: [],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
       }, {
-        type: types.EVENT_ADD_TO_BIG_QUEUE,
+        type: types.EVENT_ADD_TO_HISTORY,
         value: { bar: 'baz' },
       }),
       {
         currentEvent: null,
-        bigEvents: [{ foo: 'bar' }, { bar: 'baz' }],
+        history: [{ foo: 'bar' }, { bar: 'baz' }],
         queue: [],
         playerEventDescriptions: {},
         playerHistories: {},
@@ -77,24 +77,24 @@ describe('reducers.events', () => {
       }
     );
 
-    const bigEvents = [];
+    const history = [];
     for (let i = 1; i <= 50; i++) {
-      bigEvents.push(i);
+      history.push(i);
     }
 
     const initialState = reducer({
       currentEvent: null,
-      bigEvents,
+      history,
       queue: [],
       playerEventDescriptions: {},
       playerHistories: {},
       playersPlaying: [],
     }, {
-      type: types.EVENT_ADD_TO_BIG_QUEUE,
+      type: types.EVENT_ADD_TO_HISTORY,
       value: 51,
     });
 
-    assert.equal(50, initialState.bigEvents.length);
+    assert.equal(50, initialState.history.length);
   });
 
   it('should handle EVENT_GAME_QUEUE_PUSH', () => {

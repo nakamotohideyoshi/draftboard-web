@@ -99,7 +99,13 @@ INACTIVE_USERS_EMAILS = [
     'dan@draftboard.com',
 ]
 
+
+# ANALYTICS settings
+# ----------------------------------------------------------
+# These codes are for PRODUCTION ONLY. Don't copy them to another settings file.
 KISS_ANALYTICS_CODE = '38999ef9bc7158192a6d6dfcc27004c48ed13538'
+GOOGLE_ANALYTICS_CODE = 'UA-105596980-1'
+
 
 # Production GIDX credentials
 GIDX_CUSTOMER_ID_PREFIX = ''

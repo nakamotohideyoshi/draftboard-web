@@ -1,12 +1,14 @@
-#
-# classes.py
+from logging import getLogger
 
-from sports.classes import (
-    SiteSportManager,
-)
 from dataden.classes import (
     RecentGamePlayerStats,
 )
+from sports.classes import (
+    SiteSportManager,
+)
+
+logger = getLogger('sports.nfl.classes')
+
 
 class MyPlayerStats:
     """
@@ -32,18 +34,19 @@ class MyPlayerStats:
         members = vars(self)  # get the dict of variable name to values
         return members
 
+
 class NflRecentGamePlayerStats(RecentGamePlayerStats):
     """
     abstract parent for getting all player stats for
     specified games based on the most recently parsed data.
     """
 
-    collection = 'player'           # the mongo collection name to query from.
-    parent_api = 'stats'            # the dataden name of the raw stats feed where player game stats are found.
-    game_id_field = 'game__id'      # the mongo object field name of the game srid.
+    collection = 'player'  # the mongo collection name to query from.
+    parent_api = 'stats'  # the dataden name of the raw stats feed where player game stats are found.
+    game_id_field = 'game__id'  # the mongo object field name of the game srid.
 
-    sport = 'nfl'                   # draftboard sport name
-    db = 'nflo'                     # mongo db name
+    sport = 'nfl'  # draftboard sport name
+    db = 'nflo'  # mongo db name
 
     def __init__(self):
         super().__init__(self.db)
@@ -55,7 +58,7 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         site_sport_manager = SiteSportManager()
         site_sport = site_sport_manager.get_site_sport(self.sport)
         player_stats_model_classes = site_sport_manager.get_player_stats_classes(site_sport)
-        return player_stats_model_classes[0]   # return first element - nfl only has 1
+        return player_stats_model_classes[0]  # return first element - nfl only has 1
 
     def get_my_player_stats_instance(self):
         """
@@ -65,12 +68,13 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         fieldnames = player_stats_model_class.SCORING_FIELDS
         # debug print the 'defaults' -- the zeroed out initial fields that represent the player stats
         mps = MyPlayerStats(fieldnames)
-        #print('new MyPlayerStats() instance. (shows default fields):', str(mps)) # TODO remove debug
+        # print('new MyPlayerStats() instance. (shows default fields):', str(mps)) # TODO remove debug
         return mps
 
     def update_existing_player_stats(self, game_srid, exclude_player_srids=[]):
         """
-        query draftboard Playerstats for this game, and zero the stats for any players NOT FOUND in exclude_player_srids
+        query draftboard Playerstats for this game, and zero the stats for any players NOT FOUND in
+        exclude_player_srids
 
         :param game_srid:
         :return:
@@ -138,6 +142,8 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
             setattr(player_stats, fieldname, var)
             player_stats.save()
 
+        #logger.info('Wiped all stats for player no longer in SR feed. Player: %s' % (player_stats_model))
+
     def update(self, game_srid):
         """
         update PlayerStats models for this sport using recent parse of the stats
@@ -181,21 +187,23 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
                 #print('SHOULD CREATE NEW PLAYERSTATS OBJECT FOR: ' + str(srid))
                 self.create_player_stats_model(game_srid, player_srid, my_player_stats_instance)
 
+        logger.info('Player stat correction sync complete for game: %s', game_srid)
+
     def build_data(self, game_srid):
         """
         build a dictionary of player stats objects which very closely resemble
         the sports.<sport>.models.PlayerStats objects from the most recent parse of the stats feed.
 
-        :param mongo_player_stats:
+        :param game_srid:
         :return: a dictionary of player stats objects built from the most recent parse of the feed
         """
 
         self.mongo_player_srids = [] # initialization. clear this list each time update() is called
-
         player_stats_dict = {} # we will add player_stats_data dicts to this object using the players srid as the key
 
         mongo_objects = self.get_player_stats_for(game_srid)
-        print('mongo_objects.count():', str(mongo_objects.count())) # TODO remove debug
+        logger.info('%s player stats found in the MongoDB for game %s' % (
+            mongo_objects.count(), game_srid))
 
         # iterate all the objects and compile all the stats for each player
         for o in mongo_objects:
@@ -212,18 +220,17 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
                 # create it if it doesnt exist
                 player_stats = self.get_my_player_stats_instance()
 
-                player_name = ''
-                try:
-                    # its not required to get, but helps when/if debug printing
-                    player_name = o.get('name', '')
-                except:
-                    pass
-                setattr(player_stats, 'who_am_i', player_name)
+                # player_name = ''
+                # try:
+                #     # its not required to get, but helps when/if debug printing
+                #     player_name = o.get('name', '')
+                # except:
+                #     pass
+                # setattr(player_stats, 'who_am_i', player_name)
 
                 # stash it in the dict of all players we've come accross having stats
                 player_stats_dict[player_srid] = player_stats
 
-            ##################################################################
             ##################################################################
             # the code below needs to do the same thing as
             # the parser for this sport when it updates PlayerStats models
@@ -265,8 +272,8 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
             elif parent_list == "conversions__list":
                 player_stats.two_pt_conv = o.get('successes', 0)
 
-            ##################################################################
-            ##################################################################
+                ##################################################################
+                ##################################################################
 
         # update to zero out EXISTING non-DST PlayerStats for player srids (for this game)
         # which were not found in mongo -- it means they were removed from the raw feed!
@@ -274,4 +281,3 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
 
         # return the complete player data
         return player_stats_dict
-

@@ -1591,12 +1591,18 @@ class GameScheduleParserTest(AbstractTest):
 
         # change the status again - to the final state it should ever be in if it successfully
         # finished
+        verify = 'verify'
         closed = 'closed'
         data['status'] = closed
         data = self.__parse_obj(self.sport, 'game', data)
         qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
         self.assertEquals(1, qs.count())  # there should still only be 1
         game = qs[0]
+        # First it goes into manual verificatons state
+        self.assertEquals(verify, game.status)
+        # Now if we manually change it to closed, it should go to that.
+        game.status=closed
+        game.save()
         self.assertEquals(closed, game.status)
 
         #
