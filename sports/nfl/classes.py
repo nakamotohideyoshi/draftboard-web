@@ -111,7 +111,6 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         :return:
         """
 
-        #print('find player by srid: ' + str(player_srid))
         site_sport_manager = SiteSportManager()
         site_sport = site_sport_manager.get_site_sport('nfl')
         player_model_class = site_sport_manager.get_player_class(site_sport)
@@ -120,11 +119,9 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         try:
             player = player_model_class.objects.get(srid=player_srid)
         except player_model_class.DoesNotExist:
-            return # if they were never in the database, they wont be in draft group and we should not deal with that here!
-
-        #print('found player: ' + str(player))
-
-        print('create_player_stats_model() for: ' + str(my_player_stats_instance))
+            # if they were never in the database, they wont be in draft group and we should not
+            # deal with that here! - Probably means they are defensive players.
+            return
 
         player_stats_model_class = self.get_player_stats_model_class()
 
@@ -137,12 +134,13 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         player_stats.game = game_model_class.objects.get(srid=game_srid)
         player_stats.srid_player = player_srid
         player_stats.player = player
+
         for fieldname, var in my_player_stats_instance.get_vars().items():
-            #print('    %s : %s' % (str(fieldname), str(var)))
             setattr(player_stats, fieldname, var)
             player_stats.save()
 
-        #logger.info('Wiped all stats for player no longer in SR feed. Player: %s' % (player_stats_model))
+        logger.info('Missing PlayerStats model created for player: %s | srid: %s' % (
+            player, player_srid))
 
     def update(self, game_srid):
         """
@@ -170,7 +168,6 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         for player_stats_model in player_stats_models:
             player_srid = player_stats_model.srid_player
 
-            #
             draftboard_player_srids.append(player_srid)
 
             my_player_stats = player_stats_data.get(player_srid, None)
@@ -184,7 +181,6 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         for player_srid, my_player_stats_instance in player_stats_data.items():
             if player_srid not in draftboard_player_srids:
                 # create a new PlayerStats object!
-                #print('SHOULD CREATE NEW PLAYERSTATS OBJECT FOR: ' + str(srid))
                 self.create_player_stats_model(game_srid, player_srid, my_player_stats_instance)
 
         logger.info('Player stat correction sync complete for game: %s', game_srid)
