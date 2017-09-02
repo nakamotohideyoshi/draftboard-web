@@ -104,8 +104,43 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
                     setattr(player_stats_model, fieldname, 0)
                     player_stats_model.save()
 
-                logger.info('Wiped all stats for player no longer in SR feed. Player: %s' % (
-                    player_stats_model))
+    def create_player_stats_model(self, game_srid, player_srid, my_player_stats_instance):
+        """
+        create a new PlayerStats model instance from the fields of the 'mongo_obj'
+        :param mongo_obj:
+        :return:
+        """
+
+        site_sport_manager = SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport('nfl')
+        player_model_class = site_sport_manager.get_player_class(site_sport)
+        game_model_class = site_sport_manager.get_game_class(site_sport)
+
+        try:
+            player = player_model_class.objects.get(srid=player_srid)
+        except player_model_class.DoesNotExist:
+            # if they were never in the database, they wont be in draft group and we should not
+            # deal with that here! - Probably means they are defensive players.
+            return
+
+        player_stats_model_class = self.get_player_stats_model_class()
+
+        # get new instance
+        player_stats = player_stats_model_class()
+
+        # set all properties with these fieldnames to 0
+        player_stats.position = player.position # use the position from their Player object
+        player_stats.srid_game = game_srid
+        player_stats.game = game_model_class.objects.get(srid=game_srid)
+        player_stats.srid_player = player_srid
+        player_stats.player = player
+
+        for fieldname, var in my_player_stats_instance.get_vars().items():
+            setattr(player_stats, fieldname, var)
+            player_stats.save()
+
+        logger.info('Missing PlayerStats model created for player: %s | srid: %s' % (
+            player, player_srid))
 
     def update(self, game_srid):
         """
@@ -126,14 +161,27 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         player_stats_model_class = self.get_player_stats_model_class()
         player_stats_models = player_stats_model_class.objects.filter(srid_game=game_srid)
 
+        # keep track of the draftboard player srids we have a PlayerStats object for
+        draftboard_player_srids = []
+
         # update any of them that have more recent changes
         for player_stats_model in player_stats_models:
             player_srid = player_stats_model.srid_player
+
+            draftboard_player_srids.append(player_srid)
 
             my_player_stats = player_stats_data.get(player_srid, None)
             if my_player_stats is not None:
                 # save() model to django backend if there are any changes
                 self.update_player_stats_model(my_player_stats, player_stats_model)
+
+        # we need to create any PlayerStats objects if we have a
+        # mongo object for a player but no PlayerStats instance!
+        #print('draftboard_player_srids: ' + str(draftboard_player_srids))
+        for player_srid, my_player_stats_instance in player_stats_data.items():
+            if player_srid not in draftboard_player_srids:
+                # create a new PlayerStats object!
+                self.create_player_stats_model(game_srid, player_srid, my_player_stats_instance)
 
         logger.info('Player stat correction sync complete for game: %s', game_srid)
 
