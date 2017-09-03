@@ -67,46 +67,49 @@ const DraftNewLineupCardPlayer = (props) => {
     /* eslint no-param-reassign: 0 */
     return (
       <li className="cmp-lineup-card__player occupied" key={props.player.idx}>
-        <span className="cmp-lineup-card__position">{props.player.name}</span>
-        <div className="circle">
+        <div className="cmp-lineup-card__player__wrap">
+          <span className="cmp-lineup-card__position">{props.player.name}</span>
+          <div className="circle">
+            <span className="cmp-lineup-card__photo"
+              style=
+                {{ backgroundImage: `url(${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png)` }}
+              onError={(tag) => {
+                tag.currentTarget.style.backgroundImage =
+                  require('../../../img/blocks/draft-list/lineup-no-player.png');
+              }}
+            >
+            </span>
+          </div>
+
+
           <span
-            className="cmp-lineup-card__photo"
-            style={{ backgroundImage: `url(${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png)` }}
-            onError={(tag) => {
-              tag.currentTarget.style.backgroundImage = require('../../../img/blocks/draft-list/lineup-no-player.png');
-            }}
+            className="cmp-lineup-card__name-game"
+            onClick={props.onPlayerClick.bind(null, props.player.player.player_id)}
           >
+            <span className="name">
+              {props.player.player.name}
+            </span>
+
+            <span className="game">
+              {getFormattedGame(
+                props.player.player.game_srid,
+                props.player.player.team_srid,
+                props.draftGroupBoxScores
+              )}
+              </span>
+          </span>
+
+          <span className="cmp-lineup-card__average">
+            <span className="text">${props.player.player.salary.toLocaleString('en')}</span>
+          </span>
+
+          <span
+            className="cmp-lineup-card__delete"
+            onClick={props.removePlayer.bind(null, props.player.player.player_id)}
+          >
+            <div className="icon"></div>
           </span>
         </div>
-
-
-        <span
-          className="cmp-lineup-card__name-game"
-          onClick={props.onPlayerClick.bind(null, props.player.player.player_id)}
-        >
-          <span className="name">
-            {props.player.player.name}
-          </span>
-
-          <span className="game">
-            {getFormattedGame(
-              props.player.player.game_srid,
-              props.player.player.team_srid,
-              props.draftGroupBoxScores
-            )}
-            </span>
-        </span>
-
-        <span className="cmp-lineup-card__average">
-          <span className="text">${props.player.player.salary.toLocaleString('en')}</span>
-        </span>
-
-        <span
-          className="cmp-lineup-card__delete"
-          onClick={props.removePlayer.bind(null, props.player.player.player_id)}
-        >
-          <div className="icon"></div>
-        </span>
       </li>
     );
     /* eslint-enable no-param-reassign */
@@ -114,30 +117,32 @@ const DraftNewLineupCardPlayer = (props) => {
 
   return (
     <li className="cmp-lineup-card__player vacant" key={props.player.idx}>
-      <span className="cmp-lineup-card__position">{props.player.name}</span>
-      <div className="circle">
-        <span
-          className="cmp-lineup-card__photo"
-          style={{ backgroundImage: `url(${require('../../../img/blocks/draft-list/lineup-no-player.png')})` }}
-        >
-
-        </span>
-      </div>
-
-      <span className="cmp-lineup-card__name-game">
-        <span className="name">
+      <div className="cmp-lineup-card__player__wrap">
+        <span className="cmp-lineup-card__position">{props.player.name}</span>
+        <div className="circle">
           <span
-            className="placeholder"
-            onClick={props.onEmtpySlotClick.bind(null, props.player.name)}
+            className="cmp-lineup-card__photo"
+            style={{ backgroundImage: `url(${require('../../../img/blocks/draft-list/lineup-no-player.png')})` }}
           >
-              {getDefaultPlaceholder(props.player.name)}
-          </span>
-          <span className="cmp-lineup-card__team">&nbsp;</span>
-        </span>
-        <span className="salary">&nbsp;</span>
-      </span>
 
-      <span className="cmp-lineup-card__average">&nbsp;</span>
+          </span>
+        </div>
+
+        <span className="cmp-lineup-card__name-game">
+          <span className="name">
+            <span
+              className="placeholder"
+              onClick={props.onEmtpySlotClick.bind(null, props.player.name)}
+            >
+                {getDefaultPlaceholder(props.player.name)}
+            </span>
+            <span className="cmp-lineup-card__team">&nbsp;</span>
+          </span>
+          <span className="salary">&nbsp;</span>
+        </span>
+
+        <span className="cmp-lineup-card__average">&nbsp;</span>
+      </div>
     </li>
   );
 };

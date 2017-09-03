@@ -1410,7 +1410,7 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                             #     logger.info("Applying random_adjust %s to %s" % (
                             #         random_amount, player))
                             #     salary.amount += salary.random_adjust_amount
-                            
+
                         # If stats says they aren't playing. Leave their salary as-is and exit.
                         else:
                             logger.warning(
