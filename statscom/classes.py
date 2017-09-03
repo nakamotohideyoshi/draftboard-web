@@ -275,7 +275,8 @@ class Stats(object):
     def find_player(self, first_name, last_name, pid):
         """
         may return None if a draftboard player with the same First & Last name cant be found
-        AND a player with this first name & last name & player id (third party player id -- a 'pid' ) cant be found.
+        AND a player with this first name & last name & player id (third party player id -- a 'pid')
+        cant be found.
 
         :param first_name:
         :param last_name:
@@ -284,10 +285,15 @@ class Stats(object):
         """
         model_class = self.get_player_model_class()
         try:
-            return self.get_sport_players().get(first_name=first_name, last_name=last_name)
+            return self.get_sport_players().get(
+                first_name__iexact=first_name,
+                last_name__iexact=last_name,
+                on_active_roster=True
+            )
 
         except (model_class.MultipleObjectsReturned, model_class.DoesNotExist):
-            logger.info('%s.player not found for %s %s' % (self.sport, first_name, last_name))
+            logger.info('%s.player (%s) not found for %s %s' % (
+                model_class, self.sport, first_name, last_name))
             # check the lookup table
             return self.find_player_in_lookup_table(first_name, last_name, pid)
 

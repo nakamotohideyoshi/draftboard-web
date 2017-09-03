@@ -73,8 +73,11 @@ def generate_salaries_from_statscom_projections_nfl(self, week=None):
             salary_generator = SalaryGeneratorFromProjections(
                 player_projections, PlayerProjection, pool, slack_updates=settings.SLACK_UPDATES)
             salary_generator.generate_salaries()
-
+        except Exception as e:
+            logger.error(e)
+            client.captureException()
         finally:
+            logger.info('action: generate_salaries_from_statscom_projections_nfl - releasing lock')
             release_lock()
 
     else:
