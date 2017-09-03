@@ -43,26 +43,28 @@ const getFormattedGame = (playerTeamSrid, boxScores) => {
 /* eslint no-param-reassign: 0 */
 const LineupCardPlayer = (props) => (
   <li className="cmp-lineup-card__player">
-    <span className="cmp-lineup-card__position">{props.player.roster_spot}</span>
-    <div className="circle">
-      <span
-        className="cmp-lineup-card__photo"
-        style={{ backgroundImage: `url(${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png)` }}
-        onError={(tag) => {
-          tag.currentTarget.style.backgroundImage = require('../../../img/blocks/draft-list/lineup-no-player.png');
-        }}
-      >
+    <div className="cmp-lineup-card__player__wrap">
+      <span className="cmp-lineup-card__position">{props.player.roster_spot}</span>
+      <div className="circle">
+        <span
+          className="cmp-lineup-card__photo"
+          style={{ backgroundImage: `url(${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png)` }}
+          onError={(tag) => {
+            tag.currentTarget.style.backgroundImage = require('../../../img/blocks/draft-list/lineup-no-player.png');
+          }}
+        >
+        </span>
+      </div>
+      <span className="cmp-lineup-card__name-game">
+        <span className="name">{props.player.player_meta.first_name} {props.player.player_meta.last_name}</span>
+        <span className="game">
+          {getFormattedGame(props.player.player_meta.team.srid, props.draftGroupInfo.boxScores)}
+        </span>
+      </span>
+      <span className="cmp-lineup-card__average">
+        <span className="text">${ props.player.salary.toLocaleString('en') }</span>
       </span>
     </div>
-    <span className="cmp-lineup-card__name-game">
-      <span className="name">{props.player.player_meta.first_name} {props.player.player_meta.last_name}</span>
-      <span className="game">
-        {getFormattedGame(props.player.player_meta.team.srid, props.draftGroupInfo.boxScores)}
-      </span>
-    </span>
-    <span className="cmp-lineup-card__average">
-      <span className="text">${ props.player.salary.toLocaleString('en') }</span>
-    </span>
   </li>
 );
 /* eslint-enable no-param-reassign */
