@@ -1351,12 +1351,6 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                     if player.player_stats_list[0].position in pos_arr:
                         salary = self.get_salary_for_player(player.player)
 
-                        # If the player's salary is locked, exit out of this loop iteration and
-                        # don't update the salary amount.
-                        if salary.salary_locked:
-                            logger.info('Player salary is locked, not updating. %s' % player)
-                            continue
-
                         # retrieve the DK + FD actual salaries for this players
                         # SalaryPlayerStatsProjectionObject
                         proj_obj = player.player_stats_list[0]
@@ -1364,6 +1358,16 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
                         sal_fd = proj_obj.sal_fd
                         salary.sal_dk = sal_dk
                         salary.sal_fd = sal_fd
+                        salary.save()
+
+                        # If the player's salary is locked, exit out of this loop iteration and
+                        # don't update the salary amount - still save dk+fd updates though.
+                        if salary.salary_locked:
+                            logger.info(
+                                'Player salary is locked, not updating (only dk+fd projections '
+                                'changed). %s' % player)
+                            continue
+
                         # Update various salary attributes.
                         salary.flagged = player.flagged
                         salary.pool = self.pool
