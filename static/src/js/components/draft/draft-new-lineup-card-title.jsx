@@ -33,6 +33,7 @@ const DraftNewLineupCardTitle = React.createClass({
           value={this.state.title}
           placeholder={this.props.title}
           onChange={this.handleChange}
+          maxLength="22"
         />
 
       </div>
