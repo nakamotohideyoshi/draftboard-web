@@ -156,21 +156,12 @@ class FantasyProjectionsNFL(FantasyProjections):
 
                 # iterate the list of sites which we have projections for until we find
                 # the one we want
-                fantasy_projections_copy = fantasy_projections.copy()
-                for site in fantasy_projections:
-                    if self.default_site in site.get(self.field_name, '').lower():
-                        logger.debug('Site Projection found! %s ' % site)
+                # fantasy_projections_copy = fantasy_projections.copy()
+                site_projections = player_projection.get(self.field_fantasy_projections, [])
 
-                        # try to get the sites own salary for the player for the major sites.
-                        sal_dk = self.get_site_player_salary(fantasy_projections_copy,
-                                                             self.site_dk)
-                        sal_fd = self.get_site_player_salary(fantasy_projections_copy,
-                                                             self.site_fd)
-                        break  # is it possible its never found?
-
-                    else:
-                        logger.debug('%s not found in %s' % (
-                            self.default_site, site.get(self.field_name, '').lower()))
+                # try to get the sites own salary for the player for the major sites.
+                sal_dk = self.get_site_player_salary(site_projections, self.site_dk)
+                sal_fd = self.get_site_player_salary(site_projections, self.site_fd)
 
                 # Extract the player's stat projections and append it to a list of projected
                 # stats. This is the important part - we use these stats to determine the
