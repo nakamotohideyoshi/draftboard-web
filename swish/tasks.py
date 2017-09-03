@@ -90,15 +90,28 @@ def update_lookups(self, sport):
                 site_sport_manager = sports.classes.SiteSportManager()
                 site_sport = site_sport_manager.get_site_sport(sport)
                 player_model_class = site_sport_manager.get_player_class(site_sport)
+                lookup = PlayerLookup.objects.filter(pid=p.get('StatsGlobalId'))
+
                 try:
-                    lookup = PlayerLookup.objects.get(pid=p.get('StatsGlobalId'))
+                    """
+                    There should ONLY be 1 lookup for each player. If we have less than one
+                    or more than one, delete any existing and create a new one.
+                    """
+                    if lookup.count() > 1:
+                        raise IndexError('More than 1 lookup exist!')
+                    # Grab the first one! (this will error out and proceed to create one if
+                    # one does not exist.
+                    lookup = lookup[0]
+
                     if not lookup.player_id and (lookup.sport == sport.upper() or not lookup.sport):
                         lookup.player_id = player_model_class.objects.get(srid=p.get('SportsDataId')).id
                         lookup.player_type = ContentType.objects.get_for_model(player_model_class)
                         if not lookup.sport:
                             lookup.sport = sport.upper()
                         lookup.save()
-                except PlayerLookup.DoesNotExist:
+                # If there is none, or more than one lookup, delete any existing and make a new one.
+                except (PlayerLookup.DoesNotExist, IndexError):
+                    lookup.delete()
                     try:
                         player = player_model_class.objects.get(srid=p.get('SportsDataId'))
                         PlayerLookup.objects.create(
@@ -109,6 +122,7 @@ def update_lookups(self, sport):
                             first_name=player.first_name,
                             last_name=player.last_name
                         )
+                        logger.info('Created lookup for: %s' % player)
                         # Increase the counter.
                         lookups_created = lookups_created + 1
                     except player_model_class.DoesNotExist:
