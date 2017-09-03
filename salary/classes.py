@@ -551,8 +551,9 @@ class SalaryGenerator(FppgGenerator):
             # print('pos min override check: %s' % str(salary))
             sport = self.pool.site_sport.name
             if sport == 'nfl':
-                qb = 6000.0
+                qb = 5000.0
                 if salary.primary_roster.name == 'QB' and salary.amount < qb:
+                    logger.info('Setting QB to minimun salary of %s - %s' % (qb, salary))
                     salary.amount = qb
                     salary.save()
                     #     print('   *changed %s' % str(salary))

@@ -3,7 +3,10 @@ from logging import getLogger
 
 import pytz
 
+from scoring.models import StatPoint
 from statscom.classes import FantasyProjections, ProjectionsWeekWebhook
+from statscom.constants import STATPOINT_TO_STATSCOM_NFL
+from statscom.player import get_fantasy_point_projection_from_stats_projection
 
 logger = getLogger('statscom.sports.nfl')
 # For all scheduling purposes, EST is assumed
@@ -59,7 +62,9 @@ class PlayerProjectionNFL(object):
 
 class FantasyProjectionsNFL(FantasyProjections):
     endpoint_current_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
-    endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'  # append week number
+    # append week number
+    endpoint_weekly_projections = '/stats/football/nfl/fantasyProjections/weekly/'
+    stat_map = STATPOINT_TO_STATSCOM_NFL
 
     field_offensive_projections = 'offensiveProjections'
     field_defensive_projections = 'defensiveProjections'
@@ -77,6 +82,11 @@ class FantasyProjectionsNFL(FantasyProjections):
 
     def __init__(self):
         super().__init__('nfl')
+        # this instance lets us get player data by players' stats.com id
+
+        self.scoring_system_stat_points = StatPoint.objects.filter(score_system__sport='nfl')
+        logger.info('Using scoring system: %s' % self.scoring_system_stat_points)
+        logger.info('Using statpoint map: %s' % self.stat_map)
 
     def get_projections(self, week=None):
         """
@@ -86,7 +96,8 @@ class FantasyProjectionsNFL(FantasyProjections):
 
             ['offensiveProjections', 'week', 'defensiveProjections']
 
-        if a week number is specified, this will return the projections for that week (for current season)
+        if a week number is specified, this will return the projections for that
+        week (for current season)
         """
         endpoint = self.endpoint_weekly_projections
         if week is not None:
@@ -101,57 +112,81 @@ class FantasyProjectionsNFL(FantasyProjections):
         """
 
         data = self.get_projections(week=week)
-        offensive_projections = data.get(self.field_offensive_projections)
+        # grab the offensive player's stat projections.
+        fantasy_projections = data.get(self.field_offensive_projections)
         player_projections = []
         no_lookups = []
-        for proj in offensive_projections:
+
+        # For each player, add prjoected player stats.
+        for player_projection in fantasy_projections:
             # get the players position
-            position = proj.get(self.field_position)
+            position = player_projection.get(self.field_position)
 
             # lookup the player in our database by matching the full name
-            player_data = proj.get(self.field_player)
+            player_data = player_projection.get(self.field_player)
             pid = player_data.get(self.field_player_id)
             first_name = player_data.get(self.field_first_name)
             last_name = player_data.get(self.field_last_name)
 
             # look up this third party api player in our own db
             player = self.find_player(first_name, last_name, pid)
+
+            # We don't have the player in our local db.
             if player is None:
-                player_string = 'pid[%s] player[%s %s] position[%s]' % (
-                pid, first_name, last_name, position)
+                player_string = 'pid[%s] player[%s] position[%s]' % (
+                    str(pid), str(first_name + ' ' + last_name), str(position))
                 no_lookups.append(player_string)
-                logger.warning("Couldn't lookup: %s" % player_string)
-                continue
+                err_msg = 'COULD NOT LOOKUP -> %s' % player_string
+                logger.warning(err_msg)
 
-            #
-            fantasy_projections = proj.get(self.field_fantasy_projections, [])
-            if len(fantasy_projections) == 0:
-                raise Exception('field not found: %s' % self.field_fantasy_projections)
+            else:
+                logger.debug('Player found: %s %s' % (first_name, last_name))
+                # Figure out what we think their FP will be based on the projected stats from
+                # STATS.com.
+                sal_dk = None
+                sal_fd = None
 
-            # iterate the list of sites which we have projections for until we find the one we want
-            fantasy_projections_copy = fantasy_projections.copy()
-            for site in fantasy_projections:
-                if self.default_site in site.get(self.field_name, '').lower():
-                    # append a new a salary.classes.PlayerProjection to our return list and break
-                    fantasy_points = site.get(self.field_points)
+                our_projected_fp = get_fantasy_point_projection_from_stats_projection(
+                    stat_points=self.scoring_system_stat_points,
+                    stats_projections=player_projection,
+                    stat_map=self.stat_map
+                )
+                logger.info('player: %s | calculated FP: %s | stats.com projections: %s' % (
+                    player, our_projected_fp, player_projection))
 
-                    # try to get the sites own salary for the player for the major sites.
-                    sal_dk = self.get_site_player_salary(fantasy_projections_copy, self.site_dk)
-                    sal_fd = self.get_site_player_salary(fantasy_projections_copy, self.site_fd)
+                # iterate the list of sites which we have projections for until we find
+                # the one we want
+                fantasy_projections_copy = fantasy_projections.copy()
+                for site in fantasy_projections:
+                    if self.default_site in site.get(self.field_name, '').lower():
+                        logger.debug('Site Projection found! %s ' % site)
 
-                    player_projections.append(self.build_player_projection(player, fantasy_points,
-                                                                           sal_dk=sal_dk,
-                                                                           sal_fd=sal_fd))
-                    break
+                        # try to get the sites own salary for the player for the major sites.
+                        sal_dk = self.get_site_player_salary(fantasy_projections_copy,
+                                                             self.site_dk)
+                        sal_fd = self.get_site_player_salary(fantasy_projections_copy,
+                                                             self.site_fd)
+                        break  # is it possible its never found?
 
-        # send slack webhook with the players we couldnt link
+                    else:
+                        logger.debug('%s not found in %s' % (
+                            self.default_site, site.get(self.field_name, '').lower()))
+
+                # Extract the player's stat projections and append it to a list of projected
+                # stats. This is the important part - we use these stats to determine the
+                # player's salary.
+                projection = self.build_player_projection(
+                    player, our_projected_fp, sal_dk=sal_dk, sal_fd=sal_fd)
+
+                player_projections.append(projection)
+
+        # # send slack webhook with the players we couldnt link
         num_players_without_lookup = len(no_lookups)
         if num_players_without_lookup > 0:
             webhook = ProjectionsWeekWebhook()
             webhook.send('check draftboard.com/admin/statscom/playerlookup/ '
                          'and link [%s] players!' % str(num_players_without_lookup))
 
-        #
         return player_projections
 
     def get_site_player_salary(self, fantasy_projections, site):
@@ -160,7 +195,8 @@ class FantasyProjectionsNFL(FantasyProjections):
         salary from the list of site projections objects if
         the 'site' param is contained within each site items name property.
 
-        :param fantasy_projections: The projections for the player we've found in the stats.com response
+        :param fantasy_projections: The projections for the player we've found in the stats.com
+                                    response
         :param site: a string, ie: 'draftkings'
         :return: float - the projected salary
         """
