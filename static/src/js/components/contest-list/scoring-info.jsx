@@ -20,7 +20,8 @@ const events = {
     { title: 'Rushing Yard', value: '0.1 pts' },
     { title: 'Rushing TD', value: '6 pts' },
     { title: '2 Point Conversion', value: '2 pts' },
-    { title: 'Fumble Lost', value: '-0.1 pts' },
+    { title: 'Fumble Lost', value: '-1 pts' },
+    { title: 'Return TD', value: '6 pts' },
   ],
   nhl: [],
   mlb: [{
