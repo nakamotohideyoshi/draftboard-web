@@ -68,6 +68,9 @@ $account-height: 600px;
         font-size: 14px;
         font-family: $font-open-sans;
         letter-spacing: 1.5px;
+        margin: 0 auto;
+        width: 70%;
+        max-width: 400px;
       }
 
       &__form {
