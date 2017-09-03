@@ -1392,22 +1392,25 @@ class SalaryGeneratorFromProjections(SalaryGenerator):
 
                             salary.amount = self.__round_salary(salary.amount)
 
+                            # DISABLE RANDOM AMOUNT ADJUSTMENT
+
                             # apply randomization, if pool.random_percent_adjust is non-zero
-                            if self.pool.random_percent_adjust != 0.0:
-                                r_pct = self.pool.random_percent_adjust
-                                #
-                                decimal_places = 1000000
-                                r = Random()
-                                # divide by 100, because its entered as 1.75 for 1.75% on the admin
-                                plus_minus = int(r_pct * decimal_places) / 100
-                                random_pct = r.randrange(plus_minus * -1,
-                                                         plus_minus) / decimal_places
-                                # its + or -, but truncate decimals
-                                random_amount = float(int(salary.amount * random_pct))
-                                salary.random_adjust_amount = random_amount
-                                logger.info("Applying random_adjust %s to %s" % (
-                                    random_amount, player))
-                                salary.amount += salary.random_adjust_amount
+                            # if self.pool.random_percent_adjust != 0.0:
+                            #     r_pct = self.pool.random_percent_adjust
+                            #     #
+                            #     decimal_places = 1000000
+                            #     r = Random()
+                            #     # divide by 100, because its entered as 1.75 for 1.75% on the admin
+                            #     plus_minus = int(r_pct * decimal_places) / 100
+                            #     random_pct = r.randrange(plus_minus * -1,
+                            #                              plus_minus) / decimal_places
+                            #     # its + or -, but truncate decimals
+                            #     random_amount = float(int(salary.amount * random_pct))
+                            #     salary.random_adjust_amount = random_amount
+                            #     logger.info("Applying random_adjust %s to %s" % (
+                            #         random_amount, player))
+                            #     salary.amount += salary.random_adjust_amount
+                            
                         # If stats says they aren't playing. Leave their salary as-is and exit.
                         else:
                             logger.warning(
