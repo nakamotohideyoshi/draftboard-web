@@ -18,14 +18,17 @@ class CardFooter extends React.Component {
       this.startGameTimer(this.props.start);
     }
   }
-
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.start !== this.props.start) {
+      this.startGameTimer(nextProps.start);
+    }
+  }
   // timer cleanup
   componentWillUnmount() {
     if (this.state.timer !== null) {
-      clearInterval(this.state.timer);
+      window.clearInterval(this.state.timer);
     }
   }
-
   // this can be abstracted into
   // libs making this all much cleaner
   getRemainingTime(timestamp) {
@@ -111,7 +114,7 @@ class CardFooter extends React.Component {
   }
 
   startGameTimer(timestamp) {
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       const remaining = this.getRemainingTime(timestamp);
 
       this.refs.hours.textContent = remaining.hours;

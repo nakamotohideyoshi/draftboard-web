@@ -2,6 +2,7 @@ import React from 'react';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
+// import log from '../../lib/logging';
 // import classnames from 'classnames';
 import CardFooter from '../card/CardFooter';
 
@@ -31,7 +32,6 @@ const DraftNewLineupCard = React.createClass({
     draftGroupStart: React.PropTypes.string,
   },
 
-
   getDefaultProps() {
     return {
       lineup: [],
@@ -47,8 +47,6 @@ const DraftNewLineupCard = React.createClass({
       lineupTitle: defaultLineupTitle,
     };
   },
-
-
   componentWillReceiveProps(nextProps) {
     if (nextProps.lineupTitle) {
       this.setState({ lineupTitle: nextProps.lineupTitle });

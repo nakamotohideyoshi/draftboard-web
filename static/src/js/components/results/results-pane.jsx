@@ -9,6 +9,7 @@ import { focusedContestResultSelector } from '../../selectors/results-contests';
 import ScoringInfo from '../contest-list/scoring-info';
 import Player from '../card/Player.jsx';
 import PlayerStats from '../card/PlayerStats.jsx';
+// import log from '../../lib/logging';
 import ReactDom from 'react-dom';
 
 
