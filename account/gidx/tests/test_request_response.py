@@ -25,6 +25,7 @@ from ..request import (
     WebCashierPaymentDetailRequest,
     make_web_cashier_payment_detail_request,
 )
+from cash.models import GidxTransaction
 from ..response import (
     CustomerRegistrationResponse,
     WebRegCreateSessionResponse,
@@ -33,6 +34,7 @@ from ..response import (
     is_underage,
     is_location_blocked,
 )
+from cash.classes import CashTransaction
 
 
 class TestCustomerRegistrationRequest(TestCase):
@@ -236,11 +238,16 @@ class TestPaymentDetailRequest(TestCase):
             email="zach@runitonce.com"
         )
 
-    # def tearDown(self):
-    #     self.user.delete()
+    def tearDown(self):
+        self.user.delete()
 
     @responses.activate
     def test_make_web_cashier_payment_detail_request(self):
+        # This is the easiest way to get a user's balance. don't axe me.
+        dummy_transaction = CashTransaction(self.user)
+        initial_balance = dummy_transaction.get_balance_amount()
+        self.assertEqual(initial_balance, 0)
+
         # Mock the response
         responses.add(
             responses.GET,
@@ -249,15 +256,23 @@ class TestPaymentDetailRequest(TestCase):
             status=200,
             content_type='application/json'
         )
-        # # get the response
-        # mock_response_data = requests.get(WebCashierPaymentDetailRequest.url)
-        #
-        # # pass response in to result wrapper
-        # response = WebCashierPaymentDetailRequest(response=mock_response_data)
 
         req = make_web_cashier_payment_detail_request(self.user, 'tid', 'sid')
-        self.assertEqual(True, True)
-        # Make sure we've parsed an embed script (or something that looks like one).
 
+        # Now test the the proper transactions and stuff were created.
 
+        # Get any GidxTransactions that were created because of this payment.
+        cash_transaction = GidxTransaction.objects.filter(
+            merchant_transaction_id=WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS[
+                'MerchantTransactionID'])
 
+        # make sure at least one 'sale' transaction was created (based on the current dummy data,
+        # there should be 1 since we ignore non-sale transactions)
+        self.assertGreater(cash_transaction.count(), 0)
+        # Now make sure the counts  match.
+        self.assertEqual(cash_transaction.count(),1)
+
+        # Make sure the user's balance has been udpated.
+        # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
+        new_balance = dummy_transaction.get_balance_amount()
+        self.assertEqual(new_balance, 20)

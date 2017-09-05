@@ -510,25 +510,19 @@ class WebCashierPaymentDetailRequest(GidxRequest):
 
     def get_successful_deposits(self):
         """
-        Return ony succesfull deposits, not bonus cash or anything like that.
+        Return ony succesfull money deposits, not bonus cash or anything like that.
         :return: List
         """
         payments = self.response_wrapper.json['PaymentDetails']
         ok_deposits = []
 
-        print('\n PAYMENTS === ')
-        print(payments)
-
         # Loop through the payments and pluck out the good ones.
         for payment in payments:
-            print('==========')
-            print(payment)
             # Cast the PaymentStatusCode as a string.. it comes through that way but I don't really
             # trust it because similar fields come through the API as Ints
             if payment['PaymentAmountCode'] == 'Sale' and str(payment['PaymentStatusCode']) == '1':
                 ok_deposits.append(payment)
 
-        print("\nreturning %s deposits" % len(ok_deposits))
         return ok_deposits
 
 
@@ -542,20 +536,20 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
 
     payment_detail_response = payment_detail_request.send()
     transaction_id = payment_detail_response.json['MerchantTransactionID']
-    print('===PAYMENT DETAIL RECIEVED===\n\n')
-    print(payment_detail_response.json)
+    logger.info('Payment detail received: %s' % payment_detail_response.json)
 
     if payment_detail_request.was_success():
         payments = payment_detail_request.get_successful_deposits()
-        from pprint import pprint
 
         for payment in payments:
-            print('\n\n=== creating payment for====\n')
-            pprint(payment)
+            logger.info('Creating transaction for payment: %s' % payment)
             amount = payment['PaymentAmount']
 
+            # Create a gidx cash transaction which will save the transaction to the db and
+            # update the user's balance.
             trans = CashTransaction(user)
             trans.deposit_gidx(amount, transaction_id)
+
             # Create a task that will send the user an email confirming the transaction
             try:
                 send_deposit_receipt.delay(
