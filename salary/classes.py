@@ -1611,7 +1611,7 @@ class SalaryPool2Csv(object):
 
     columns = ['id', 'last_name', 'first_name', 'price_draftboard', 'position',
                'fppg', 'avg_fppg_for_position', 'num_games_included', 'sal_dk', 'sal_fd', 'team',
-               'alias']
+               'alias', 'status', 'is_on_active_roster']
 
     def __init__(self, salary_pool_id, httpresponse=None):
         self.httpresponse = httpresponse  # set streaming to True when returning this csv in an http response
@@ -1642,6 +1642,9 @@ class SalaryPool2Csv(object):
 
             salary.player.team.name,
             salary.player.team.alias,
+
+            salary.player.status,
+            salary.player.on_active_roster
         ])
 
     def generate(self):
