@@ -75,7 +75,9 @@ export default class PlayerAnimation {
         for (let i = 0; i < clip._avatars.length; i++) {
           const avatar = clip._avatars[i];
           if (frame === avatar.in) {
-            timeline.pause();
+            if (avatar.data.pause) {
+              timeline.pause();
+            }
             clip.playAvatar(avatar.name).then(() => {
               timeline.resume();
               return clip;
