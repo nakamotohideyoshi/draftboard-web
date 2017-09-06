@@ -132,7 +132,7 @@ class WebRegCreateSessionResponse(CustomerRegistrationResponse):
         return ''
 
 
-class WebhookResponse(CustomerRegistrationResponse):
+class IdentityStatusWebhookResponse(CustomerRegistrationResponse):
 
     def __init__(self, response_dict, params=None, url=None):
         self.response = response_dict
@@ -154,3 +154,63 @@ class WebhookResponse(CustomerRegistrationResponse):
         # 0 is the 'success' code.
         return self.json['StatusCode'] == 0
 
+
+class GidxTransactionStatusWebhookResponse(object):
+    """
+    A wrapper for the data that GIDX sends to us on these endpoints:
+
+    > api/account/deposit-webhook
+    > api/account/withdraw-webhook
+
+    It should contain an small amount of information about whether or not the deposit was a
+    success or not.
+    """
+    def __init__(self, response_dict):
+        self.response = response_dict
+        # Since this isnt' a `requests` library response, it's just raw json data.
+        self.json = response_dict
+
+    def is_done(self):
+        """
+        Is the payment done? either completed or failed or anything exept pending?
+
+        status codes:
+
+        -1 Payment not found.
+        No payment / transaction was found for the corresponding identifier supplied.
+
+        0 Pending
+        The payment/transaction is pending approval or validation.
+
+        1 Complete
+        The payment/transaction has been Completed.
+
+        2 Ineligible
+        The payment/transaction was ineligible for processing.
+
+        3 Failed
+        The payment/transaction was rejected by the processing provider.
+
+        4 Processing
+        The payment/transaction has been sent to the processor and is awaiting a status update.
+
+        5 Reversed
+        The payment/transaction has been reversed / cancelled by an authorized party.
+
+        :return: bool
+        """
+        # These ones are considered to be processed, we can now fetch their details.
+        complete_statuses = [1, 2, 3, 5]
+        status_code = self.json['TransactionStatusCode']
+
+        # If the payment wasn't found, we need to be notified so we can investigate.
+        if status_code == -1:
+            client.context.merge({'extra': {
+                'response': self.response,
+            }})
+            client.captureMessage(
+                "GIDX Webhook resposnse: `Payment not found'")
+            client.context.clear()
+            raise APIException(detail=self.response.text)
+
+        return status_code in complete_statuses

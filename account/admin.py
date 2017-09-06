@@ -11,10 +11,11 @@ from .utils import reset_user_password_email
 @admin.register(GidxSession)
 class GidxSessionAdmin(admin.ModelAdmin):
     model = GidxSession
-    list_display = ['user', 'reason_codes', 'gidx_customer_id', 'service_type', 'device_location',
+    list_display = ['user', 'service_type', 'gidx_customer_id', 'reason_codes', 'device_location',
                     'created']
-    search_fields = ['user', 'gidx_customer_id', 'device_location']
-    list_filter = ['service_type', 'reason_codes']
+    search_fields = ['user__username', 'gidx_customer_id', 'device_location', 'request_data',
+                     'response_data']
+    list_filter = ['service_type']
     readonly_fields = ['user', 'gidx_customer_id', 'session_id', 'service_type', 'device_location',
                        'request_data', 'created', 'reason_codes', 'response_data']
 

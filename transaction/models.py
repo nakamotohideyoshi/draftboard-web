@@ -71,6 +71,10 @@ class Transaction(models.Model):
         except ObjectDoesNotExist:
             pass
         try:
+            return self.gidx_transaction
+        except ObjectDoesNotExist:
+            pass
+        try:
             return self.payout
         except ObjectDoesNotExist:
             pass

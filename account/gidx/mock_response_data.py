@@ -168,7 +168,6 @@ CUSTOMER_REGISTRATION_EXISTING_MATCH_RESPONSE = {
     'ApiVersion': 3
 }
 
-
 # 500 status code
 SERVICE_ERROR_RESPONSE = {
     'ApiKey': 'k2m9yX4Tl0WXuz8Ahc5muA',
@@ -211,7 +210,6 @@ SERVICE_ERROR_RESPONSE = {
     'WatchChecks': None
 }
 
-
 WEB_REG_SUCCESS_RESPONSE = {
     "SessionID": "c-duZaP4WkCIiZ2sMgWx-Q",
     "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fRegistration%3fsessionid%3dc-duZaP4WkCIiZ2sMgWx-Q%27+data-tsevo-script-tag+data-gidx-session-id%3d%27c-duZaP4WkCIiZ2sMgWx-Q%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
@@ -231,31 +229,30 @@ WEB_REG_SUCCESS_RESPONSE = {
 # TODO: setup a test case for this. The only reason this would happen is if we verified a user,
 # then removed the Identity or set Identity.status to False afterwards.
 WEB_REG_SUCCESS_RESPONSE_ALREADY_VERIFIED = {
-  "SessionExpirationTime": "2017-07-13T20:56:15.447Z",
-  "ApiVersion": 3,
-  "MerchantSessionID": "d56e41c8-504c-437c-bde9-3e65478fb7af",
-  "SessionID": "yQZTImyPoUqhhXVlJCoilQ",
-  "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fRegistration%3fsessionid%3dyQZTImyPoUqhhXVlJCoilQ%27+data-tsevo-script-tag+data-gidx-session-id%3d%27yQZTImyPoUqhhXVlJCoilQ%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
-  "ResponseMessage": "No error.",
-  "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
-  "SessionScore": 75,
-  "ResponseCode": 0,
-  "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
-  "ReasonCodes": [
-    "ID-VERIFIED"
-  ]
+    "SessionExpirationTime": "2017-07-13T20:56:15.447Z",
+    "ApiVersion": 3,
+    "MerchantSessionID": "d56e41c8-504c-437c-bde9-3e65478fb7af",
+    "SessionID": "yQZTImyPoUqhhXVlJCoilQ",
+    "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fRegistration%3fsessionid%3dyQZTImyPoUqhhXVlJCoilQ%27+data-tsevo-script-tag+data-gidx-session-id%3d%27yQZTImyPoUqhhXVlJCoilQ%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
+    "ResponseMessage": "No error.",
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "SessionScore": 75,
+    "ResponseCode": 0,
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "ReasonCodes": [
+        "ID-VERIFIED"
+    ]
 }
-
 
 # WebReg callback webhooks.
 WEBHOOK_COMPLETE = {
-  "StatusCode": 0,
-  "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
-  "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
-  "SessionScore": 50,
-  "ReasonCodes": [],
-  "ServiceType": "Customer Registration",
-  "StatusMessage": "Registration Complete."
+    "StatusCode": 0,
+    "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
+    "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
+    "SessionScore": 50,
+    "ReasonCodes": [],
+    "ServiceType": "Customer Registration",
+    "StatusMessage": "Registration Complete."
 }
 
 WEBHOOK_INELIGIBLE = {
@@ -271,29 +268,29 @@ WEBHOOK_INELIGIBLE = {
 }
 
 WEBHOOK_INCOMPLETE = {
-  "StatusCode": 2,
-  "SessionID": "GP7u13x6Qk2EMFd9qJ9Q4w",
-  "MerchantSessionID": "e0a8cd91-133b-4dcc-8567-91753c1b102a",
-  "SessionScore": 38,
-  "ReasonCodes": [
-    "DFP-IPNM",
-    "ID-FAIL",
-    "ID-UNKN"
-  ],
-  "ServiceType": "Customer Registration",
-  "StatusMessage": "Registration Incomplete. Last reached step is the ID validation page."
+    "StatusCode": 2,
+    "SessionID": "GP7u13x6Qk2EMFd9qJ9Q4w",
+    "MerchantSessionID": "e0a8cd91-133b-4dcc-8567-91753c1b102a",
+    "SessionScore": 38,
+    "ReasonCodes": [
+        "DFP-IPNM",
+        "ID-FAIL",
+        "ID-UNKN"
+    ],
+    "ServiceType": "Customer Registration",
+    "StatusMessage": "Registration Incomplete. Last reached step is the ID validation page."
 }
 
 WEBHOOK_TIMEOUT = {
-  "StatusCode": 3,
-  "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
-  "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
-  "SessionScore": 50,
-  "ReasonCodes": [
+    "StatusCode": 3,
+    "SessionID": "UwMM1ZlLLUezFI410B6ZGg",
+    "MerchantSessionID": "GIDXSB_9c59b4f7-285f-4e14-8b67-a67e8435f426",
+    "SessionScore": 50,
+    "ReasonCodes": [
 
-  ],
-  "ServiceType": "Customer Registration",
-  "StatusMessage": "Registration Timeout."
+    ],
+    "ServiceType": "Customer Registration",
+    "StatusMessage": "Registration Timeout."
 }
 
 # This one might be bogus.
@@ -315,7 +312,6 @@ WEBHOOK_USER_EXISTS = {
         }
         """,
 }
-
 
 # This is fake json, should I make it a python object?? whatever.
 STATUS_REQUEST = {
@@ -351,4 +347,192 @@ STATUS_REQUEST = {
         "LocationServiceLevel": "Auto",
         "Altitude": 'null'
     }
+}
+
+WEB_CASHIER_CREATE_SESSION = {
+    "action": "WEB_CACHIER_CREATE_SESSION_REQUEST",
+    "request": {
+        "ActivityTypeID": "FyP1fg_WkU60JnuIarfOQw",
+        "MerchantCustomerID": "TEST--dan--000000000057",
+        "ProductTypeID": "iiXXab0LtUCUdZ_6vcdtvQ",
+        "CallbackURL": "http://a032f89c.ngrok.io/api/account/identity-webhook/",
+        "DeviceTypeID": "2bDPorOkPkepDd8-6Fydtw",
+        "MerchantSessionID": "f8884ba4-610f-4fda-8fd9-507693dffccc",
+        "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+        "MerchantOrderID": "todo",
+        "MerchantTransactionID": "todo",
+        "CustomerIpAddress": "172.18.0.1",
+        "PayActionCode": "PAY",
+        "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA"
+    },
+    "response": {
+        "ResponseMessage": "No error.",
+        "SessionURL": "%3cdiv+data-gidx-script-loading%3d%27true%27%3eLoading...%3c%2fdiv%3e%3cscript+src%3d%27https%3a%2f%2fws.gidx-service.in%2fv3.0%2fWebSession%2fCashier%3fsessionid%3d5FwmaKgpiEioTDyXyldkRg%27+data-tsevo-script-tag+data-gidx-session-id%3d%275FwmaKgpiEioTDyXyldkRg%27+type%3d%27text%2fjavascript%27%3e%3c%2fscript%3e",
+        "SessionExpirationTime": "2017-08-28T19:22:38.9502224Z",
+        "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+        "ReasonCodes": [
+            "LL-UNKN"
+        ],
+        "MerchantSessionID": "f8884ba4-610f-4fda-8fd9-507693dffccc",
+        "SessionID": "5FwmaKgpiEioTDyXyldkRg",
+        "ApiVersion": 3,
+        "SessionScore": 50,
+        "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+        "ResponseCode": 0
+    },
+    "url": "https://api.gidx-service.in/v3.0/api/WebCashier/CreateSession"
+}
+
+# Callback - WebCashier example from their documentation.
+WEB_CASHIER_CALLBACK = {
+    "StatusCode": 0,
+    "StatusMessage": "Registration is complete. Please call CustomerRegistration method to get registration details.",
+    "SessionID": "X9XeW5FvCEKimOKw59GNPA",
+    "MerchantSessionID": "123_ID_GOES_HERE",
+    "SessionScore": 96.2,
+    "ReasonCodes": ["ID-VERIFIED", "LL-GEO-US-TX", "DFP-VPRP-CORP"],
+    "MerchantTransactionID": "1113201405343_1",
+    "TransactionStatusCode": 0,
+    "TransactionStatusMessage": "Pending",
+    "ServiceType": "Payment"
+}
+
+# a webhook from the web cachier app for when a user tries to deposit but has not yet
+# completed identity verification (I think we will not be allowing users to attempt to
+# deposit if they have not yet verified, so this should not happen)
+WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY = {
+    "SessionID": "9tskb__mD0CGwvdmadVzSw",
+    "MerchantTransactionID": "a50d95ec-041b-4d77-bbcd-57d0130c3e60",
+    "MerchantSessionID": "ed5cc90d-2e85-42c8-9fa8-eb7a138cb21b",
+    "StatusCode": 0,
+    "SessionScore": 51,
+    "TransactionStatusCode": 0,
+    "ReasonCodes": [
+        "DFP-IPNM",
+        "LL-UNKN"
+    ],
+    "TransactionStatusMessage": "Pending",
+    "ServiceType": "Payment",
+    "StatusMessage": "Payment Session is Complete."
+}
+
+# After a deposit transaction has been completed succesfully.
+WEB_CASHIER_CALLBACK_SUCCESS = {
+    "MerchantTransactionID": "d191369c-290d-46af-94f3-d7b0db45ab09",
+    "TransactionStatusCode": 1,
+    "TransactionStatusMessage": "Complete",
+    "StatusCode": 0,
+    "SessionID": "YBlhlLkJ6US9-D50Ihvsnw",
+    "MerchantSessionID": "2347cfaa-5e14-44b8-8d0d-5aee5619101a",
+    "SessionScore": 77,
+    "ReasonCodes": [
+        "DFP-IPNM",
+        "ID-VERIFIED",
+        "LL-UNKN"
+    ],
+    "ServiceType": "Payment",
+    "StatusMessage": "Payment Session is Complete."
+}
+
+# Failed transaction callback.
+WEB_CACHIER_PAYOUT_CALLBACK_FAIL = {
+  "MerchantTransactionID": "b831c739-71bf-4ebe-a410-a5a8ff3e7700",
+  "TransactionStatusCode": 3,
+  "TransactionStatusMessage": "Failed",
+  "StatusCode": 0,
+  "SessionID": "zVjQ0fUD6U-IDc9Iu4C0zA",
+  "MerchantSessionID": "81841e1f-1c15-421c-b9bd-d92d3d9869b4",
+  "SessionScore": 77,
+  "ReasonCodes": [
+    "DFP-IPNM",
+    "ID-VERIFIED",
+    "LL-UNKN"
+  ],
+  "ServiceType": "Payment",
+  "StatusMessage": "Payment Session is Complete."
+}
+
+WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS = {
+    "MerchantSessionID": "175f91a3-dfa4-44ec-b57d-8eebb52adce9",
+    "ResponseMessage": "No error.",
+    "MerchantTransactionID": "a14537b8-680e-4c72-a3ff-37a428bac4b5",
+    "PaymentDetails": [
+        {
+            "PaymentAmountCode": "Bonus",
+            "PaymentMethodAccount": "Visa",
+            "PaymentStatusDateTime": "2017-08-30T21:24:26.14Z",
+            "PaymentAmount": 3,
+            "PaymentMethodToken": "sGDQqxgyjUyTjJqbNiTjAQ",
+            "CurrencyCode": "USD",
+            "PaymentAmountType": "Credit",
+            "FinancialConfidenceScore": 50,
+            "PaymentStatusMessage": "Complete",
+            "PaymentStatusCode": "1",
+            "PaymentProcessDateTime": "2017-08-30T21:24:25.84Z",
+            "PaymentApprovalDateTime": "2017-08-30T21:24:25.2433291Z",
+            "PaymentMethodType": "CC"
+        },
+        {
+            "PaymentAmountCode": "Sale",
+            "PaymentMethodAccount": "Visa",
+            "PaymentStatusDateTime": "2017-08-30T21:24:26.147Z",
+            "PaymentAmount": 20,
+            "PaymentMethodToken": "sGDQqxgyjUyTjJqbNiTjAQ",
+            "CurrencyCode": "USD",
+            "PaymentAmountType": "Credit",
+            "FinancialConfidenceScore": 50,
+            "PaymentStatusMessage": "Complete",
+            "PaymentStatusCode": "1",
+            "PaymentProcessDateTime": "2017-08-30T21:24:25.81Z",
+            "PaymentApprovalDateTime": "2017-08-30T21:24:25.2433291Z",
+            "PaymentMethodType": "CC"
+        }
+    ],
+    "ResponseCode": 0,
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "ApiVersion": 3,
+    "FinancialConfidenceScore": 50,
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA"
+}
+
+# A failed Payout detail
+WEB_CACHIER_PAYMENT_DETAIL_REQUEST_FAIL = {
+  "url": "https://api.gidx-service.in/v3.0/api/WebCashier/PaymentDetail",
+  "request": {
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantSessionID": "81841e1f-1c15-421c-b9bd-d92d3d9869b4",
+    "MerchantTransactionID": "b831c739-71bf-4ebe-a410-a5a8ff3e7700",
+    "ProductTypeID": "iiXXab0LtUCUdZ_6vcdtvQ",
+    "DeviceTypeID": "2bDPorOkPkepDd8-6Fydtw",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "ActivityTypeID": "FyP1fg_WkU60JnuIarfOQw"
+  },
+  "action": "WEB_CACHIER_PAYMENT_DETAIL_REQUEST",
+  "response": {
+    "ResponseMessage": "No error.",
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantTransactionID": "b831c739-71bf-4ebe-a410-a5a8ff3e7700",
+    "ApiVersion": 3,
+    "FinancialConfidenceScore": 50,
+    "PaymentDetails": [
+      {
+        "PaymentAmountCode": "Sale",
+        "PaymentStatusDateTime": "2017-09-06T02:26:47.31Z",
+        "PaymentStatusCode": "3",
+        "PaymentAmount": 10,
+        "PaymentMethodAccount": "PayPal",
+        "PaymentApprovalDateTime": "2017-09-06T02:26:40.9755862Z",
+        "CurrencyCode": "USD",
+        "PaymentStatusMessage": "Failed",
+        "PaymentAmountType": "Debit",
+        "FinancialConfidenceScore": 50,
+        "PaymentMethodType": "EWALLET",
+        "PaymentProcessDateTime": "2017-09-06T02:26:41.433Z",
+        "PaymentMethodToken": "aJKaSX0TzkiEni0aRk9xZA"
+      }
+    ],
+    "MerchantSessionID": "81841e1f-1c15-421c-b9bd-d92d3d9869b4",
+    "ResponseCode": 0,
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA"
+  }
 }
