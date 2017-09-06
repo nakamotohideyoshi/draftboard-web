@@ -23,6 +23,39 @@ const mapDispatchToProps = (dispatch) => ({
   }, dispatch),
 });
 
+const sortAsc = arr => arr.sort((a, b) => a.x - b.x);
+const sortDesc = arr => arr.sort((a, b) => b.x - a.x);
+
+const distributeRightToLeft = (lineups, minDist) => sortDesc(lineups).reduce((results, lineup) => {
+  const curPos = lineup;
+  if (results.length) {
+    const prevPos = results[results.length - 1];
+    const isOverlapping = (prevPos.x - curPos.x) < minDist;
+    if (isOverlapping) {
+      curPos.x = Math.max(0, Math.min(1, prevPos.x - minDist));
+    }
+  }
+  return results.concat([curPos]);
+}, []);
+
+const distributeLeftToRight = (lineups, minDist) => sortAsc(lineups).reduce((results, lineup) => {
+  const curPos = lineup;
+  if (results.length) {
+    const prevPos = results[results.length - 1];
+    const isOverlapping = (curPos.x - prevPos.x) < minDist;
+    if (isOverlapping) {
+      curPos.x = Math.max(0, Math.min(1, prevPos.x + minDist));
+    }
+  }
+  return results.concat([curPos]);
+}, []);
+
+const alignItems = (lineups, minDist) => {
+  distributeRightToLeft(lineups, minDist);
+  distributeLeftToRight(lineups, minDist);
+  return lineups;
+};
+
 /**
  * When `View Contests` element is clicked, open side pane to show
  * a user's current contests for that lineup.
@@ -45,41 +78,90 @@ export const LiveStandingsPane = React.createClass({
     }),
   },
 
-  /**
-   * Returns the username for the lineup if it exists.
-   */
-  getUsernameForLineup(lineupId) {
-    return this.props.contest.lineupsUsernames[lineupId] || '';
+  componentDidMount() {
+    this.alignElements();
+  },
+
+  componentDidUpdate() {
+    this.alignElements();
   },
 
   /**
-   * Returns the cross section of lineups that exist in both the `props.lineups`
-   * and in `props.rankedLineups`.
+   * Returns the loaded lineups as ranked lineups.
    */
   getRankedLineups() {
-    return this.props.contest.rankedLineups
-    .filter(lineupId =>
-      // Ignore lineups that have an ID of "1". This is a hold over from previous
-      // code that Justen didn't know why existed, but did exist, so he did not
-      // want to remove it during his refactor. Maybe Craig knows?
-      lineupId !== 1
-    )
-    .map(lineupId => this.props.contest.lineups[lineupId])
+    const { contest } = this.props;
+
+    if (contest.isLoading ||
+      !contest.hasLineupsUsernames ||
+      !contest.rankedLineups) {
+      return [];
+    }
+
+    const prepareLineups = lineups => {
+      const points = lineups.map(lineup => lineup.fp);
+      const minFP = Math.min.apply(null, points);
+      const maxFP = Math.max.apply(null, points);
+      const range = maxFP - minFP;
+
+      return lineups.map(lineup => (
+        {
+          id: lineup.id,
+          fp: lineup.fp,
+          username: contest.lineupsUsernames[lineup.id] || '',
+          rank: lineup.rank,
+          potentialWinnings: lineup.potentialWinnings,
+          timeRemaining: lineup.timeRemaining.decimal,
+          x: (lineup.fp - minFP) / range,
+        }
+      ));
+    };
+
+    // Ignore lineups that have an ID of "1". This is a hold over from previous
+    // code that existed before our refactor. Maybe Craig knows?
+    const lineups = contest.rankedLineups
+    .filter(lineupId => lineupId !== 1)
+    .map(lineupId => contest.lineups[lineupId])
     .sort((a, b) => b.fp - a.fp);
+
+    return prepareLineups(lineups);
   },
 
   /**
-   * Returns an array of positions based on the provided array of lineups.
+   * Helper function for adjusting the position of "points" after the component
+   * renders. This is to ensure the points can be accurately positioned based
+   * on the drawn dimensions of the line.
    */
-  getRankedLineupPositions(lineups) {
-    const points = lineups.map((lineup) => lineup.fp);
-    const minFP = Math.min.apply(null, points);
-    const maxFP = Math.max.apply(null, points);
-    const range = maxFP - minFP;
+  alignElements() {
+    const lineups = this.getRankedLineups();
+    const standingsLineEl = this.refs.standingsline;
+    const moneylineEl = this.refs.moneyline;
+    const numWinners = this.props.contest.prize.info.payout_spots;
+    const lastPosInTheMoney = sortDesc(lineups)[Math.min(numWinners, lineups.length) - 1];
 
-    return lineups.map(lineup =>
-      ((lineup.fp - minFP) / range) * 100
-    );
+    // When testing this will not exist.
+    if (!window.requestAnimationFrame) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      // Get the width of the line to accurately determine the minimum space
+      // between each absolutely positioned dot.
+      const lineWidth = standingsLineEl.offsetWidth;
+      const dotWidth = 15 / lineWidth;
+
+      alignItems(lineups, dotWidth);
+
+      lineups.forEach(lineup => {
+        const lineupEl = this.refs[`lineup-${lineup.id}`];
+        if (lineupEl) {
+          lineupEl.style.left = `${lineup.x * 100}%`;
+        }
+      });
+
+      const moneyLineWidth = 1 - lastPosInTheMoney.x;
+      moneylineEl.style.width = `${moneyLineWidth * 100}%`;
+    });
   },
 
   /**
@@ -103,20 +185,18 @@ export const LiveStandingsPane = React.createClass({
   /**
    * Renders the div for a single lineup.
    */
-  renderMoneyLinePoint(lineup, placement) {
-    const watching = this.props.watching;
-    const decimalRemaining = lineup.timeRemaining.decimal;
+  renderMoneyLinePoint(lineup, watching) {
+    const { id, fp, rank, timeRemaining, potentialWinnings, username } = lineup;
     const className = 'live-standings-pane__point';
-    const potentialWinnings = lineup.potentialWinnings;
 
     let classNames = className;
     let pmrColors = ['46495e', 'aab0be', 'aab0be'];
 
     // if my lineup
-    if (watching.myLineupId === lineup.id) {
+    if (watching.myLineupId === id) {
       pmrColors = ['46495e', '34B4CC', '2871AC'];
       classNames = `${classNames} ${className}--mine`;
-    } else if (watching.opponentLineupId === lineup.id) {
+    } else if (watching.opponentLineupId === id) {
       pmrColors = ['e33c3c', 'b52c4b', '871c5a'];
       classNames = `${classNames} ${className}--opponent`;
     } else if (potentialWinnings !== 0) {
@@ -125,19 +205,14 @@ export const LiveStandingsPane = React.createClass({
       classNames = `${classNames} ${className}--losing`;
     }
 
+    /* eslint-disable max-len */
     return (
-      <div
-        key={lineup.id}
-        className={classNames}
-        onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
-        style={{ left: `${placement}%` }}
-      >
+      <div key={id} ref={`lineup-${id}`} className={classNames} onClick={this.handleViewOpponentLineup.bind(this, id)}>
         <div className="live-standings-pane__inner-point" />
-
         <div className="live-standing live-standings-pane__live-standing">
           <div className="live-standing__info">
             <div className="live-standing__place-and-earning">
-              <div className="live-standing__place">{lineup.rank}</div>
+              <div className="live-standing__place">{rank}</div>
               <div className="live-standing__earning">
                 <div className="live-standing__earning-above">
                   {humanizeCurrency(+(potentialWinnings))}
@@ -145,49 +220,35 @@ export const LiveStandingsPane = React.createClass({
               </div>
             </div>
             <div className="live-standing__pmr">
-              <LivePMRProgressBar
-                colors={pmrColors}
-                decimalRemaining={decimalRemaining}
-                svgWidth={50}
-                id={`${lineup.id}Lineup`}
-              />
+              <LivePMRProgressBar colors={pmrColors} decimalRemaining={timeRemaining} svgWidth={50} id={`${id}Lineup`} />
             </div>
-            <div className="live-standing__username">{this.getUsernameForLineup(lineup.id)}</div>
-            <div className="live-standing__fp">{humanizeFP(lineup.fp)} Pts</div>
+            <div className="live-standing__username">{username}</div>
+            <div className="live-standing__fp">{humanizeFP(fp)} Pts</div>
           </div>
-          {watching.myLineupId !== lineup.id &&
+          {watching.myLineupId !== id &&
             <div className="live-standing__cta">CLICK TO COMPARE LINEUPS</div>
           }
         </div>
       </div>
     );
+    /* eslint-enable max-len */
   },
 
   render() {
-    const { contest } = this.props;
+    const lineups = this.getRankedLineups();
 
-    if (contest.isLoading ||
-      !contest.hasLineupsUsernames ||
-      !contest.rankedLineups ||
-      contest.rankedLineups.length <= 2) {
+    if (!lineups.length) {
       return null;
     }
-
-    const numWinners = contest.prize.info.payout_spots;
-    const lineups = this.getRankedLineups();
-    const positions = this.getRankedLineupPositions(lineups);
-    const lastPosInTheMoney = positions[Math.min(numWinners, positions.length) - 1];
-    const moneyLineWidth = 100 - lastPosInTheMoney;
-    const moneyLinePoints = lineups.map((lineup, index) =>
-      this.renderMoneyLinePoint(lineup, positions[index])
-    );
 
     return (
       <div className="live-standings-pane">
         <div className="live-standings-pane__legend">1ST</div>
-        <div className="live-standings-pane__lineups">
-          <div className="live-standings-pane__moneyline" style={{ width: `${moneyLineWidth}%` }} />
-          {moneyLinePoints}
+        <div ref="standingsline" className="live-standings-pane__lineups">
+          <div ref="moneyline" className="live-standings-pane__moneyline" />
+          {lineups.map(lineup =>
+            this.renderMoneyLinePoint(lineup, this.props.watching)
+          )}
         </div>
         <div className="live-standings-pane__legend">{addOrdinal(lineups.length)}</div>
       </div>
