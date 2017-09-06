@@ -7,7 +7,6 @@ import { addMessage } from './message-actions.js';
 import { fetchCashBalanceIfNeeded } from './user';
 import log from '../lib/logging.js';
 import PubSub from 'pubsub-js';
-import * as responseTypes from '../lib/utils/response-types';
 
 
 export const fetchDepositForm = () => ({
@@ -55,89 +54,44 @@ export const fetchPayPalClientTokenIfNeeded = () => (dispatch, getState) => {
 };
 
 
-function withdrawSuccess(body) {
-  return {
-    type: actionTypes.WITHDRAW_FUNDS_SUCCESS,
-    body,
-  };
-}
+/**
+ * Withdraw funds - This will fetch a gidx drop-in form that will allow the user
+ * to request a funds withdrawal.
+ * @param options
+ */
+export const fetchWithdrawForm = (options) => (dispatch) => {
+  if (!options || !options.amount) {
+    log.error('No Amount!');
+    return;
+  }
 
+  const apiActionResponse = dispatch({
+    // Fetch the GIDX deposit form.
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_WITHDRAW_FORM,
+        actionTypes.FETCH_WITHDRAW_FORM_SUCCESS,
+        actionTypes.FETCH_WITHDRAW_FORM_FAIL,
+      ],
+      endpoint: `/api/cash/withdraw-form/${options.amount}/`,
+      callback: (json) => json,
+    },
+  });
 
-function withdrawFail(body) {
-  return {
-    type: actionTypes.WITHDRAW_FUNDS_FAIL,
-    body,
-  };
-}
+  // If there were errors, show an error banner
+  return apiActionResponse.then((action) => {
+    if (action.error) {
+      return dispatch({
+        type: actionTypes.ADD_MESSAGE,
+        level: 'warning',
+        header: 'Unable to initial withdrawal',
+        content: action.response.detail,
+      });
+    }
 
-
-export function withdraw(postData) {
-  return (dispatch) => {
-    dispatch({
-      type: actionTypes.WITHDRAW_FUNDS,
-    });
-
-    request
-    .post('/api/cash/withdraw/paypal/')
-    .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
-    .send(postData)
-    .end((err, res) => {
-      if (err) {
-        // Placeholder to determine the message to show the user.
-        let content = '';
-
-        // It's a field validation error.
-        if (responseTypes.isFieldValidationErrorObject(res)) {
-          // A general APIException was thown, just show a banner message.
-          if (responseTypes.isExceptionDetail(res)) {
-            content = res.body.detail;
-          }
-
-          // Show error banner to user.
-          dispatch(addMessage({
-            level: 'warning',
-            header: 'Withdraw Failed',
-            content,
-          }));
-
-          return dispatch(withdrawFail(res.body));
-        }
-
-        // If it's an array, it is a vanilla request error.
-        if (responseTypes.isExceptionDetail(res)) {
-          content = res.body[0];
-        }
-
-        // It's a server error.
-        // If there is text provided in the body, display that.
-        if (responseTypes.isRawTextError(res)) {
-          content = res.body;
-        } else {
-          // Otherwise we don't know wtf this is, probably a nasty 500 bubbling up.
-          content = res.statusText;
-        }
-
-        // Show error banner to user.
-        dispatch(addMessage({
-          level: 'warning',
-          header: 'Withdraw Failed',
-          content,
-        }));
-
-        return dispatch(withdrawFail({ nonField: [res.body] }));
-      }
-
-      // Request succeeded.
-      dispatch(addMessage({
-        level: 'success',
-        header: 'Success',
-        content: 'Withdraw request submitted for approval',
-      }));
-      PubSub.publish('account.withdrawSuccess');
-      return dispatch(withdrawSuccess(res));
-    });
-  };
-}
+    return action;
+  });
+};
 
 
 function depositSuccess(body) {

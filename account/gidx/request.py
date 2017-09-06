@@ -1,24 +1,35 @@
 import copy
+import json
 import uuid
 from logging import getLogger
-from django.utils import timezone
+
 import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.exceptions import (APIException, ValidationError)
 
+from cash.classes import CashTransaction
+from mysite.celery_app import app
+from transaction.tasks import send_deposit_receipt
 from .models import GidxSession
 from .response import (CustomerRegistrationResponse, WebRegCreateSessionResponse)
-from mysite.celery_app import app
-from cash.classes import CashTransaction
-from transaction.tasks import send_deposit_receipt
-
 
 logger = getLogger('account.gidx.request')
 
 # We don't want to log or save these fields in our request logs.
 REQUEST_FIELD_BLACKLIST = ['FirstName', 'LastName', 'DateOfBirth']
+
+
+def get_short_uuid():
+    """
+    Paypal only supports 30 char transaction ID limit, so if we use our
+    GIDX_MERCHANT_SESSION_ID_PREFIX and a uuid, it's too dang long. this will crete a uuid4
+    but only return a chunk of it.
+    :return:
+    """
+    return str(uuid.uuid4())[:18]
 
 
 def get_user_from_session_id(session_id):
@@ -120,10 +131,20 @@ class GidxRequest(object):
     def _send(self):
         # Do a simple `None` check on all params
         self.validate_params()
+
         # Make the request!
-        res = requests.post(self.url, self.params)
+        res = requests.post(
+            self.url,
+            data=json.dumps(self.params),
+            headers={'content-type': 'application/json'}
+        )
+
         # Save the response. This will do some basic response error handling.
-        self.response_wrapper = self.responseClass(response=res, params=self.params, url=self.url)
+        self.response_wrapper = self.responseClass(
+            response=res,
+            params=self.params,
+            url=self.url,
+        )
         self.handle_response()
 
         # Return the response wrapper.
@@ -199,7 +220,8 @@ class CustomerRegistrationRequest(GidxRequest):
 
         args = {
             # A unique SessionID from your system assigned to this active session.
-            'MerchantSessionID': '%s%s' % (settings.GIDX_MERCHANT_SESSION_ID_PREFIX, uuid.uuid4()),
+            'MerchantSessionID': '%s%s' % (
+            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'DeviceIpAddress': ip_address,
@@ -332,7 +354,8 @@ class WebRegCreateSession(GidxRequest):
 
         args = {
             # A unique SessionID from your system assigned to this active session.
-            'MerchantSessionID': '%s%s' % (settings.GIDX_MERCHANT_SESSION_ID_PREFIX, uuid.uuid4()),
+            'MerchantSessionID': '%s%s' % (
+            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'CustomerIpAddress': ip_address,
@@ -380,15 +403,16 @@ class WebCashierCreateSession(GidxRequest):
 
         args = {
             # A unique SessionID from your system assigned to this active session.
-            'MerchantSessionID': '%s%s' % (settings.GIDX_MERCHANT_SESSION_ID_PREFIX, uuid.uuid4()),
+            'MerchantSessionID': '%s%s' % (
+            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'CustomerIpAddress': ip_address,
             # Your unique ID for this customer.
             'MerchantCustomerID': get_customer_id_for_user(user),
             'PayActionCode': 'PAY',
-            'MerchantTransactionID': str(uuid.uuid4()),
-            'MerchantOrderID': str(uuid.uuid4()),
+            'MerchantTransactionID': get_short_uuid(),
+            'MerchantOrderID': get_short_uuid(),
             # I can't for the life of me get reverse() to work here. I am sorry.
             'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/deposit-webhook/'),
         }
@@ -491,7 +515,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
         # Call the parent's _send, it does the actual work.
         return self._send()
 
-    def was_success(self):
+    def has_payments(self):
         # we have a successful response
         if self.response_wrapper.json['ResponseCode'] == 0:
             # and there are payment details.
@@ -538,30 +562,128 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
     transaction_id = payment_detail_response.json['MerchantTransactionID']
     logger.info('Payment detail received: %s' % payment_detail_response.json)
 
-    if payment_detail_request.was_success():
+    # The response contains payments...
+    if payment_detail_request.has_payments():
         payments = payment_detail_request.get_successful_deposits()
 
         for payment in payments:
-            logger.info('Creating transaction for payment: %s' % payment)
-            amount = payment['PaymentAmount']
+            # was it a credit (deposit) or debit (withdraw)?
+            payment_type = payment['PaymentAmountType']
 
             # Create a gidx cash transaction which will save the transaction to the db and
             # update the user's balance.
             trans = CashTransaction(user)
-            trans.deposit_gidx(amount, transaction_id)
 
-            # Create a task that will send the user an email confirming the transaction
-            try:
-                send_deposit_receipt.delay(
-                    user, amount, trans.get_balance_string_formatted(), timezone.now())
-            except Exception as e:
-                logger.error(e)
-                client.captureException(e)
+            #
+            # It is a DEPOSIT
+            if payment_type.lower() == 'credit'.lower():
+                if payment['PaymentStatusMessage'] == 'Failed':
+                    logger.warning(
+                        'Deposit payment was not a success, not adding funds. %s' % payment)
+
+                elif payment['PaymentStatusMessage'] == 'Complete':
+                    # Deposit the amount into their account
+                    trans.deposit_gidx(payment['PaymentAmount'], transaction_id)
+
+                    # Create a task that will send the user an email confirming the transaction
+                    try:
+                        send_deposit_receipt.delay(
+                            user, payment['PaymentAmount'], trans.get_balance_string_formatted(),
+                            timezone.now())
+                    except Exception as e:
+                        logger.error(e)
+                        client.captureException(e)
+                else:
+                    raise Exception(
+                        'Unknown PaymentStatusMessage from GIDX payment detail response: %s' % (
+                            payment
+                        ))
+
+            #
+            # It is a PAYOUT
+            elif payment_type.lower() == 'debit'.lower():
+                # The withdraw failed - We can leave everything alone.
+                if payment['PaymentStatusMessage'] == 'Failed':
+                    logger.warning(
+                        'Withdraw was not a success, refunding amount. %s' % payment)
+
+                # Withdraw was a success! We need to withdraw + notify the user.
+                elif payment['PaymentStatusMessage'] == 'Complete':
+                    trans.withdraw_gidx(payment['PaymentAmount'], transaction_id)
+
+                    # Create a task that will send the user an email confirming the transaction
+                    try:
+                        send_deposit_receipt.delay(
+                            user, payment['PaymentAmount'], trans.get_balance_string_formatted(),
+                            timezone.now())
+                    except Exception as e:
+                        logger.error(e)
+                        client.captureException(e)
+                else:
+                    raise Exception(
+                        'Unknown PaymentStatusMessage from GIDX payment detail response: %s' % (
+                            payment
+                        ))
+            else:
+                raise Exception(
+                    'Unknown PaymentAmountType from GIDX payment detail response: %s' % (
+                        payment
+                    ))
 
 
+class WebCashierCreatePayoutSession(GidxRequest):
+    """
+     This method should be called to create a new PAYOUT Cashier Web Session within the GIDX system for
+     payments.
 
+    A payout is just like a depsit except the `PayActionCode` is `PAYOUT` instead of `PAY` and
+    we need to add an amount into the request.
 
+     http://www.tsevo.com/Docs/WebCashier#MethodRef_ID_CreateSession
+    """
 
+    url = 'https://api.gidx-service.in/v3.0/api/WebCashier/CreateSession'
+    service_type = 'WebCashier_CreateSession'
+    responseClass = WebRegCreateSessionResponse
+    action_name = "WEB_CACHIER_CREATE_SESSION_REQUEST"
 
+    def __init__(self, user, ip_address, amount):
+        # Bail immediately if we have no logged-in user.
+        if user is None or not user.is_authenticated():
+            raise APIException('Authenticated user must be provided. - %s' % user)
 
+        self.user = user
 
+        args = {
+            # A unique SessionID from your system assigned to this active session.
+            'MerchantSessionID': '%s%s' % (
+            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
+            # IP address for the current device (The Customers' Device – NOT your servers
+            # IP address) for this active session.
+            'CustomerIpAddress': ip_address,
+            # Your unique ID for this customer.
+            'MerchantCustomerID': get_customer_id_for_user(user),
+            'PayActionCode': 'PAYOUT',
+            'MerchantTransactionID': get_short_uuid(),
+            'MerchantOrderID': get_short_uuid(),
+            # I can't for the life of me get reverse() to work here. I am sorry.
+            'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/withdraw-webhook/'),
+            'CashierPaymentAmount': {
+                'PaymentAmount': amount,
+                'PaymentAmountOverride': True,
+                'PaymentCurrencyCode': 'USD'
+            },
+            'CustomerRegistration': {
+                'CustomerIpAddress': ip_address,
+                'MerchantCustomerID': get_customer_id_for_user(user)
+            }
+        }
+
+        # Combine the base parameters and the supplied arguments into a single dict that
+        # we can pass as POST parameters.
+        self.params.update(self.base_params)
+        self.params.update(args)
+
+    def send(self):
+        # Call the parent's _send, it does the actual work.
+        return self._send()

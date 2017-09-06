@@ -16,13 +16,12 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
-from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
 from rest_framework import response, schemas
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.exceptions import (APIException, ValidationError)
+from rest_framework.exceptions import (ValidationError)
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.response import Response
@@ -30,7 +29,6 @@ from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 import account.tasks
-from account import const as _account_const
 from account.forms import (
     LoginForm,
     SelfExclusionForm,
@@ -47,14 +45,13 @@ from account.gidx.request import (
 )
 from account.gidx.response import (
     IdentityStatusWebhookResponse,
-    DepositStatusWebhookResponse
+    GidxTransactionStatusWebhookResponse
 )
 from account.models import Identity
 from account.models import (
     Information,
     EmailNotification,
     UserEmailNotification,
-    SavedCardDetails,
     Limit
 )
 from account.permissions import (
@@ -71,20 +68,11 @@ from account.serializers import (
     UserSerializerNoPassword,
     UserEmailNotificationSerializer,
     UpdateUserEmailNotificationSerializer,
-    SavedCardSerializer,
-    SetSavedCardDefaultSerializer,
-    SavedCardAddSerializer,
-    SavedCardDeleteSerializer,
-    SavedCardPaymentSerializer,
-    CreditCardPaymentSerializer,
     UserLimitsSerializer,
     VerifyUserIdentitySerializer
 )
-from account.utils import (create_user_log, get_client_ip)
+from account.utils import (get_client_ip)
 from account.utils import send_welcome_email
-from cash.classes import (
-    CashTransaction,
-)
 from contest.models import CurrentEntry
 from contest.refund.tasks import unregister_entry_task
 
@@ -614,13 +602,18 @@ class GidxDepositAPIView(APIView):
         )
         # Make the request.
         web_cashier_response = web_cashier.send()
-
-        # If we requested a JS embed, and GIDX says they are already verified, go ahead and
-        # update the user's identity.
-
         message = web_cashier_response.get_response_message()
+
+        # If we didn't receive a JS embed...
         if not message:
-            message = "We were unable to initiate the deposit process."
+            return Response(
+                data={
+                    "status": "FAIL",
+                    "detail": "We were unable to initiate the withdraw process.",
+                    "reasonCodes": web_cashier_response.get_reason_codes(),
+                },
+                status=400,
+            )
 
         return Response(
             data={
@@ -634,6 +627,8 @@ class GidxDepositAPIView(APIView):
 
 class GidxDepositCallbackAPIView(APIView):
     """
+    Note: this very similar to GidxWithdrawCallbackAPIView -- maybe these can be merged?
+
     When a user deposits money, we embed a gidx-provided form. When the form is submitted and
     the transaction processed, we will get a request to this endpoint with info about
     the transaction.
@@ -649,12 +644,12 @@ class GidxDepositCallbackAPIView(APIView):
         request_data = json.loads(request.data.dict()['result'])
 
         logger.info({
-            "action": "WebCashier_Callback",
+            "action": "WebCashier_Deposit_Callback",
             "request": None,
             "response": request_data,
         })
 
-        response_wrapper = DepositStatusWebhookResponse(request_data)
+        response_wrapper = GidxTransactionStatusWebhookResponse(request_data)
         # Grab some of the data from the previous session that is not included in the webhook.
         user = get_user_from_session_id(response_wrapper.json['MerchantSessionID'])
         customer_id = get_customer_id_for_user(user)
@@ -664,21 +659,22 @@ class GidxDepositCallbackAPIView(APIView):
             user=user,
             gidx_customer_id=customer_id,
             session_id=response_wrapper.json['MerchantSessionID'],
-            service_type='WebCashier_Callback',
+            service_type='WebCashier_Deposit_Callback',
             reason_codes=response_wrapper.json['ReasonCodes'],
             response_data=request_data,
         )
 
-        # If the webhook says that the transaction was a success, we need to fetch the payment
-        # details in order to know how much it was for so we can increment the user's
-        # balance.
-        if response_wrapper.is_successful():
-            # TODO: queue this in celery.
-            payment_detail = make_web_cashier_payment_detail_request(
+        # If the webhook says that the transaction has completed (good or bad), we need to fetch
+        # the payment details in order to proceed.
+
+        if response_wrapper.is_done():
+            payment_detail = make_web_cashier_payment_detail_request.delay(
                 user=user,
                 transaction_id=response_wrapper.json['MerchantTransactionID'],
                 session_id=response_wrapper.json['MerchantSessionID']
             )
+        else:
+            logger.warning('Transaction pending or failed: %s' % response_wrapper.json)
 
         # As long as nothing errors out, send a 200 back to gidx.
         return Response(

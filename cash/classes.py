@@ -110,6 +110,15 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         gidx_model.transaction = self.transaction_detail.transaction
         gidx_model.save()
 
+    def withdraw_gidx(self, amount, merchant_transaction_id):
+        # Save a GidxTransaction that links the transaction that was just created with
+        # some info for looking it up on the GIDX dashboard.
+        self.withdraw(amount)
+        gidx_model = cash.models.GidxTransaction()
+        gidx_model.merchant_transaction_id = merchant_transaction_id
+        gidx_model.transaction = self.transaction_detail.transaction
+        gidx_model.save()
+
     def deposit_braintree(self, amount, braintree_transaction):
         self.deposit(amount)
         braintree_model = cash.models.BraintreeTransaction()

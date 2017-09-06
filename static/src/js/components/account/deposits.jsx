@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
@@ -8,12 +9,9 @@ import log from '../../lib/logging';
 import {
   verifyLocation,
   fetchUser, verifyIdentity, checkUserIdentityVerificationStatus } from '../../actions/user';
-import { addMessage, removeMessage } from '../../actions/message-actions.js';
-import debounce from 'lodash/debounce';
-import classNames from 'classnames';
+
 import PubSub from 'pubsub-js';
 const { Provider, connect } = ReactRedux;
-const depositOptions = ['25', '50', '100', '250', '500'];
 import RestrictedLocationConfirmModal from './restricted-location-confirm-modal';
 import IdentityVerificationModal from './identity-verification-modal';
 
@@ -112,15 +110,7 @@ const Deposits = React.createClass({
   componentWillMount() {
     this.props.fetchUser();
     this.props.fetchDepositForm();
-    // As soon as the compenent boots up, setup braintree.
-    // This will fetch the client token.
 
-    // TODO: This is temporarily disabled to shut the error up. We aren't able to use paypal yet
-    // so the server bombs out on othe request to setup braintree.
-    // this.props.setupBraintree((paypalInstance) => {
-    //   this.setState({ paypalInstance });
-    //   this.enablePaypalButton();
-    // });
     // First check if the user's location is valid. they will be prompted and warned if not.
     this.props.verifyLocation();
     // Listen for a succesful deposit message.
@@ -129,11 +119,8 @@ const Deposits = React.createClass({
   },
 
   componentDidUpdate(prevProps) {
-    console.log(this.props.gidxPaymentForm);
-    console.log(prevProps.gidxPaymentForm.formEmbed);
     // If it's the first time we've recieved the form embed...
     if (!prevProps.gidxPaymentForm.formEmbed && this.props.gidxPaymentForm.formEmbed) {
-      console.log('MOVING SCRIPT')
       // This is some hack-ass shit.
       // In order to embed and run a script, you have to do it this way.
       const scriptTag = document.querySelector('#GIDX script');

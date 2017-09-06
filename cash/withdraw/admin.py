@@ -78,6 +78,12 @@ class CheckWithdrawAdmin(admin.ModelAdmin):
     # add these actions this modeladmin's view
     actions = [check_number_entered_and_check_mailed, decline_withdraw_request]
 
+# @admin.register(GidxWithdraw)
+# class GidxWithdrawAdmin(admin.ModelAdmin):
+#     list_display = []
+#     list_filter = ['email', 'status']
+#     search_fields = ['user', 'status']
+#     readonly_fields = ()
 
 @admin.register(PayPalWithdraw)
 class PayPalWithdrawAdmin(admin.ModelAdmin):
@@ -134,11 +140,11 @@ class PayPalWithdrawAdmin(admin.ModelAdmin):
     # functions wed like to show in the admin dropdown menu
     actions = [paypal_confirm_and_send_payout, decline_withdraw_request, delete_request]
 
-
-@admin.register(AutomaticWithdraw)
-class AutomaticWithdrawAdmin(admin.ModelAdmin):
-    list_display = ['updated', 'auto_payout_below']
-    list_editable = ['auto_payout_below']
+#
+# @admin.register(AutomaticWithdraw)
+# class AutomaticWithdrawAdmin(admin.ModelAdmin):
+#     list_display = ['updated', 'auto_payout_below']
+#     list_editable = ['auto_payout_below']
 
 
 @admin.register(PendingWithdrawMax)
