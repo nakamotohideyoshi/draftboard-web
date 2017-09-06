@@ -4,7 +4,6 @@ import FlightArrow from '../graphics/FlightArrow';
 import NFLLiveAnimation from './NFLLiveAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
-import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
 import FlashChildrenAnimation from './FlashChildrenAnimation';
 
@@ -175,17 +174,14 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
       }
 
       // Complete the play
-      sequence.push(() => {
-        // Touchdown!
-        if (recap.isTouchdown()) {
-          return new TouchdownAnimation().play(recap, field);
-        }
-
-        // Down the ball
-        const animation = new YardlineAnimation();
-        const color = YardlineAnimation.COLOR_DOWN_LINE;
-        return animation.play(recap, field, downPos.x, color);
-      });
+      if (!recap.isTouchdown()) {
+        sequence.push(() => {
+          // Down the ball
+          const animation = new YardlineAnimation();
+          const color = YardlineAnimation.COLOR_DOWN_LINE;
+          return animation.play(recap, field, downPos.x, color);
+        });
+      }
     }
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
