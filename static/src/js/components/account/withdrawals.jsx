@@ -138,6 +138,7 @@ const Withdrawals = React.createClass({
 
   renderAmountForm() {
     return (
+      <div className="cmp-account-withdrawals">
         <form className="form" method="post" onSubmit={this.handleWithdraw}>
         <fieldset className="form__fieldset">
           <div className="form-field">
@@ -163,6 +164,7 @@ const Withdrawals = React.createClass({
           <input ref="submit" type="submit" className="btn button" value="Withdraw" />
         </fieldset>
         </form>
+      </div>
     );
   },
 

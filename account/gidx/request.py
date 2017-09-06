@@ -468,6 +468,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
         # Save our session info
         GidxSession.objects.create(
             user=self.user,
+            gidx_customer_id=get_customer_id_for_user(self.user),
             session_id=self.response_wrapper.json['MerchantSessionID'],
             service_type=self.service_type,
             request_data=strip_sensitive_fields(self.params),
