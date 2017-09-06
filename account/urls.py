@@ -1,5 +1,6 @@
 from django.conf.urls import url
 
+from cash.withdraw.views import GidxWithdrawCallbackAPIView
 from .views import (
     VerifyLocationAPIView,
     UserLimitsAPIView,
@@ -50,11 +51,17 @@ urlpatterns = [
         name="gidx-identity-webhook"
     ),
 
-    # GIDX deposit callback webhook.
+    # GIDX deposit + payout transaction callback webhook.
     url(
         r'^deposit-webhook/$',
         GidxDepositCallbackAPIView.as_view(),
         name="gidx-deposit-webhook"
+    ),
+
+    url(
+        r'^withdraw-webhook/$',
+        GidxWithdrawCallbackAPIView.as_view(),
+        name="gidx-withdraw-webhook"
     ),
 
     # GIDX identity status check.

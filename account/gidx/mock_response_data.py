@@ -434,6 +434,24 @@ WEB_CASHIER_CALLBACK_SUCCESS = {
     "StatusMessage": "Payment Session is Complete."
 }
 
+# Failed transaction callback.
+WEB_CACHIER_PAYOUT_CALLBACK_FAIL = {
+  "MerchantTransactionID": "b831c739-71bf-4ebe-a410-a5a8ff3e7700",
+  "TransactionStatusCode": 3,
+  "TransactionStatusMessage": "Failed",
+  "StatusCode": 0,
+  "SessionID": "zVjQ0fUD6U-IDc9Iu4C0zA",
+  "MerchantSessionID": "81841e1f-1c15-421c-b9bd-d92d3d9869b4",
+  "SessionScore": 77,
+  "ReasonCodes": [
+    "DFP-IPNM",
+    "ID-VERIFIED",
+    "LL-UNKN"
+  ],
+  "ServiceType": "Payment",
+  "StatusMessage": "Payment Session is Complete."
+}
+
 WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS = {
     "MerchantSessionID": "175f91a3-dfa4-44ec-b57d-8eebb52adce9",
     "ResponseMessage": "No error.",
@@ -475,4 +493,46 @@ WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS = {
     "ApiVersion": 3,
     "FinancialConfidenceScore": 50,
     "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA"
+}
+
+# A failed Payout detail
+WEB_CACHIER_PAYMENT_DETAIL_REQUEST_FAIL = {
+  "url": "https://api.gidx-service.in/v3.0/api/WebCashier/PaymentDetail",
+  "request": {
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantSessionID": "81841e1f-1c15-421c-b9bd-d92d3d9869b4",
+    "MerchantTransactionID": "b831c739-71bf-4ebe-a410-a5a8ff3e7700",
+    "ProductTypeID": "iiXXab0LtUCUdZ_6vcdtvQ",
+    "DeviceTypeID": "2bDPorOkPkepDd8-6Fydtw",
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA",
+    "ActivityTypeID": "FyP1fg_WkU60JnuIarfOQw"
+  },
+  "action": "WEB_CACHIER_PAYMENT_DETAIL_REQUEST",
+  "response": {
+    "ResponseMessage": "No error.",
+    "ApiKey": "k2m9yX4Tl0WXuz8Ahc5muA",
+    "MerchantTransactionID": "b831c739-71bf-4ebe-a410-a5a8ff3e7700",
+    "ApiVersion": 3,
+    "FinancialConfidenceScore": 50,
+    "PaymentDetails": [
+      {
+        "PaymentAmountCode": "Sale",
+        "PaymentStatusDateTime": "2017-09-06T02:26:47.31Z",
+        "PaymentStatusCode": "3",
+        "PaymentAmount": 10,
+        "PaymentMethodAccount": "PayPal",
+        "PaymentApprovalDateTime": "2017-09-06T02:26:40.9755862Z",
+        "CurrencyCode": "USD",
+        "PaymentStatusMessage": "Failed",
+        "PaymentAmountType": "Debit",
+        "FinancialConfidenceScore": 50,
+        "PaymentMethodType": "EWALLET",
+        "PaymentProcessDateTime": "2017-09-06T02:26:41.433Z",
+        "PaymentMethodToken": "aJKaSX0TzkiEni0aRk9xZA"
+      }
+    ],
+    "MerchantSessionID": "81841e1f-1c15-421c-b9bd-d92d3d9869b4",
+    "ResponseCode": 0,
+    "MerchantID": "Q2wprL4aKEKEj-dzTu44BA"
+  }
 }

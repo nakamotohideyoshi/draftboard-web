@@ -15,6 +15,10 @@ const initialState = {
       isFetching: false,
       formEmbed: null,
     },
+    withdrawForm: {
+      isFetching: false,
+      formEmbed: null,
+    },
   },
 };
 
@@ -73,31 +77,9 @@ module.exports = (state = initialState, action) => {
         depositFormErrors: action.ex.response.body.errors,
       });
 
-
-    case actionTypes.WITHDRAW_FUNDS: {
-      return merge({}, state, {
-        isWithdrawing: true,
-      });
-    }
-
-
-    case actionTypes.WITHDRAW_FUNDS_SUCCESS: {
-      const newState = merge({}, state, {
-        isWithdrawing: false,
-      });
-      newState.withdrawalFormErrors = {};
-      return newState;
-    }
-
-
-    case actionTypes.WITHDRAW_FUNDS_FAIL: {
-      const newState = merge({}, state, {
-        isWithdrawing: false,
-      });
-      newState.withdrawalFormErrors = action.body;
-      return newState;
-    }
-
+    /**
+     * GIDX Deposit form
+     */
     case actionTypes.FETCHING_DEPOSIT_FORM: {
       return merge({}, state, {
         gidx: {
@@ -124,6 +106,42 @@ module.exports = (state = initialState, action) => {
       return merge({}, state, {
         gidx: {
           paymentForm: {
+            isFetching: false,
+          },
+        },
+      });
+    }
+
+    /**
+     * GIDX Withdraw form
+     */
+
+    case actionTypes.FETCHING_WITHDRAW_FORM: {
+      return merge({}, state, {
+        gidx: {
+          withdrawForm: {
+            isFetching: true,
+            formEmbed: null,
+          },
+        },
+      });
+    }
+
+    case actionTypes.FETCH_WITHDRAW_FORM_SUCCESS: {
+      return merge({}, state, {
+        gidx: {
+          withdrawForm: {
+            isFetching: false,
+            formEmbed: action.response.detail.form_embed,
+          },
+        },
+      });
+    }
+
+    case actionTypes.FETCH_WITHDRAW_FORM_FAIL: {
+      return merge({}, state, {
+        gidx: {
+          withdrawForm: {
             isFetching: false,
           },
         },
