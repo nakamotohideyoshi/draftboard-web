@@ -142,7 +142,7 @@ def send_email(
             title, str(recipients)))
         return
 
-    logger.info('Sending email to [%s]. Title: %s' % (recipients, title))
+    logger.info('Sending email to %s. Title: %s' % (recipients, title))
     context = {
         'domain': settings.DOMAIN,
         'site_name': 'Draftboard',
@@ -166,4 +166,6 @@ def send_email(
     )
     msg.attach_alternative(html_content, "text/html")
 
-    msg.send()
+    message_send_count = msg.send()
+
+    logger.info('%s email(s) sent.' % message_send_count)

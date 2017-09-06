@@ -10,6 +10,16 @@ const initialState = {
   withdrawalFormErrors: {},
   payPalClientToken: '',
   payPalNonce: null,
+  gidx: {
+    paymentForm: {
+      isFetching: false,
+      formEmbed: null,
+    },
+    withdrawForm: {
+      isFetching: false,
+      formEmbed: null,
+    },
+  },
 };
 
 
@@ -67,31 +77,76 @@ module.exports = (state = initialState, action) => {
         depositFormErrors: action.ex.response.body.errors,
       });
 
-
-    case actionTypes.WITHDRAW_FUNDS: {
+    /**
+     * GIDX Deposit form
+     */
+    case actionTypes.FETCHING_DEPOSIT_FORM: {
       return merge({}, state, {
-        isWithdrawing: true,
+        gidx: {
+          paymentForm: {
+            isFetching: true,
+            formEmbed: null,
+          },
+        },
       });
     }
 
-
-    case actionTypes.WITHDRAW_FUNDS_SUCCESS: {
-      const newState = merge({}, state, {
-        isWithdrawing: false,
+    case actionTypes.FETCH_DEPOSIT_FORM_SUCCESS: {
+      return merge({}, state, {
+        gidx: {
+          paymentForm: {
+            isFetching: false,
+            formEmbed: action.response.detail.form_embed,
+          },
+        },
       });
-      newState.withdrawalFormErrors = {};
-      return newState;
     }
 
-
-    case actionTypes.WITHDRAW_FUNDS_FAIL: {
-      const newState = merge({}, state, {
-        isWithdrawing: false,
+    case actionTypes.FETCH_DEPOSIT_FORM_FAIL: {
+      return merge({}, state, {
+        gidx: {
+          paymentForm: {
+            isFetching: false,
+          },
+        },
       });
-      newState.withdrawalFormErrors = action.body;
-      return newState;
     }
 
+    /**
+     * GIDX Withdraw form
+     */
+
+    case actionTypes.FETCHING_WITHDRAW_FORM: {
+      return merge({}, state, {
+        gidx: {
+          withdrawForm: {
+            isFetching: true,
+            formEmbed: null,
+          },
+        },
+      });
+    }
+
+    case actionTypes.FETCH_WITHDRAW_FORM_SUCCESS: {
+      return merge({}, state, {
+        gidx: {
+          withdrawForm: {
+            isFetching: false,
+            formEmbed: action.response.detail.form_embed,
+          },
+        },
+      });
+    }
+
+    case actionTypes.FETCH_WITHDRAW_FORM_FAIL: {
+      return merge({}, state, {
+        gidx: {
+          withdrawForm: {
+            isFetching: false,
+          },
+        },
+      });
+    }
 
     default:
       return state;

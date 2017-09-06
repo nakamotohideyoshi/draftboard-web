@@ -1,6 +1,5 @@
 import React from 'react';
 import Modal from '../modal/modal.jsx';
-// import CountdownClock from '../site/countdown-clock.jsx';
 import Cookies from 'js-cookie';
 import classNames from 'classnames';
 import EnterContestButton from './enter-contest-button.jsx';

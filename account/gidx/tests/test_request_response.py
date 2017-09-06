@@ -15,20 +15,26 @@ from ..mock_response_data import (
     SERVICE_ERROR_RESPONSE,
     WEB_REG_SUCCESS_RESPONSE,
     WEBHOOK_COMPLETE,
+    WEB_CASHIER_CALLBACK_SUCCESS,
+    WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY,
+    WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS,
 )
 from ..request import (
     CustomerRegistrationRequest,
     WebRegCreateSession,
+    WebCashierPaymentDetailRequest,
+    make_web_cashier_payment_detail_request,
 )
+from cash.models import GidxTransaction
 from ..response import (
     CustomerRegistrationResponse,
     WebRegCreateSessionResponse,
-    WebhookResponse,
+    IdentityStatusWebhookResponse,
+    GidxTransactionStatusWebhookResponse,
     is_underage,
     is_location_blocked,
-
-
 )
+from cash.classes import CashTransaction
 
 
 class TestCustomerRegistrationRequest(TestCase):
@@ -203,5 +209,106 @@ class TestWebhookResponse(TestCase):
     def test_sets_json_attribute(self):
         # We don't need to mock this response because it expects a dictionary rather than a
         # `requests` library response
-        res = WebhookResponse(WEBHOOK_COMPLETE)
+        res = IdentityStatusWebhookResponse(WEBHOOK_COMPLETE)
         self.assertDictEqual(WEBHOOK_COMPLETE, res.json)
+
+
+class TestDepositStatusWebhookResponse(TestCase):
+    def test_sets_json_attribute(self):
+        # We don't need to mock this response because it expects a dictionary rather than a
+        # `requests` library response
+        res = GidxTransactionStatusWebhookResponse(WEB_CASHIER_CALLBACK_SUCCESS)
+        self.assertDictEqual(WEB_CASHIER_CALLBACK_SUCCESS, res.json)
+
+    def test_is_successful_method(self):
+        # Success
+        res = GidxTransactionStatusWebhookResponse(WEB_CASHIER_CALLBACK_SUCCESS)
+        self.assertEqual(True, res.is_successful())
+
+        # Pending
+        res = GidxTransactionStatusWebhookResponse(WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY)
+        self.assertEqual(False, res.is_successful())
+
+
+class TestPaymentDetailRequest(TestCase):
+    def setUp(self):
+        self.user = mommy.make(
+            User,
+            username="automated_test_user",
+            email="zach@runitonce.com"
+        )
+
+    def tearDown(self):
+        self.user.delete()
+
+    @responses.activate
+    def test_make_web_cashier_payment_detail_request(self):
+        # This is the easiest way to get a user's balance. don't axe me.
+        dummy_transaction = CashTransaction(self.user)
+        initial_balance = dummy_transaction.get_balance_amount()
+        self.assertEqual(initial_balance, 0)
+
+        # Mock the response
+        responses.add(
+            responses.GET,
+            WebCashierPaymentDetailRequest.url,
+            body=str(json.dumps(WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS)),
+            status=200,
+            content_type='application/json'
+        )
+
+        req = make_web_cashier_payment_detail_request(self.user, 'tid', 'sid')
+
+        # Now test the the proper transactions and stuff were created.
+
+        # Get any GidxTransactions that were created because of this payment.
+        cash_transaction = GidxTransaction.objects.filter(
+            merchant_transaction_id=WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS[
+                'MerchantTransactionID'])
+
+        # make sure at least one 'sale' transaction was created (based on the current dummy data,
+        # there should be 1 since we ignore non-sale transactions)
+        self.assertGreater(cash_transaction.count(), 0)
+        # Now make sure the counts  match.
+        self.assertEqual(cash_transaction.count(),1)
+
+        # Make sure the user's balance has been udpated.
+        # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
+        new_balance = dummy_transaction.get_balance_amount()
+        self.assertEqual(new_balance, 20)
+
+    @responses.activate
+    def test_make_web_cashier_withdraw_detail_request(self):
+        # This is the easiest way to get a user's balance. don't axe me.
+        dummy_transaction = CashTransaction(self.user)
+        initial_balance = dummy_transaction.get_balance_amount()
+        self.assertEqual(initial_balance, 0)
+
+        # Mock the response
+        responses.add(
+            responses.GET,
+            WebCashierPaymentDetailRequest.url,
+            body=str(json.dumps(WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS)),
+            status=200,
+            content_type='application/json'
+        )
+
+        req = make_web_cashier_payment_detail_request(self.user, 'tid', 'sid')
+
+        # Now test the the proper transactions and stuff were created.
+
+        # Get any GidxTransactions that were created because of this payment.
+        cash_transaction = GidxTransaction.objects.filter(
+            merchant_transaction_id=WEB_CACHIER_PAYMENT_DETAIL_REQUEST_SUCCESS[
+                'MerchantTransactionID'])
+
+        # make sure at least one 'sale' transaction was created (based on the current dummy data,
+        # there should be 1 since we ignore non-sale transactions)
+        self.assertGreater(cash_transaction.count(), 0)
+        # Now make sure the counts  match.
+        self.assertEqual(cash_transaction.count(),1)
+
+        # Make sure the user's balance has been udpated.
+        # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
+        new_balance = dummy_transaction.get_balance_amount()
+        self.assertEqual(new_balance, 20)

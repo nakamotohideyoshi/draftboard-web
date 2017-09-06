@@ -3,8 +3,14 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 import cash.classes
-from transaction.models import (TransactionDetail, Balance, TransactionType, Transaction,
-                                AbstractAmount)
+from contest.models import Action
+from mysite.classes import AbstractManagerClass
+from transaction.models import (
+    TransactionDetail,
+    Balance,
+    Transaction,
+    AbstractAmount
+)
 
 
 class CashAmount(AbstractAmount):
@@ -52,6 +58,32 @@ class BraintreeTransaction(models.Model):
     braintree_transaction = models.CharField(max_length=128, null=False)
     created = models.DateTimeField(auto_now_add=True, null=True)
 
+
+class GidxTransaction(models.Model):
+    """
+    Links cash transactions with gidx sessions + merchant transactions so we can
+    look them up easily.
+    """
+    created = models.DateTimeField(
+        auto_now_add=True,
+        null=True
+    )
+    transaction = models.ForeignKey(
+        Transaction,
+        related_name="gidx_transaction"
+    )
+    merchant_transaction_id = models.CharField(
+        max_length=128,
+        null=False,
+        help_text="The MerchantTransactionID in the GIDX dashboard"
+    )
+
+    def __str__(self):
+        return '<%s | %s | %s>' % (
+            self.__class__.__name__,
+            self.transaction.user.username,
+            self.transaction.transaction_detail.amount
+        )
 
 class PayPalSavedCardTransaction(models.Model):
     """
