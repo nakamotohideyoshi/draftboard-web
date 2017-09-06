@@ -2,7 +2,6 @@ import NFLLiveAnimation from './NFLLiveAnimation';
 import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
-import TouchdownAnimation from './TouchdownAnimation';
 import YardlineAnimation from './YardlineAnimation';
 
 export default class RushingPlayAnimation extends NFLLiveAnimation {
@@ -37,21 +36,18 @@ export default class RushingPlayAnimation extends NFLLiveAnimation {
     }
 
     // Finish the play
-    sequence.push(() => {
-      // Skip the downline for turnovers/fumbles
-      if (recap.isFumble() || recap.isTurnover()) {
-        return Promise.resolve();
-      }
+    if (!recap.isTouchdown()) {
+      sequence.push(() => {
+        // Skip the downline for turnovers/fumbles
+        if (recap.isFumble() || recap.isTurnover()) {
+          return Promise.resolve();
+        }
 
-      // Touchdown!
-      if (recap.isTouchdown()) {
-        return new TouchdownAnimation().play(recap, field);
-      }
-
-      // Down the ball
-      const animation = new YardlineAnimation();
-      return animation.play(recap, field, downPos.x, YardlineAnimation.COLOR_DOWN_LINE);
-    });
+        // Down the ball
+        const animation = new YardlineAnimation();
+        return animation.play(recap, field, downPos.x, YardlineAnimation.COLOR_DOWN_LINE);
+      });
+    }
 
     return sequence.reduce((p, fn) => p.then(fn), Promise.resolve());
   }
