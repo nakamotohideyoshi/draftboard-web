@@ -220,14 +220,14 @@ class TestDepositStatusWebhookResponse(TestCase):
         res = GidxTransactionStatusWebhookResponse(WEB_CASHIER_CALLBACK_SUCCESS)
         self.assertDictEqual(WEB_CASHIER_CALLBACK_SUCCESS, res.json)
 
-    def test_is_successful_method(self):
+    def test_is_done_method(self):
         # Success
         res = GidxTransactionStatusWebhookResponse(WEB_CASHIER_CALLBACK_SUCCESS)
-        self.assertEqual(True, res.is_successful())
+        self.assertEqual(True, res.is_done())
 
         # Pending
         res = GidxTransactionStatusWebhookResponse(WEB_CASHIER_CALLBACK_PENDING_UNVERIFIED_IDENTITY)
-        self.assertEqual(False, res.is_successful())
+        self.assertEqual(False, res.is_done())
 
 
 class TestPaymentDetailRequest(TestCase):
@@ -239,7 +239,7 @@ class TestPaymentDetailRequest(TestCase):
         )
 
     def tearDown(self):
-        self.user.delete()
+        pass
 
     @responses.activate
     def test_make_web_cashier_payment_detail_request(self):
@@ -276,6 +276,7 @@ class TestPaymentDetailRequest(TestCase):
         # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
         new_balance = dummy_transaction.get_balance_amount()
         self.assertEqual(new_balance, 20)
+        self.user.delete()
 
     @responses.activate
     def test_make_web_cashier_withdraw_detail_request(self):
@@ -312,3 +313,4 @@ class TestPaymentDetailRequest(TestCase):
         # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
         new_balance = dummy_transaction.get_balance_amount()
         self.assertEqual(new_balance, 20)
+        self.user.delete()

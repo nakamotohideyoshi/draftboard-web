@@ -14,19 +14,9 @@ from account import const as _account_const
 from account.models import (Identity)
 from account.models import (UserLog)
 from account.utils import CheckUserAccess
-from account.views import (
-    # PayPalDepositWithPayPalAccountAPIView,
-    # PayPalDepositWithPayPalAccountSuccessAPIView,
-    # PayPalDepositWithPayPalAccountFailAPIView,
-    # PayPalDepositCreditCardAPIView,
-    # PayPalDepositSavedCardAPIView,
-    PayPalSavedCardAddAPIView,
-    # PayPalSavedCardDeleteAPIView,
-    # PayPalSavedCardListAPIView,
-)
+
 from test.classes import (
     MasterAbstractTest,  # has get_user() method
-    ForceAuthenticateAndRequestMixin,
 )
 
 
@@ -214,56 +204,58 @@ class APITestCaseMixin(APITestCase):
         print('HTTP [%s] %s' % (status_code, str(data)))
 
 
-class PayWithCreditCardAPITest(APITestCase, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
-    pass  # TODO
-
-
-class AddSavedCardAPI_TestMissingInformation(
-    APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
-    def setUp(self):
-        super().setUp()
-        # the view class
-        self.view = PayPalSavedCardAddAPIView
-        # the url of the endpoint and a default user
-        self.url = '/api/account/paypal/saved-card/add/'
-        self.user = self.get_user('user_missinginformation')
-
-    def test_1(self):
-        # double quotes is real JSON, single quotes will make it unhappy
-        # data = {
-        #     "type":"visa",
-        #     "number":"4032036765082399",
-        #     "exp_month":"12",
-        #     "exp_year":"2020",
-        #     "cvv2":"012"
-        # }
-
-        data = {}
-        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
-
-        self.print_response(response)
-
-        # is_client_error() checks any 400 errors (401, 402, etc...)
-        self.assertTrue(status.is_client_error(response.status_code))
-
-
-class AddSavedCardAPI_TestEmptyPostParams(
-    APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
-    def setUp(self):
-        super().setUp()
-        # the view class
-        self.view = PayPalSavedCardAddAPIView
-        # the url of the endpoint and a default user
-        self.url = '/api/account/paypal/saved-card/add/'
-        self.user = self.get_user_with_account_information('user_withinformation')
-
-    def test_1(self):
-        data = {}
-
-        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
-        self.print_response(response)
-        # is_client_error() checks any 400 errors (401, 402, etc...)
-        self.assertTrue(status.is_client_error(response.status_code))
+#
+# class PayWithCreditCardAPITest(APITestCase, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+#     pass  # TODO
+#
+#
+# class AddSavedCardAPI_TestMissingInformation(
+#     APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+#     def setUp(self):
+#         super().setUp()
+#         # the view class
+#         self.view = PayPalSavedCardAddAPIView
+#         # the url of the endpoint and a default user
+#         self.url = '/api/account/paypal/saved-card/add/'
+#         self.user = self.get_user('user_missinginformation')
+#
+#     def test_1(self):
+#         # double quotes is real JSON, single quotes will make it unhappy
+#         # data = {
+#         #     "type":"visa",
+#         #     "number":"4032036765082399",
+#         #     "exp_month":"12",
+#         #     "exp_year":"2020",
+#         #     "cvv2":"012"
+#         # }
+#
+#         data = {}
+#         response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+#
+#         self.print_response(response)
+#
+#         # is_client_error() checks any 400 errors (401, 402, etc...)
+#         self.assertTrue(status.is_client_error(response.status_code))
+#
+#
+# class AddSavedCardAPI_TestEmptyPostParams(
+#     APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+#     def setUp(self):
+#         super().setUp()
+#         # the view class
+#         self.view = PayPalSavedCardAddAPIView
+#         # the url of the endpoint and a default user
+#         self.url = '/api/account/paypal/saved-card/add/'
+#         self.user = self.get_user_with_account_information('user_withinformation')
+#
+#     def test_1(self):
+#         data = {}
+#
+#         response = self.force_authenticate_and_POST(self.user, self.view, self.url, data)
+#         self.print_response(response)
+#         # is_client_error() checks any 400 errors (401, 402, etc...)
+#         self.assertTrue(status.is_client_error(response.status_code))
+#
 
 
 class CheckUserAccessTest(TestCase, MasterAbstractTest):
