@@ -41,11 +41,12 @@ export default class ClipWithAvatar {
       avAnimationEl.style.left = `${avatarX}px`;
 
       return {
-        name: avData.name,
+        name: avData.type,
         in: avCuepoint.in,
         x: avData.x,
         y: avData.y,
         animation: avAnimation,
+        data: avCuepoint.data,
       };
     }).sort(
       (a, b) => a.in - b.in // Chronologically

@@ -45,8 +45,10 @@ export class Timeline {
   }
 
   resume() {
-    this._isPaused = false;
-    this.play(this._onComplete, this._curFrame, this._fps);
+    if (this._isPaused) {
+      this._isPaused = false;
+      this.play(this._onComplete, this._curFrame, this._fps);
+    }
   }
 
   play(onComplete = null, startingFrame = 1, fps = 30) {
