@@ -14,7 +14,7 @@ export const clip = {
     {
       name: 'catch',
       in: 10,
-      data: { x: 110, y: 42 },
+      data: { x: 96, y: 32 },
     },
   ],
   files: {
