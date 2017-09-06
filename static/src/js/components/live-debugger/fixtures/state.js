@@ -1,7 +1,46 @@
 import { merge } from 'lodash';
 
-const stubMyLineup = {
+const stubGenericLineupA = {
+  id: 1,
+  name: 'My Lineup',
+  fp: 0,
+  isLoading: false,
+  potentialWinnings: 0,
+  rank: 5,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+};
+
+const stubGenericLineupB = {
   id: 2,
+  name: 'My Lineup',
+  fp: 0,
+  isLoading: false,
+  potentialWinnings: 0,
+  rank: 5,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+};
+
+const stubGenericLineupC = {
+  id: 3,
+  name: 'My Lineup',
+  fp: 0,
+  isLoading: false,
+  potentialWinnings: 0,
+  rank: 5,
+  timeRemaining: {
+    decimal: 0.91,
+    duration: 50,
+  },
+};
+
+const stubMyLineup = {
+  id: 4,
   name: 'My Lineup',
   fp: 50,
   isLoading: false,
@@ -14,7 +53,7 @@ const stubMyLineup = {
 };
 
 const stubOppLineup = {
-  id: 3,
+  id: 5,
   name: 'Opponent Lineup',
   fp: 20,
   potentialWinnings: 10,
@@ -27,7 +66,7 @@ const stubOppLineup = {
 };
 
 const stubOtherLineup = {
-  id: 4,
+  id: 6,
   name: 'Other Lineup',
   fp: 15,
   potentialWinnings: 10,
@@ -40,7 +79,7 @@ const stubOtherLineup = {
 };
 
 const stubDebugLineup = {
-  id: 5,
+  id: 7,
   name: 'Debug Lineup',
   fp: 34,
   potentialWinnings: 10,
@@ -60,18 +99,27 @@ const stubContest = {
   isLoading: false,
   hasLineupsUsernames: true,
   lineups: {
-    [stubMyLineup.id]: merge(stubMyLineup, { rank: 1, potentialWinnings: 100 }),
-    [stubOppLineup.id]: merge(stubOppLineup, { rank: 3, potentialWinnings: 50 }),
-    [stubOtherLineup.id]: merge(stubOtherLineup, { rank: 3 }),
-    [stubDebugLineup.id]: merge(stubDebugLineup, { rank: 4 }),
+    [stubGenericLineupA.id]: merge(stubGenericLineupA, { fp: 0, rank: 7, potentialWinnings: 0 }),
+    [stubGenericLineupB.id]: merge(stubGenericLineupB, { fp: 0, rank: 6, potentialWinnings: 0 }),
+    [stubGenericLineupC.id]: merge(stubGenericLineupC, { fp: 0, rank: 5, potentialWinnings: 0 }),
+    [stubMyLineup.id]: merge(stubMyLineup, { fp: 100, rank: 1, potentialWinnings: 100 }),
+    [stubOppLineup.id]: merge(stubOppLineup, { fp: 50, rank: 2, potentialWinnings: 50 }),
+    [stubOtherLineup.id]: merge(stubOtherLineup, { fp: 25, rank: 3, potentialWinnings: 50 }),
+    [stubDebugLineup.id]: merge(stubDebugLineup, { fp: 25, rank: 4, potentialWinnings: 50 }),
   },
   lineupsUsernames: {
+    [stubGenericLineupA.id]: stubGenericLineupA.name,
+    [stubGenericLineupB.id]: stubGenericLineupB.name,
+    [stubGenericLineupC.id]: stubGenericLineupC.name,
     [stubMyLineup.id]: stubMyLineup.name,
     [stubOppLineup.id]: stubOppLineup.name,
     [stubOtherLineup.id]: stubOtherLineup.name,
     [stubDebugLineup.id]: stubDebugLineup.name,
   },
   rankedLineups: [
+    stubGenericLineupA.id,
+    stubGenericLineupB.id,
+    stubGenericLineupC.id,
     stubMyLineup.id,
     stubOppLineup.id,
     stubOtherLineup.id,
@@ -92,20 +140,18 @@ const stubContest = {
   },
 };
 
-const stubAvailableLineups = [stubMyLineup, stubOppLineup, stubOtherLineup, stubDebugLineup];
-
 export default {
   watching: {
     sport: 'nfl', // nba
     contestId: null,
     myLineupId: stubMyLineup.id,
-    opponentLineupId: 4, // Null if you don't want to see the opponents overall-stats
+    opponentLineupId: stubOppLineup.id, // Null if you don't want to see the opponents overall-stats
   },
   currentEvent: null,
   eventsMultipart: {},
   contest: stubContest,
   uniqueLineups: {
-    lineups: stubAvailableLineups,
+    lineups: stubContest.rankedLineups,
   },
   myLineupInfo: stubMyLineup,
   opponentLineup: stubOppLineup,
