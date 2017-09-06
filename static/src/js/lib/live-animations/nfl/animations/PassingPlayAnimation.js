@@ -5,7 +5,6 @@ import NFLLiveAnimation from './NFLLiveAnimation';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
-import FlashChildrenAnimation from './FlashChildrenAnimation';
 
 export default class PassingPlayAnimation extends NFLLiveAnimation {
 
@@ -81,7 +80,7 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
       timeline.add(quarterback.getSequence(1, quarterback._clip, timeline));
 
       // Fly the ball
-      if (recap.passingYards() > 0.03) {
+      if (recap.passingYards() > 0) {
         // TODO align ball position to catch/pass cuepoints. This is especially
         // broken when the clip is flipped at the moment. Also make sure to consider
         // interceptions - there registration point is behind the cuepoint's `x`
@@ -156,12 +155,7 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
       this.animatePassToReceiver(recap, field)
     );
 
-    if (recap.isIncompletePass()) {
-      sequence.push(() => {
-        const animation = new FlashChildrenAnimation();
-        return animation.play(recap, field);
-      });
-    } else {
+    if (!recap.isIncompletePass()) {
       // Rush after catch (but only if it's more than a few yards)
       if (recap.rushingYards() > 0.03) {
         sequence.push(() => {
