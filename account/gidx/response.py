@@ -179,6 +179,8 @@ class GidxTransactionStatusWebhookResponse(object):
         -1 Payment not found.
         No payment / transaction was found for the corresponding identifier supplied.
 
+        This means that the user timed out on the deposit/withdraw form.
+
         0 Pending
         The payment/transaction is pending approval or validation.
 
@@ -203,14 +205,9 @@ class GidxTransactionStatusWebhookResponse(object):
         complete_statuses = [1, 2, 3, 5]
         status_code = self.json['TransactionStatusCode']
 
-        # If the payment wasn't found, we need to be notified so we can investigate.
-        if status_code == -1:
-            client.context.merge({'extra': {
-                'response': self.response,
-            }})
-            client.captureMessage(
-                "GIDX Webhook resposnse: `Payment not found'")
-            client.context.clear()
-            raise APIException(detail=self.response.text)
+        # Let's find out how many of these there are.
+        if status_code in [-1]:
+            logger.warning("GIDX %s Webhook response: `%s'" % (
+                self.response['ServiceType'], self.response))
 
         return status_code in complete_statuses
