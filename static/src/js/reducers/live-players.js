@@ -37,9 +37,6 @@ module.exports = (state = {
 
 
     case ActionTypes.UPDATE_LIVE_PLAYER_STATS:
-      // don't bother if player doesn't exist yet
-      if (!(action.playerSRID in state.relevantPlayers)) return state;
-
       return update(state, {
         relevantPlayers: {
           $merge: {

@@ -134,6 +134,11 @@ export const LiveStandingsPane = React.createClass({
    */
   alignElements() {
     const lineups = this.getRankedLineups();
+
+    if (!lineups.length) {
+      return null;
+    }
+
     const standingsLineEl = this.refs.standingsline;
     const moneylineEl = this.refs.moneyline;
     const numWinners = this.props.contest.prize.info.payout_spots;
