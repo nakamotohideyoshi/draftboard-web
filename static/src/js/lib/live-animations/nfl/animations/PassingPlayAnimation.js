@@ -80,47 +80,42 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
       timeline.add(quarterback.getSequence(1, quarterback._clip, timeline));
 
       // Fly the ball
-      if (recap.passingYards() > 0) {
-        // TODO align ball position to catch/pass cuepoints. This is especially
-        // broken when the clip is flipped at the moment. Also make sure to consider
-        // interceptions - there registration point is behind the cuepoint's `x`
-        const qbClip = quarterback._clip.clip;
-        const qbEl = qbClip.getElement().parentNode;
-        const qbX = parseInt(qbEl.style.left, 10);
-        const qbY = parseInt(qbEl.style.top, 10);
-        const receiverClip = receiver._clip.clip;
-        const receiverEl = receiverClip.getElement().parentNode;
-        const receiverX = parseFloat(receiverEl.style.left, 10);
-        const receiverY = parseFloat(receiverEl.style.top, 10);
+      const qbClip = quarterback._clip.clip;
+      const qbEl = qbClip.getElement().parentNode;
+      const qbX = parseInt(qbEl.style.left, 10);
+      const qbY = parseInt(qbEl.style.top, 10);
+      const receiverClip = receiver._clip.clip;
+      const receiverEl = receiverClip.getElement().parentNode;
+      const receiverX = parseFloat(receiverEl.style.left, 10);
+      const receiverY = parseFloat(receiverEl.style.top, 10);
 
-        const ballStart = {
-          x: qbX,
-          y: qbY + throwCP.data.y * 0.5,
-        };
+      const ballStart = {
+        x: qbX,
+        y: qbY + throwCP.data.y * 0.5,
+      };
 
-        const ballEnd = {
-          x: receiverX,
-          y: receiverY + catchCP.data.y * 0.5,
-        };
+      const ballEnd = {
+        x: receiverX,
+        y: receiverY + catchCP.data.y * 0.5,
+      };
 
-        if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
-          ballStart.x += throwCP.data.x * 0.5;
-          ballEnd.x += catchCP.data.x * 0.5;
-        } else {
-          ballStart.x += qbClip.frameWidth * 0.5 - throwCP.data.x * 0.5;
-          ballEnd.x += receiverClip.frameWidth * 0.5 - catchCP.data.x * 0.5;
-        }
-
-        const ball = new FlightArrow(field, ballStart, ballEnd, this.getPassArc(recap), 0, 0);
-        ball.progress = 0;
-        field.addChild(ball.el, 0, 0, 30);
-
-        timeline.add({
-          from: throwCP.in,
-          length: ballDuration,
-          onUpdate: (frame, len) => (ball.progress = frame / len),
-        });
+      if (recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT) {
+        ballStart.x += throwCP.data.x * 0.5;
+        ballEnd.x += catchCP.data.x * 0.5;
+      } else {
+        ballStart.x += qbClip.frameWidth * 0.5 - throwCP.data.x * 0.5;
+        ballEnd.x += receiverClip.frameWidth * 0.5 - catchCP.data.x * 0.5;
       }
+
+      const ball = new FlightArrow(field, ballStart, ballEnd, this.getPassArc(recap), 0, 0);
+      ball.progress = 0;
+      field.addChild(ball.el, 0, 0, 30);
+
+      timeline.add({
+        from: throwCP.in,
+        length: ballDuration,
+        onUpdate: (frame, len) => (ball.progress = frame / len),
+      });
 
       // Receiver catches ball.
       const catchIn = throwCP.in + ballDuration - catchCP.in + 1;
