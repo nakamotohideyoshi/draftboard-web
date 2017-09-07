@@ -42,13 +42,6 @@ describe('reducers.live-players', () => {
       fields: { foo: 'bar' },
     };
 
-    // doesn't work if player isn't in there yet
-    const state = reducer(undefined, newStats);
-    assert.deepEqual(
-      state.relevantPlayers,
-      {}
-    );
-
     const newState = reducer({
       relevantPlayers: {
         myPlayerId: {
