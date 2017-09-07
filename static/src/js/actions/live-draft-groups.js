@@ -313,12 +313,12 @@ export const updatePlayerStats = (sport, message) => (dispatch, getState) => {
   // if this is a relevant player, update their stats
   if (getState().livePlayers.relevantPlayers.hasOwnProperty(playerSrid)) {
     log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', message);
-
-    dispatch(updateLivePlayersStats(
-      playerSrid,
-      message
-    ));
   }
+
+  dispatch(updateLivePlayersStats(
+    playerSrid,
+    message
+  ));
 
   return dispatch({
     id: draftGroupId,

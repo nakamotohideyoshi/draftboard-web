@@ -46,7 +46,7 @@ const tokenizeDescription = recap => {
   if (recap.playType() === NFLPlayRecapVO.PASS) {
     const qb = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.pass__list.player'));
     const receiver = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.receive__list.player'));
-    const completedYards = Math.round((recap.passingYards() + recap.rushingYards()) * 100);
+    const completedYards = Math.floor((recap.passingYards() + recap.rushingYards()) * 100);
     const attemptedYards = get(recap._obj, 'pbp.statistics.pass__list.att_yards', '404');
     const isUnknownReceiver = receiver.text === 'Unknown Player';
 
