@@ -4,7 +4,7 @@ from urllib import parse
 
 # Constant for determining environment
 DOMAIN = 'www.draftboard.com'
-ALLOWED_HOSTS = [DOMAIN, 'draftboard-prod.herokuapp.com']
+ALLOWED_HOSTS = [DOMAIN]
 
 ENVIRONMENT_NAME = "PRODUCTION"
 ENVIRONMENT_COLOR = "#a53a49"

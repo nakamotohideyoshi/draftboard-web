@@ -13,6 +13,7 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'id', 'created', 'action_that_created_transaction',
                     'transaction_detail_objects',
                     'category']
+    readonly_fields = ['user', 'category', 'created', 'transaction_detail_objects', 'action_that_created_transaction']
 
     @staticmethod
     def action_that_created_transaction(obj):
