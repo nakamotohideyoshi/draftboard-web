@@ -8,6 +8,9 @@ from dfslog.classes import Logger, ErrorCodes
 from transaction.classes import AbstractTransaction, CanDeposit
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType
+from logging import getLogger
+
+logger = getLogger('cash.classes')
 
 
 class CashTransaction(CanDeposit, AbstractTransaction):
@@ -104,6 +107,21 @@ class CashTransaction(CanDeposit, AbstractTransaction):
     def deposit_gidx(self, amount, merchant_transaction_id):
         # Save a GidxTransaction that links the transaction that was just created with
         # some info for looking it up on the GIDX dashboard.
+
+        # Sometimes we get multiple succesful callbacks from gidx, so we need to ensure that we
+        # aren't creating transactions for every one of them - that would mean that users are
+        # getting multiple deposits for the same request. bad!
+        existing_transactions = cash.models.GidxTransaction.objects.filter(
+            merchant_transaction_id=merchant_transaction_id)
+
+        if existing_transactions.count() > 0:
+            logger.warning(
+                'NOT creating a GidxTransaction (deposit) because one has already been made for '
+                'this merchant_transaction_id: %s | amount: %s' % (
+                    merchant_transaction_id, amount)
+            )
+            return
+
         self.deposit(amount)
         gidx_model = cash.models.GidxTransaction()
         gidx_model.merchant_transaction_id = merchant_transaction_id
@@ -113,6 +131,22 @@ class CashTransaction(CanDeposit, AbstractTransaction):
     def withdraw_gidx(self, amount, merchant_transaction_id):
         # Save a GidxTransaction that links the transaction that was just created with
         # some info for looking it up on the GIDX dashboard.
+
+        # Sometimes we get multiple succesful callbacks from gidx, so we need to ensure that we
+        # aren't creating transactions for every one of them - that would mean that users are
+        # getting multiple withdraws for the same request. bad!
+        existing_transactions = cash.models.GidxTransaction.objects.filter(
+            merchant_transaction_id=merchant_transaction_id)
+
+        if existing_transactions.count() > 0:
+            logger.warning(
+                'NOT creating a GidxTransaction (withdraw) because one has already been made for '
+                'this merchant_transaction_id: %s | amount: %s' % (
+                    merchant_transaction_id, amount)
+            )
+            return
+
+        # TODO: Make sure we havent' already created a withdraw for this MTID
         self.withdraw(amount)
         gidx_model = cash.models.GidxTransaction()
         gidx_model.merchant_transaction_id = merchant_transaction_id

@@ -7,6 +7,9 @@ from django.test import TestCase
 from model_mommy import mommy
 from rest_framework.exceptions import (APIException, ValidationError)
 
+from cash.classes import CashTransaction
+from cash.models import (GidxTransaction, CashBalance)
+
 from ..mock_response_data import (
     CUSTOMER_REGISTRATION_MATCH_RESPONSE,
     CUSTOMER_REGISTRATION_FAIL_RESPONSE,
@@ -25,7 +28,6 @@ from ..request import (
     WebCashierPaymentDetailRequest,
     make_web_cashier_payment_detail_request,
 )
-from cash.models import GidxTransaction
 from ..response import (
     CustomerRegistrationResponse,
     WebRegCreateSessionResponse,
@@ -34,7 +36,6 @@ from ..response import (
     is_underage,
     is_location_blocked,
 )
-from cash.classes import CashTransaction
 
 
 class TestCustomerRegistrationRequest(TestCase):
@@ -270,7 +271,7 @@ class TestPaymentDetailRequest(TestCase):
         # there should be 1 since we ignore non-sale transactions)
         self.assertGreater(cash_transaction.count(), 0)
         # Now make sure the counts  match.
-        self.assertEqual(cash_transaction.count(),1)
+        self.assertEqual(cash_transaction.count(), 1)
 
         # Make sure the user's balance has been udpated.
         # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
@@ -307,10 +308,67 @@ class TestPaymentDetailRequest(TestCase):
         # there should be 1 since we ignore non-sale transactions)
         self.assertGreater(cash_transaction.count(), 0)
         # Now make sure the counts  match.
-        self.assertEqual(cash_transaction.count(),1)
+        self.assertEqual(cash_transaction.count(), 1)
 
         # Make sure the user's balance has been udpated.
         # Hard code the amount in case  something get's goofed and it ends up as 0 or something.
         new_balance = dummy_transaction.get_balance_amount()
         self.assertEqual(new_balance, 20)
+        self.user.delete()
+
+
+class TestGidxDepositWithdraw(TestCase):
+    """
+    This probably doesn't belong here but it's more related to this stuff than not.
+
+    Sometimes GIDX gives us multiple successful callbacks, so we need to make sure we aren't
+    creating a transaction for each one.
+    """
+
+    def setUp(self):
+        self.user = mommy.make(
+            User,
+            username="automated_test_user",
+            email="zach@runitonce.com"
+        )
+        # Give this user some moneys.
+        mommy.make(
+            CashBalance,
+            user=self.user,
+            amount=999
+        )
+
+    def tearDown(self):
+        pass
+
+    def test_multiple_deposit_gidx(self):
+        # Test Transaction.deposit_gidx mulitple times with the same merchant_transaction_id
+        cash_trans = CashTransaction(self.user)
+        mti = 'fake_transaction_id'
+        cash_trans.deposit_gidx(10, mti)
+        # Should be 1 transaction
+        gidx_transactions = GidxTransaction.objects.filter(merchant_transaction_id=mti)
+        self.assertEqual(gidx_transactions.count(), 1)
+
+        # Now try again with the same merchant_transaction_id and it should not allow another
+        # transcation to be made
+        cash_trans.deposit_gidx(10, mti)
+        gidx_transactions = GidxTransaction.objects.filter(merchant_transaction_id=mti)
+        self.assertEqual(gidx_transactions.count(), 1)
+        self.user.delete()
+
+    def test_multiple_withdraw_gidx(self):
+        # Test Transaction.deposit_gidx mulitple times with the same merchant_transaction_id
+        cash_trans = CashTransaction(self.user)
+        mti = 'fake_transaction_id'
+        cash_trans.withdraw_gidx(10, mti)
+        # Should be 1 transaction
+        gidx_transactions = GidxTransaction.objects.filter(merchant_transaction_id=mti)
+        self.assertEqual(gidx_transactions.count(), 1)
+
+        # Now try again with the same merchant_transaction_id and it should not allow another
+        # transcation to be made
+        cash_trans.withdraw_gidx(10, mti)
+        gidx_transactions = GidxTransaction.objects.filter(merchant_transaction_id=mti)
+        self.assertEqual(gidx_transactions.count(), 1)
         self.user.delete()
