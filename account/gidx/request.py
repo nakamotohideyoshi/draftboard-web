@@ -210,6 +210,7 @@ class CustomerRegistrationRequest(GidxRequest):
     service_type = 'CustomerRegistration'
     responseClass = CustomerRegistrationResponse
     action_name = "CUSTOMER_REGISTRATION_REQUEST"
+    params = {}
 
     def __init__(self, user, first_name, last_name, date_of_birth, ip_address):
         # Bail immediately if we have no logged-in user.
@@ -262,6 +263,7 @@ class RegistrationStatusRequest(GidxRequest):
     service_type = 'RegistrationStatus'
     responseClass = CustomerRegistrationResponse
     action_name = "REGISTRATION_STATUS_REQUEST"
+    params = {}
 
     def __init__(self, user, merchant_session_id):
         self.user = user
@@ -344,6 +346,7 @@ class WebRegCreateSession(GidxRequest):
     service_type = 'WebReg_CreateSession'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_REG_CREATE_SESSION_REQUEST"
+    params = {}
 
     def __init__(self, user, first_name, last_name, date_of_birth, ip_address):
         # Bail immediately if we have no logged-in user.
@@ -393,6 +396,7 @@ class WebCashierCreateSession(GidxRequest):
     service_type = 'WebCashier_CreateSession'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_CACHIER_CREATE_SESSION_REQUEST"
+    params = {}
 
     def __init__(self, user, ip_address):
         # Bail immediately if we have no logged-in user.
@@ -438,6 +442,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
     service_type = 'WebCashier_PaymentDetail'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_CACHIER_PAYMENT_DETAIL_REQUEST"
+    params = {}
 
     def __init__(self, user, merchant_transaction_id, merchant_session_id):
         # Bail immediately if we have no logged-in user.
