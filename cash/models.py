@@ -3,8 +3,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 import cash.classes
-from contest.models import Action
-from mysite.classes import AbstractManagerClass
 from transaction.models import (
     TransactionDetail,
     Balance,
@@ -62,13 +60,13 @@ class BraintreeTransaction(models.Model):
 class GidxTransaction(models.Model):
     """
     Links cash transactions with gidx sessions + merchant transactions so we can
-    look them up easily.
+    look them up easily. This is used like an Action model... maybe it should be named that?
     """
     created = models.DateTimeField(
         auto_now_add=True,
         null=True
     )
-    transaction = models.ForeignKey(
+    transaction = models.OneToOneField(
         Transaction,
         related_name="gidx_transaction"
     )
@@ -79,11 +77,12 @@ class GidxTransaction(models.Model):
     )
 
     def __str__(self):
-        return '<%s | %s | %s>' % (
+        return '<%s user: %s | merchant_transaction_id: %s>' % (
             self.__class__.__name__,
             self.transaction.user.username,
-            self.transaction.transaction_detail.amount
+            self.merchant_transaction_id
         )
+
 
 class PayPalSavedCardTransaction(models.Model):
     """
