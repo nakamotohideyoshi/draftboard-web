@@ -15,7 +15,7 @@ from contest.refund.models import Refund
 
 @admin.register(CashTransactionDetail)
 class CashTransactionDetailAdmin(admin.ModelAdmin):
-    list_display = ['user', 'amount', 'get_action', 'transaction_pk', 'created',
+    list_display = ['id', 'transaction_pk', 'user', 'amount', 'get_action',  'created',
                     'transaction_category']
     search_fields = ('user__username',)
     readonly_fields = ['user', 'amount', 'transaction', 'created']
@@ -56,7 +56,7 @@ class CashTransactionDetailAdminInline(admin.TabularInline):
 
     @staticmethod
     def transaction_info(obj):
-        arr_classes = [Buyin, Payout, Rake, FPP, Refund]
+        arr_classes = [Buyin, Payout, Rake, FPP, Refund, GidxTransaction]
 
         for class_action in arr_classes:
             try:
@@ -78,6 +78,7 @@ class CashBalanceAdminInline(admin.StackedInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
 
 @admin.register(CashBalance)
 class BalanceAdmin(admin.ModelAdmin):
@@ -121,3 +122,4 @@ class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
 class GidxTransaction(admin.ModelAdmin):
     readonly_fields = ['created', 'transaction', 'merchant_transaction_id']
     list_display = ['created', 'transaction', 'merchant_transaction_id']
+    # inlines = [CashTransactionDetailAdminInline]
