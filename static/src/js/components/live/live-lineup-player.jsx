@@ -79,13 +79,6 @@ const LiveLineupPlayer = React.createClass({
     }
 
     const { types, names } = whichStats;
-    let percentOwned;
-
-    if ('ownershipPercent' in player) {
-      percentOwned = (
-        <div className="hover-stats__ownership">{player.ownershipPercent}%</div>
-      );
-    }
 
     const renderedStats = types.map((statType, index) => (
       <li key={statType} className="live-lineup-player__hover-stat">
@@ -100,7 +93,6 @@ const LiveLineupPlayer = React.createClass({
           <h4 className="hover-stats__name">
             {player.name}
           </h4>
-          {percentOwned}
         </div>
         <ul className="live-lineup-player__hover-stats-list">
           {renderedStats}
