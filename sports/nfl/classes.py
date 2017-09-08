@@ -3,6 +3,7 @@ from logging import getLogger
 from dataden.classes import (
     RecentGamePlayerStats,
 )
+from mysite import celery_app as app
 from sports.classes import (
     SiteSportManager,
 )
@@ -129,7 +130,7 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         player_stats = player_stats_model_class()
 
         # set all properties with these fieldnames to 0
-        player_stats.position = player.position # use the position from their Player object
+        player_stats.position = player.position  # use the position from their Player object
         player_stats.srid_game = game_srid
         player_stats.game = game_model_class.objects.get(srid=game_srid)
         player_stats.srid_player = player_srid
@@ -153,6 +154,7 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         long as you run it occasionally, and then before doing payouts it will
         clean up an issues caused by dangling stats
         """
+        logger.info('Player stat correction sync started for game: %s', game_srid)
 
         # build most up-to-date data using dataden's find_recent()
         player_stats_data = self.build_data(game_srid)
@@ -177,7 +179,7 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
 
         # we need to create any PlayerStats objects if we have a
         # mongo object for a player but no PlayerStats instance!
-        #print('draftboard_player_srids: ' + str(draftboard_player_srids))
+        # print('draftboard_player_srids: ' + str(draftboard_player_srids))
         for player_srid, my_player_stats_instance in player_stats_data.items():
             if player_srid not in draftboard_player_srids:
                 # create a new PlayerStats object!
@@ -194,8 +196,8 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
         :return: a dictionary of player stats objects built from the most recent parse of the feed
         """
 
-        self.mongo_player_srids = [] # initialization. clear this list each time update() is called
-        player_stats_dict = {} # we will add player_stats_data dicts to this object using the players srid as the key
+        self.mongo_player_srids = []  # initialization. clear this list each time update() is called
+        player_stats_dict = {}  # we will add player_stats_data dicts to this object using the players srid as the key
 
         mongo_objects = self.get_player_stats_for(game_srid)
         logger.info('%s player stats found in the MongoDB for game %s' % (
@@ -277,3 +279,9 @@ class NflRecentGamePlayerStats(RecentGamePlayerStats):
 
         # return the complete player data
         return player_stats_dict
+
+
+@app.task(bind=True)
+def run_nfl_recent_game_player_stats_for_game(self, game_srid):
+    nfl_recent_stats = NflRecentGamePlayerStats()
+    nfl_recent_stats.update(game_srid)

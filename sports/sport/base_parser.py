@@ -664,6 +664,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         o = obj.get_o()
         srid_game = o.get('game__id', None)
         srid_player = o.get('id', None)
+        logger.info('Parsing Player Stat Object: %s' % o)
 
         try:
             self.p = self.player_model.objects.get(srid=srid_player)

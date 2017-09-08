@@ -82,7 +82,7 @@ class Game(sports.models.Game):
         abstract = False
 
     def save(self, *args, **kwargs):
-        from .classes import NflRecentGamePlayerStats
+        from .classes import run_nfl_recent_game_player_stats_for_game
 
         """
         override save so we can signal certain changes
@@ -125,8 +125,8 @@ class Game(sports.models.Game):
                     "NFL game has been completed, kicking off final stat sync and setting "
                     "to 'verify' status. game: %s" % self.srid)
                 self.status = self.STATUS_NEEDS_VERIFICATION
-                nfl_recent_stats = NflRecentGamePlayerStats()
-                nfl_recent_stats.update(self.srid)
+                run_nfl_recent_game_player_stats_for_game.apply_async(
+                    (self.srid, ), queue='long_running')
 
         # Call the "real" save() method.
         super().save(*args, **kwargs)
