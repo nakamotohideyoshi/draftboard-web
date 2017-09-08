@@ -142,8 +142,8 @@ export const LiveStandingsPane = React.createClass({
 
     const standingsLineEl = this.refs.standingsline;
     const moneylineEl = this.refs.moneyline;
-    const numWinners = this.props.contest.prize.info.payout_spots;
-    const lastPosInTheMoney = sortDesc(lineups)[Math.min(numWinners, lineups.length) - 1];
+    const winners = lineups.filter(lineup => lineup.potentialWinnings > 0);
+    const lastPosInTheMoney = winners.length ? winners[0] : false;
 
     window.requestAnimationFrame(() => {
       // Get the width of the line to accurately determine the minimum space
@@ -160,7 +160,7 @@ export const LiveStandingsPane = React.createClass({
         }
       });
 
-      const moneyLineWidth = 1 - lastPosInTheMoney.x;
+      const moneyLineWidth = !lastPosInTheMoney ? 0 : 1 - lastPosInTheMoney.x;
       moneylineEl.style.width = `${moneyLineWidth * 100}%`;
     });
   },
