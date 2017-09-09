@@ -131,8 +131,17 @@ class GameSchedule(DataDenGameSchedule):
         #   ['srid','home','away','start','status','srid_home','srid_away','title']]
         weather_info = o.get('weather', '')
         self.game.weather_json = weather_info
-        self.game.save()
 
+        # If the schedule object says that the game is 'closed', we override
+        # that and set it to 'verify' to give us a chance to manually verify stats without
+        # the system auto-finalzing and paying out contests.
+        if self.game.status == Game.STATUS_CLOSED:
+            logger.info(
+                'NFL Game.status is: `%s`, overriding it to: `%s` for manual verification' % (
+                    self.game.status, Game.STATUS_NEEDS_VERIFICATION))
+            self.game.status = Game.STATUS_NEEDS_VERIFICATION
+
+        self.game.save()
 
         # self.game.refresh_from_db()
         # print('saved game! status:', str(self.game.status))

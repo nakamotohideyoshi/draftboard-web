@@ -21,7 +21,7 @@ from sports.nfl.parser import (
     TeamHierarchy,
     PbpEventParser,
     GameBoxscoreParser,
-
+    GameSchedule,
     # reducers, shrinkers, managers
     PlayReducer,
     PlayShrinker,
@@ -33,6 +33,9 @@ from sports.nfl.parser import (
 from test.classes import AbstractTest
 
 from .pbp_mock_data import PbpMockData
+from logging import getLogger
+
+logger = getLogger('sports.nfl.tests')
 
 
 class TeamHierarchyParserTest(AbstractTest):
@@ -478,19 +481,25 @@ class TestGameBoxscoreParser(AbstractTest):
         )
 
         # Create a Game model so this boxcore can be parsed.
-        mommy.make(
+        game = mommy.make(
             Game,
             srid=data['id'],
             away=away_team,
             srid_away=away_team.srid,
             home=home_team,
-            srid_home=home_team.srid
+            srid_home=home_team.srid,
+            status='inprogress'
         )
 
         parser = self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
         parser.send()
         sent_data = parser.get_send_data()
+        # Make sure that by parsing a boxscore, we don't change the game's status.
+        # This is because NFL statuses should be automatically set to 'verify' in the
+        # Schedule parser and we don't want to goof up that logic in the Boxscore praser.
+        game.refresh_from_db()
+        self.assertEqual(game.status, 'inprogress')
 
 
 class TestPlayParser(AbstractTest):
@@ -1614,3 +1623,92 @@ class GameScheduleParserTest(AbstractTest):
         self.assertEquals(1, qs.count())  # there should still only be 1
         game = qs[0]
         self.assertNotEquals(inprogress, game.status)
+
+
+class GameScheduleParserStatusTest(AbstractTest):
+    game_event = {
+        "attendance": 64779,
+        "_id": "cGFyZW50X2FwaV9faWRzY2hlZHVsZXNlY",
+        "scheduled": "2017-08-31T23:00:00+00:00",
+        "home": "82cf9565-6eb9-4f01-bdbd-5aa0d472fcd9",
+        "away": "ad4ae08f-d808-42d5-a1e6-e9bc4e34d123",
+        "id": "c806dc05-84cf-4fc5-84c0-6c469978f725",
+        "week__id": "4974b8dd-e86b-49f0-be39-06c6797428b6",
+        "dd_updated__id": 1504880958814,
+        "parent_api__id": "schedule",
+        "utc_offset": -5,
+        "number": 58,
+        "status": "closed",
+        "reference": 57226,
+        "weather": "Cloudy Temp: 78 F, Humidity: 53%, Wind: NNE 15 mph",
+        "season__id": "3d6abb6b-9c91-40a9-9441-bbadc8a56f0e",
+        "venue": "6ed18563-53e0-46c2-a91d-12d73a16456d",
+        "entry_mode": "INGEST"
+    }
+
+    def setUp(self):
+        cache.clear()
+        super().setUp()
+        self.parser = GameSchedule()
+
+        # Make the stuff we need to parse this.
+        mommy.make(
+            Season,
+            srid=self.game_event['season__id']
+        )
+
+        home_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="DEN",
+            srid=self.game_event['home']
+        )
+
+        away_team = mommy.make(
+            sports.nfl.models.Team,
+            alias="OKC",
+            srid=self.game_event['away']
+        )
+
+        # Create a Game model so this boxcore can be parsed.
+        self.game = mommy.make(
+            Game,
+            srid=self.game_event['id'],
+            away=away_team,
+            srid_away=away_team.srid,
+            home=home_team,
+            srid_home=home_team.srid,
+            status='scheduled'
+        )
+
+    def __parse_and_send(self, unwrapped_obj, target, tag=None):
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        return self.parser
+
+    # Test GameSchedule parser
+    def test_completed_game_set_to_verify(self):
+        sport_db = 'nflo'
+        parent_api = 'schedule'
+
+        self.assertEqual(self.game.status, 'scheduled')
+        logger.info('Setting game to `%s`' % Game.STATUS_INPROGRESS)
+        # Set the game event to 'inprogress' and ensure the game is still in 'inprogress' mode.
+        self.game_event['status'] = Game.STATUS_INPROGRESS
+        self.__parse_and_send(self.game_event, (sport_db + '.' + 'team', parent_api))
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.status, Game.STATUS_INPROGRESS)
+
+        logger.info('Setting game to `%s`' % Game.STATUS_COMPLETE)
+        # Set the game event to 'complete' and ensure the game is in 'closed' mode.
+        self.game_event['status'] = Game.STATUS_COMPLETE
+        self.__parse_and_send(self.game_event, (sport_db + '.' + 'team', parent_api))
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.status, Game.STATUS_COMPLETE)
+
+        logger.info('Setting game to `%s`' % Game.STATUS_CLOSED)
+        # Now set it to 'closed' and check the status is moved to 'verify'
+        self.game_event['status'] = Game.STATUS_CLOSED
+        self.__parse_and_send(self.game_event, (sport_db + '.' + 'team', parent_api))
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.status, Game.STATUS_NEEDS_VERIFICATION)

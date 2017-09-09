@@ -135,9 +135,14 @@ class Game(DirtyFieldsMixin, models.Model):
     information about the scheduled game - mainly the start, and status
     """
 
-    STATUS_CLOSED = 'closed'
+    # Game is running.
     STATUS_INPROGRESS = 'inprogress'
+    # Game has ended
+    STATUS_COMPLETE = 'complete'
+    # We set this for NFL games to give us a chance to manually verify stats.
     STATUS_NEEDS_VERIFICATION = 'verify'
+    # Game has ended and no stats updates will happen - final state.
+    STATUS_CLOSED = 'closed'
 
     SEASON_TYPE_PRE = 'pre'  # preseason
     SEASON_TYPE_REG = 'reg'  # regular season

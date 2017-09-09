@@ -1,6 +1,3 @@
-#
-# sports/game_status.py
-
 class GameStatus(object):
     """
     for discrepencies with the values returned by this class, please refer
@@ -14,15 +11,19 @@ class GameStatus(object):
     will return, in this case: 'inprogress'.
     """
 
-    class InvalidSportException(Exception): pass
+    class InvalidSportException(Exception):
+        pass
 
-    class InvalidGranularStatus(Exception): pass
+    class InvalidGranularStatus(Exception):
+        pass
 
-    class UnknownPrimaryStatusException(Exception): pass
+    class UnknownPrimaryStatusException(Exception):
+        pass
 
-    scheduled   = 'scheduled'       # game has not yet begun to happen
-    inprogress  = 'inprogress'      # game is happening
-    closed      = 'closed'          # game happened and stats are finalized
+    scheduled = 'scheduled'  # game has not yet begun to happen
+    inprogress = 'inprogress'  # game is happening
+    closed = 'closed'  # game happened and stats are finalized
+    verify = 'verify'  # game is over and ready to be manually verifyed (currently NFL only!)
 
     primary_statuses = [
         scheduled,
@@ -40,64 +41,76 @@ class GameStatus(object):
     # sport-radar-game-status key is used to lookup the primary game status.
     sports = {
 
-        mlb : {
+        mlb: {
             # ordered how they appear in the source documentation for easily comparing the two
-            'scheduled'     : scheduled,
-            'inprogress'    : inprogress,
-            'complete'      : closed,
-            'closed'        : closed,
-            'wdelay'        : inprogress,
-            'fdelay'        : inprogress,
-            'odelay'        : inprogress,
-            'canceled'      : closed,
-            'unnecessary'   : closed,
-            'postponed'     : closed,
-            'suspended'     : closed,       # suspended and will be rescheduled [...], continuing where they left off.
-            'maintenance'   : inprogress,   # failed review and is in the process of being repaired.
+            'scheduled': scheduled,
+            'inprogress': inprogress,
+            'complete': closed,
+            'closed': closed,
+            'wdelay': inprogress,
+            'fdelay': inprogress,
+            'odelay': inprogress,
+            'canceled': closed,
+            'unnecessary': closed,
+            'postponed': closed,
+            'suspended': closed,
+            # suspended and will be rescheduled [...], continuing where they left off.
+            'maintenance': inprogress,  # failed review and is in the process of being repaired.
         },
 
-        nfl : {
+        nfl: {
             # ordered how they appear in the source documentation for easily comparing the two
-            'scheduled'     : scheduled,
-            'inprogress'    : inprogress,
-            'halftime'      : inprogress,
-            'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
-            'closed'        : closed,       # game over, statistics validation done
-            'canceled'      : closed,
-            'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
-            'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
-            'flex-schedule' : scheduled,    # scheduled with datetime, but likely to be moved for broadcast purposes
-            'time-tbd'      : scheduled,    # scheduled to occur, date known, start time not yet determined
+            'scheduled': scheduled,
+            'inprogress': inprogress,
+            'halftime': inprogress,
+            'complete': closed,
+            # the game is over, but the statistics validation is not yet finished
+            'closed': closed,  # game over, statistics validation done
+            'canceled': closed,
+            'postponed': closed,
+            # for dfs purposes, it closed because it wont happen on original date
+            'delayed': inprogress,  # scheduled and inprogress games can enter this status
+            'flex-schedule': scheduled,
+            # scheduled with datetime, but likely to be moved for broadcast purposes
+            'time-tbd': scheduled,  # scheduled to occur, date known, start time not yet determined
         },
 
-        nba : {
-            'scheduled'     : scheduled,
-            'created'       : inprogress,   # the game just started, along with real-time data being available
-            'inprogress'    : inprogress,
-            'halftime'      : inprogress,
-            'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
-            'closed'        : closed,       # game over, statistics validation done
-            'canceled'      : closed,
-            'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
-            'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
-            'time-tbd'      : scheduled,    # scheduled to occur, date known, start time not yet determined
-            'unnecessary'   : closed,       # a team won/clinched a series early, making this game unnecessary
+        nba: {
+            'scheduled': scheduled,
+            'created': inprogress,
+            # the game just started, along with real-time data being available
+            'inprogress': inprogress,
+            'halftime': inprogress,
+            'complete': closed,
+            # the game is over, but the statistics validation is not yet finished
+            'closed': closed,  # game over, statistics validation done
+            'canceled': closed,
+            'delayed': inprogress,  # scheduled and inprogress games can enter this status
+            'postponed': closed,
+            # for dfs purposes, it closed because it wont happen on original date
+            'time-tbd': scheduled,  # scheduled to occur, date known, start time not yet determined
+            'unnecessary': closed,
+            # a team won/clinched a series early, making this game unnecessary
         },
 
         # these statuses were taken from the classic feed on 2016.07.08,
         # we are assuming the official feed holds similar values
         # but its specific documentation is not out yet.
-        nhl : {
-            'scheduled'     : scheduled,
-            'created'       : inprogress,   # the game just started, along with real-time data being available
-            'inprogress'    : inprogress,
-            'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
-            'closed'        : closed,       # game over, statistics validation done
-            'canceled'      : closed,
-            'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
-            'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
-            'time-tbd'      : scheduled,    # scheduled to occur, date known, start time not yet determined
-            'unnecessary'   : closed,       # a team won/clinched a series early, making this game unnecessary
+        nhl: {
+            'scheduled': scheduled,
+            'created': inprogress,
+            # the game just started, along with real-time data being available
+            'inprogress': inprogress,
+            'complete': closed,
+            # the game is over, but the statistics validation is not yet finished
+            'closed': closed,  # game over, statistics validation done
+            'canceled': closed,
+            'delayed': inprogress,  # scheduled and inprogress games can enter this status
+            'postponed': closed,
+            # for dfs purposes, it closed because it wont happen on original date
+            'time-tbd': scheduled,  # scheduled to occur, date known, start time not yet determined
+            'unnecessary': closed,
+            # a team won/clinched a series early, making this game unnecessary
         },
     }
 
@@ -108,7 +121,7 @@ class GameStatus(object):
         """
         if sport not in self.sports.keys():
             err_msg = 'update sports.game_status.GameStatus for sport: %s' % sport
-            #print(err_msg)
+            # print(err_msg)
             raise self.InvalidSportException(err_msg)
 
         self.status_map = self.sports.get(sport)
@@ -125,13 +138,13 @@ class GameStatus(object):
         # print('>>>', str(self.status_map))
         if status not in self.status_map.keys():
             err_msg = '%s does not exist and therefore cant have a primary status!' % status
-            #print(err_msg)
+            # print(err_msg)
             raise self.InvalidGranularStatus(err_msg)
 
         primary_status = self.status_map.get(status)
         if primary_status is None:
             err_msg = '%s does not map to a primary position. update sports.game_status.GameStatus asap' % status
-            #print(err_msg)
+            # print(err_msg)
             raise self.UnknownPrimaryStatusException(err_msg)
 
         return primary_status
