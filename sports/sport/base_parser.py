@@ -518,8 +518,13 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         # If the game is already closed, don't let it become active again.
         if self.game.status != GameStatus.closed:
             self.game.status = status
+        else:
+            logger.warning(
+                "Game status is `%s` not updating to a new status of `%s`. game: %s | "
+                "object: %s" % (self.game.status, status, self.game, o)
+            )
 
-        logger.info('Parsed GameSchedule: %s' % self.game)
+        logger.info('Parsed GameSchedule: %s' % o)
 
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
@@ -664,6 +669,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         o = obj.get_o()
         srid_game = o.get('game__id', None)
         srid_player = o.get('id', None)
+        logger.info('Parsing Player Stat Object: %s' % o)
 
         try:
             self.p = self.player_model.objects.get(srid=srid_player)
