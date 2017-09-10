@@ -42,7 +42,7 @@ const stubGenericLineupC = {
 const stubMyLineup = {
   id: 4,
   name: 'My Lineup',
-  fp: 50,
+  fp: 0,
   isLoading: false,
   potentialWinnings: 10,
   rank: 5,
@@ -55,7 +55,7 @@ const stubMyLineup = {
 const stubOppLineup = {
   id: 5,
   name: 'Opponent Lineup',
-  fp: 20,
+  fp: 0,
   potentialWinnings: 10,
   rank: '',
   timeRemaining: {
@@ -68,7 +68,7 @@ const stubOppLineup = {
 const stubOtherLineup = {
   id: 6,
   name: 'Other Lineup',
-  fp: 15,
+  fp: 0,
   potentialWinnings: 10,
   rank: '',
   timeRemaining: {
@@ -81,7 +81,7 @@ const stubOtherLineup = {
 const stubDebugLineup = {
   id: 7,
   name: 'Debug Lineup',
-  fp: 34,
+  fp: 0,
   potentialWinnings: 10,
   rank: '',
   timeRemaining: {
@@ -102,10 +102,10 @@ const stubContest = {
     [stubGenericLineupA.id]: merge(stubGenericLineupA, { fp: 0, rank: 7, potentialWinnings: 0 }),
     [stubGenericLineupB.id]: merge(stubGenericLineupB, { fp: 0, rank: 6, potentialWinnings: 0 }),
     [stubGenericLineupC.id]: merge(stubGenericLineupC, { fp: 0, rank: 5, potentialWinnings: 0 }),
-    [stubMyLineup.id]: merge(stubMyLineup, { fp: 100, rank: 1, potentialWinnings: 100 }),
-    [stubOppLineup.id]: merge(stubOppLineup, { fp: 50, rank: 2, potentialWinnings: 50 }),
-    [stubOtherLineup.id]: merge(stubOtherLineup, { fp: 25, rank: 3, potentialWinnings: 50 }),
-    [stubDebugLineup.id]: merge(stubDebugLineup, { fp: 25, rank: 4, potentialWinnings: 50 }),
+    [stubMyLineup.id]: merge(stubMyLineup, { fp: 0, rank: 1, potentialWinnings: 100 }),
+    [stubOppLineup.id]: merge(stubOppLineup, { fp: 0, rank: 2, potentialWinnings: 50 }),
+    [stubOtherLineup.id]: merge(stubOtherLineup, { fp: 0, rank: 3, potentialWinnings: 50 }),
+    [stubDebugLineup.id]: merge(stubDebugLineup, { fp: 0, rank: 4, potentialWinnings: 50 }),
   },
   lineupsUsernames: {
     [stubGenericLineupA.id]: stubGenericLineupA.name,
