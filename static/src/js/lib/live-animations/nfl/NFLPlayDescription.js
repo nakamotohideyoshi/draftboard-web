@@ -6,7 +6,7 @@ import NFLPlayRecapVO from './NFLPlayRecapVO';
  */
 const formatYards = yards => {
   const suffix = yards === 0 || yards > 1 ? 's' : '';
-  return `${yards} yard${suffix}`;
+  return `${Math.floor(yards)} yard${suffix}`;
 };
 
 /**
@@ -67,7 +67,7 @@ const tokenizeDescription = recap => {
 
   if (recap.playType() === NFLPlayRecapVO.RUSH) {
     const rusher = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.rush__list.player'));
-    const rushingYards = Math.round(recap.rushingYards() * 100);
+    const rushingYards = Math.floor(recap.rushingYards() * 100);
 
     if (recap.isTouchdown()) {
       tokens = [rusher, `rushed ${recap.side()} for ${formatYards(rushingYards)} and the touchdown!`];
