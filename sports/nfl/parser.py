@@ -131,8 +131,17 @@ class GameSchedule(DataDenGameSchedule):
         #   ['srid','home','away','start','status','srid_home','srid_away','title']]
         weather_info = o.get('weather', '')
         self.game.weather_json = weather_info
-        self.game.save()
 
+        # If the schedule object says that the game is 'closed', we override
+        # that and set it to 'verify' to give us a chance to manually verify stats without
+        # the system auto-finalzing and paying out contests.
+        if self.game.status == Game.STATUS_CLOSED:
+            logger.info(
+                'NFL Game.status is: `%s`, overriding it to: `%s` for manual verification' % (
+                    self.game.status, Game.STATUS_NEEDS_VERIFICATION))
+            self.game.status = Game.STATUS_NEEDS_VERIFICATION
+
+        self.game.save()
 
         # self.game.refresh_from_db()
         # print('saved game! status:', str(self.game.status))
@@ -310,26 +319,26 @@ class PlayerStats(DataDenPlayerStats):
             self.ps.pass_yds = o.get('yards', 0)  # previously 'yards'
             self.ps.pass_int = o.get('interceptions', 0)
         elif parent_list == "rushing__list":
-            logger.info('rushing__list' % o)
+            logger.info('rushing__list %s' % o)
             self.ps.rush_td = o.get('touchdowns', 0)
             self.ps.rush_yds = o.get('yards', 0)
         elif parent_list == "receiving__list":
-            logger.info('receiving__list' % o)
+            logger.info('receiving__list %s' % o)
             self.ps.rec_td = o.get('touchdowns', 0)
             self.ps.rec_yds = o.get('yards', 0)
             self.ps.rec_rec = o.get('receptions', 0)
         elif parent_list == "punt_returns__list":
-            logger.info('punt_returns__list' % o)
+            logger.info('punt_returns__list %s' % o)
             self.ps.ret_punt_td = o.get('touchdowns', 0)
         elif parent_list == "kick_returns__list":
-            logger.info('kick_returns__list' % o)
+            logger.info('kick_returns__list %s' % o)
             self.ps.ret_kick_td = o.get('touchdowns', 0)
         elif parent_list == "fumbles__list":
-            logger.info('fumbles__list' % o)
+            logger.info('fumbles__list %s' % o)
             self.ps.off_fum_lost = o.get('lost_fumbles', 0)
             self.ps.off_fum_rec_td = o.get('own_rec_tds', 0)
         elif parent_list == "conversions__list":
-            logger.info('conversions__list' % o)
+            logger.info('conversions__list %s' % o)
             # {
             #   'jersey': 11.0, 'category': 'receive', 'dd_updated__id': 1464828941114,
             #   'id': 'f9036897-99d5-4d9a-8965-0c7e0f9e43bd', 'team__id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',

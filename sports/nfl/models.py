@@ -82,7 +82,7 @@ class Game(sports.models.Game):
         abstract = False
 
     def save(self, *args, **kwargs):
-        from .classes import NflRecentGamePlayerStats
+        from .classes import run_nfl_recent_game_player_stats_for_game
 
         """
         override save so we can signal certain changes
@@ -95,38 +95,26 @@ class Game(sports.models.Game):
         except django.core.exceptions.ValidationError:
             changed_fields = {}
 
-        # If the game was just changed to 'closed', sync all player stats from our Dataden
+        # If the game was just changed to 'verify', sync all player stats from our Dataden
         # MongoDB objects.
         # (NOTE: This is only for NFL games - others sports shouldn't need this)
         # See: https://github.com/runitoncedevs/dfs/wiki/Syncing-our-local-player-stats-with-
         # what-is-in-MongoDB
-
-        # `status` field was changed, and now it is 'closed'.
-        if changed_fields.get('status', False) and self.status == self.STATUS_CLOSED:
-            previous_status = changed_fields.get('status')
-
-            # Since we are manually verifying NFL stats, we need a non-closed status.
-            # When the games get auto-closed by our stats feed, they will be set to 'verify'.
-            # Once stat verification is complete, we will manually change status to 'closed'.
-            #
-            # We ONLY want to do this if the status isn't being changed from
-            # 'verify' to 'closed'. otherwise we would never be able to close one manually.
-
-            # the new value is 'closed', the last one was 'verify' - so this was manually closed.
-            if previous_status == self.STATUS_NEEDS_VERIFICATION:
-                # Game was manually verified, and set to 'closed'
-                logger.info(
-                    "NFL game has been manually verified and closed, final stat sync will not"
-                    " be performed. game: %s" % self.srid)
-            else:
-                # Game was automaticaly 'closed' by our data feed. Set it to a 'verify' state
-                # and kick off final stat sync.
-                logger.info(
-                    "NFL game has been completed, kicking off final stat sync and setting "
-                    "to 'verify' status. game: %s" % self.srid)
-                self.status = self.STATUS_NEEDS_VERIFICATION
-                nfl_recent_stats = NflRecentGamePlayerStats()
-                nfl_recent_stats.update(self.srid)
+        #
+        # `status` field was changed, and now it is 'verify'.
+        #
+        # Since we are manually verifying NFL stats, we need a non-closed status.
+        # When the games get auto-closed by our stats feed, they will be set to 'verify'.
+        # This 'verify' status is changed at the parser level.
+        # Once stat verification is complete, we will manually change status to 'closed'.
+        if changed_fields.get('status', False) and self.status == self.STATUS_NEEDS_VERIFICATION:
+            # Game was set to 'verify' by our parser override. kick off final stat
+            # sync.
+            logger.info(
+                "NFL game status has been set to '%s' by our parser, kicking off final stat "
+                "sync. game: %s" % (self.status , self.srid))
+            run_nfl_recent_game_player_stats_for_game.apply_async(
+                (self.srid,), queue='long_running')
 
         # Call the "real" save() method.
         super().save(*args, **kwargs)
