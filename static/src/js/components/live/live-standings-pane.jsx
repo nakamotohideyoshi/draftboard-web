@@ -112,7 +112,7 @@ export const LiveStandingsPane = React.createClass({
           rank: lineup.rank,
           potentialWinnings: lineup.potentialWinnings,
           timeRemaining: lineup.timeRemaining.decimal,
-          x: (lineup.fp - minFP) / range,
+          x: !range ? 0 : (lineup.fp - minFP) / range,
         }
       ));
     };
@@ -135,19 +135,15 @@ export const LiveStandingsPane = React.createClass({
   alignElements() {
     const lineups = this.getRankedLineups();
 
-    if (!lineups.length) {
+    // When testing `requestAnimationFrame` is going to be undefined.
+    if (!lineups.length || !window.requestAnimationFrame) {
       return null;
     }
 
     const standingsLineEl = this.refs.standingsline;
     const moneylineEl = this.refs.moneyline;
-    const numWinners = this.props.contest.prize.info.payout_spots;
-    const lastPosInTheMoney = sortDesc(lineups)[Math.min(numWinners, lineups.length) - 1];
-
-    // When testing this will not exist.
-    if (!window.requestAnimationFrame) {
-      return;
-    }
+    const winners = lineups.filter(lineup => lineup.potentialWinnings > 0);
+    const lastPosInTheMoney = winners.length ? winners[0] : false;
 
     window.requestAnimationFrame(() => {
       // Get the width of the line to accurately determine the minimum space
@@ -164,7 +160,7 @@ export const LiveStandingsPane = React.createClass({
         }
       });
 
-      const moneyLineWidth = 1 - lastPosInTheMoney.x;
+      const moneyLineWidth = !lastPosInTheMoney ? 0 : 1 - lastPosInTheMoney.x;
       moneylineEl.style.width = `${moneyLineWidth * 100}%`;
     });
   },
