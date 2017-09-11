@@ -451,7 +451,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             raise Exception('"season_model" cant be None!')
 
         self.game = None
-
+        # What was the status of our local Game object before we update it?
+        self.initial_game_status = None
         # mlb has the same srid for all three season_types,
         # so we have to hack this just a bit to
         # use the self.season if its already set. default is None
@@ -513,7 +514,9 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         self.game.srid_home = srid_home
         self.game.srid_away = srid_away
         self.game.title = title
-
+        # Keep track of what the game status was before we update it. We need this info for NFL
+        # manual verification.
+        self.initial_game_status = self.game.status
         # parsing boxscores will update this Game's 'status' field
         # If the game is already closed, don't let it become active again.
         if self.game.status != GameStatus.closed:

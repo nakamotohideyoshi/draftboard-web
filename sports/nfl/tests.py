@@ -1712,3 +1712,15 @@ class GameScheduleParserStatusTest(AbstractTest):
         self.__parse_and_send(self.game_event, (sport_db + '.' + 'team', parent_api))
         self.game.refresh_from_db()
         self.assertEqual(self.game.status, Game.STATUS_NEEDS_VERIFICATION)
+
+        # Game was already closed, and gets re-parsed, with a 'closed' status.
+        logger.info('Setting game to `%s`' % Game.STATUS_CLOSED)
+        self.game.status = Game.STATUS_CLOSED
+        self.game.save()
+        # Now set the object 'closed' and make sure it doesn't go back to 'verify'
+        self.game_event['status'] = Game.STATUS_CLOSED
+        self.__parse_and_send(self.game_event, (sport_db + '.' + 'team', parent_api))
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.status, Game.STATUS_CLOSED)
+
+

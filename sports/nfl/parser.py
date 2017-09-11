@@ -135,11 +135,15 @@ class GameSchedule(DataDenGameSchedule):
         # If the schedule object says that the game is 'closed', we override
         # that and set it to 'verify' to give us a chance to manually verify stats without
         # the system auto-finalzing and paying out contests.
-        if self.game.status == Game.STATUS_CLOSED:
-            logger.info(
-                'NFL Game.status is: `%s`, overriding it to: `%s` for manual verification' % (
-                    self.game.status, Game.STATUS_NEEDS_VERIFICATION))
-            self.game.status = Game.STATUS_NEEDS_VERIFICATION
+
+        # If the game was closed to begin with, just ignore all of this. Otherwise we will end up
+        # overwriting previously closed games that get re-parsed.
+        if self.initial_game_status != Game.STATUS_CLOSED:
+            if self.game.status == Game.STATUS_CLOSED:
+                logger.info(
+                    'NFL Game.status is: `%s`, overriding it to: `%s` for manual verification' % (
+                        self.game.status, Game.STATUS_NEEDS_VERIFICATION))
+                self.game.status = Game.STATUS_NEEDS_VERIFICATION
 
         self.game.save()
 
