@@ -5,12 +5,12 @@
 //   viewport height.
 // • Flexboxed layout consisting of two rows. The first row contains the
 //   `live__venues`, the second row contains big-plays.
-// • `live__venues` child is flexboxed with it's children justified center 
+// • `live__venues` child is flexboxed with it's children justified center
 // • Backgrounds for the live section are set here (except MLB stadium, is in
 //   LiveMLBPitchZone)
-// 
+//
 //                           .live (flexbox layout)
-// 
+//
 //                      |-----------------------------|
 //                      |       |=============|       |
 //                      |       |=============|       |
@@ -56,10 +56,15 @@ $block: '.live';
     transform: translateZ(0);
     transition: width 600ms cubic-bezier(.65, .47, .35, 1);
   }
-  
+
   // Overlap the current .live__venue with the .live-header
   &__venues > .live__venue {
     margin-top: -50px;
+
+    // Since the .live-header is larger at this size, we need to bump down the field.
+    @media (min-height: 1300px) {
+      margin-top: 200px;
+    }
   }
 
   // Adjust the position of the LiveStandingsPane component to slightly overlap
