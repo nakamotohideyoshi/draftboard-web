@@ -212,7 +212,8 @@ class UserUpcomingContestPoolAPIView(UserEntryAPIView):
     """
     a user's registered-in ContestPools in the future
     """
-    permission_classes = (IsAuthenticated,)
+    # Let anonymous users hit this API without failure.
+    permission_classes = ()
     serializer_class = UpcomingEntrySerializer
 
     def get_entries(self, user):
@@ -224,6 +225,9 @@ class UserUpcomingContestPoolAPIView(UserEntryAPIView):
                                     contest_pool__in=UpcomingContestPool.objects.all())
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return []
+
         """
         Return a QuerySet from the UpcomingContestPool model containing
         all the entries for the user
