@@ -1,4 +1,5 @@
 @import '../button.scss';
+@import '../../variables.scss';
 
 /**
   Everything having to do with the GIDX modal process.
@@ -33,6 +34,14 @@
       color: $primary-text;
       padding-bottom: 40px !important;
     }
+  }
+
+  #PaymentInformation {
+    // 'deposit method' box left side.
+    .panel-default {
+      padding: 22px 15px 15px 15px !important;
+      min-height: 80px !important;
+    }
 
   }
 
@@ -42,19 +51,39 @@
       text-align: left;
       padding: 0;
     }
-
   }
 
   // Buttons! These should just extend our standard button classes.
-  .btn {
-    @extend .button;
+  // Only style those that are not in lists - these are dropdown menu buttons!
+  .btn:not(.dropdown-toggle) {
 
-    &.btn-default,
-    &.btn-info {
+    // Green outline buttons
+    &.btn-default:not(.paymentAmtCancel):not(.staticFormButton) {
+      @extend .button--outline;
+    }
+
+    // green gradient buttons.
+    &.btn-info,
+    &.btn-success,
+    // 'complete your transaction at paypal' button
+    &.staticFormButton {
+      @extend .button;
       @extend .button--gradient;
     }
-  }
 
+    // grey outline buttons.
+    &.paymentAmtCancel {
+      @extend .button;
+      @extend .button--outline-alt1;
+    }
+
+    // Shown when removing a saved paypal account.
+    &.btn-danger {
+      @extend .button;
+      @extend .button--gradient;
+      margin-left: 10px;
+    }
+  }
 
   label {
     font-size: 12px;
@@ -174,6 +203,24 @@
     }
   }
 
+  // Dropdown menu buttons
+  .dropdown-menu {
+    .btn {
+      width: auto;
+      display: inline-block;
+      background: none !important;
+      color: $primary-charcoal !important;
+      text-transform: inherit !important;
+      letter-spacing: normal !important;
+      font-size: 13px !important;
+
+      &:hover {
+        text-decoration: underline;
+        box-shadow: none !important;
+      }
+    }
+  }
+
   // Terms agreement checkbox wrapper
   #AgreementElement_AgreementId-controls {
     text-align: left;
@@ -206,6 +253,22 @@
       }
     }
   }
-
 }
+
+/**
+  Deposits page drop-in form styles
+ */
+#account-deposits {
+  // First pane - select amount.
+  .cashierPaymentAmount-plate {
+    // Hide dumb header + footer text.
+    #PaymentAmountTextFooter,
+    #PaymentAmountTextHeader {
+      display: none;
+      margin: 0;
+      padding: 0;
+    }
+  }
+}
+
 
