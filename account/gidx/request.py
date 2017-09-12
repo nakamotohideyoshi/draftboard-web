@@ -15,6 +15,8 @@ from mysite.celery_app import app
 from transaction.tasks import send_deposit_receipt
 from .models import GidxSession
 from .response import (CustomerRegistrationResponse, WebRegCreateSessionResponse)
+from cash.models import GidxTransaction
+
 
 logger = getLogger('account.gidx.request')
 
@@ -516,7 +518,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
 
     # The external method that is used to make the request.
     def send(self):
-        logger.info("WEB_CACHIER_PAYMENT_DETAIL_REQUEST - MerchantTransactionID: %s" % (
+        logger.info("Fetching payment details from GIDX for - MerchantTransactionID: %s" % (
             self.params['MerchantTransactionID']))
         # Call the parent's _send, it does the actual work.
         return self._send()
@@ -555,9 +557,34 @@ class WebCashierPaymentDetailRequest(GidxRequest):
 
         return ok_deposits
 
+    def get_cash_payments(self):
+        """
+        Return all money payments, not bonus cash or anything like that.
+        :return: List
+        """
+        payments = self.response_wrapper.json['PaymentDetails']
+        cash_payments = []
+
+        # Loop through the payments and pluck out the 'Sale' ones.
+        for payment in payments:
+            if payment['PaymentAmountCode'].lower() == 'sale':
+                cash_payments.append(payment)
+
+        return cash_payments
+
 
 @app.task(bind=True)
 def make_web_cashier_payment_detail_request(self, user, transaction_id, session_id):
+    """
+    A task that will make a request to GIDX for transaction details, and will handle the response
+    appropriately (adding funds, etc).
+
+    :param self:
+    :param user:
+    :param transaction_id:
+    :param session_id:
+    :return:
+    """
     payment_detail_request = WebCashierPaymentDetailRequest(
         user=user,
         merchant_transaction_id=transaction_id,
@@ -570,7 +597,7 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
 
     # The response contains payments...
     if payment_detail_request.has_payments():
-        payments = payment_detail_request.get_successful_deposits()
+        payments = payment_detail_request.get_cash_payments()
 
         for payment in payments:
             # was it a credit (deposit) or debit (withdraw)?
@@ -582,7 +609,7 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
 
             #
             # It is a DEPOSIT
-            if payment_type.lower() == 'credit'.lower():
+            if payment_type.lower() == 'credit':
                 if payment['PaymentStatusMessage'] == 'Failed':
                     logger.warning(
                         'Deposit payment was not a success, not adding funds. %s' % payment)
@@ -590,15 +617,6 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
                 elif payment['PaymentStatusMessage'] == 'Complete':
                     # Deposit the amount into their account
                     trans.deposit_gidx(payment['PaymentAmount'], transaction_id)
-
-                    # Create a task that will send the user an email confirming the transaction
-                    try:
-                        send_deposit_receipt.delay(
-                            user, payment['PaymentAmount'], trans.get_balance_string_formatted(),
-                            timezone.now())
-                    except Exception as e:
-                        logger.error(e)
-                        client.captureException(e)
                 else:
                     raise Exception(
                         'Unknown PaymentStatusMessage from GIDX payment detail response: %s' % (
@@ -607,24 +625,47 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
 
             #
             # It is a PAYOUT
-            elif payment_type.lower() == 'debit'.lower():
-                # The withdraw failed - We can leave everything alone.
-                if payment['PaymentStatusMessage'] == 'Failed':
-                    logger.warning(
-                        'Withdraw was not a success, refunding amount. %s' % payment)
+            elif payment_type.lower() == 'debit':
+                existing_transaction = GidxTransaction.objects.filter(
+                    merchant_transaction_id=transaction_id)
 
-                # Withdraw was a success! We need to withdraw + notify the user.
-                elif payment['PaymentStatusMessage'] == 'Complete':
-                    trans.withdraw_gidx(payment['PaymentAmount'], transaction_id)
+                # There is already more than one transaction with this ID, we should be
+                # notified of this.
+                if existing_transaction.count() > 1:
+                    # Send some useful information to Sentry.
+                    client.context.merge({'extra': {
+                        'response_json': payment_detail_response.json,
+                        'merchant_transaction_id': transaction_id,
+                    }})
+                    client.captureMessage(
+                        "More than one transaction for a merchant_transaction_id was found.")
+                    client.context.clear()
 
-                    # Create a task that will send the user an email confirming the transaction
-                    try:
-                        send_deposit_receipt.delay(
-                            user, payment['PaymentAmount'], trans.get_balance_string_formatted(),
-                            timezone.now())
-                    except Exception as e:
-                        logger.error(e)
-                        client.captureException(e)
+                # The withdraw failed - We need to issue a refund if a withdraw was already
+                # made (it probalby was).
+                if payment['PaymentStatusMessage'].lower() == 'failed':
+                    # We had a previous withdraw transaction, put the money back into the user's
+                    # balance.
+                    if existing_transaction.count() > 0:
+                        logger.info(
+                            'Withdraw was not a success, refunding previous withdraw. %s' % payment)
+                        trans.deposit_gidx(payment['PaymentAmount'], "%s--REFUND" % transaction_id)
+                    else:
+                        logger.warning(
+                            'No transaction exists for this failed withdraw attempt: %s' % (
+                                payment_detail_response.json))
+
+                # Withdraw was a success! We need to withdraw if we haven't already.
+                elif payment['PaymentStatusMessage'].lower() == 'complete':
+                    # They've never had a transaction to reduce their balance! we need to do it now.
+                    if existing_transaction.count() == 0:
+                        logger.info('No withdraw transaction exists, creating one now. %s' % (
+                            payment_detail_response.json))
+                        trans.withdraw_gidx(payment['PaymentAmount'], transaction_id)
+                    else:
+                        logger.info('A withdraw transaction exists, NOT creating one now. %s' % (
+                            payment_detail_response.json))
+
                 else:
                     raise Exception(
                         'Unknown PaymentStatusMessage from GIDX payment detail response: %s' % (
@@ -635,7 +676,9 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
                     'Unknown PaymentAmountType from GIDX payment detail response: %s' % (
                         payment
                     ))
-
+    else:
+        logger.warning(
+            'Payment Detail contained no payment info! %s' % payment_detail_response.json)
 
 class WebCashierCreatePayoutSession(GidxRequest):
     """
@@ -676,7 +719,7 @@ class WebCashierCreatePayoutSession(GidxRequest):
             'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/withdraw-webhook/'),
             'CashierPaymentAmount': {
                 'PaymentAmount': amount,
-                'PaymentAmountOverride': True,
+                'PaymentAmountOverride': False,
                 'PaymentCurrencyCode': 'USD'
             },
             'CustomerRegistration': {
