@@ -18,6 +18,7 @@ const initialState = {
     withdrawForm: {
       isFetching: false,
       formEmbed: null,
+      merchantSessionId: null,
     },
   },
 };
@@ -133,6 +134,7 @@ module.exports = (state = initialState, action) => {
           withdrawForm: {
             isFetching: false,
             formEmbed: action.response.detail.form_embed,
+            merchantSessionId: action.response.detail.merchant_session_id,
           },
         },
       });
