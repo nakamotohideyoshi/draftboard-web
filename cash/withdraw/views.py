@@ -1,6 +1,8 @@
+import json
 from logging import getLogger
 
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -19,6 +21,7 @@ from account.gidx.response import (
 from account.permissions import (HasIpAccess, HasVerifiedIdentity)
 from account.utils import (get_client_ip)
 from cash.classes import CashTransaction
+from cash.models import GidxTransaction
 
 logger = getLogger('cash.withdraw.views')
 
@@ -109,6 +112,77 @@ class GidxWithdrawFormAPIView(APIView):
         )
 
 
+class GidxWithdrawSessionComplete(APIView):
+    permission_classes = (IsAuthenticated, HasVerifiedIdentity)
+
+    @staticmethod
+    def post(request):
+        merchant_session_id = request.data.get('session_id')
+
+        if merchant_session_id is None:
+            return Response(
+                data={"detail": "Session ID is missing"},
+                status=400,
+            )
+
+        # get the merchant session entry that initiated this session.
+        gidx_session = GidxSession.objects.get(
+            session_id=merchant_session_id,
+            service_type='WebCashier_CreateSession'
+        )
+        session_data = gidx_session.request_data
+
+        if not gidx_session.user == request.user:
+            raise PermissionDenied(detail='Requesting user does not own this session.')
+
+        if not session_data.get('PayActionCode') == 'PAYOUT':
+            logger.error(
+                'Attempated to GidxWithdrawSessionComplete a session that is not a '
+                'PAYOUT: session %s' % gidx_session)
+            return Response(
+                data={"detail": ":("},
+                status=400,
+            )
+
+        amount = session_data.get('CashierPaymentAmount', {}).get('PaymentAmount')
+
+        if not amount:
+            logger.error(
+                'Attempated to GidxWithdrawSessionComplete a session that has no '
+                'amount: session %s' % gidx_session)
+            return Response(
+                data={"detail": ":/"},
+                status=400,
+            )
+
+        merchant_transaction_id = session_data.get('MerchantTransactionID')
+        existing_transaction = GidxTransaction.objects.filter(
+            merchant_transaction_id=merchant_transaction_id)
+
+        if existing_transaction.count() > 0:
+            logger.error(
+                'Attempated to GidxWithdrawSessionComplete a session that has an existing '
+                'transaction!: session %s | merchant_transaction_id' % (
+                    gidx_session, merchant_transaction_id))
+            return Response(
+                data={"detail": ">:"},
+                status=400,
+            )
+
+        # ok, so we know that the session we have is a valid withdraw that does not already
+        # have a transaction associated with it. This means we can initiate a withdraw.
+        trans = CashTransaction(request.user)
+        trans.withdraw_gidx(float(amount), merchant_transaction_id)
+
+        # As long as nothing errors out, send a 200 back to the browser.
+        return Response(
+            data={
+                "detail": "cool."
+            },
+            status=200,
+        )
+
+
 class GidxWithdrawCallbackAPIView(APIView):
     """
     Note: this very similar to GidxDepositCallbackAPIView -- maybe these can be merged?
@@ -123,8 +197,6 @@ class GidxWithdrawCallbackAPIView(APIView):
     @staticmethod
     @csrf_exempt
     def post(request):
-        import json
-
         request_data = json.loads(request.data.dict()['result'])
 
         logger.info({
@@ -151,7 +223,6 @@ class GidxWithdrawCallbackAPIView(APIView):
         # If the webhook says that the transaction has completed (good or bad), we need to fetch
         # the payment details in order to proceed.
         if response_wrapper.is_done():
-            # TODO: queue this in celery.
             payment_detail = make_web_cashier_payment_detail_request.delay(
                 user=user,
                 transaction_id=response_wrapper.json['MerchantTransactionID'],

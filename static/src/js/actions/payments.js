@@ -1,4 +1,4 @@
-// import Raven from 'raven-js';
+import Raven from 'raven-js';
 import * as actionTypes from '../action-types';
 import request from 'superagent';
 import Cookies from 'js-cookie';
@@ -92,6 +92,30 @@ export const fetchWithdrawForm = (options) => (dispatch) => {
     return action;
   });
 };
+
+
+/**
+ * When a withdraw form has completed, we need to send a message to our server to create a
+ * withdraw and reduce the funds of the user.
+ */
+export function withdrawFormCompleted(merchantSessionId) {
+  return (dispatch) => {
+    request
+    .post('/api/cash/withdraw-session/')
+    .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
+    .send({
+      session_id: merchantSessionId,
+    })
+    .end((err, res) => {
+      if (err) {
+        Raven.captureException(err);
+        log.error(err, res);
+      }
+
+      dispatch(fetchCashBalanceIfNeeded());
+    });
+  };
+}
 
 
 function depositSuccess(body) {

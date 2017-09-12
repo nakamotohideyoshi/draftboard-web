@@ -203,7 +203,7 @@ class GidxTransactionStatusWebhookResponse(object):
         """
         # These ones are considered to be processed, we can now fetch their details.
         complete_statuses = [1, 2, 3, 5]
-        status_code = self.json['TransactionStatusCode']
+        status_code = int(self.json['TransactionStatusCode'])
 
         # Let's find out how many of these there are.
         if status_code in [-1]:
