@@ -3,7 +3,10 @@
 
 from django.conf.urls import url
 from cash.views import TransactionHistoryAPIView, BalanceAPIView, TransactionDetailAPIView
-from cash.withdraw.views import GidxWithdrawFormAPIView
+from cash.withdraw.views import (
+    GidxWithdrawFormAPIView,
+    GidxWithdrawSessionComplete
+)
 
 urlpatterns = [
 
@@ -21,5 +24,7 @@ urlpatterns = [
 
     # Fetch + return a GIDX withdraw form
     url(r'^withdraw-form/(?P<amount>[0-9.]+)/$', GidxWithdrawFormAPIView.as_view()),
+
+    url(r'^withdraw-session/$', GidxWithdrawSessionComplete.as_view()),
 
 ]
