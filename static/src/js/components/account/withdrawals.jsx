@@ -3,7 +3,7 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import { fetchWithdrawForm } from '../../actions/payments';
+import { fetchWithdrawForm, withdrawFormCompleted } from '../../actions/payments';
 import { verifyLocation, fetchUser } from '../../actions/user';
 import PubSub from 'pubsub-js';
 const { Provider, connect } = ReactRedux;
@@ -19,7 +19,26 @@ window.gidxServiceSettings = () => {
 };
 
 window.gidxServiceStatus = (service, action, json) => {
-  log.info(service, action, json);
+  // If the withdraw process is finished, send a message to our server to withdraw funds from the
+  // user's account.
+  if (service === 'cashierFinalize-plate' && action === 'end') {
+    const appState = store.getState();
+    const msid = appState.payments.gidx.withdrawForm.merchantSessionId;
+
+    if (!msid) {
+      // If we don't have a session id, something went wrong so report it to sentry.
+      Raven.captureMessage('MerchantSessionId missing!', {
+        extra: appState.payments.gidx,
+        level: 'error',
+      });
+
+      return;
+    }
+
+    // Dispatch the init withdraw event which will send a request to our server to create
+    // a withdraw for the user.
+    store.dispatch(withdrawFormCompleted(msid));
+  }
 };
 
 window.gidxErrorReport = (error, errorMsg) => {
@@ -43,6 +62,7 @@ function mapStateToProps(state) {
     errors: state.payments.withdrawalFormErrors,
     isWithdrawing: state.payments.isWithdrawing,
     gidxWithdrawForm: state.payments.gidx.withdrawForm,
+    merchantSessionId: state.payments.gidx.withdrawForm.merchantSessionId,
   };
 }
 
@@ -53,6 +73,7 @@ function mapDispatchToProps(dispatch) {
     // onWithdraw: (postData) => dispatch(fetchWithdrawForm(postData)),
     verifyLocation: () => dispatch(verifyLocation()),
     fetchWithdrawForm: (options) => dispatch(fetchWithdrawForm(options)),
+    withdrawFormCompleted: (merchatSessionId) => dispatch(withdrawFormCompleted(merchatSessionId)),
   };
 }
 
@@ -66,6 +87,8 @@ const Withdrawals = React.createClass({
     isWithdrawing: React.PropTypes.bool.isRequired,
     verifyLocation: React.PropTypes.func.isRequired,
     fetchUser: React.PropTypes.func.isRequired,
+    merchantSessionId: React.PropTypes.string,
+    withdrawFormCompleted: React.PropTypes.func.isRequired,
   },
 
 
