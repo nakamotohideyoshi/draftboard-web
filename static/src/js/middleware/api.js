@@ -36,17 +36,7 @@ const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
 
       // If it wasn't a location issue, log the error, and reject the promise.
       // The provided failure action will be called after this.
-      log.debug(`API request failed: ${endpoint}`, response);
-      // Log the request error to Sentry with some info.
-      Raven.captureMessage(
-        `API request failed: ${endpoint}`,
-        { extra: {
-          status: response.status,
-          statusText: response.statusText,
-          url: response.url,
-          detail: response.detail,
-        },
-      });
+      log.info(`API request was not a 2xx response: ${endpoint}`, response);
 
       const reason = json || response;
       return Promise.reject(reason);
