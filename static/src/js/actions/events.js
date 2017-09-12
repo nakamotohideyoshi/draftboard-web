@@ -1,5 +1,6 @@
 import * as ActionTypes from '../action-types';
 import forEach from 'lodash/forEach';
+import { get } from 'lodash';
 import intersection from 'lodash/intersection';
 import log from '../lib/logging';
 import { dateNow } from '../lib/utils';
@@ -64,6 +65,24 @@ export const updatePBPPlayersStats = (sport, playersStats) => (dispatch) => {
   forEach(playersStats, (playerStats) => {
     dispatch(updatePlayerStats(sport, playerStats));
   });
+};
+
+/**
+ * Helper method for determining if an NFL play has a penalty.
+ */
+const hasNFLPenalty = gameEvent => {
+  const { pbp } = gameEvent;
+  const enforcedPenalty = get(pbp, 'statistics.penalty__list.penalty', 0);
+
+  if (pbp.type === 'penalty') {
+    return true;
+  }
+
+  if (enforcedPenalty === 1) {
+    return true;
+  }
+
+  return false;
 };
 
 /**
@@ -177,6 +196,12 @@ export const showGameEvent = (event) => (dispatch, getState) => {
 
     // Skip animating PBPs that are irrelevant to the current lineup.
     if (gameEvent.whichSide === 'none') {
+      return Promise.resolve();
+    }
+
+    // HACK: Prevent plays containing penalties from coming through for NFL
+    // This needs to be moved to an NFL specfic process.
+    if (sport === 'nfl' && hasNFLPenalty(gameEvent)) {
       return Promise.resolve();
     }
   }
