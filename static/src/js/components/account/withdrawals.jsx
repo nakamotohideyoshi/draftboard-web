@@ -28,7 +28,10 @@ window.gidxServiceStatus = (service, action, json) => {
     if (!msid) {
       // If we don't have a session id, something went wrong so report it to sentry.
       Raven.captureMessage('MerchantSessionId missing!', {
-        extra: appState.payments.gidx,
+        extra: {
+          gidx: appState.payments.gidx,
+          json,
+        },
         level: 'error',
       });
 
@@ -70,7 +73,6 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     fetchUser: () => dispatch(fetchUser()),
-    // onWithdraw: (postData) => dispatch(fetchWithdrawForm(postData)),
     verifyLocation: () => dispatch(verifyLocation()),
     fetchWithdrawForm: (options) => dispatch(fetchWithdrawForm(options)),
     withdrawFormCompleted: (merchatSessionId) => dispatch(withdrawFormCompleted(merchatSessionId)),
@@ -184,7 +186,7 @@ const Withdrawals = React.createClass({
             </span>
           </div>
 
-          <input ref="submit" type="submit" className="btn button" value="Withdraw" />
+          <input ref="submit" type="submit" className="button button--gradient" value="Continue..." />
         </fieldset>
         </form>
       </div>
@@ -208,7 +210,9 @@ const Withdrawals = React.createClass({
 
         <div id="GIDX">
           <div ref="GIDX_embed">
-            <div data-gidx-script-loading="true">Loading...</div>
+            <div className="loading-placeholder" data-gidx-script-loading="true">
+              Initializing secure withdraw process...
+            </div>
 
             <div
               id="GIDX_embed_hidden"

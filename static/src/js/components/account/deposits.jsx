@@ -192,7 +192,9 @@ const Deposits = React.createClass({
 
         <div id="GIDX">
           <div ref="GIDX_embed">
-            <div data-gidx-script-loading="true">Loading...</div>
+            <div className="loading-placeholder" data-gidx-script-loading="true">
+              Initializing secure deposit process...
+            </div>
 
             <div
               id="GIDX_embed_hidden"

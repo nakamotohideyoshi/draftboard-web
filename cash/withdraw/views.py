@@ -67,6 +67,16 @@ class GidxWithdrawFormAPIView(APIView):
     @staticmethod
     def get(request, amount):
 
+        # Enforce minimum withdraw amount.
+        if float(amount) < 5:
+            return Response(
+                data={
+                    "status": "FAIL",
+                    "detail": "Minimum withdraw amount is $5.00.",
+                },
+                status=400,
+            )
+
         # Ensure the user has the funds available for withdrawal.
         ct = CashTransaction(request.user)
         has_funds = ct.check_sufficient_funds(int(amount))
@@ -113,7 +123,16 @@ class GidxWithdrawFormAPIView(APIView):
 
 
 class GidxWithdrawSessionComplete(APIView):
-    permission_classes = (IsAuthenticated, HasVerifiedIdentity)
+    """
+    When a user has sucessfully completed the JS drop-in form withdraw session, the client
+    hits this endpoint with a merchant_session_id, we look up that session and create a withdraw
+    for the appropriate amount.
+
+    This is so we can get instantaneous withdraws. Without it, there is a 10-30 second
+    delay between a user requesting a withdraw, and us reducing thier balance, which is ripe
+    for abuse.
+    """
+    permission_classes = (IsAuthenticated, HasIpAccess, HasVerifiedIdentity)
 
     @staticmethod
     def post(request):
@@ -132,6 +151,7 @@ class GidxWithdrawSessionComplete(APIView):
         )
         session_data = gidx_session.request_data
 
+        # Check that they are the correct user for this session
         if not gidx_session.user == request.user:
             raise PermissionDenied(detail='Requesting user does not own this session.')
 
@@ -144,6 +164,7 @@ class GidxWithdrawSessionComplete(APIView):
                 status=400,
             )
 
+        # Make sure we can determine the amount of the withdrawal
         amount = session_data.get('CashierPaymentAmount', {}).get('PaymentAmount')
 
         if not amount:
@@ -155,6 +176,7 @@ class GidxWithdrawSessionComplete(APIView):
                 status=400,
             )
 
+        # Ensure there is not an exiting cash transaction for this transaction.
         merchant_transaction_id = session_data.get('MerchantTransactionID')
         existing_transaction = GidxTransaction.objects.filter(
             merchant_transaction_id=merchant_transaction_id)
