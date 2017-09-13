@@ -32,11 +32,11 @@
       <li {% if '/settings' in request.path %}class="active"{% endif %}>
         <a href="{% url 'frontend:account-settings' %}">Account Settings</a>
       </li>
+      <li {% if '/deposits' in request.path %}class="active"{% endif %}>
+        <a href="{% url 'frontend:account-deposits' %}">Deposit</a>
+      </li>
       <li {% if '/withdraw' in request.path %}class="active"{% endif %}>
         <a href="{% url 'frontend:account-withdraw' %}">Withdraw</a>
-      </li>
-      <li {% if '/deposits' in request.path %}class="active"{% endif %}>
-        <a href="{% url 'frontend:account-deposits' %}">Deposits</a>
       </li>
       <li {% if '/transactions' in request.path %}class="active"{% endif %}>
         <a href="{% url 'frontend:account-transactions' %}">Transaction History</a>

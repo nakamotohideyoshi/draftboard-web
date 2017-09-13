@@ -102,3 +102,7 @@ MIDDLEWARE_CLASSES += (
     # staging site since it's easier for non-technical users.
     # 'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
 )
+
+# Should we allow previously claimed ID's to be verified?
+# This should ONLY be True for testing.
+GIDX_ALLOW_PREVIOUSLY_CLAIMED_ID = True

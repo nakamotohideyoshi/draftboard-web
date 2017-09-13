@@ -183,27 +183,38 @@ const Deposits = React.createClass({
   },
 
 
+  renderPaymentFormContainer() {
+    // If we have a payment form, render the html that the form needs to display itself.
+    if (this.props.gidxPaymentForm.formEmbed) {
+      return (
+        <div>
+          <div id="DepositAmountDisplay"></div>
+          <div id="GIDX_ServiceContainer"></div>
+
+          <div id="GIDX">
+            <div ref="GIDX_embed">
+              <div className="loading-placeholder" data-gidx-script-loading="true">
+                Initializing secure deposit process...
+              </div>
+
+              <div
+                id="GIDX_embed_hidden"
+                ref="originalEmbed"
+                dangerouslySetInnerHTML={{ __html: this.props.gidxPaymentForm.formEmbed }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (<div></div>);
+  },
+
   render() {
     return (
       <div className="cmp-account-deposits">
-
-        <div id="DepositAmountDisplay"></div>
-        <div id="GIDX_ServiceContainer"></div>
-
-        <div id="GIDX">
-          <div ref="GIDX_embed">
-            <div className="loading-placeholder" data-gidx-script-loading="true">
-              Initializing secure deposit process...
-            </div>
-
-            <div
-              id="GIDX_embed_hidden"
-              ref="originalEmbed"
-              dangerouslySetInnerHTML={{ __html: this.props.gidxPaymentForm.formEmbed }}
-            ></div>
-          </div>
-        </div>
-
+        { this.renderPaymentFormContainer() }
         { this.renderIdentityVerificationModalIfNeeded() }
         { this.renderLocationConfirmModalIfNeeded() }
       </div>

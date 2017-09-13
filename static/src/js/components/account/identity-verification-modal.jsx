@@ -77,10 +77,10 @@ const IdentityVerificationModal = React.createClass({
               href="/contests/"
             >Enter Contests</a>
 
-            <div
+            <a
               className="button button--sm-len button--tall button--gradient ok-button"
-              onClick={this.close}
-            >Deposit</div>
+              href="/account/deposits/"
+            >Deposit</a>
           </div>
         </div>
       );

@@ -99,3 +99,8 @@ RAVEN_CONFIG = {
 # Who will recieve flagged identity emails. (this can be empty)
 FLAGGED_IDENTITY_EMAIL_RECIPIENTS = []
 ALLOWED_HOSTS = ['*']
+
+
+# Should we allow previously claimed ID's to be verified?
+# This should ONLY be True for testing.
+GIDX_ALLOW_PREVIOUSLY_CLAIMED_ID = True

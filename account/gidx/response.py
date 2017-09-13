@@ -2,6 +2,7 @@ from logging import getLogger
 import urllib.parse
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.exceptions import (APIException)
+from django.conf import settings
 
 logger = getLogger('account.gidx.request')
 
@@ -114,6 +115,12 @@ class CustomerRegistrationResponse(object):
         this identity has already been verified by us before.
         :return:
         """
+        # The settings override to allow previously claimed IDs to be claimed again.
+        # Should only work on testing.
+        if settings.GIDX_ALLOW_PREVIOUSLY_CLAIMED_ID:
+            logger.warning('Allowing previously claimed ID to be claimed again.')
+            return False
+
         return 'ID-EX' in self.json['ReasonCodes']
 
     def get_reason_codes(self):
