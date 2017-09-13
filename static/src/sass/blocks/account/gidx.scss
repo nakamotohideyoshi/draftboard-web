@@ -206,7 +206,7 @@
   // Dropdown menu buttons
   .dropdown-menu {
     .btn {
-      width: auto;
+      width: auto !important;
       display: inline-block;
       background: none !important;
       color: $primary-charcoal !important;
