@@ -28,11 +28,11 @@ const Sidebar = (props) => (
 
       <a
         href="/account/deposits/"
-        className="balance-summary--action button button--outline-alt1 button--med button--lrg-len"
+        className="balance-summary--action button button--gradient button--med button--lrg-len"
       >Deposit</a>
       <a
         href="/account/withdraw/"
-        className="balance-summary--action button button--gradient button--med button--lrg-len"
+        className="balance-summary--action button button--flat-alt1 button--med button--lrg-len"
       >Withdraw</a>
     </section>
   </div>
