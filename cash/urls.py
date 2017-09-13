@@ -23,7 +23,7 @@ urlpatterns = [
     # url(r'^withdraw/paypal/$', PayPalWithdrawAPIView.as_view()),
 
     # Fetch + return a GIDX withdraw form
-    url(r'^withdraw-form/(?P<amount>[0-9.]+)/$', GidxWithdrawFormAPIView.as_view()),
+    url(r'^withdraw-form/(?P<amount>[a-z0-9\-\.\,$]+)/$', GidxWithdrawFormAPIView.as_view()),
 
     url(r'^withdraw-session/$', GidxWithdrawSessionComplete.as_view()),
 

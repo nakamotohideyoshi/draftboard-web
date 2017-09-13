@@ -66,6 +66,17 @@ class GidxWithdrawFormAPIView(APIView):
 
     @staticmethod
     def get(request, amount):
+        # first make sure it's a float.
+        try:
+            amount = float(amount)
+        except ValueError:
+            return Response(
+                data={
+                    "status": "FAIL",
+                    "detail": "Please enter a valid USD amount",
+                },
+                status=400,
+            )
 
         # Enforce minimum withdraw amount.
         if float(amount) < 5:
@@ -79,7 +90,7 @@ class GidxWithdrawFormAPIView(APIView):
 
         # Ensure the user has the funds available for withdrawal.
         ct = CashTransaction(request.user)
-        has_funds = ct.check_sufficient_funds(int(amount))
+        has_funds = ct.check_sufficient_funds(float(amount))
 
         if not has_funds:
             return Response(

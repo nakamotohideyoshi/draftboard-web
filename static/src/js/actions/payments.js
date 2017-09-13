@@ -84,8 +84,8 @@ export const fetchWithdrawForm = (options) => (dispatch) => {
       return dispatch({
         type: actionTypes.ADD_MESSAGE,
         level: 'warning',
-        header: 'Unable to initial withdrawal',
-        content: action.response.detail,
+        header: 'Unable to initialize withdrawal',
+        content: action.response.detail || '',
       });
     }
 

@@ -4,6 +4,7 @@
 
   .cmp-modal__dialog {
     padding-top: 40px;
+    padding-bottom: 20px;
     min-height: 250px;
   }
 
@@ -18,16 +19,16 @@
     }
   }
 
-  .cmp-identity-form {
-
-  }
-
   .description {
     padding: 0 40px 20px;
   }
 
   .form__fieldset {
     padding-bottom: 0;
+  }
+
+  .form-field__text-input {
+    max-width: 265px;
   }
 
   .birth-date {

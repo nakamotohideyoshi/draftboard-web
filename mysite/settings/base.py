@@ -454,4 +454,6 @@ GIDX_MERCHANT_SESSION_ID_PREFIX = ''
 GIDX_PRODUCT_ID = 'iiXXab0LtUCUdZ_6vcdtvQ'
 GIDX_ACTIVITY_ID = 'FyP1fg_WkU60JnuIarfOQw'
 GIDX_DEVICE_ID = '2bDPorOkPkepDd8-6Fydtw'
-
+# Should we allow previously claimed ID's to be verified?
+# This should ONLY be True for testing.
+GIDX_ALLOW_PREVIOUSLY_CLAIMED_ID = False

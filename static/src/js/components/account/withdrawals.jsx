@@ -182,6 +182,7 @@ const Withdrawals = React.createClass({
                 required
                 min="5"
                 max="1000"
+                step="0.01"
               />
             </span>
           </div>
