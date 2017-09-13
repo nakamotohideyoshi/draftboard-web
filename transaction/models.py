@@ -168,6 +168,9 @@ class Transaction(models.Model):
                     data['contest_pool'] = self.action.contest_pool.name
                     data['description'] = "%s for %s entry" % (
                         data['action']['type'], self.action.contest_pool.name)
+                # Try to add gidx transaction info.
+                if hasattr(self.action, 'merchant_transaction_id'):
+                    data['description'] = data['action']['type']
 
         return data
 

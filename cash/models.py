@@ -83,6 +83,14 @@ class GidxTransaction(models.Model):
             self.merchant_transaction_id
         )
 
+    def to_json(self):
+        return {
+            "created": str(self.created),
+            "description": "User funds transfer",
+            "type": "User funds transfer",
+            "id": self.pk
+        }
+
 
 class PayPalSavedCardTransaction(models.Model):
     """
