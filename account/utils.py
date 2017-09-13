@@ -14,6 +14,7 @@ from ipware.ip import get_real_ip, get_ip
 from raven.contrib.django.raven_compat.models import client
 
 from account import const as _account_const
+from mysite.celery_app import app
 from mysite.legal import (BLOCKED_STATES, LEGAL_COUNTRIES, STATE_AGE_LIMITS)
 from mysite.legal import BLOCKED_STATES_NAMES
 
@@ -331,7 +332,8 @@ MODAL_MESSAGES = {
 }
 
 
-def send_welcome_email(user):
+@app.task(bind=True)
+def send_welcome_email(self, user):
     try:
         logger.info('Sending welcome email to %s.' % user)
         context = {

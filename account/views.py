@@ -73,6 +73,7 @@ from account.serializers import (
 )
 from account.utils import (get_client_ip)
 from account.utils import send_welcome_email
+from cash.models import AdminCashDeposit
 from contest.models import CurrentEntry
 from contest.refund.tasks import unregister_entry_task
 
@@ -445,6 +446,12 @@ class GidxIdentityCallbackAPIView(APIView):
             identity.status = True
             identity.save()
 
+            # If a new identity was created, deposit a signup bonus.
+            if created:
+                logger.info('Depositing signup bonus for user: %s' % user)
+                # And then we deposit their $1 signup bonus.
+                AdminCashDeposit.objects.create(user=user, amount=1, reason="$1 Signup Bonus")
+
         return Response(
             data={
                 # "CustomerID": customer_id,
@@ -534,6 +541,13 @@ class VerifyUserIdentityAPIView(APIView):
                 identity.status = True
                 identity.save()
 
+                # If an identity did not already exist, deposit a signup bonus.
+                if created:
+                    logger.info('Depositing signup bonus for user: %s' % request.user)
+                    # And then we deposit their $1 signup bonus.
+                    AdminCashDeposit.objects.create(
+                        user=request.user, amount=1, reason="$1 Signup Bonus")
+
                 return Response(
                     data={
                         "status": "SUCCESS",
@@ -565,6 +579,13 @@ class VerifyUserIdentityAPIView(APIView):
                 identity.flagged = web_reg_response.is_identity_previously_claimed()
                 identity.status = True
                 identity.save()
+
+                # If an identity did not already exist, deposit a signup bonus.
+                if created:
+                    logger.info('Depositing signup bonus for user: %s' % request.user)
+                    # And then we deposit their $1 signup bonus.
+                    AdminCashDeposit.objects.create(
+                        user=request.user, amount=1, reason="$1 Signup Bonus")
 
                 return Response(
                     data={
@@ -719,7 +740,7 @@ class RegisterAccountAPIView(APIView):
                 authLogin(request, new_user)
 
             # Send a welcome email.
-            send_welcome_email(new_user)
+            send_welcome_email.delay(new_user)
 
             # Everything went OK!
             return Response(data={"detail": "Account Created"}, status=status.HTTP_201_CREATED)

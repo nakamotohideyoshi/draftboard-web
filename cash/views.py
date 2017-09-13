@@ -110,6 +110,8 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         start = datetime.utcfromtimestamp(start_ts)
         end = datetime.utcfromtimestamp(end_ts)
 
+        # TODO: this would be a lot easier if we queried the CashTransactionDetail here
+        # then pulled transactions + actions from that.
         transactions = Transaction.objects.filter(
             user=user, created__range=(start, end)).order_by('-created')
 
