@@ -444,12 +444,15 @@ TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
 LIMIT_DAYS_RESTRAINT = {'MA': 90}
 
 # Sandbox gidx credentials
+# NOTE: The API_URL is different for prod + testing
+GIDX_API_URL = 'https://api.gidx-service.in'
 GIDX_API_KEY = 'k2m9yX4Tl0WXuz8Ahc5muA'
 GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
+# Gets appended to customer ID's to show they are testing IDs.
 GIDX_CUSTOMER_ID_PREFIX = 'TEST--'
 # This is is a prefix to enable testing mode on the client-side of things.
 # GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
-# An empty prefixdisables testing mode.
+# An empty prefix disables testing mode.
 GIDX_MERCHANT_SESSION_ID_PREFIX = ''
 GIDX_PRODUCT_ID = 'iiXXab0LtUCUdZ_6vcdtvQ'
 GIDX_ACTIVITY_ID = 'FyP1fg_WkU60JnuIarfOQw'
