@@ -54,7 +54,7 @@ const tokenizeDescription = recap => {
       tokens = [qb, 'pass intercepted!'];
     } else if (recap.isTurnover()) {
       tokens = [qb, 'pass intercepted! Intended for', receiver, '.'];
-    } if (recap.isTouchdown()) {
+    } else if (recap.isTouchdown()) {
       tokens = [qb, 'to', receiver, `for ${formatYards(completedYards)} and the touchdown!`];
     } else if (recap.isIncompletePass() && isUnknownReceiver) {
       tokens = [qb, `${attemptedYards} yard pass incomplete.`];
@@ -144,7 +144,7 @@ export default class NFLPlayDescription {
   toHTML() {
     return this._tokens.reduce((str, token) => {
       if (token.hasOwnProperty('type') && token.type === 'player') {
-        return `${str} <span class="${token.lineup}"">${token.text}</span>`;
+        return `${str} <span class="${token.lineup}">${token.text}</span>`;
       }
       return `${str} ${token.text}`;
     }, '');
