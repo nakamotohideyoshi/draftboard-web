@@ -2,7 +2,7 @@ import _ from 'lodash';
 import NFLPlayDescription from './NFLPlayDescription';
 
 function yardsToDecimal(yardline) {
-  return yardline / 100;
+  return yardline === 0 ? 0 : yardline / 100;
 }
 
 function mapYardlineToField(yardline, possession, sideOfField, driveDirection) {
