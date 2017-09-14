@@ -449,7 +449,7 @@ GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
 GIDX_CUSTOMER_ID_PREFIX = 'TEST--'
 # This is is a prefix to enable testing mode on the client-side of things.
 # GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
-# An empty prefixdisables testing mode.
+# An empty prefix disables testing mode.
 GIDX_MERCHANT_SESSION_ID_PREFIX = ''
 GIDX_PRODUCT_ID = 'iiXXab0LtUCUdZ_6vcdtvQ'
 GIDX_ACTIVITY_ID = 'FyP1fg_WkU60JnuIarfOQw'
