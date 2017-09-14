@@ -67,17 +67,7 @@ describe('<Withdrawals /> Component', () => {
   //   assert.lengthOf(wrapper.find('.form-field-message__description'), 3);
   // });
 
-
-  it('resets form values on account.withdrawSuccess pubsub event.', () => {
-    // set some form values
-    wrapper.ref('amount').node.value = '1337';
-    assert.equal(wrapper.ref('amount').node.value, '1337');
-    // Do this syncronously for testing purposes.
-    PubSub.publishSync('account.withdrawSuccess');
-    assert.equal(wrapper.ref('amount').node.value, '');
-  });
-
-
+  
   // it('disables the submit button when a request is pending.', () => {
   //   assert.notInclude(wrapper.ref('submit').node.className, 'button--disabled');
   //   wrapper.setProps({ isWithdrawing: true });
