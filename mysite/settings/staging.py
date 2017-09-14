@@ -103,6 +103,18 @@ MIDDLEWARE_CLASSES += (
     # 'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
 )
 
+# PRODUCTION gidx credentials
+GIDX_API_KEY = 'Gh3LmovP1EeqgckodH-M3A'
+GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
+GIDX_CUSTOMER_ID_PREFIX = 'TEST--'
+# This is is a prefix to enable testing mode on the client-side of things.
+# GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
+# An empty prefix disables testing mode.
+GIDX_MERCHANT_SESSION_ID_PREFIX = ''
+GIDX_PRODUCT_ID = 'fwGvoEufr0SLdI4XuNqDTg'
+GIDX_ACTIVITY_ID = 'E4ubNN3yVEu8_mWYzh7xjw'
+GIDX_DEVICE_ID = 'r_Y0XdsPaE6XcX9vWS8tDw'
+
 # Should we allow previously claimed ID's to be verified?
 # This should ONLY be True for testing.
 GIDX_ALLOW_PREVIOUSLY_CLAIMED_ID = True
