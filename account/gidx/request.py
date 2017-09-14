@@ -370,6 +370,7 @@ class WebRegCreateSession(GidxRequest):
             'EmailAddress': user.email,
             # 04/03/1984 (In MM/DD/YYYY Format)
             'DateOfBirth': date_of_birth,
+            'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/identity-webhook/'),
         }
 
         # Combine the base parameters and the supplied arguments into a single dict that
