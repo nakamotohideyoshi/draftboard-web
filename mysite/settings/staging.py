@@ -104,16 +104,16 @@ MIDDLEWARE_CLASSES += (
 )
 
 # PRODUCTION gidx credentials
-GIDX_API_KEY = 'Gh3LmovP1EeqgckodH-M3A'
-GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
-GIDX_CUSTOMER_ID_PREFIX = 'TEST--'
+GIDX_API_KEY = environ.get('GIDX_API_KEY')
+GIDX_MERCHANT_ID = environ.get('GIDX_MERCHANT_ID')
+# Gets appended to customer ID's to show they are testing IDs.
+GIDX_CUSTOMER_ID_PREFIX = ''
 # This is is a prefix to enable testing mode on the client-side of things.
-# GIDX_MERCHANT_SESSION_ID_PREFIX = 'GIDXSB_'
-# An empty prefix disables testing mode.
-GIDX_MERCHANT_SESSION_ID_PREFIX = ''
-GIDX_PRODUCT_ID = 'fwGvoEufr0SLdI4XuNqDTg'
-GIDX_ACTIVITY_ID = 'E4ubNN3yVEu8_mWYzh7xjw'
-GIDX_DEVICE_ID = 'r_Y0XdsPaE6XcX9vWS8tDw'
+# Set to 'GIDXSB_' to enable. An empty prefix disables testing mode.
+GIDX_MERCHANT_SESSION_ID_PREFIX = environ.get('GIDX_MERCHANT_SESSION_ID_PREFIX')
+GIDX_PRODUCT_ID = environ.get('GIDX_PRODUCT_ID')
+GIDX_ACTIVITY_ID = environ.get('GIDX_ACTIVITY_ID')
+GIDX_DEVICE_ID = environ.get('GIDX_DEVICE_ID')
 
 # Should we allow previously claimed ID's to be verified?
 # This should ONLY be True for testing.
