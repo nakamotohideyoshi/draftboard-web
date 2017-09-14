@@ -103,7 +103,8 @@ MIDDLEWARE_CLASSES += (
     # 'account.middleware.access_subdomains.AccessSubdomainsMiddleware',
 )
 
-# PRODUCTION gidx credentials
+# Environment-set gidx credentials
+GIDX_API_URL = environ.get('GIDX_API_URL')
 GIDX_API_KEY = environ.get('GIDX_API_KEY')
 GIDX_MERCHANT_ID = environ.get('GIDX_MERCHANT_ID')
 # Gets appended to customer ID's to show they are testing IDs.

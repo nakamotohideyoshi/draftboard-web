@@ -444,6 +444,8 @@ TRUSTED_SOURCES = ['usatoday', 'rotoworld', 'rotowire']
 LIMIT_DAYS_RESTRAINT = {'MA': 90}
 
 # Sandbox gidx credentials
+# NOTE: The API_URL is different for prod + testing
+GIDX_API_URL = 'https://api.gidx-service.in'
 GIDX_API_KEY = 'k2m9yX4Tl0WXuz8Ahc5muA'
 GIDX_MERCHANT_ID = 'Q2wprL4aKEKEj-dzTu44BA'
 # Gets appended to customer ID's to show they are testing IDs.
