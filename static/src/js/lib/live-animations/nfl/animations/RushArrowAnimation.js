@@ -25,6 +25,10 @@ export default class RushArrowAnimation {
   play(recap, field, startingYardline, endingYardline, fieldY) {
     let arrowStop = endingYardline;
 
+    if (recap.rushingYards() === 0) {
+      return Promise.resolve();
+    }
+
     // You need at least 2 yards to successfully draw the arrow.
     // Unless it's TD... if it's a TD we force the arrow.
     if (recap.rushingYards() < 0.02 && !recap.isTouchdown()) {
