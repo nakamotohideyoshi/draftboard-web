@@ -23,8 +23,10 @@ export default class RushArrowAnimation {
   }
 
   play(recap, field, startingYardline, endingYardline, fieldY) {
+    let arrowStop = endingYardline;
+
     // You need at least 2 yards to successfully draw the arrow.
-    // Unless it's  TD... if it's a TD we force the arrow.
+    // Unless it's TD... if it's a TD we force the arrow.
     if (recap.rushingYards() < 0.02 && !recap.isTouchdown()) {
       return Promise.resolve();
     }
@@ -34,12 +36,17 @@ export default class RushArrowAnimation {
       return Promise.resolve();
     }
 
-    const arrow = new RushArrow(field, startingYardline, endingYardline, fieldY);
+    // Force the arrow into the endzone during TDs.
+    if (recap.isTouchdown()) {
+      arrowStop = startingYardline < endingYardline ? 1.04 : -0.04;
+    }
+
+    const arrow = new RushArrow(field, startingYardline, arrowStop, fieldY);
     arrow.progress = 0;
     field.addChild(arrow.el, 0, 0, 20);
 
     return new Promise(resolve => {
-      TweenLite.to(arrow, this.getDuration(startingYardline, endingYardline), {
+      TweenLite.to(arrow, this.getDuration(startingYardline, arrowStop), {
         progress: 1,
         ease: 'Linear',
         onComplete: () => resolve(),

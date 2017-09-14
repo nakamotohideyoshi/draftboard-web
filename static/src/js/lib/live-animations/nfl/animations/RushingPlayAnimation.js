@@ -31,7 +31,7 @@ export default class RushingPlayAnimation extends NFLLiveAnimation {
     sequence.push(() => {
       const animation = new RushArrowAnimation();
       return animation.play(recap, field, snapPos.x, downPos.x, snapPos.y);
-    });  
+    });
 
     // Finish the play
     if (!recap.isTouchdown()) {
