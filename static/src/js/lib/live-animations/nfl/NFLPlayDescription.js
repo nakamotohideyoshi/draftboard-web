@@ -5,8 +5,9 @@ import NFLPlayRecapVO from './NFLPlayRecapVO';
  * Formats the provided yards into a string.
  */
 const formatYards = yards => {
-  const suffix = yards === 0 || yards > 1 ? 's' : '';
-  return `${Math.floor(yards)} yard${suffix}`;
+  const amount = yards === 0 ? 0 : parseInt((yards * 100).toFixed(2), 10);
+  const suffix = amount === 0 || amount > 1 ? 's' : '';
+  return `${Math.floor(amount)} yard${suffix}`;
 };
 
 /**
@@ -46,7 +47,7 @@ const tokenizeDescription = recap => {
   if (recap.playType() === NFLPlayRecapVO.PASS) {
     const qb = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.pass__list.player'));
     const receiver = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.receive__list.player'));
-    const completedYards = Math.floor((recap.passingYards() + recap.rushingYards()) * 100);
+    const completedYards = recap.passingYards() + recap.rushingYards();
     const attemptedYards = get(recap._obj, 'pbp.statistics.pass__list.att_yards', '404');
     const isUnknownReceiver = receiver.text === 'Unknown Player';
 
@@ -67,7 +68,7 @@ const tokenizeDescription = recap => {
 
   if (recap.playType() === NFLPlayRecapVO.RUSH) {
     const rusher = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.rush__list.player'));
-    const rushingYards = Math.floor(recap.rushingYards() * 100);
+    const rushingYards = recap.rushingYards();
 
     if (recap.isTouchdown()) {
       tokens = [rusher, `rushed ${recap.side()} for ${formatYards(rushingYards)} and the touchdown!`];
@@ -81,7 +82,7 @@ const tokenizeDescription = recap => {
   if (recap.playType() === NFLPlayRecapVO.PUNT) {
     const receiver = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.return__list.player'));
     const kickingTeam = get(recap._obj, 'pbp.start_situation.possession.alias', '???');
-    const returnYards = recap.rushingYards() * 100;
+    const returnYards = recap.rushingYards();
 
     if (recap.isTouchdown()) {
       tokens = [receiver, `returns the ${kickingTeam} punt ${formatYards(returnYards)} for touchdown!`];
