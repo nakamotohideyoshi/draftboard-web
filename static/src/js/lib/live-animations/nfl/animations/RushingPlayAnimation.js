@@ -27,13 +27,11 @@ export default class RushingPlayAnimation extends NFLLiveAnimation {
       return animation.play(recap, field, 'quarterback');
     });
 
-    // Rush for yards (except short handoffs)
-    if (recap.qbAction() !== NFLPlayRecapVO.HANDOFF_SHORT) {
-      sequence.push(() => {
-        const animation = new RushArrowAnimation();
-        return animation.play(recap, field, snapPos.x, downPos.x, snapPos.y);
-      });
-    }
+    // Rush for yards
+    sequence.push(() => {
+      const animation = new RushArrowAnimation();
+      return animation.play(recap, field, snapPos.x, downPos.x, snapPos.y);
+    });  
 
     // Finish the play
     if (!recap.isTouchdown()) {
