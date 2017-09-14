@@ -10,56 +10,6 @@ const { Provider, connect } = ReactRedux;
 import log from '../../lib/logging';
 
 
-// These functions are needed for the GIDX embed script.
-window.gidxServiceSettings = () => {
-  window.gidxBuildSteps = true;
-  // this is the dom object (div) where the cashier/registration service should be embedded
-  // son the page.
-  window.gidxContainer = '#GIDX_ServiceContainer';
-};
-
-window.gidxServiceStatus = (service, action, json) => {
-  // If the withdraw process is finished, send a message to our server to withdraw funds from the
-  // user's account.
-  if (service === 'cashierFinalize-plate' && action === 'end') {
-    const appState = store.getState();
-    const msid = appState.payments.gidx.withdrawForm.merchantSessionId;
-
-    if (!msid) {
-      // If we don't have a session id, something went wrong so report it to sentry.
-      Raven.captureMessage('MerchantSessionId missing!', {
-        extra: {
-          gidx: appState.payments.gidx,
-          json,
-        },
-        level: 'error',
-      });
-
-      return;
-    }
-
-    // Dispatch the init withdraw event which will send a request to our server to create
-    // a withdraw for the user.
-    store.dispatch(withdrawFormCompleted(msid));
-  }
-};
-
-window.gidxErrorReport = (error, errorMsg) => {
-    // Error messages will be sent here by the GIDX Client Side Service
-  log.error('======= gidxErrorReport =========');
-  // send errors to Sentry.
-  Raven.captureMessage(errorMsg, {
-    error,
-    level: 'error',
-  });
-  log.error(error, errorMsg);
-};
-
-window.gidxNextStep = () => {
-  log.info('gidxNextStep');
-};
-
-
 function mapStateToProps(state) {
   return {
     errors: state.payments.withdrawalFormErrors,
@@ -102,6 +52,55 @@ const Withdrawals = React.createClass({
 
 
   componentWillMount() {
+    // These functions are needed for the GIDX embed script.
+    window.gidxServiceSettings = () => {
+      window.gidxBuildSteps = true;
+      // this is the dom object (div) where the cashier/registration service should be embedded
+      // son the page.
+      window.gidxContainer = '#GIDX_ServiceContainer';
+    };
+
+    window.gidxServiceStatus = (service, action, json) => {
+      // If the withdraw process is finished, send a message to our server to withdraw funds from the
+      // user's account.
+      if (service === 'cashierFinalize-plate' && action === 'end') {
+        const appState = store.getState();
+        const msid = appState.payments.gidx.withdrawForm.merchantSessionId;
+
+        if (!msid) {
+          // If we don't have a session id, something went wrong so report it to sentry.
+          Raven.captureMessage('MerchantSessionId missing!', {
+            extra: {
+              gidx: appState.payments.gidx,
+              json,
+            },
+            level: 'error',
+          });
+
+          return;
+        }
+
+        // Dispatch the init withdraw event which will send a request to our server to create
+        // a withdraw for the user.
+        store.dispatch(withdrawFormCompleted(msid));
+      }
+    };
+
+    window.gidxErrorReport = (error, errorMsg) => {
+        // Error messages will be sent here by the GIDX Client Side Service
+      log.error('======= gidxErrorReport =========');
+      // send errors to Sentry.
+      Raven.captureMessage(errorMsg, {
+        error,
+        level: 'error',
+      });
+      log.error(error, errorMsg);
+    };
+
+    window.gidxNextStep = () => {
+      log.info('gidxNextStep');
+    };
+
     this.props.fetchUser();
     // First check if the user's location is valid. they will be redirected if
     // it isn't.

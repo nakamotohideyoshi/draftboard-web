@@ -16,34 +16,6 @@ import RestrictedLocationConfirmModal from './restricted-location-confirm-modal'
 import IdentityVerificationModal from './identity-verification-modal';
 
 
-// These functions are needed for the GIDX embed script.
-window.gidxServiceSettings = () => {
-  window.gidxBuildSteps = true;
-  // this is the dom object (div) where the cashier/registration service should be embedded
-  // son the page.
-  window.gidxContainer = '#GIDX_ServiceContainer';
-};
-
-window.gidxServiceStatus = (service, action, json) => {
-  log.info(service, action, json);
-};
-
-window.gidxErrorReport = (error, errorMsg) => {
-    // Error messages will be sent here by the GIDX Client Side Service
-  log.error('======= gidxErrorReport =========');
-  // send errors to Sentry.
-  Raven.captureMessage(errorMsg, {
-    error,
-    level: 'error',
-  });
-  log.error(error, errorMsg);
-};
-
-window.gidxNextStep = () => {
-  log.info('gidxNextStep');
-};
-
-
 function mapStateToProps(state) {
   return {
     user: state.user.user,
@@ -108,6 +80,33 @@ const Deposits = React.createClass({
 
 
   componentWillMount() {
+    // These functions are needed for the GIDX embed script.
+    window.gidxServiceSettings = () => {
+      window.gidxBuildSteps = true;
+      // this is the dom object (div) where the cashier/registration service should be embedded
+      // son the page.
+      window.gidxContainer = '#GIDX_ServiceContainer';
+    };
+
+    window.gidxServiceStatus = (service, action, json) => {
+      log.info(service, action, json);
+    };
+
+    window.gidxErrorReport = (error, errorMsg) => {
+        // Error messages will be sent here by the GIDX Client Side Service
+      log.error('======= gidxErrorReport =========');
+      // send errors to Sentry.
+      Raven.captureMessage(errorMsg, {
+        error,
+        level: 'error',
+      });
+      log.error(error, errorMsg);
+    };
+
+    window.gidxNextStep = () => {
+      log.info('gidxNextStep');
+    };
+
     this.props.fetchUser();
     this.props.fetchDepositForm();
 
