@@ -7,11 +7,6 @@ export const clip = {
   registration_y: 106,
   cuepoints: [
     {
-      name: 'avatar',
-      in: 36,
-      data: { x: 86, y: 30, type: 'receiver', pause: true },
-    },
-    {
       name: 'catch',
       in: 34,
       data: { x: 86, y: 30 },
