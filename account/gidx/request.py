@@ -207,7 +207,7 @@ class CustomerRegistrationRequest(GidxRequest):
      This method should be called to register the customer within the GIDX system and find
      verify a match to their identity.
     """
-    url = 'https://api.gidx-service.in/v3.0/api/CustomerIdentity/CustomerRegistration'
+    url = settings.GIDX_API_URL + '/v3.0/api/CustomerIdentity/CustomerRegistration'
     service_type = 'CustomerRegistration'
     responseClass = CustomerRegistrationResponse
     action_name = "CUSTOMER_REGISTRATION_REQUEST"
@@ -260,7 +260,7 @@ class RegistrationStatusRequest(GidxRequest):
     Check the status of a user's registration.
     (http://www.tsevo.com/Docs/WebReg)
     """
-    url = 'https://api.gidx-service.in/v3.0/api/WebReg/RegistrationStatus'
+    url = settings.GIDX_API_URL + '/v3.0/api/WebReg/RegistrationStatus'
     service_type = 'RegistrationStatus'
     responseClass = CustomerRegistrationResponse
     action_name = "REGISTRATION_STATUS_REQUEST"
@@ -343,7 +343,7 @@ class WebRegCreateSession(GidxRequest):
 
     (http://www.tsevo.com/Docs/WebReg#MethodRef_ID_CreateSession)
     """
-    url = 'https://api.gidx-service.in/v3.0/api/WebReg/CreateSession'
+    url = settings.GIDX_API_URL + '/v3.0/api/WebReg/CreateSession'
     service_type = 'WebReg_CreateSession'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_REG_CREATE_SESSION_REQUEST"
@@ -370,6 +370,7 @@ class WebRegCreateSession(GidxRequest):
             'EmailAddress': user.email,
             # 04/03/1984 (In MM/DD/YYYY Format)
             'DateOfBirth': date_of_birth,
+            'CallbackURL': '%s%s' % (get_webhook_base_url(), '/api/account/identity-webhook/'),
         }
 
         # Combine the base parameters and the supplied arguments into a single dict that
@@ -393,7 +394,7 @@ class WebCashierCreateSession(GidxRequest):
      http://www.tsevo.com/Docs/WebCashier#MethodRef_ID_CreateSession
     """
 
-    url = 'https://api.gidx-service.in/v3.0/api/WebCashier/CreateSession'
+    url = settings.GIDX_API_URL + '/v3.0/api/WebCashier/CreateSession'
     service_type = 'WebCashier_CreateSession'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_CACHIER_CREATE_SESSION_REQUEST"
@@ -439,7 +440,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
      http://www.tsevo.com/Docs/WebCashier#MethodRef_ID_PaymentDetail
     """
 
-    url = 'https://api.gidx-service.in/v3.0/api/WebCashier/PaymentDetail'
+    url = settings.GIDX_API_URL + '/v3.0/api/WebCashier/PaymentDetail'
     service_type = 'WebCashier_PaymentDetail'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_CACHIER_PAYMENT_DETAIL_REQUEST"
@@ -692,7 +693,7 @@ class WebCashierCreatePayoutSession(GidxRequest):
      http://www.tsevo.com/Docs/WebCashier#MethodRef_ID_CreateSession
     """
 
-    url = 'https://api.gidx-service.in/v3.0/api/WebCashier/CreateSession'
+    url = settings.GIDX_API_URL + '/v3.0/api/WebCashier/CreateSession'
     service_type = 'WebCashier_CreateSession'
     responseClass = WebRegCreateSessionResponse
     action_name = "WEB_CACHIER_CREATE_SESSION_REQUEST"
