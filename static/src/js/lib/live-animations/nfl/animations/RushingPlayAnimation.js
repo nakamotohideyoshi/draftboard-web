@@ -1,5 +1,4 @@
 import NFLLiveAnimation from './NFLLiveAnimation';
-import NFLPlayRecapVO from '../NFLPlayRecapVO';
 import PlayerAnimation from './PlayerAnimation';
 import RushArrowAnimation from './RushArrowAnimation';
 import YardlineAnimation from './YardlineAnimation';
