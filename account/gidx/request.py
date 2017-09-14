@@ -6,16 +6,15 @@ from logging import getLogger
 import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 from raven.contrib.django.raven_compat.models import client
 from rest_framework.exceptions import (APIException, ValidationError)
 
 from cash.classes import CashTransaction
+from cash.models import GidxTransaction
 from mysite.celery_app import app
-from transaction.tasks import send_deposit_receipt
 from .models import GidxSession
 from .response import (CustomerRegistrationResponse, WebRegCreateSessionResponse)
-from cash.models import GidxTransaction
+from .exceptions import NoPaymentsExistInPaymentDetailException
 
 
 logger = getLogger('account.gidx.request')
@@ -224,7 +223,7 @@ class CustomerRegistrationRequest(GidxRequest):
         args = {
             # A unique SessionID from your system assigned to this active session.
             'MerchantSessionID': '%s%s' % (
-            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
+                settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'DeviceIpAddress': ip_address,
@@ -360,7 +359,7 @@ class WebRegCreateSession(GidxRequest):
         args = {
             # A unique SessionID from your system assigned to this active session.
             'MerchantSessionID': '%s%s' % (
-            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
+                settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'CustomerIpAddress': ip_address,
@@ -410,7 +409,7 @@ class WebCashierCreateSession(GidxRequest):
         args = {
             # A unique SessionID from your system assigned to this active session.
             'MerchantSessionID': '%s%s' % (
-            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
+                settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'CustomerIpAddress': ip_address,
@@ -530,7 +529,7 @@ class WebCashierPaymentDetailRequest(GidxRequest):
             if len(self.response_wrapper.json['PaymentDetails']) == 0:
                 error_msg = 'PaymentDetails list is empty! -- %s' % self.response_wrapper.json
                 logger.error(error_msg)
-                raise Exception(error_msg)
+                raise NoPaymentsExistInPaymentDetailException(error_msg)
 
             return True
 
@@ -680,10 +679,12 @@ def make_web_cashier_payment_detail_request(self, user, transaction_id, session_
         logger.warning(
             'Payment Detail contained no payment info! %s' % payment_detail_response.json)
 
+    return payment_detail_request
+
 class WebCashierCreatePayoutSession(GidxRequest):
     """
-     This method should be called to create a new PAYOUT Cashier Web Session within the GIDX system for
-     payments.
+     This method should be called to create a new PAYOUT Cashier Web Session within the GIDX system
+     for payments.
 
     A payout is just like a depsit except the `PayActionCode` is `PAYOUT` instead of `PAY` and
     we need to add an amount into the request.
@@ -706,7 +707,7 @@ class WebCashierCreatePayoutSession(GidxRequest):
         args = {
             # A unique SessionID from your system assigned to this active session.
             'MerchantSessionID': '%s%s' % (
-            settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
+                settings.GIDX_MERCHANT_SESSION_ID_PREFIX, get_short_uuid()),
             # IP address for the current device (The Customers' Device – NOT your servers
             # IP address) for this active session.
             'CustomerIpAddress': ip_address,
