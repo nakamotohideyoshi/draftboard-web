@@ -51,9 +51,14 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
    */
   getCatchPos(recap, field) {
     const y = field.getSideOffsetY(recap.side());
-    const x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
+    let x = recap.driveDirection() === NFLPlayRecapVO.RIGHT_TO_LEFT
     ? recap.startingYardLine() - recap.passingYards()
     : recap.startingYardLine() + recap.passingYards();
+
+    // Force TDs into the endzone.
+    if (recap.isTouchdown() && recap.rushingYards() === 0) {
+      x = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT ? 1.04 : -0.05;
+    }
 
     return { x, y };
   }
@@ -134,7 +139,6 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
    */
   play(recap, field) {
     const snapPos = this.getSnapPos(recap, field);
-    const catchPos = this.getCatchPos(recap, field);
     const downPos = this.getDownPos(recap, field);
     const sequence = [];
 
@@ -152,15 +156,14 @@ export default class PassingPlayAnimation extends NFLLiveAnimation {
 
     if (!recap.isIncompletePass()) {
       // Rush after catch (but only if it's more than a few yards)
-      if (recap.rushingYards() > 0.03) {
-        sequence.push(() => {
-          const animation = new RushArrowAnimation();
-          const rushEnd = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
-          ? catchPos.x + recap.rushingYards()
-          : catchPos.x - recap.rushingYards();
-          return animation.play(recap, field, catchPos.x, rushEnd, catchPos.y);
-        });
-      }
+      sequence.push(() => {
+        const animation = new RushArrowAnimation();
+        const catchPos = this.getCatchPos(recap, field);
+        const rushEnd = recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
+        ? catchPos.x + recap.rushingYards()
+        : catchPos.x - recap.rushingYards();
+        return animation.play(recap, field, catchPos.x, rushEnd, catchPos.y);
+      });
 
       // Complete the play
       if (!recap.isTouchdown()) {

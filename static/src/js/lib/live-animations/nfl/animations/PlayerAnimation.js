@@ -44,6 +44,10 @@ export default class PlayerAnimation {
     }
 
     if (type === 'reception') {
+      if (recap.isTouchdown() && recap.rushingYards() === 0) {
+        return recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT ? 1.04 : -0.04;
+      }
+
       return recap.driveDirection() === NFLPlayRecapVO.LEFT_TO_RIGHT
         ? recap.startingYardLine() + recap.passingYards()
         : recap.startingYardLine() - recap.passingYards();
