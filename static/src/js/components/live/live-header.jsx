@@ -1,5 +1,4 @@
 import React from 'react';
-import NFLPlayRecapVO from '../../lib/live-animations/nfl/NFLPlayRecapVO';
 import { LiveOverallStatsConnected } from './live-overall-stats';
 
 // assets
@@ -8,32 +7,38 @@ require('../../../sass/blocks/live/live-header.scss');
 export default React.createClass({
 
   propTypes: {
-    animationEvent: React.PropTypes.object,
+    title: React.PropTypes.object,
     contest: React.PropTypes.object.isRequired,
     myLineup: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
+    message: React.PropTypes.shape({
+      title: React.PropTypes.string,
+      description: React.PropTypes.string,
+    }),
   },
 
   /**
    * Renders the DOM for displaying the current animation event's information.
    */
   renderAnimationInfo() {
-    if (!this.props.animationEvent) {
+    if (!this.props.message) {
       return null;
     }
 
-    const playVO = new NFLPlayRecapVO(this.props.animationEvent);
-
     return (
       <div className="live-header__animation-info live-header__animation-info--show">
-        <h2 className="live-header__animation-info__type">
-          {`${playVO.playTitle().toUpperCase()}`}
-        </h2>
-        <div className="live-header__animation-info__description">
-          {playVO.playDescription()}
-        </div>
+        { this.props.message.title &&
+          <h2 className="live-header__animation-info__type">
+            {`${this.props.message.title.toUpperCase()}`}
+          </h2>
+        }
+        { this.props.message.description &&
+          <div className="live-header__animation-info__description">
+            {this.props.message.description}
+          </div>
+        }
       </div>
     );
   },
@@ -42,7 +47,7 @@ export default React.createClass({
    * Renders a LiveOverallStatsConnected component.
    */
   renderOverallStats(whichSide, lineup, contest = null) {
-    const modifiers = !this.props.animationEvent ? [] : ['event-ended'];
+    const modifiers = !this.props.message ? [] : ['event-ended'];
 
     // If the lineups name is falsy just show the lineup owner's username.
     let name;

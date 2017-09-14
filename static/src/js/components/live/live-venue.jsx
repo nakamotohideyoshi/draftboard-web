@@ -1,4 +1,5 @@
 import React from 'react';
+import { get } from 'lodash';
 import LiveMLBStage from './live-stage-mlb';
 import LiveHistoryList from '../live/live-history-list';
 import LiveHeader from './live-header';
@@ -20,6 +21,7 @@ export default React.createClass({
   getInitialState() {
     return {
       currentEvent: this.props.currentEvent || null,
+      postPlayDescription: null,
     };
   },
 
@@ -31,8 +33,16 @@ export default React.createClass({
     // Helper method for delaying callbacks within a promise chain.
     const wait = time => new Promise(resolve => setTimeout(resolve, time));
 
-    animationCompletedPromise.then(
-      () => this.setState({ currentEvent: null })
+    animationCompletedPromise.then(() => {
+      if (get(this.state.currentEvent, 'pbp.extra_info.touchdown', false)) {
+        this.setState({ postPlayDescription: { title: 'Touchdown!' } });
+        return wait(3000).then(
+          () => this.setState({ postPlayDescription: null }
+        ));
+      }
+      return this;
+    }).then(
+      () => this.setState({ currentEvent: null, postPlayDescription: null })
     ).then(
       () => wait(1000)
     ).then(
@@ -50,6 +60,7 @@ export default React.createClass({
             lineups={this.props.uniqueLineups.lineups}
             myLineup={this.props.myLineupInfo}
             opponentLineup={this.props.opponentLineup}
+            message={ this.state.postPlayDescription || null }
           />
 
           {this.props.watching.sport === 'mlb' ? (
