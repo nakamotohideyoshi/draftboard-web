@@ -5,7 +5,6 @@ import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { fetchWithdrawForm, withdrawFormCompleted } from '../../actions/payments';
 import { verifyLocation, fetchUser } from '../../actions/user';
-import PubSub from 'pubsub-js';
 const { Provider, connect } = ReactRedux;
 import log from '../../lib/logging';
 
@@ -51,7 +50,7 @@ const Withdrawals = React.createClass({
   },
 
 
-  componentWillMount() {
+  componentDidMount() {
     // These functions are needed for the GIDX embed script.
     window.gidxServiceSettings = () => {
       window.gidxBuildSteps = true;
@@ -97,6 +96,7 @@ const Withdrawals = React.createClass({
       log.error(error, errorMsg);
     };
 
+    // This never works. wtf.
     window.gidxNextStep = () => {
       log.info('gidxNextStep');
     };
@@ -105,7 +105,6 @@ const Withdrawals = React.createClass({
     // First check if the user's location is valid. they will be redirected if
     // it isn't.
     this.props.verifyLocation();
-    PubSub.subscribe('account.withdrawSuccess', () => this.resetForm());
   },
 
 
@@ -127,10 +126,6 @@ const Withdrawals = React.createClass({
       this.refs.originalEmbed.remove();
       this.refs.GIDX_embed.append(newScriptTag);
     }
-  },
-
-  resetForm() {
-    this.refs.amount.value = '';
   },
 
 

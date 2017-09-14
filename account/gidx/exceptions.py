@@ -1,0 +1,2 @@
+class NoPaymentsExistInPaymentDetailException(Exception):
+    pass

@@ -180,3 +180,28 @@ export function deposit(nonce, amount) {
     });
   };
 }
+
+
+export function gidxSessionComplete(sessionId) {
+  return (dispatch) => {
+    log.info(`gidxSessionComplete(${sessionId})`);
+
+    if (!sessionId) {
+      log.error('No sessionId was set.');
+    }
+
+    request
+    .post('/api/cash/session-complete/')
+    .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
+    .send({
+      session_id: sessionId,
+    })
+    .end((err, res) => {
+      if (err) {
+        log.error(err, res);
+      }
+
+      return dispatch(fetchCashBalanceIfNeeded());
+    });
+  };
+}

@@ -16,23 +16,25 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
+from raven.contrib.django.raven_compat.models import client
 from rest_framework import generics
 from rest_framework import response, schemas
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.exceptions import (ValidationError)
+from rest_framework.exceptions import (ValidationError, PermissionDenied)
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-
+from rest_framework.generics import get_object_or_404
 import account.tasks
 from account.forms import (
     LoginForm,
     SelfExclusionForm,
 )
+from account.gidx.exceptions import NoPaymentsExistInPaymentDetailException
 from account.gidx.models import GidxSession
 from account.gidx.request import (
     CustomerRegistrationRequest,
@@ -616,7 +618,8 @@ class GidxDepositAPIView(APIView):
     """
     permission_classes = (IsAuthenticated, HasVerifiedIdentity, HasIpAccess)
 
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         web_cashier = WebCashierCreateSession(
             ip_address=get_client_ip(request),
             user=request.user,
@@ -644,6 +647,73 @@ class GidxDepositAPIView(APIView):
             },
             status=200,
         )
+
+
+class GidxSessionCompleteAPIView(APIView):
+    """
+    When the GIDX drop-in form says that a transaciton has completed, we hit this endpoint
+    with the merchant_session_id - it then fetches the payment details from gidx which will
+    handle balance updates and stuff.
+    """
+    permission_classes = (IsAuthenticated, HasVerifiedIdentity, HasIpAccess)
+
+    @staticmethod
+    def post(request):
+        merchant_session_id = request.data.get('session_id')
+
+        if merchant_session_id is None:
+            return Response(
+                data={"detail": "Session ID is missing"},
+                status=400,
+            )
+
+        # get the merchant session entry that initiated this session.
+        gidx_session = get_object_or_404(
+            GidxSession,
+            session_id=merchant_session_id,
+            service_type='WebCashier_CreateSession'
+        )
+        session_data = gidx_session.request_data
+
+        # Check that they are the correct user for this session
+        if not gidx_session.user == request.user:
+            raise PermissionDenied(detail='Requesting user does not own this session.')
+
+        if not session_data.get('PayActionCode') in ['PAYOUT', 'PAY']:
+            logger.error(
+                'Attempated to GidxSessionComplete a session that is not a '
+                'PAY or PAYOUT: session %s' % gidx_session)
+            return Response(
+                data={"detail": "Not a Payment session."},
+                status=400,
+            )
+
+        transaction_id = session_data.get('MerchantTransactionID')
+
+        try:
+            payment_detail = make_web_cashier_payment_detail_request(
+                user=request.user,
+                transaction_id=transaction_id,
+                session_id=merchant_session_id
+            )
+
+            # As long as nothing errors out, send a 200 back to the browser.
+            return Response(
+                data={
+                    "detail": 'Payment details retrieved. %s payments included.' % (
+                        len(payment_detail.get_cash_payments()))
+                },
+                status=200,
+            )
+
+        except NoPaymentsExistInPaymentDetailException:
+            client.captureException()
+            return Response(
+                data={
+                    "detail": "No payments found in payment detail!"
+                },
+                status=400,
+            )
 
 
 class GidxDepositCallbackAPIView(APIView):

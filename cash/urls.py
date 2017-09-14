@@ -1,8 +1,11 @@
-#
-# urls.py
-
 from django.conf.urls import url
-from cash.views import TransactionHistoryAPIView, BalanceAPIView, TransactionDetailAPIView
+
+from account.views import GidxSessionCompleteAPIView
+from cash.views import (
+    TransactionHistoryAPIView,
+    BalanceAPIView,
+    TransactionDetailAPIView
+)
 from cash.withdraw.views import (
     GidxWithdrawFormAPIView,
     GidxWithdrawSessionComplete
@@ -27,4 +30,5 @@ urlpatterns = [
 
     url(r'^withdraw-session/$', GidxWithdrawSessionComplete.as_view()),
 
+    url(r'^session-complete/$', GidxSessionCompleteAPIView.as_view()),
 ]

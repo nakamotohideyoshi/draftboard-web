@@ -3,14 +3,10 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import { deposit, fetchDepositForm } from '../../actions/payments';
-import { setupBraintree, beginPaypalCheckout } from '../../lib/paypal/paypal';
+import { deposit, fetchDepositForm, gidxSessionComplete } from '../../actions/payments';
 import log from '../../lib/logging';
-import {
-  verifyLocation,
-  fetchUser, verifyIdentity, checkUserIdentityVerificationStatus } from '../../actions/user';
-
-import PubSub from 'pubsub-js';
+import { verifyLocation, fetchUser, verifyIdentity,
+  checkUserIdentityVerificationStatus } from '../../actions/user';
 const { Provider, connect } = ReactRedux;
 import RestrictedLocationConfirmModal from './restricted-location-confirm-modal';
 import IdentityVerificationModal from './identity-verification-modal';
@@ -19,8 +15,6 @@ import IdentityVerificationModal from './identity-verification-modal';
 function mapStateToProps(state) {
   return {
     user: state.user.user,
-    payPalNonce: state.payments.payPalNonce,
-    payPalClientToken: state.payments.payPalClientToken,
     isDepositing: state.payments.isDepositing,
     depositSum: state.user.cashBalance.depositSum,
     depositLimit: state.user.cashBalance.depositLimit,
@@ -28,6 +22,7 @@ function mapStateToProps(state) {
     identityFormInfo: state.user.identityFormInfo,
     gidxFormInfo: state.user.gidxFormInfo,
     gidxPaymentForm: state.payments.gidx.paymentForm,
+    merchantSessionId: state.payments.gidx.paymentForm.merchantSessionId,
   };
 }
 
@@ -35,13 +30,12 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchUser: () => dispatch(fetchUser()),
     deposit: (nonce, amount) => dispatch(deposit(nonce, amount)),
-    setupBraintree: (callback) => setupBraintree(callback),
-    beginPaypalCheckout: (options) => beginPaypalCheckout(options),
     verifyLocation: () => dispatch(verifyLocation()),
     verifyIdentity: (postData) => dispatch(verifyIdentity(postData)),
     checkUserIdentityVerificationStatus: (merchantSessionID) => dispatch(
       checkUserIdentityVerificationStatus(merchantSessionID)),
     fetchDepositForm: () => dispatch(fetchDepositForm()),
+    gidxSessionComplete: (sessionId) => dispatch(gidxSessionComplete(sessionId)),
   };
 }
 
@@ -52,10 +46,6 @@ const Deposits = React.createClass({
     user: React.PropTypes.object.isRequired,
     deposit: React.PropTypes.func.isRequired,
     isDepositing: React.PropTypes.bool.isRequired,
-    payPalNonce: React.PropTypes.string,
-    payPalClientToken: React.PropTypes.string,
-    setupBraintree: React.PropTypes.func.isRequired,
-    beginPaypalCheckout: React.PropTypes.func.isRequired,
     verifyLocation: React.PropTypes.func.isRequired,
     userLocation: React.PropTypes.object.isRequired,
     verifyIdentity: React.PropTypes.func.isRequired,
@@ -67,44 +57,42 @@ const Deposits = React.createClass({
     gidxPaymentForm: React.PropTypes.object.isRequired,
     fetchDepositForm: React.PropTypes.func.isRequired,
     checkUserIdentityVerificationStatus: React.PropTypes.func.isRequired,
+    gidxSessionComplete: React.PropTypes.func.isRequired,
+    merchantSessionId: React.PropTypes.string,
   },
 
 
-  getInitialState() {
-    return {
-      amount: null,
-      paypalInstance: {},
-      paypalButtonEnabled: false,
-    };
-  },
-
-
-  componentWillMount() {
+  componentDidMount() {
+    const self = this;
     // These functions are needed for the GIDX embed script.
     window.gidxServiceSettings = () => {
-      window.gidxBuildSteps = true;
+      window.gidxBuildSteps = false;
       // this is the dom object (div) where the cashier/registration service should be embedded
       // son the page.
       window.gidxContainer = '#GIDX_ServiceContainer';
     };
 
-    window.gidxServiceStatus = (service, action, json) => {
-      log.info(service, action, json);
-    };
-
     window.gidxErrorReport = (error, errorMsg) => {
-        // Error messages will be sent here by the GIDX Client Side Service
-      log.error('======= gidxErrorReport =========');
+      log.error('gidxErrorReport', error, errorMsg);
       // send errors to Sentry.
       Raven.captureMessage(errorMsg, {
         error,
         level: 'error',
       });
-      log.error(error, errorMsg);
     };
 
+    // This never works. wtf.
     window.gidxNextStep = () => {
       log.info('gidxNextStep');
+    };
+
+    window.gidxServiceStatus = (service, action, json) => {
+      log.info('gidxServiceStatus', service, action, json);
+
+      // The trasnaction is complete. Tell our server to fetch the details.
+      if (service === 'cashierComplete-plate' && action === 'start') {
+        self.props.gidxSessionComplete(self.props.merchantSessionId);
+      }
     };
 
     this.props.fetchUser();
@@ -112,9 +100,6 @@ const Deposits = React.createClass({
 
     // First check if the user's location is valid. they will be prompted and warned if not.
     this.props.verifyLocation();
-    // Listen for a succesful deposit message.
-    // When we find out the deposit is a success, reset the form.
-    PubSub.subscribe('account.depositSuccess', () => this.resetForm());
   },
 
   componentDidUpdate(prevProps) {

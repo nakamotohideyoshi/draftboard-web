@@ -14,6 +14,7 @@ const initialState = {
     paymentForm: {
       isFetching: false,
       formEmbed: null,
+      merchantSessionId: null,
     },
     withdrawForm: {
       isFetching: false,
@@ -98,6 +99,7 @@ module.exports = (state = initialState, action) => {
           paymentForm: {
             isFetching: false,
             formEmbed: action.response.detail.form_embed,
+            merchantSessionId: action.response.detail.merchant_session_id,
           },
         },
       });
