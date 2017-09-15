@@ -96,7 +96,7 @@ const tokenizeDescription = recap => {
   if (recap.playType() === NFLPlayRecapVO.KICKOFF) {
     const receiver = createPlayerToken(recap, get(recap._obj, 'pbp.statistics.return__list.player'));
     const kickingTeam = get(recap._obj, 'pbp.start_situation.possession.alias', '???');
-    const returnYards = get(recap._obj, 'pbp.statistics.return__list.yards', 0);
+    const returnYards = recap.rushingYards();
 
     if (recap.isTouchdown()) {
       tokens = [receiver, `returns the ${kickingTeam} kick ${formatYards(returnYards)} for touchdown!`];
