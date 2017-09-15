@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { get, merge } from 'lodash';
 import NFLPlayDescription from './NFLPlayDescription';
 
 function yardsToDecimal(yardline) {
@@ -121,7 +121,7 @@ export default class NFLPlayRecapVO {
    * @return {number}
    */
   passingYards() {
-    const yards = _.get(this._obj, 'pbp.statistics.pass__list.att_yards', 0);
+    const yards = get(this._obj, 'pbp.statistics.pass__list.att_yards', 0);
     return yardsToDecimal(yards);
   }
 
@@ -135,16 +135,16 @@ export default class NFLPlayRecapVO {
     let yards = 0;
     switch (this.playType()) {
       case NFLPlayRecapVO.PASS:
-        yards = _.get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0);
+        yards = get(this._obj, 'pbp.statistics.receive__list.yards_after_catch', 0);
         break;
       case NFLPlayRecapVO.RUSH:
-        yards = _.get(this._obj, 'pbp.statistics.rush__list.yards', 0);
+        yards = get(this._obj, 'pbp.statistics.rush__list.yards', 0);
         break;
       case NFLPlayRecapVO.KICKOFF:
-        yards = _.get(this._obj, 'pbp.statistics.return__list.yards', 0);
+        yards = get(this._obj, 'pbp.statistics.return__list.yards', 0);
         break;
       case NFLPlayRecapVO.PUNT:
-        yards = _.get(this._obj, 'pbp.statistics.return__list.yards', 0);
+        yards = get(this._obj, 'pbp.statistics.return__list.yards', 0);
         break;
       default:
         return 0;
@@ -158,7 +158,7 @@ export default class NFLPlayRecapVO {
    * @return {[type]} [description]
    */
   kickedYards() {
-    return yardsToDecimal(_.get(this._obj, 'pbp.punt__list.yards', 0));
+    return yardsToDecimal(get(this._obj, 'pbp.punt__list.yards', 0));
   }
 
   /**
@@ -281,14 +281,14 @@ export default class NFLPlayRecapVO {
    * Returns true if the play is an incomplete pass.
    */
   isIncompletePass() {
-    return this.isPassingPlay() && _.get(this._obj, 'pbp.statistics.pass__list.complete', 0) === 0;
+    return this.isPassingPlay() && get(this._obj, 'pbp.statistics.pass__list.complete', 0) === 0;
   }
 
   /**
    * Returns true if the play resulted in a touchdown.
    */
   isTouchdown() {
-    return _.get(this._obj, 'pbp.extra_info.touchdown', false) === true;
+    return get(this._obj, 'pbp.extra_info.touchdown', false) === true;
   }
 
   /**
@@ -319,8 +319,10 @@ export default class NFLPlayRecapVO {
    * Returns true if the play contains a fumble.
    */
   isFumble() {
-    const fumbles = _.get(this._obj, 'pbp.statistics.fumble__list', false);
-    return Boolean(fumbles);
+    const fumblesArr = get(this._obj, 'pbp.statistics.fumbles', []);
+    const fumblesList = get(this._obj, 'pbp.statistics.fumble__list', false);
+
+    return Boolean(fumblesArr.length || fumblesList);
   }
 
   /**
@@ -335,7 +337,7 @@ export default class NFLPlayRecapVO {
    * @return {Boolean}
    */
   isTouchback() {
-    return _.get(this._obj, 'pbp.statistics.return__list.touchback', 0) === 1;
+    return get(this._obj, 'pbp.statistics.return__list.touchback', 0) === 1;
   }
 
   /**
@@ -359,7 +361,7 @@ export default class NFLPlayRecapVO {
    * @return {boolean}
    */
   isQBSack() {
-    return _.get(this._obj, 'pbp.statistics.pass__list.sack', false);
+    return get(this._obj, 'pbp.statistics.pass__list.sack', false);
   }
 
   /**
@@ -367,7 +369,7 @@ export default class NFLPlayRecapVO {
    * @return {boolean}
    */
   hasPenalty() {
-    return Boolean(_.get(this._obj, 'pbp.statistics.penalty__list', false));
+    return Boolean(get(this._obj, 'pbp.statistics.penalty__list', false));
   }
 
   /**
@@ -375,7 +377,7 @@ export default class NFLPlayRecapVO {
    */
   players() {
     return this._obj.players.map(
-      player => _.merge(player, {
+      player => merge(player, {
         avatarType: this.getPlayerAvatarTypeBySRID(player.srid_player),
         lineup: this.getPlayerLineupById(player.player_id),
       })
@@ -395,7 +397,7 @@ export default class NFLPlayRecapVO {
     ];
 
     const player = typesByList.find(playerType => (
-      _.get(this._obj, playerType.list) === srid
+      get(this._obj, playerType.list) === srid
     ));
 
     return !player ? 'unknown' : player.type;
