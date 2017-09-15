@@ -70,11 +70,6 @@ export const LiveStandingsPane = React.createClass({
       hasLineupsUsernames: React.PropTypes.bool,
       lineupsUsernames: React.PropTypes.object,
       rankedLineups: React.PropTypes.array,
-      prize: React.PropTypes.shape({
-        info: React.PropTypes.shape({
-          payout_spots: React.PropTypes.number,
-        }),
-      }),
     }),
   },
 
@@ -122,7 +117,7 @@ export const LiveStandingsPane = React.createClass({
     const lineups = contest.rankedLineups
     .filter(lineupId => lineupId !== 1)
     .map(lineupId => contest.lineups[lineupId])
-    .sort((a, b) => b.fp - a.fp);
+    .sort((a, b) => b.rank - a.rank);
 
     return prepareLineups(lineups);
   },
@@ -155,7 +150,6 @@ export const LiveStandingsPane = React.createClass({
       alignItems(lineups, dotWidth);
 
       const lastPosInTheMoney = winners.length ? winners[0].x : 0;
-      console.log(lastPosInTheMoney);
 
       lineups.forEach(lineup => {
         const lineupEl = this.refs[`lineup-${lineup.id}`];
