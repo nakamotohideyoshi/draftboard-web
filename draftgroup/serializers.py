@@ -14,25 +14,31 @@ from roster.models import RosterSpot
 
 class PlayerSerializer(serializers.ModelSerializer):
     game_srid = serializers.SerializerMethodField()
+    player_srid = serializers.SerializerMethodField()
+    team_srid = serializers.SerializerMethodField()
+    season_fppg = serializers.SerializerMethodField()
 
-    def get_game_srid(self, draft_group_player):
+    @staticmethod
+    def get_game_srid(draft_group_player):
         return draft_group_player.game_team.game_srid
 
-    team_srid = serializers.SerializerMethodField()
-
-    def get_team_srid(self, draft_group_player):
+    @staticmethod
+    def get_team_srid(draft_group_player):
         return draft_group_player.game_team.team_srid
 
-    player_srid = serializers.SerializerMethodField()
-
-    def get_player_srid(self, draft_group_player):
+    @staticmethod
+    def get_player_srid(draft_group_player):
         return draft_group_player.player.srid
+
+    @staticmethod
+    def get_season_fppg(draft_group_player):
+        return draft_group_player.player.season_fppg
 
     class Meta:
         model = Player
         fields = ('player_id', 'name', 'salary',
-                  'start', 'position', 'fppg',
-                  'team_alias', 'game_srid', 'team_srid', 'player_srid')
+                  'start', 'position',
+                  'team_alias', 'game_srid', 'team_srid', 'player_srid', 'season_fppg')
 
 
 class PlayerUpdateSerializer(serializers.ModelSerializer):

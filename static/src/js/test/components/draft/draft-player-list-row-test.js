@@ -18,7 +18,7 @@ describe('DraftPlayerListRow Component', function () {
     row: {
       'player_id': 7,
       'salary': 234987,
-      'fppg': 23.888
+      'season_fppg': 23.888
     }
   };
 
