@@ -1364,6 +1364,14 @@ class PbpEventParser(DataDenPbpDescription):
         srid_finder = SridFinder(play)
         srid_games = srid_finder.get_for_field('game__id')
         srid_players = srid_finder.get_for_field('player')
+
+        if srid_players:
+            # remove any defensive players that exist in the `statistics__list.defense__list`
+            for player_srid in srid_players:
+                if player_srid == play['statistics__list'].get('defense__list', {}).get('player'):
+                    logger.info('Removing defensive player from player list: %s' % player_srid)
+                    srid_players.remove(player_srid)
+
         player_stats = self.find_player_stats(srid_players)
 
         logger.debug('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (
