@@ -3,6 +3,7 @@ import merge from 'lodash/merge';
 
 
 const initialState = {
+  isFetching: false,
   allTransactions: [],
   filteredTransactions: [],
   focusedTransactionId: {},
@@ -16,13 +17,27 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
+    case ActionTypes.FETCH_TRANSACTIONS: {
+      return merge({}, state, {
+        isFetching: true,
+      });
+    }
+
+
     case ActionTypes.FETCH_TRANSACTIONS_SUCCESS: {
       const newState = merge({}, state, {});
+      newState.isFetching = false;
       newState.allTransactions = action.body;
       newState.filteredTransactions = action.body;
       return newState;
     }
 
+
+    case ActionTypes.FETCH_TRANSACTIONS_FAIL: {
+      return merge({}, state, {
+        isFetching: false,
+      });
+    }
 
     case ActionTypes.FILTER_TRANSACTIONS: {
       // TODO: filter out transactions if startDate / endDate provided.
