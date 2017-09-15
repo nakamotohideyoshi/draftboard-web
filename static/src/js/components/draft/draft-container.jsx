@@ -448,7 +448,7 @@ const DraftContainer = React.createClass({
               <DraftTableHeader
                 onClick={this.handleSetOrderBy}
                 text="AVG"
-                sortParam="fppg"
+                sortParam="season_fppg"
                 additionalClasses=" padfix"
               />
               <th className="padfix">Last 10</th>
