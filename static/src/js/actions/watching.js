@@ -95,15 +95,18 @@ export const checkForUpdates = () => (dispatch, getState) => {
     const myLineup = state.currentLineups.items[watching.myLineupId] || {};
 
     // if we no longer have a lineup to look at, reset
-    if (!myLineup) return dispatch(resetWatching());
+    if (!myLineup) {
+      return dispatch(resetWatching());
+    }
+
+    dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
+
+    if (watching.opponentLineupId) {
+      dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
+    }
 
     if (dateNow() > myLineup.start && myLineup.hasOwnProperty('draft_group')) {
-      dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
       dispatch(fetchDraftGroupFPIfNeeded(myLineup.draft_group));
-
-      if (watching.opponentLineupId) {
-        dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
-      }
     }
   }
 };
