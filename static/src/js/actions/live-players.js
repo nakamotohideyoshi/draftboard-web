@@ -1,6 +1,5 @@
 import * as ActionTypes from '../action-types';
 import forEach from 'lodash/forEach';
-import merge from 'lodash/merge';
 import { CALL_API } from '../middleware/api';
 import { dateNow, hasExpired } from '../lib/utils';
 
@@ -20,32 +19,18 @@ const { API_DOMAIN = '' } = process.env;
  */
 const receivePlayersStats = (lineupId, response) => {
   const players = {};
-  forEach(response, (player) => {
+
+  forEach(response, player => {
     // don't include if the player hasn't started
     if (player.started === false ||
         player.hasOwnProperty('data') === false ||
-        player.data.length === 0 ||
-        player.data[0].hasOwnProperty('fields') === false) {
+        player.data.length === 0) {
       return;
     }
-
-    const playerFields = player.data[0].fields;
-    const sport = player.data[0].model.split('.')[0];
-
-    players[playerFields.srid_player] = merge(
-      {
-        lineupId,
-        sport,
-        id: playerFields.player_id,
-      },
-      playerFields
-    );
+    players[player.data[0].srid_player] = player.data[0];
   });
 
-  return {
-    lineupId,
-    players,
-  };
+  return { lineupId, players };
 };
 
 /**
