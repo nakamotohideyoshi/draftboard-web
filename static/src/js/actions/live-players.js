@@ -61,7 +61,7 @@ const fetchPlayersStats = (lineupId) => ({
       ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 1,  // 1 minutes
+    expiresAt: dateNow() + 3000 * 60 * 1,  // 3 minutes
     endpoint: `${API_DOMAIN}/api/contest/lineup/${lineupId}/`,
     requestFields: { lineupId },
     callback: (json) => receivePlayersStats(lineupId, json),
