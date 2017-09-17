@@ -17,6 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from cash.classes import CashTransaction
+from cash.models import CashTransactionDetail
 from cash.forms import DepositAmountForm
 from cash.serializers import (
     TransactionHistorySerializer, BalanceSerializer, TransactionDetailSerializer)
@@ -53,8 +54,8 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         If the admin calls this api and ALSO specifies a 'user_id' get PARAM
         then the transactions for that user is displayed.
         """
-        # If no start was provided, use 30 days ago as default.
-        start_ts = self.request.query_params.get('start_ts', int(time()) - 60 * 60 * 24 * 30)
+        # If no start was provided, use 14 days ago as default.
+        start_ts = self.request.query_params.get('start_ts', int(time()) - 60 * 60 * 24 * 14)
         # If no end was provided, use the current time.
         end_ts = self.request.query_params.get('end_ts', int(time()))
         export = self.request.query_params.get('export', None)
@@ -63,7 +64,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         if start_ts > end_ts:
             return Response(
                 status=409,
-                data={'detail': 'start_ts is a later time that end_ts'},
+                data={'detail': 'Starting date is a later than ending date!'},
             )
 
         if export:
@@ -107,17 +108,30 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
 
     @staticmethod
     def filter_on_range(user, start_ts, end_ts):
+        # Add 24hrs to the end timestamp so we get a full days
+        one_day = 24 * 60 * 60
+        end_ts = int(end_ts) + one_day
+
         start = datetime.utcfromtimestamp(start_ts)
         end = datetime.utcfromtimestamp(end_ts)
 
-        # TODO: this would be a lot easier if we queried the CashTransactionDetail here
-        # then pulled transactions + actions from that.
-        transactions = Transaction.objects.filter(
-            user=user, created__range=(start, end)).order_by('-created')
+        cash_transactions = CashTransactionDetail.objects.filter(
+            user=user,
+            created__range=(start, end)
+        ).order_by(
+            '-created'
+        ).select_related(
+            'transaction',
+            'user',
+            'transaction__category',
+            'transaction__user'
+        ).prefetch_related(
+            'transaction__cashtransactiondetail_set'
+        )
 
         return_json = []
-        for transaction in transactions:
-            return_json.append(transaction.to_json(user_only=True))
+        for cash_transaction in cash_transactions:
+            return_json.append(cash_transaction.transaction.to_json(user_only=True))
 
         return Response(return_json)
 

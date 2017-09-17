@@ -16,6 +16,7 @@ function mapStateToProps(state) {
   return {
     transactions: state.transactions.filteredTransactions,
     filters: state.transactions.filters,
+    isFetching: state.transactions.isFetching,
   };
 }
 
@@ -38,6 +39,7 @@ const Transactions = React.createClass({
     fetchTransactions: React.PropTypes.func.isRequired,
     filterTransactions: React.PropTypes.func.isRequired,
     transactionFocused: React.PropTypes.func.isRequired,
+    isFetching: React.PropTypes.bool.isRequired,
   },
 
 
@@ -45,7 +47,7 @@ const Transactions = React.createClass({
     const qs = querystring();
     const fromTo = window.location.search;
     let endDate = new Date();
-    let startDate = new Date().setMonth(endDate.getMonth() - 1);
+    let startDate = new Date().setDate(endDate.getDate() - 14);
 
     if (fromTo === '') {
       this.props.fetchTransactions(startDate, endDate.getTime());
@@ -102,14 +104,27 @@ const Transactions = React.createClass({
     this.props.fetchTransactions(start.getTime(), end.getTime());
   },
 
+  renderResultsTable() {
+    if (this.props.isFetching) {
+      return (
+        <h3>Loading...</h3>
+      );
+    }
+
+    return (
+      <TransactionsTable
+        transactions={this.props.transactions}
+        focusTransaction={this.handleFocusTransaction}
+      />
+    );
+  },
+
+
   render() {
     return (
       <div>
         <TransactionsForm onPeriodSelected={this.handlePeriodSelected} />
-        <TransactionsTable
-          transactions={this.props.transactions}
-          focusTransaction={this.handleFocusTransaction}
-        />
+        {this.renderResultsTable()}
       </div>
     );
   },

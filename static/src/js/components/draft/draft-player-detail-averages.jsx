@@ -87,7 +87,7 @@ const DraftPlayerDetailAverages = (props) => {
                 <li>
                   <div className="stat-name">FP</div>
                   <div className="stat-score">
-                    {roundUpToDecimalPlace(props.player.fppg, 1)}
+                    {roundUpToDecimalPlace(props.player.season_fppg, 1)}
                   </div>
                 </li>
               </ul>
