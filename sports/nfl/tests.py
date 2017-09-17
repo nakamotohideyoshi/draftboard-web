@@ -1118,7 +1118,6 @@ class TestPlayParser(AbstractTest):
         self.assertEqual(
             sent_data['fp_values'][recieve_player_srid], .9)
 
-
     def test_fp_value_pass_intercepted(self):
         sport_db = 'nflo'
         parent_api = 'pbp'
@@ -1215,6 +1214,25 @@ class TestPlayParser(AbstractTest):
         self.assertIsNotNone(sent_data['players'])
         self.assertEqual(2, len(sent_data['players']))
 
+    def test_no_defense_players_in_players_list(self):
+        """
+        Ensure that players in the statistics__list.defense__list do not show up in our
+        compiled players list.
+        """
+
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        parser = self.__parse_and_send(PbpMockData.pass_play, (sport_db + '.' + 'play', parent_api))
+
+        parser.send()
+        sent_data = parser.get_send_data()
+
+        defense_player_srid = PbpMockData.pass_play['statistics__list']['defense__list']['player']
+        self.assertIsNotNone(defense_player_srid)
+
+        for player in sent_data['players']:
+            self.assertNotEquals(defense_player_srid, player.srid_player)
 
     def test_game_info(self):
         sport_db = 'nflo'

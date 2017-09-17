@@ -47,6 +47,8 @@ export function fetchTransactions(startDate = null, endDate = null) {
       endDateUTCSeconds = Math.floor(endDate / 1000);
     }
 
+    // Let the state know we are fetching.
+    dispatch({ type: types.FETCH_TRANSACTIONS });
 
     request
       .get('/api/cash/transactions/')
@@ -63,7 +65,7 @@ export function fetchTransactions(startDate = null, endDate = null) {
           dispatch(addMessage({
             type: types.ADD_MESSAGE,
             header: 'Could not fetch transactions',
-            content: 'Start date is a later time that end date',
+            content: 'Start date is a later time than end date',
             level: 'warning',
             ttl: 3000,
           }));

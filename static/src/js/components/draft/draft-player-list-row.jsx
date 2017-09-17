@@ -137,7 +137,7 @@ const DraftPlayerListRow = React.createClass({
             highlightTeamSrid={this.props.row.team_srid}
           />
         </td>
-        <td>{this.props.row.fppg.toFixed(1)}</td>
+        <td>{this.props.row.season_fppg.toFixed(1)}</td>
         <td className="history"><Sparkline points={this.props.row.history} /></td>
         <td className={salaryClasses}>${this.props.row.salary.toLocaleString('en')}</td>
       </tr>
