@@ -14,7 +14,7 @@ django-braces==1.8.0
 django-lockdown==1.2 # django 1.9.7 uses 1.2 hopefully # for django 1.8 its 1.1
 django-redis==4.4.4
 django-rest-swagger==2.0.3
-djangorestframework==3.4.3
+djangorestframework==3.9.1
 djangorestframework-jwt==1.8
 django-test-without-migrations==0.4  # ???
 docutils==0.12
