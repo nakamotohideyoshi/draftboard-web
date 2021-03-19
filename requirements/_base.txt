@@ -33,7 +33,7 @@ django-pipeline==1.6.13
 django-redis==4.8.0
 django-rest-swagger==2.1.2
 django-test-without-migrations==0.6
-djangorestframework==3.6.3
+djangorestframework==3.11.2
 djangorestframework-jwt==1.10.0
 docutils==0.13.1
 dumb-init==1.2.0
