@@ -75,7 +75,7 @@ py-KISSmetrics==1.0.1
 pyasn1==0.2.3
 pycparser==2.17
 pycrypto==2.6.1
-Pygments==2.2.0
+Pygments==2.7.4
 PyJWT==1.5.0
 pymongo==3.4.0
 pyOpenSSL==17.0.0
