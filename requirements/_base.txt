@@ -87,7 +87,7 @@ raven==6.1.0
 redis==2.10.5
 requests==2.17.3
 responses==0.5.1
-rsa==3.4.2
+rsa==4.7
 s3transfer==0.1.10
 simplegeneric==0.8.1
 simplejson==3.10.0
