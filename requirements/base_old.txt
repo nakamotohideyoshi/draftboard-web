@@ -18,7 +18,7 @@ djangorestframework==3.4.3
 djangorestframework-jwt==1.8
 django-test-without-migrations==0.4  # ???
 docutils==0.12
-eventlet==0.20.0
+eventlet==0.31.0
 geoip2==2.4.0
 greenlet==0.4.11
 gunicorn==19.6.0
