@@ -9,7 +9,7 @@ billiard==3.5.0.2
 boto==2.47.0
 botocore==1.5.58
 braintree==3.37.2
-celery==4.0.2
+celery==5.2.2
 certifi==2017.4.17
 cffi==1.10.0
 chardet==3.0.3
