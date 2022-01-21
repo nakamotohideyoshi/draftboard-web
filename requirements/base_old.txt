@@ -60,7 +60,7 @@ django-debreach==1.1.0
 django-extensions==1.5.9
 
 # Enhanced shell capabilities
-ipython==4.0.3
+ipython==7.16.3
 
 # Sentry dependency
 raven==5.31.0
