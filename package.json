@@ -45,7 +45,7 @@
     "mock-local-storage": "^1.0.2",
     "moment": "^2.13.0",
     "nock": "^9.0.2",
-    "node-sass": "^3.4.2",
+    "node-sass": "^7.0.0",
     "normalizr": "^2.0.1",
     "nouislider": "git://github.com/leongersen/noUiSlider.git",
     "postcss-loader": "^1.1.1",
