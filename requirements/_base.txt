@@ -10,7 +10,7 @@ boto==2.47.0
 botocore==1.5.58
 braintree==3.37.2
 celery==4.0.2
-certifi==2017.4.17
+certifi==2022.12.7
 cffi==1.10.0
 chardet==3.0.3
 colorama==0.3.7
